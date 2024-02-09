@@ -30,14 +30,8 @@ namespace Imui.Utility
             EnsureCapacity(1);
             Array[Count++] = value; 
         }
-
-        public void Add(ref T value)
-        {
-            EnsureCapacity(1);
-            Array[Count++] = value; 
-        }
         
-        public void Push(T value)
+        public void Push(ref T value)
         {
             EnsureCapacity(1);
             Array[Count++] = value;
@@ -72,7 +66,7 @@ namespace Imui.Utility
 
         private void EnsureCapacity(int newElementsCount)
         {
-            var requiredSize = Array.Length + newElementsCount;
+            var requiredSize = Count + newElementsCount;
             var ratio = 1;
 
             while ((Array.Length * ratio) < requiredSize)

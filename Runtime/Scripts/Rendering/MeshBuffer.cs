@@ -12,7 +12,6 @@ namespace Imui.Rendering
         public int[] Indices;
         public MeshData[] Meshes;
         public int MeshesCount;
-        public int CurrentMesh;
 
         public MeshBuffer(int meshesCapacity, int verticesCapacity, int indicesCapacity)
         {
@@ -23,6 +22,20 @@ namespace Imui.Rendering
             Clear();
         }
 
+        public void Trim()
+        {
+            if (MeshesCount == 0)
+            {
+                return;
+            }
+
+            ref var meshData = ref Meshes[MeshesCount - 1];
+            while (meshData.VerticesCount == 0 || meshData.IndicesCount == 0)
+            {
+                meshData = ref Meshes[--MeshesCount - 1];
+            }
+        }
+        
         public void Sort()
         {
             var meshes = new Span<MeshData>(Meshes, 0, MeshesCount);
@@ -45,30 +58,28 @@ namespace Imui.Rendering
         public void Clear()
         {
             MeshesCount = 0;
-            CurrentMesh = -1;
             VerticesCount = 0;
             IndicesCount = 0;
-
-            for (int i = 0; i < Meshes.Length; ++i)
-            {
-                Meshes[i].Clear();
-            }
         }
         
         public void NextMesh()
         {
-            if (CurrentMesh >= 0 && Meshes[CurrentMesh].VerticesCount == 0 && Meshes[CurrentMesh].IndicesCount == 0)
+            if (MeshesCount > 0)
             {
-                Meshes[CurrentMesh].ClearOptions();
-                return;
+                ref var currentMesh = ref Meshes[MeshesCount - 1];
+                if (currentMesh.VerticesCount == 0 && currentMesh.IndicesCount == 0)
+                {
+                    currentMesh.ClearOptions();
+                    return;
+                }
             }
             
             EnsureMeshesCapacity(MeshesCount + 1);
 
-            MeshesCount++;
-            CurrentMesh++;
-            Meshes[CurrentMesh].IndicesOffset = IndicesCount;
-            Meshes[CurrentMesh].VerticesOffset = VerticesCount;
+            ref var mesh = ref Meshes[MeshesCount++];
+            mesh.Clear();
+            mesh.IndicesOffset = IndicesCount;
+            mesh.VerticesOffset = VerticesCount; 
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -116,7 +127,7 @@ namespace Imui.Rendering
 #endif
             
             IndicesCount += count;
-            Meshes[CurrentMesh].IndicesCount += count;
+            Meshes[MeshesCount - 1].IndicesCount += count;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -143,7 +154,7 @@ namespace Imui.Rendering
 #endif
             
             VerticesCount += count;
-            Meshes[CurrentMesh].VerticesCount += count;
+            Meshes[MeshesCount - 1].VerticesCount += count;
         }
     }
 }

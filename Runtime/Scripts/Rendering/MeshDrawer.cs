@@ -30,12 +30,11 @@ namespace Imui.Rendering
             Buffer.NextMesh();
         }
 
-        public void SetMaterial(Material material)
+        public ref MeshData GetMesh()
         {
-            ref var mesh = ref Buffer.Meshes[Buffer.CurrentMesh];
-            mesh.Material = material;
+            return ref Buffer.Meshes[Buffer.MeshesCount - 1];
         }
-
+        
         public void AddQuad(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float z)
         {
             var vc = Buffer.VerticesCount;

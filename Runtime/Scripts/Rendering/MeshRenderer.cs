@@ -27,6 +27,8 @@ namespace Imui.Rendering
         {
             mesh.Clear(true);
             
+            buffer.Trim();
+            
             mesh.SetIndexBufferParams(buffer.IndicesCount, IndexFormat.UInt32);
             mesh.SetVertexBufferParams(buffer.VerticesCount, Vertex.VertexAttributes);
 
@@ -69,7 +71,17 @@ namespace Imui.Rendering
             {
                 ref var meshData = ref buffer.Meshes[i];
                 
+                if (meshData.ClipRect.Enabled)
+                {
+                    cmd.EnableScissorRect(meshData.ClipRect.Rect);
+                }
+                
                 cmd.DrawMesh(mesh, Matrix4x4.identity, meshData.Material, submeshIndex: i, -1);
+                
+                if (meshData.ClipRect.Enabled)
+                {
+                    cmd.DisableScissorRect();
+                }
             }
         }
 

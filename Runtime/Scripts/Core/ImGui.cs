@@ -27,9 +27,14 @@ namespace Imui.Core
             return new Rect(0, 0, Screen.width, Screen.height);
         }
         
-        public void Clear()
+        public void BeginFrame()
         {
-            Canvas.Clear();
+            Canvas.Begin(GetScreen());
+        }
+
+        public void EndFrame()
+        {
+            Canvas.End();
         }
         
         public void Setup(CommandBuffer cmd)
