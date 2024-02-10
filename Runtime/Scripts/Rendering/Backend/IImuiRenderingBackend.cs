@@ -1,9 +1,12 @@
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Imui.Rendering.Backend
 {
     public interface IImuiRenderer
     {
+        void OnFrameBufferSizeChanged(Vector2 frameBufferSize);
+        
         void Setup(CommandBuffer cmd);
         void Render(CommandBuffer cmd);
     }

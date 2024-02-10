@@ -9,10 +9,31 @@ namespace Imui.Core
 {
     public class ImGui : IDisposable, IImuiRenderer
     {
+        private const float UI_SCALE_MIN = 0.05f;
+        private const float UI_SCALE_MAX = 4.0f;
+        
+        public Vector2 Scale
+        {
+            get
+            {
+                return uiScale;
+            }
+            set
+            {
+                var x = Mathf.Clamp(value.x, UI_SCALE_MIN, UI_SCALE_MAX);
+                var y = Mathf.Clamp(value.y, UI_SCALE_MIN, UI_SCALE_MAX);
+                
+                uiScale = new Vector2(x, y);
+            }
+        }
+        
         public MeshRenderer Renderer;
         public MeshDrawer Drawer;
         public ImCanvas Canvas;
 
+        private Vector2 uiScale = Vector2.one;
+        private Vector2 fbSize = Vector2.zero;
+        
         private bool disposed;
         
         public ImGui()
@@ -21,30 +42,31 @@ namespace Imui.Core
             Canvas = new ImCanvas(Drawer);
             Renderer = new MeshRenderer();
         }
-
-        public Rect GetScreen()
-        {
-            return new Rect(0, 0, Screen.width, Screen.height);
-        }
         
         public void BeginFrame()
         {
-            Canvas.Begin(GetScreen());
+            Canvas.SetFrame(fbSize, uiScale);
+            Canvas.Begin();
         }
 
         public void EndFrame()
         {
             Canvas.End();
         }
-        
-        public void Setup(CommandBuffer cmd)
+
+        void IImuiRenderer.OnFrameBufferSizeChanged(Vector2 size)
         {
-            Canvas.Setup(cmd);
+            fbSize = size;
+        }
+        
+        void IImuiRenderer.Setup(CommandBuffer cmd)
+        {
+            Canvas.SetupAtlas(cmd);
         }
 
-        public void Render(CommandBuffer cmd)
+        void IImuiRenderer.Render(CommandBuffer cmd)
         {
-            Renderer.Render(cmd, GetScreen(), Drawer.Buffer);
+            Renderer.Render(cmd, Drawer.Buffer, fbSize, uiScale);
         }
         
         public void Dispose()

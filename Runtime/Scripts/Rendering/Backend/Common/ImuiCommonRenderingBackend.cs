@@ -8,6 +8,8 @@ namespace Imui.Rendering.Backend.Common
     public class ImuiCommonRenderingBackend : MonoBehaviour, IImuiRenderingBackend
     {
         private const CameraEvent RENDER_EVENT = CameraEvent.AfterEverything;
+        private const float RES_SCALE_MIN = 0.2f;
+        private const float RES_SCALE_MAX = 4.0f;
         
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
 
@@ -28,6 +30,8 @@ namespace Imui.Rendering.Backend.Common
         }
         
         [SerializeField] private new Camera camera;
+        [Range(RES_SCALE_MIN, RES_SCALE_MAX)]
+        [SerializeField] private float resolutionScale = 1.0f;
         
         private CommandBuffer renderCmd;
         private CommandBuffer setupCmd;
@@ -68,12 +72,15 @@ namespace Imui.Rendering.Backend.Common
         private void OnValidate()
         {
             Camera = Camera;
+            UpdateRenderTexture();
         }
 
         private void UpdateRenderTexture()
         {
-            var w = Screen.width;
-            var h = Screen.height;
+            resolutionScale = Mathf.Clamp(resolutionScale, RES_SCALE_MIN, RES_SCALE_MAX);
+            
+            var w = (int)(Screen.width * resolutionScale);
+            var h = (int)(Screen.height * resolutionScale);
 
             if (w == 0 || h == 0)
             {
@@ -84,6 +91,11 @@ namespace Imui.Rendering.Backend.Common
             {
                 ReleaseRenderTexture();
                 rt = new RenderTexture(w, h, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.None);
+
+                for (int i = 0; i < renderers.Count; ++i)
+                {
+                    renderers.Array[i].OnFrameBufferSizeChanged(new Vector2(w, h));
+                }
             }
         }
 
@@ -133,6 +145,11 @@ namespace Imui.Rendering.Backend.Common
         public void AddRenderer(IImuiRenderer renderer)
         {
             renderers.Add(renderer);
+
+            if (rt != null)
+            {
+                renderer.OnFrameBufferSizeChanged(new Vector2(rt.width, rt.height));
+            }
         }
 
         // ReSharper disable once ParameterHidesMember

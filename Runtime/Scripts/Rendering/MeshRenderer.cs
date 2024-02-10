@@ -23,7 +23,7 @@ namespace Imui.Rendering
             mesh.MarkDynamic();
         }
 
-        public void Render(CommandBuffer cmd, Rect screen, MeshBuffer buffer)
+        public void Render(CommandBuffer cmd, MeshBuffer buffer, Vector2 size, Vector2 scale)
         {
             mesh.Clear(true);
             
@@ -61,8 +61,10 @@ namespace Imui.Rendering
 
             mesh.UploadMeshData(false);
 
+            size /= scale;
+            
             var view = Matrix4x4.identity;
-            var proj = Matrix4x4.Ortho(screen.xMin, screen.xMax, screen.yMin, screen.yMax, short.MinValue, short.MaxValue);
+            var proj = Matrix4x4.Ortho(0, size.x, 0, size.y, short.MinValue, short.MaxValue);
             var gpuProj = GL.GetGPUProjectionMatrix(proj, true);
             
             cmd.SetGlobalMatrix(ViewProjectionId, view * gpuProj);
@@ -73,7 +75,13 @@ namespace Imui.Rendering
                 
                 if (meshData.ClipRect.Enabled)
                 {
-                    cmd.EnableScissorRect(meshData.ClipRect.Rect);
+                    var clipX = meshData.ClipRect.Rect.xMin * scale.x;
+                    var clipY = meshData.ClipRect.Rect.yMin * scale.y;
+                    var clipW = meshData.ClipRect.Rect.width * scale.x;
+                    var clipH = meshData.ClipRect.Rect.height * scale.y;
+                    var clip = new Rect(clipX, clipY, clipW, clipH);
+                    
+                    cmd.EnableScissorRect(clip);
                 }
                 
                 cmd.DrawMesh(mesh, Matrix4x4.identity, meshData.Material, submeshIndex: i, -1);

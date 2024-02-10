@@ -48,12 +48,15 @@ namespace Imui.Core
             DefaultTexture.Apply();
         }
 
+        public Vector2 ScreenSize => screenSize;
+        
         private Shader shader;
         private Material material;
         private TextureAtlas atlas;
         private DynamicArray<TextureInfo> texturesInfo;
         private DynamicArray<MeshProperties> meshPropertiesStack;
-        private Rect screen;
+        private Vector2 frameSize;
+        private Vector2 screenSize;
         private bool disposed;
         
         private readonly Vector4 defaultTexScaleOffset;
@@ -75,11 +78,15 @@ namespace Imui.Core
             defaultTexScaleOffset.z += defaultTexScaleOffset.x / 2.0f;
             defaultTexScaleOffset.w += defaultTexScaleOffset.y / 2.0f;
         }
-
-        public void Begin(Rect screen)
+        
+        public void SetFrame(Vector2 size, Vector2 scale)
         {
-            this.screen = screen;
-            
+            frameSize = size;
+            screenSize = size / scale;
+        }
+
+        public void Begin()
+        {
             material.SetTexture(MainTexId, atlas.AtlasTexture);
             
             drawer.Clear();
@@ -120,7 +127,7 @@ namespace Imui.Core
             return scaleOffset;
         }
         
-        public void Setup(CommandBuffer cmd)
+        public void SetupAtlas(CommandBuffer cmd)
         {
             for (int i = 0; i < texturesInfo.Count; ++i)
             {
@@ -200,7 +207,7 @@ namespace Imui.Core
                 ClipRect = new MeshClipRect()
                 {
                     Enabled = true,
-                    Rect = screen
+                    Rect = new Rect(Vector2.zero, screenSize)
                 },
                 Material = material
             };
