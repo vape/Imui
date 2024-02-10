@@ -113,9 +113,9 @@ namespace Imui.Rendering
         public void AddIndices(int count)
         {
 #if IMUI_VALIDATION
-            ImuiAssert.False(CurrentMesh < 0, "Empty meshes array");
+            ImuiAssert.False(MeshesCount == 0, "Empty meshes array");
             
-            var from = Meshes[CurrentMesh].IndicesOffset + Meshes[CurrentMesh].IndicesCount;
+            var from = Meshes[MeshesCount - 1].IndicesOffset + Meshes[MeshesCount - 1].IndicesCount;
             var to = from + count;
             
             ImuiAssert.False(to > Indices.Length, "Indices array is too small");
@@ -134,9 +134,9 @@ namespace Imui.Rendering
         public void AddVertices(int count)
         {
 #if IMUI_VALIDATION
-            ImuiAssert.False(CurrentMesh < 0, "Empty meshes array");
+            ImuiAssert.False(MeshesCount == 0, "Empty meshes array");
             
-            var from = Meshes[CurrentMesh].VerticesOffset + Meshes[CurrentMesh].VerticesCount;
+            var from = Meshes[MeshesCount - 1].VerticesOffset + Meshes[MeshesCount - 1].VerticesCount;
             var to = from + count;
             
             ImuiAssert.False(to > Vertices.Length, "Vertices array is too small");

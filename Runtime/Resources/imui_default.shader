@@ -41,7 +41,7 @@
             };
 
             sampler2D _MainTex;
-            float4 _MainTex_ST;
+            sampler2D _FontTex;
                         
             float4x4 _VP;
             
@@ -67,7 +67,8 @@
 
             fixed4 frag(const v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.uv.xy);
+                fixed4 col = lerp(tex2D(_MainTex, i.uv.xy), tex2D(_FontTex, i.uv.xy), i.uv.z);
+                col = lerp(col, fixed4(1, 1, 1, col.w), i.uv.z);
                 col.a *= _MaskEnable
                     ? 1 - saturate(sdf_round_box(i.vertex.xy - _MaskRect.xy, _MaskRect.zw, _MaskCornerRadius) * 2 + 1)
                     : 1;

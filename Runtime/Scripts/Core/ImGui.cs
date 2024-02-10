@@ -9,6 +9,10 @@ namespace Imui.Core
 {
     public class ImGui : IDisposable, IImuiRenderer
     {
+        private const int INIT_MESHES_COUNT = 1024 / 2;
+        private const int INIT_VERTICES_COUNT = 1024 * 16;
+        private const int INIT_INDICES_COUNT = INIT_VERTICES_COUNT * 3;
+
         private const float UI_SCALE_MIN = 0.05f;
         private const float UI_SCALE_MAX = 16.0f;
         
@@ -23,10 +27,12 @@ namespace Imui.Core
                 uiScale = Mathf.Clamp(value, UI_SCALE_MIN, UI_SCALE_MAX);
             }
         }
-        
-        public MeshRenderer Renderer;
-        public MeshDrawer Drawer;
-        public ImCanvas Canvas;
+
+        public readonly MeshBuffer MeshBuffer;
+        public readonly MeshRenderer Renderer;
+        public readonly MeshDrawer MeshDrawer;
+        public readonly TextDrawer TextDrawer;
+        public readonly ImCanvas Canvas;
 
         private float uiScale = 1.0f;
         private Vector2 fbSize = Vector2.zero;
@@ -35,14 +41,21 @@ namespace Imui.Core
         
         public ImGui()
         {
-            Drawer = new MeshDrawer();
-            Canvas = new ImCanvas(Drawer);
+            MeshBuffer = new MeshBuffer(INIT_MESHES_COUNT, INIT_VERTICES_COUNT, INIT_INDICES_COUNT);
+            MeshDrawer = new MeshDrawer(MeshBuffer);
+            TextDrawer = new TextDrawer(MeshBuffer);
+            Canvas = new ImCanvas(MeshDrawer, TextDrawer);
             Renderer = new MeshRenderer();
+        }
+
+        public void SetFont(Font font)
+        {
+            TextDrawer.LoadFont(font);
         }
         
         public void BeginFrame()
         {
-            Canvas.SetFrame(fbSize, uiScale);
+            Canvas.SetScreen(fbSize, uiScale);
             Canvas.Begin();
         }
 
@@ -63,7 +76,7 @@ namespace Imui.Core
 
         void IImuiRenderer.Render(CommandBuffer cmd)
         {
-            Renderer.Render(cmd, Drawer.Buffer, fbSize, uiScale);
+            Renderer.Render(cmd, MeshBuffer, fbSize, uiScale);
         }
         
         public void Dispose()
@@ -73,11 +86,8 @@ namespace Imui.Core
                 return;
             }
             
-            Canvas?.Dispose();
-            Canvas = null;
-            
-            Renderer?.Dispose();
-            Renderer = null;
+            Canvas.Dispose();
+            Renderer.Dispose();
             
             disposed = true;
         }

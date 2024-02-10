@@ -23,19 +23,25 @@ namespace Imui.Core
             public MeshMaskRect MaskRect;
             public int Order;
         }
+
+        // TODO (artem-s): allow to change drawing depth
+        private const int DEFAULT_DEPTH = 0;
         
         private const int DEFAULT_TEX_W = 4;
         private const int DEFAULT_TEX_H = 4;
                 
         private const int MAIN_ATLAS_W = 1024;
         private const int MAIN_ATLAS_H = 1024;
+        
         private const float MAIN_ATLAS_IDX = 0;
-
+        private const float FONT_ATLAS_IDX = 1;
+        
         private const int MESH_PROP_CAPACITY = 16;
         
         private const string SHADER_NAME = "imui_default";
         
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        private static readonly int FontTexId = Shader.PropertyToID("_FontTex");
         
         private static readonly Texture2D DefaultTexture;
 
@@ -50,6 +56,7 @@ namespace Imui.Core
         }
 
         public Vector2 ScreenSize => screenSize;
+        public ImTextLayoutBuilder TextLayoutBuilder => textLayoutBuilder;
         
         private Shader shader;
         private Material material;
@@ -58,20 +65,24 @@ namespace Imui.Core
         private DynamicArray<MeshProperties> meshPropertiesStack;
         private Vector2 frameSize;
         private Vector2 screenSize;
+        private ImTextLayoutBuilder textLayoutBuilder;
         private bool disposed;
         
         private readonly Vector4 defaultTexScaleOffset;
-        private readonly MeshDrawer drawer;
+        private readonly MeshDrawer meshDrawer;
+        private readonly TextDrawer textDrawer;
         
-        public ImCanvas(MeshDrawer drawer)
+        public ImCanvas(MeshDrawer meshDrawer, TextDrawer textDrawer)
         {
-            this.drawer = drawer;
-
+            this.meshDrawer = meshDrawer;
+            this.textDrawer = textDrawer;
+            
             shader = Resources.Load<Shader>(SHADER_NAME);
             material = new Material(shader);
             atlas = new TextureAtlas(MAIN_ATLAS_W, MAIN_ATLAS_H);
             texturesInfo = new DynamicArray<TextureInfo>(capacity: 64);
             meshPropertiesStack = new DynamicArray<MeshProperties>(MESH_PROP_CAPACITY);
+            textLayoutBuilder = new ImTextLayoutBuilder(textDrawer);
 
             defaultTexScaleOffset = AddToAtlas(DefaultTexture);
             defaultTexScaleOffset.x *= 0.5f;
@@ -80,7 +91,7 @@ namespace Imui.Core
             defaultTexScaleOffset.w += defaultTexScaleOffset.y / 2.0f;
         }
         
-        public void SetFrame(Vector2 size, float scale)
+        public void SetScreen(Vector2 size, float scale)
         {
             frameSize = size;
             screenSize = size / scale;
@@ -89,8 +100,9 @@ namespace Imui.Core
         public void Begin()
         {
             material.SetTexture(MainTexId, atlas.AtlasTexture);
+            material.SetTexture(FontTexId, textDrawer.FontAtlas);
             
-            drawer.Clear();
+            meshDrawer.Clear();
 
             var defaultProperties = GetDefaultMeshProperties();
             PushMeshProperties(ref defaultProperties);
@@ -210,7 +222,7 @@ namespace Imui.Core
         public void PushMeshProperties(ref MeshProperties properties)
         {
             meshPropertiesStack.Push(ref properties);
-            drawer.NextMesh();
+            meshDrawer.NextMesh();
             
             ApplyMeshProperties();
         }
@@ -218,14 +230,14 @@ namespace Imui.Core
         public void PopMeshProperties()
         {
             meshPropertiesStack.Pop();
-            drawer.NextMesh();
+            meshDrawer.NextMesh();
             
             ApplyMeshProperties();
         }
         
         private void ApplyMeshProperties()
         {
-            ref var mesh = ref drawer.GetMesh();
+            ref var mesh = ref meshDrawer.GetMesh();
             ref var prop = ref meshPropertiesStack.Peek();
 
             mesh.Material = prop.Material;
@@ -255,10 +267,43 @@ namespace Imui.Core
 
         public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset)
         {
-            drawer.Color = color;
-            drawer.ScaleOffset = texScaleOffset;
-            drawer.UVZ = MAIN_ATLAS_IDX;
-            drawer.AddQuad(rect.X, rect.Y, rect.W, rect.H, 0);
+            meshDrawer.Color = color;
+            meshDrawer.ScaleOffset = texScaleOffset;
+            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H, DEFAULT_DEPTH);
+        }
+
+        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
+        {
+            textDrawer.Color = color;
+            textDrawer.UVZ = FONT_ATLAS_IDX;
+            textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y, DEFAULT_DEPTH);
+        }
+
+        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
+        {
+            textDrawer.Color = color;
+            textDrawer.UVZ = FONT_ATLAS_IDX;
+            textDrawer.AddTextWithLayout(text, in layout, position.x, position.y, DEFAULT_DEPTH);
+        }
+
+        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextLayoutSettings settings)
+        {
+            ref readonly var layout = ref textLayoutBuilder.BuildLayout(text, settings, rect.W, rect.H);
+            Text(text, color, rect.TopLeft, in layout);
+        }
+        
+        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextLayoutSettings settings, out ImRect textRect)
+        {
+            ref readonly var layout = ref textLayoutBuilder.BuildLayout(text, settings, rect.W, rect.H);
+            
+            textRect = new ImRect(
+                rect.X + layout.OffsetX, 
+                rect.Y + layout.OffsetY - (layout.Height - rect.H), 
+                layout.Width, 
+                layout.Height);
+            
+            Text(text, color, rect.TopLeft, in layout);
         }
 
         public void Dispose()
