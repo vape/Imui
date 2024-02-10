@@ -13,17 +13,24 @@ namespace Imui.Rendering
             MeshUpdateFlags.DontValidateIndices;
 
         private static readonly int ViewProjectionId = Shader.PropertyToID("_VP");
+        private static readonly int MaskEnabledId = Shader.PropertyToID("_MaskEnable");
+        private static readonly int MaskRectId = Shader.PropertyToID("_MaskRect");
+        private static readonly int MaskCornerRadiusId = Shader.PropertyToID("_MaskCornerRadius");
+        
+        private readonly MaterialPropertyBlock sharedPropertyBlock;
         
         private Mesh mesh;
         private bool disposed;
         
         public MeshRenderer()
         {
+            sharedPropertyBlock = new MaterialPropertyBlock();
+            
             mesh = new Mesh();
             mesh.MarkDynamic();
         }
 
-        public void Render(CommandBuffer cmd, MeshBuffer buffer, Vector2 size, Vector2 scale)
+        public void Render(CommandBuffer cmd, MeshBuffer buffer, Vector2 size, float scale)
         {
             mesh.Clear(true);
             
@@ -73,18 +80,35 @@ namespace Imui.Rendering
             {
                 ref var meshData = ref buffer.Meshes[i];
                 
+                MaterialPropertyBlock properties = null;
+                
+                if (meshData.MaskRect.Enabled)
+                {
+                    var radius = meshData.MaskRect.Radius * scale;
+                    var rect = meshData.MaskRect.Rect;
+                    rect.x *= scale;
+                    rect.y *= scale;
+                    rect.z *= scale;
+                    rect.w *= scale;
+                    
+                    properties = sharedPropertyBlock;
+                    properties.SetInteger(MaskEnabledId, 1);
+                    properties.SetVector(MaskRectId, rect);
+                    properties.SetFloat(MaskCornerRadiusId, radius);
+                }
+                
                 if (meshData.ClipRect.Enabled)
                 {
-                    var clipX = meshData.ClipRect.Rect.xMin * scale.x;
-                    var clipY = meshData.ClipRect.Rect.yMin * scale.y;
-                    var clipW = meshData.ClipRect.Rect.width * scale.x;
-                    var clipH = meshData.ClipRect.Rect.height * scale.y;
-                    var clip = new Rect(clipX, clipY, clipW, clipH);
+                    var x = meshData.ClipRect.Rect.xMin * scale;
+                    var y = meshData.ClipRect.Rect.yMin * scale;
+                    var w = meshData.ClipRect.Rect.width * scale;
+                    var h = meshData.ClipRect.Rect.height * scale;
+                    var clip = new Rect(x, y, w, h);
                     
                     cmd.EnableScissorRect(clip);
                 }
                 
-                cmd.DrawMesh(mesh, Matrix4x4.identity, meshData.Material, submeshIndex: i, -1);
+                cmd.DrawMesh(mesh, Matrix4x4.identity, meshData.Material, submeshIndex: i, -1, properties);
                 
                 if (meshData.ClipRect.Enabled)
                 {

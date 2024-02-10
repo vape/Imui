@@ -8,6 +8,13 @@ namespace Imui.Rendering
         public Rect Rect;
     }
     
+    public struct MeshMaskRect
+    {
+        public bool Enabled;
+        public Vector4 Rect;
+        public float Radius;
+    }
+    
     public struct MeshData
     {
         public Material Material;
@@ -18,6 +25,7 @@ namespace Imui.Rendering
         public MeshTopology Topology;
         public int Order;
         public MeshClipRect ClipRect;
+        public MeshMaskRect MaskRect;
         
         public void ClearOptions()
         {
@@ -25,6 +33,7 @@ namespace Imui.Rendering
             Topology = default;
             Order = 0;
             ClipRect = default;
+            MaskRect = default;
         }
         
         public void Clear()

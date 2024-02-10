@@ -20,6 +20,7 @@ namespace Imui.Core
         {
             public Material Material;
             public MeshClipRect ClipRect;
+            public MeshMaskRect MaskRect;
             public int Order;
         }
         
@@ -79,7 +80,7 @@ namespace Imui.Core
             defaultTexScaleOffset.w += defaultTexScaleOffset.y / 2.0f;
         }
         
-        public void SetFrame(Vector2 size, Vector2 scale)
+        public void SetFrame(Vector2 size, float scale)
         {
             frameSize = size;
             screenSize = size / scale;
@@ -135,7 +136,16 @@ namespace Imui.Core
                 atlas.Blit(cmd, tex.Texture, ref tex.ScaleOffset);
             }
         }
-
+        
+        public Vector4 GetRectMask(Rect rect) => GetRectMask(ImRect.FromUnityRect(rect));
+        public Vector4 GetRectMask(ImRect rect)
+        {
+            var hw = rect.W / 2f;
+            var hh = rect.H / 2f;
+            
+            return new Vector4(rect.X + hw, rect.Y + hh, hw, hh);
+        }
+        
         public void PopOrder() => PopMeshProperties();
         public void PushOrder(int order)
         {
@@ -168,6 +178,30 @@ namespace Imui.Core
             PushMeshProperties(ref prop);
         }
 
+        public void PopRectMask()
+        {
+            PopMeshProperties();
+        }
+
+        public void PushRectMask(Rect rect, float radius)
+        {
+            PushRectMask(GetRectMask(rect), radius);
+        }
+        
+        public void PushRectMask(ImRect rect, float radius)
+        {
+            PushRectMask(GetRectMask(rect), radius);
+        }
+        
+        public void PushRectMask(Vector4 rect, float radius)
+        {
+            var prop = GetCurrentMeshProperties();
+            prop.MaskRect.Enabled = true;
+            prop.MaskRect.Rect = rect;
+            prop.MaskRect.Radius = radius;
+            PushMeshProperties(ref prop);
+        }
+
         public MeshProperties GetCurrentMeshProperties()
         {
             return meshPropertiesStack.Peek();
@@ -197,6 +231,7 @@ namespace Imui.Core
             mesh.Material = prop.Material;
             mesh.Order = prop.Order;
             mesh.ClipRect = prop.ClipRect;
+            mesh.MaskRect = prop.MaskRect;
         }
         
         private MeshProperties GetDefaultMeshProperties()

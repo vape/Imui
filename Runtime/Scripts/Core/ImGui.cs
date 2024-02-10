@@ -10,9 +10,9 @@ namespace Imui.Core
     public class ImGui : IDisposable, IImuiRenderer
     {
         private const float UI_SCALE_MIN = 0.05f;
-        private const float UI_SCALE_MAX = 4.0f;
+        private const float UI_SCALE_MAX = 16.0f;
         
-        public Vector2 Scale
+        public float Scale
         {
             get
             {
@@ -20,10 +20,7 @@ namespace Imui.Core
             }
             set
             {
-                var x = Mathf.Clamp(value.x, UI_SCALE_MIN, UI_SCALE_MAX);
-                var y = Mathf.Clamp(value.y, UI_SCALE_MIN, UI_SCALE_MAX);
-                
-                uiScale = new Vector2(x, y);
+                uiScale = Mathf.Clamp(value, UI_SCALE_MIN, UI_SCALE_MAX);
             }
         }
         
@@ -31,7 +28,7 @@ namespace Imui.Core
         public MeshDrawer Drawer;
         public ImCanvas Canvas;
 
-        private Vector2 uiScale = Vector2.one;
+        private float uiScale = 1.0f;
         private Vector2 fbSize = Vector2.zero;
         
         private bool disposed;
