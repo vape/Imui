@@ -167,10 +167,10 @@ namespace Imui.Core
         }
 
         public void PopMaterial() => PopMeshProperties();
-        public void PushMaterial(Material material)
+        public void PushMaterial(Material mat)
         {
             var prop = GetCurrentMeshProperties();
-            prop.Material = material;
+            prop.Material = mat;
             PushMeshProperties(ref prop);
         }
 
@@ -270,7 +270,8 @@ namespace Imui.Core
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = texScaleOffset;
             meshDrawer.UVZ = MAIN_ATLAS_IDX;
-            meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H, DEFAULT_DEPTH);
+            meshDrawer.Depth = DEFAULT_DEPTH;
+            meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H);
         }
 
         public void Rect(ImRect rect, Color32 color, float cornerRadius)
@@ -285,10 +286,26 @@ namespace Imui.Core
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = texScaleOffset;
             meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddRoundCornersRect(
-                (Vector4)rect, DEFAULT_DEPTH,
-                cornerRadius, cornerRadius,
-                cornerRadius, cornerRadius,
+                (Vector4)rect, 
+                cornerRadius, cornerRadius, cornerRadius, cornerRadius, 
+                meshDrawer.GetSegmentsCount(cornerRadius));
+        }
+
+        public void RectOutline(ImRect rect, Color32 color, float thickness, float cornerRadius)
+        {
+            const float EPSILON = 0.0001f;
+            
+            cornerRadius = Mathf.Min(cornerRadius, (Mathf.Min(rect.W, rect.H) / 2.0f) - EPSILON);
+
+            meshDrawer.Color = color;
+            meshDrawer.ScaleOffset = defaultTexScaleOffset;
+            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.Depth = DEFAULT_DEPTH;
+            meshDrawer.AddRoundCornersRectOutline(
+                (Vector4)rect, thickness, 
+                cornerRadius, cornerRadius, cornerRadius, cornerRadius, 
                 meshDrawer.GetSegmentsCount(cornerRadius));
         }
 
@@ -296,14 +313,16 @@ namespace Imui.Core
         {
             textDrawer.Color = color;
             textDrawer.UVZ = FONT_ATLAS_IDX;
-            textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y, DEFAULT_DEPTH);
+            textDrawer.Depth = DEFAULT_DEPTH;
+            textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
         }
 
         public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
         {
             textDrawer.Color = color;
             textDrawer.UVZ = FONT_ATLAS_IDX;
-            textDrawer.AddTextWithLayout(text, in layout, position.x, position.y, DEFAULT_DEPTH);
+            textDrawer.Depth = DEFAULT_DEPTH;
+            textDrawer.AddTextWithLayout(text, in layout, position.x, position.y);
         }
 
         public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextLayoutSettings settings)
@@ -323,6 +342,14 @@ namespace Imui.Core
                 layout.Height);
             
             Text(text, color, rect.TopLeft, in layout);
+        }
+
+        public void Line(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness)
+        {
+            meshDrawer.Color = color;
+            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.Depth = DEFAULT_DEPTH;
+            meshDrawer.AddLine(in path, closed, thickness);
         }
 
         public void Dispose()

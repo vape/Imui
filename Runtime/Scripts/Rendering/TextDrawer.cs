@@ -38,6 +38,7 @@ namespace Imui.Rendering
         public Texture2D FontAtlas => fontAsset.atlasTexture;
         public FontAsset FontAsset => fontAsset;
 
+        public float Depth;
         public float UVZ;
         public Color32 Color;
 
@@ -83,7 +84,7 @@ namespace Imui.Rendering
             fontAsset = null;
         }
 
-        public void AddText(ReadOnlySpan<char> text, float scale, float x, float y, float depth)
+        public void AddText(ReadOnlySpan<char> text, float scale, float x, float y)
         {
             var ct = fontAsset.characterLookupTable;
             var lh = lineHeight * scale;
@@ -101,11 +102,11 @@ namespace Imui.Rendering
                     continue;
                 }
                 
-                x += AddGlyphQuad(info.glyph, x , y, depth, scale);
+                x += AddGlyphQuad(info.glyph, x , y, scale);
             }
         }
         
-        public void AddTextWithLayout(ReadOnlySpan<char> text, in Layout layout, float x, float y, float depth)
+        public void AddTextWithLayout(ReadOnlySpan<char> text, in Layout layout, float x, float y)
         {
             var ct = fontAsset.characterLookupTable;
             var lh = lineHeight * layout.Scale;
@@ -128,7 +129,7 @@ namespace Imui.Rendering
                         continue;
                     }
 
-                    x += AddGlyphQuad(charInfo.glyph, x + line.OffsetX, y + layout.OffsetY, depth, layout.Scale);
+                    x += AddGlyphQuad(charInfo.glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                 }
 
                 y -= lh;
@@ -137,7 +138,7 @@ namespace Imui.Rendering
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private float AddGlyphQuad(Glyph glyph, float px, float py, float depth, float scale)
+        private float AddGlyphQuad(Glyph glyph, float px, float py, float scale)
         {
             var rect = glyph.glyphRect;
             var x = rect.x;
@@ -157,7 +158,7 @@ namespace Imui.Rendering
             ref var v0 = ref buffer.Vertices[vc + 0];
             v0.Position.x = px + horizontalOffset;
             v0.Position.y = py + verticalOffset;
-            v0.Position.z = depth;
+            v0.Position.z = Depth;
             v0.Color = Color;
             v0.UV.x = x / FONT_ATLAS_W;
             v0.UV.y = y / FONT_ATLAS_H;
@@ -166,7 +167,7 @@ namespace Imui.Rendering
             ref var v1 = ref buffer.Vertices[vc + 1];
             v1.Position.x = px + horizontalOffset;
             v1.Position.y = py + glyphHeight + verticalOffset;
-            v1.Position.z = depth;
+            v1.Position.z = Depth;
             v1.Color = Color;
             v1.UV.x = x / FONT_ATLAS_W;
             v1.UV.y = (y + h) / FONT_ATLAS_H;
@@ -175,7 +176,7 @@ namespace Imui.Rendering
             ref var v2 = ref buffer.Vertices[vc + 2];
             v2.Position.x = px + glyphWidth + horizontalOffset;
             v2.Position.y = py + glyphHeight + verticalOffset;
-            v2.Position.z = depth;
+            v2.Position.z = Depth;
             v2.Color = Color;
             v2.UV.x = (x + w) / FONT_ATLAS_W;
             v2.UV.y = (y + h) / FONT_ATLAS_H;
@@ -184,7 +185,7 @@ namespace Imui.Rendering
             ref var v3 = ref buffer.Vertices[vc + 3];
             v3.Position.x = px + glyphWidth + horizontalOffset;
             v3.Position.y = py + verticalOffset;
-            v3.Position.z = depth;
+            v3.Position.z = Depth;
             v3.Color = Color;
             v3.UV.x = (x + w) / FONT_ATLAS_W;
             v3.UV.y = (y) / FONT_ATLAS_H;
