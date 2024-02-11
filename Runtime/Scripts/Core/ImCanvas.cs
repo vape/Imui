@@ -9,21 +9,8 @@ namespace Imui.Core
 {
     public partial class ImCanvas : IDisposable
     {
-        private struct TextureInfo
-        {
-            public int Id;
-            public Texture2D Texture;
-            public Vector4 ScaleOffset;
-        }
-
-        public struct MeshSettings
-        {
-            public Material Material;
-            public MeshClipRect ClipRect;
-            public MeshMaskRect MaskRect;
-            public int Order;
-        }
-
+        public const int DEFAULT_ORDER = 0;
+        
         // TODO (artem-s): allow to change drawing depth
         private const int DEFAULT_DEPTH = 0;
         
@@ -39,6 +26,21 @@ namespace Imui.Core
         private const int MESH_SETTINGS_CAPACITY = 32;
         
         private const string SHADER_NAME = "imui_default";
+        
+        private struct TextureInfo
+        {
+            public int Id;
+            public Texture2D Texture;
+            public Vector4 ScaleOffset;
+        }
+
+        public struct MeshSettings
+        {
+            public Material Material;
+            public MeshClipRect ClipRect;
+            public MeshMaskRect MaskRect;
+            public int Order;
+        }
         
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
         private static readonly int FontTexId = Shader.PropertyToID("_FontTex");
@@ -141,7 +143,7 @@ namespace Imui.Core
             
             return scaleOffset;
         }
-
+        
         public void PushMeshSettings(MeshSettings settings)
         {
             PushMeshSettings(ref settings);
@@ -165,6 +167,11 @@ namespace Imui.Core
                 ApplyMeshSettings();
             }
         }
+
+        internal ref readonly MeshSettings GetActiveMeshSettingsRef()
+        {
+            return ref meshSettingsStack.Peek();
+        }
         
         public MeshSettings GetActiveMeshSettings()
         {
@@ -175,7 +182,7 @@ namespace Imui.Core
         {
             return new MeshSettings()
             {
-                Order = 0,
+                Order = DEFAULT_ORDER,
                 ClipRect = new MeshClipRect()
                 {
                     Enabled = true,

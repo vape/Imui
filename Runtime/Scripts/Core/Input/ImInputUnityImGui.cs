@@ -1,0 +1,131 @@
+using System;
+using System.Collections.Generic;
+using Imui.Utility;
+using UnityEngine;
+
+namespace Imui.Core.Input
+{
+    public class ImInputUnityImGui : IDisposable, IImInput
+    {
+        public ref readonly Vector2 MousePosition => ref mousePosition;
+        public ref readonly ImInputMouseEvent MouseEvent => ref mouseEvent;
+        public ref readonly ImInputKeyboardEvent KeyboardEvent => ref keyboardEvent;
+
+        private Vector2 mousePosition;
+        private ImInputMouseEvent mouseEvent;
+        private ImInputKeyboardEvent keyboardEvent;
+        
+        private Queue<ImInputMouseEvent> mouseEventsQueue = new(capacity: 4);
+        private float scale = 1.0f;
+        private ImInputMouseEvent nextMouseEvent;
+        private ImInputKeyboardEvent nextKeyboardEvent;
+        private bool disposed;
+
+        public void UseKeyboard()
+        {
+            keyboardEvent = default;
+        }
+
+        public void UseMouse()
+        {
+            mouseEvent = default;
+        }
+        
+        public void Pull()
+        {
+            if (mouseEventsQueue.TryDequeue(out var queuedMouseEvent))
+            {
+                if (nextMouseEvent.Type != ImInputEventMouseType.None)
+                {
+                    mouseEventsQueue.Enqueue(nextMouseEvent);
+                }
+
+                nextMouseEvent = queuedMouseEvent;
+            }
+
+            mousePosition = UnityEngine.Input.mousePosition / scale;
+            mouseEvent = nextMouseEvent;
+            keyboardEvent = nextKeyboardEvent;
+            
+            nextMouseEvent = default;
+            nextKeyboardEvent = default;
+        }
+
+        public void SetScale(float scale)
+        {
+            this.scale = scale;
+        }
+        
+        public void ProcessEvents()
+        {
+            var e = Event.current;
+            if (e == null)
+            {
+                return;
+            }
+            
+            switch (e.type)
+            {
+                case EventType.MouseDown:
+                    // HACK (artem-s): because hovered element is determined after frame renders, and with touch input
+                    // we can't predict where pointer will be before we click, mousedown needs to be deferred for one frame
+                    if (IsTouchSupported() && IsTouchBegan())
+                    {
+                        mouseEventsQueue.Enqueue(new ImInputMouseEvent(ImInputEventMouseType.Move, e.button, e.modifiers, e.delta));
+                    }
+                    
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Down, e.button, e.modifiers, e.delta);
+                    break;
+                case EventType.MouseUp:
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Up, e.button, e.modifiers, e.delta);
+                    break;
+                case EventType.MouseMove:
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Move, e.button, e.modifiers, e.delta);
+                    break;
+                case EventType.MouseDrag:
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Drag, e.button, e.modifiers, e.delta);
+                    break;
+                case EventType.ScrollWheel:
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Scroll, e.button, e.modifiers, e.delta);
+                    break;
+                case EventType.KeyDown:
+                    nextKeyboardEvent = new ImInputKeyboardEvent(ImInputEventKeyboardType.Down, e.keyCode, e.modifiers, e.character);
+                    break;
+                case EventType.KeyUp:
+                    nextKeyboardEvent = new ImInputKeyboardEvent(ImInputEventKeyboardType.Up, e.keyCode, e.modifiers, e.character);
+                    break;
+            }
+        }
+
+        private bool IsTouchSupported()
+        {
+            return PlatformUtility.IsEditorSimulator() || UnityEngine.Input.touchSupported;
+        }
+
+        private bool IsTouchBegan()
+        {
+            var touches = UnityEngine.Input.touches;
+            var count = UnityEngine.Input.touchCount;
+            
+            for (int i = 0; i < count; ++i)
+            {
+                if (touches[i].phase == TouchPhase.Began)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
+        public void Dispose()
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+        }
+    }
+}

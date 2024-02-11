@@ -1,3 +1,4 @@
+using Imui.Core;
 using UnityEngine;
 
 namespace Imui.Utility
@@ -12,6 +13,26 @@ namespace Imui.Utility
             var y2 = Mathf.Min(rect.y + rect.height, other.y + other.height);
 
             return new Rect(x1, y1, x2 - x1, y2 - y1);
+        }
+        
+        public static ImRect AddPadding(this ImRect rect, float size)
+        {
+            rect.X += size;
+            rect.Y += size;
+            rect.W -= size * 2;
+            rect.H -= size * 2;
+
+            return rect;
+        }
+
+        public static ImRect AddPadding(this ImRect rect, float left, float top, float right, float bottom)
+        {
+            rect.X += left;
+            rect.Y += bottom;
+            rect.W -= left + right;
+            rect.H -= top + bottom;
+
+            return rect;
         }
     }
 }
