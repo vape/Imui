@@ -56,12 +56,13 @@ namespace Imui.Core
         public void BeginFrame()
         {
             Canvas.SetScreen(fbSize, uiScale);
-            Canvas.Begin();
+            Canvas.Clear();
+            Canvas.PushMeshSettings(Canvas.CreateDefaultMeshSettings());
         }
 
         public void EndFrame()
         {
-            Canvas.End();
+            Canvas.PopMeshSettings();
         }
 
         void IImuiRenderer.OnFrameBufferSizeChanged(Vector2 size)
@@ -71,7 +72,7 @@ namespace Imui.Core
         
         void IImuiRenderer.Setup(CommandBuffer cmd)
         {
-            Canvas.SetupAtlas(cmd);
+            Canvas.Setup(cmd);
         }
 
         void IImuiRenderer.Render(CommandBuffer cmd)

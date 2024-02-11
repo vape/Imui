@@ -6,11 +6,6 @@ namespace Imui.Core
     [Serializable]
     public struct ImRect : IEquatable<ImRect>
     {
-        public static ImRect FromUnityRect(Rect rect)
-        {
-            return new ImRect(rect.x, rect.y, rect.width, rect.height);
-        }
-
         public Vector2 TopLeft => new Vector2(X, Y + H);
         public Vector2 TopRight => new Vector2(X + W, Y + H);
         public Vector2 BottomLeft => Position;
@@ -104,7 +99,7 @@ namespace Imui.Core
         {
             return new ImRect(rect.x, rect.y, rect.width, rect.height);
         }
-
+        
         public static bool operator ==(ImRect r0, ImRect r1) => r0.Equals(r1);
         public static bool operator !=(ImRect r0, ImRect r1) => !r0.Equals(r1);
     }

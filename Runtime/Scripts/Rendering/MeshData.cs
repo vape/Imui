@@ -11,7 +11,7 @@ namespace Imui.Rendering
     public struct MeshMaskRect
     {
         public bool Enabled;
-        public Vector4 Rect;
+        public Rect Rect;
         public float Radius;
     }
     

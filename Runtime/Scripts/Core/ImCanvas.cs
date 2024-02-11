@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace Imui.Core
 {
-    public class ImCanvas : IDisposable
+    public partial class ImCanvas : IDisposable
     {
         private struct TextureInfo
         {
@@ -16,7 +16,7 @@ namespace Imui.Core
             public Vector4 ScaleOffset;
         }
 
-        public struct MeshProperties
+        public struct MeshSettings
         {
             public Material Material;
             public MeshClipRect ClipRect;
@@ -36,7 +36,7 @@ namespace Imui.Core
         private const float MAIN_ATLAS_IDX = 0;
         private const float FONT_ATLAS_IDX = 1;
         
-        private const int MESH_PROP_CAPACITY = 16;
+        private const int MESH_SETTINGS_CAPACITY = 32;
         
         private const string SHADER_NAME = "imui_default";
         
@@ -62,7 +62,7 @@ namespace Imui.Core
         private Material material;
         private TextureAtlas atlas;
         private DynamicArray<TextureInfo> texturesInfo;
-        private DynamicArray<MeshProperties> meshPropertiesStack;
+        private DynamicArray<MeshSettings> meshSettingsStack;
         private Vector2 frameSize;
         private Vector2 screenSize;
         private ImTextLayoutBuilder textLayoutBuilder;
@@ -81,7 +81,7 @@ namespace Imui.Core
             material = new Material(shader);
             atlas = new TextureAtlas(MAIN_ATLAS_W, MAIN_ATLAS_H);
             texturesInfo = new DynamicArray<TextureInfo>(capacity: 64);
-            meshPropertiesStack = new DynamicArray<MeshProperties>(MESH_PROP_CAPACITY);
+            meshSettingsStack = new DynamicArray<MeshSettings>(MESH_SETTINGS_CAPACITY);
             textLayoutBuilder = new ImTextLayoutBuilder(textDrawer);
 
             defaultTexScaleOffset = AddToAtlas(DefaultTexture);
@@ -97,24 +97,26 @@ namespace Imui.Core
             screenSize = size / scale;
         }
 
-        public void Begin()
+        public void Clear()
         {
             material.SetTexture(MainTexId, atlas.AtlasTexture);
             material.SetTexture(FontTexId, textDrawer.FontAtlas);
             
             meshDrawer.Clear();
-
-            var defaultProperties = GetDefaultMeshProperties();
-            PushMeshProperties(ref defaultProperties);
         }
-
-        public void End()
+        
+        public void Setup(CommandBuffer cmd)
         {
-            meshPropertiesStack.Pop();
+            ImuiAssert.True(meshSettingsStack.Count == 0, "Mesh properties stack is not empty!");
             
-            ImuiAssert.True(meshPropertiesStack.Count == 0, "Mesh properties stack is not empty!");
+            for (int i = 0; i < texturesInfo.Count; ++i)
+            {
+                ref var tex = ref texturesInfo.Array[i];
+                atlas.Blit(cmd, tex.Texture, ref tex.ScaleOffset);
+            }
         }
 
+        // TODO (artem-s): maybe separate all atlas maintenance into different class?
         public Vector4 AddToAtlas(Texture2D tex)
         {
             var id = tex.GetInstanceID();
@@ -139,116 +141,39 @@ namespace Imui.Core
             
             return scaleOffset;
         }
-        
-        public void SetupAtlas(CommandBuffer cmd)
+
+        public void PushMeshSettings(MeshSettings settings)
         {
-            for (int i = 0; i < texturesInfo.Count; ++i)
+            PushMeshSettings(ref settings);
+        }
+        
+        public void PushMeshSettings(ref MeshSettings settings)
+        {
+            meshSettingsStack.Push(ref settings);
+            meshDrawer.NextMesh();
+            
+            ApplyMeshSettings();
+        }
+        
+        public void PopMeshSettings()
+        {
+            meshSettingsStack.Pop();
+
+            if (meshSettingsStack.Count > 0)
             {
-                ref var tex = ref texturesInfo.Array[i];
-                atlas.Blit(cmd, tex.Texture, ref tex.ScaleOffset);
+                meshDrawer.NextMesh();
+                ApplyMeshSettings();
             }
         }
         
-        public Vector4 GetRectMask(Rect rect) => GetRectMask(ImRect.FromUnityRect(rect));
-        public Vector4 GetRectMask(ImRect rect)
+        public MeshSettings GetActiveMeshSettings()
         {
-            var hw = rect.W / 2f;
-            var hh = rect.H / 2f;
-            
-            return new Vector4(rect.X + hw, rect.Y + hh, hw, hh);
+            return meshSettingsStack.Peek();
         }
         
-        public void PopOrder() => PopMeshProperties();
-        public void PushOrder(int order)
+        public MeshSettings CreateDefaultMeshSettings()
         {
-            var prop = GetCurrentMeshProperties();
-            prop.Order = order;
-            PushMeshProperties(ref prop);
-        }
-
-        public void PopMaterial() => PopMeshProperties();
-        public void PushMaterial(Material mat)
-        {
-            var prop = GetCurrentMeshProperties();
-            prop.Material = mat;
-            PushMeshProperties(ref prop);
-        }
-
-        public void PopClipRect() => PopMeshProperties();
-        public void PushClipRect(Rect rect)
-        {
-            var prop = GetCurrentMeshProperties();
-            rect = prop.ClipRect.Enabled ? prop.ClipRect.Rect.Intersection(rect) : rect;
-            prop.ClipRect.Enabled = true;
-            prop.ClipRect.Rect = rect;
-            PushMeshProperties(ref prop);
-        }
-        public void PushNoClipRect()
-        {
-            var prop = GetCurrentMeshProperties();
-            prop.ClipRect.Enabled = false;
-            PushMeshProperties(ref prop);
-        }
-
-        public void PopRectMask()
-        {
-            PopMeshProperties();
-        }
-
-        public void PushRectMask(Rect rect, float radius)
-        {
-            PushRectMask(GetRectMask(rect), radius);
-        }
-        
-        public void PushRectMask(ImRect rect, float radius)
-        {
-            PushRectMask(GetRectMask(rect), radius);
-        }
-        
-        public void PushRectMask(Vector4 rect, float radius)
-        {
-            var prop = GetCurrentMeshProperties();
-            prop.MaskRect.Enabled = true;
-            prop.MaskRect.Rect = rect;
-            prop.MaskRect.Radius = radius;
-            PushMeshProperties(ref prop);
-        }
-
-        public MeshProperties GetCurrentMeshProperties()
-        {
-            return meshPropertiesStack.Peek();
-        }
-        
-        public void PushMeshProperties(ref MeshProperties properties)
-        {
-            meshPropertiesStack.Push(ref properties);
-            meshDrawer.NextMesh();
-            
-            ApplyMeshProperties();
-        }
-        
-        public void PopMeshProperties()
-        {
-            meshPropertiesStack.Pop();
-            meshDrawer.NextMesh();
-            
-            ApplyMeshProperties();
-        }
-        
-        private void ApplyMeshProperties()
-        {
-            ref var mesh = ref meshDrawer.GetMesh();
-            ref var prop = ref meshPropertiesStack.Peek();
-
-            mesh.Material = prop.Material;
-            mesh.Order = prop.Order;
-            mesh.ClipRect = prop.ClipRect;
-            mesh.MaskRect = prop.MaskRect;
-        }
-        
-        private MeshProperties GetDefaultMeshProperties()
-        {
-            return new MeshProperties()
+            return new MeshSettings()
             {
                 Order = 0,
                 ClipRect = new MeshClipRect()
@@ -260,6 +185,17 @@ namespace Imui.Core
             };
         }
 
+        private void ApplyMeshSettings()
+        {
+            ref var mesh = ref meshDrawer.GetMesh();
+            ref var settings = ref meshSettingsStack.Peek();
+
+            mesh.Material = settings.Material;
+            mesh.Order = settings.Order;
+            mesh.ClipRect = settings.ClipRect;
+            mesh.MaskRect = settings.MaskRect;
+        }
+        
         public void Rect(ImRect rect, Color32 color)
         {
             Rect(rect, color, defaultTexScaleOffset);

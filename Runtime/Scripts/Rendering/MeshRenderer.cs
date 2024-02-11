@@ -86,14 +86,13 @@ namespace Imui.Rendering
                 {
                     var radius = meshData.MaskRect.Radius * scale;
                     var rect = meshData.MaskRect.Rect;
-                    rect.x *= scale;
-                    rect.y *= scale;
-                    rect.z *= scale;
-                    rect.w *= scale;
-                    
+                    var hw = rect.width / 2f;
+                    var hh = rect.height / 2f;
+                    var vec = new Vector4((rect.x + hw) * scale, (rect.y + hh) * scale, hw * scale, hh * scale);
+
                     properties = sharedPropertyBlock;
                     properties.SetInteger(MaskEnabledId, 1);
-                    properties.SetVector(MaskRectId, rect);
+                    properties.SetVector(MaskRectId, vec);
                     properties.SetFloat(MaskCornerRadiusId, radius);
                 }
                 
