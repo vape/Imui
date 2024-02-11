@@ -273,6 +273,25 @@ namespace Imui.Core
             meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H, DEFAULT_DEPTH);
         }
 
+        public void Rect(ImRect rect, Color32 color, float cornerRadius)
+        {
+            Rect(rect, color, defaultTexScaleOffset, cornerRadius);
+        }
+
+        public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset, float cornerRadius)
+        {
+            cornerRadius = Mathf.Min(cornerRadius, Mathf.Min(rect.W, rect.H) / 2.0f);
+            
+            meshDrawer.Color = color;
+            meshDrawer.ScaleOffset = texScaleOffset;
+            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.AddRoundCornersRect(
+                (Vector4)rect, DEFAULT_DEPTH,
+                cornerRadius, cornerRadius,
+                cornerRadius, cornerRadius,
+                meshDrawer.GetSegmentsCount(cornerRadius));
+        }
+
         public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
         {
             textDrawer.Color = color;
