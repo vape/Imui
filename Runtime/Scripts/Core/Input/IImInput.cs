@@ -4,7 +4,8 @@ namespace Imui.Core.Input
 {
     public interface IImInput
     {
-        ref readonly Vector2 MousePosition { get; }
+        Vector2 MousePosition { get; }
+        
         ref readonly ImInputMouseEvent MouseEvent { get; }
         ref readonly ImInputKeyboardEvent KeyboardEvent { get; }
 

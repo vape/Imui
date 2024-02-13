@@ -7,7 +7,8 @@ namespace Imui.Core.Input
 {
     public class ImInputUnityImGui : IDisposable, IImInput
     {
-        public ref readonly Vector2 MousePosition => ref mousePosition;
+        public Vector2 MousePosition => mousePosition;
+        
         public ref readonly ImInputMouseEvent MouseEvent => ref mouseEvent;
         public ref readonly ImInputKeyboardEvent KeyboardEvent => ref keyboardEvent;
 
@@ -17,6 +18,7 @@ namespace Imui.Core.Input
         
         private Queue<ImInputMouseEvent> mouseEventsQueue = new(capacity: 4);
         private float scale = 1.0f;
+        private Vector2 prevEventMousePosition;
         private ImInputMouseEvent nextMouseEvent;
         private ImInputKeyboardEvent nextKeyboardEvent;
         private bool disposed;
@@ -42,11 +44,11 @@ namespace Imui.Core.Input
 
                 nextMouseEvent = queuedMouseEvent;
             }
-
+            
             mousePosition = UnityEngine.Input.mousePosition / scale;
             mouseEvent = nextMouseEvent;
             keyboardEvent = nextKeyboardEvent;
-            
+
             nextMouseEvent = default;
             nextKeyboardEvent = default;
         }
@@ -55,13 +57,22 @@ namespace Imui.Core.Input
         {
             this.scale = scale;
         }
-        
+
         public void ProcessEvents()
         {
             var e = Event.current;
             if (e == null)
             {
                 return;
+            }
+
+            var eventMouseDelta = Vector2.zero;
+            var eventMousePosition = (Vector2)UnityEngine.Input.mousePosition / scale;
+
+            if (e.isMouse)
+            {
+                eventMouseDelta = eventMousePosition - prevEventMousePosition;
+                prevEventMousePosition = eventMousePosition;
             }
             
             switch (e.type)
@@ -71,19 +82,19 @@ namespace Imui.Core.Input
                     // we can't predict where pointer will be before we click, mousedown needs to be deferred for one frame
                     if (IsTouchSupported() && IsTouchBegan())
                     {
-                        mouseEventsQueue.Enqueue(new ImInputMouseEvent(ImInputEventMouseType.Move, e.button, e.modifiers, e.delta));
+                        mouseEventsQueue.Enqueue(new ImInputMouseEvent(ImInputEventMouseType.Move, e.button, e.modifiers, eventMouseDelta));
                     }
                     
-                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Down, e.button, e.modifiers, e.delta);
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Down, e.button, e.modifiers, eventMouseDelta);
                     break;
                 case EventType.MouseUp:
-                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Up, e.button, e.modifiers, e.delta);
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Up, e.button, e.modifiers, eventMouseDelta);
                     break;
                 case EventType.MouseMove:
-                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Move, e.button, e.modifiers, e.delta);
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Move, e.button, e.modifiers, eventMouseDelta);
                     break;
                 case EventType.MouseDrag:
-                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Drag, e.button, e.modifiers, e.delta);
+                    nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Drag, e.button, e.modifiers, eventMouseDelta);
                     break;
                 case EventType.ScrollWheel:
                     nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Scroll, e.button, e.modifiers, e.delta);
@@ -96,7 +107,7 @@ namespace Imui.Core.Input
                     break;
             }
         }
-
+        
         private bool IsTouchSupported()
         {
             return PlatformUtility.IsEditorSimulator() || UnityEngine.Input.touchSupported;
