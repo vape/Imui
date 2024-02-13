@@ -12,8 +12,31 @@ namespace Imui.Core
         public Vector2 BottomRight => new Vector2(X + W, Y);
         public Vector2 Center => new Vector2(X + W / 2f, Y + H / 2f);
 
-        public Vector2 Position => new Vector2(X, Y);
-        public Vector2 Size => new Vector2(W, H);
+        public Vector2 Position
+        {
+            get
+            {
+                return new Vector2(X, Y);
+            }
+            set
+            {
+                X = value.x;
+                Y = value.y;
+            }
+        }
+
+        public Vector2 Size
+        {
+            get
+            {
+                return new Vector2(W, H);
+            }
+            set
+            {
+                W = value.x;
+                H = value.y;
+            }
+        }
 
         public float X;
         public float Y;

@@ -32,7 +32,8 @@ namespace Imui.Controls
             
             var clicked = false;
 
-            switch (gui.Input.MouseEvent.Type)
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            switch (evt.Type)
             {
                 case ImInputEventMouseType.Down:
                     if (!pressed && hovered)
