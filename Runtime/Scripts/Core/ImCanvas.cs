@@ -59,6 +59,7 @@ namespace Imui.Core
 
         public Vector2 ScreenSize => screenSize;
         public ImTextLayoutBuilder TextLayoutBuilder => textLayoutBuilder;
+        public Vector4 DefaultTexScaleOffset => defaultTexScaleOffset;
         
         private Shader shader;
         private Material material;
@@ -225,31 +226,39 @@ namespace Imui.Core
         public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset, float cornerRadius)
         {
             cornerRadius = Mathf.Min(cornerRadius, Mathf.Min(rect.W, rect.H) / 2.0f);
+
+            var radius = new Vector4(cornerRadius, cornerRadius, cornerRadius, cornerRadius);
+            var segments = meshDrawer.GetSegmentsCount(cornerRadius);
             
+            Rect(rect, color, texScaleOffset, radius, segments);
+        }
+
+        public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset, Vector4 cornerRadius, int segments)
+        {
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = texScaleOffset;
             meshDrawer.UVZ = MAIN_ATLAS_IDX;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddRoundCornersRect(
                 (Vector4)rect, 
-                cornerRadius, cornerRadius, cornerRadius, cornerRadius, 
-                meshDrawer.GetSegmentsCount(cornerRadius));
+                cornerRadius.x, cornerRadius.y, 
+                cornerRadius.z, cornerRadius.w, 
+                segments);
         }
 
-        public void RectOutline(ImRect rect, Color32 color, float thickness, float cornerRadius)
+        public void RectOutline(ImRect rect, Color32 color, float thickness, float cornerRadius, float bias = 0.0f)
         {
             const float EPSILON = 0.0001f;
-            
-            cornerRadius = Mathf.Min(cornerRadius, (Mathf.Min(rect.W, rect.H) / 2.0f) - EPSILON);
 
-            meshDrawer.Color = color;
-            meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.UVZ = MAIN_ATLAS_IDX;
-            meshDrawer.Depth = DEFAULT_DEPTH;
-            meshDrawer.AddRoundCornersRectOutline(
-                (Vector4)rect, thickness, 
-                cornerRadius, cornerRadius, cornerRadius, cornerRadius, 
+            cornerRadius = Mathf.Min(cornerRadius, (Mathf.Min(rect.W, rect.H) / 2.0f) - EPSILON);
+            
+            var segments = meshDrawer.GetSegmentsCount(cornerRadius);
+            Span<Vector2> path = stackalloc Vector2[(segments + 1) * 4];
+            GenerateRectOutlinePath(
+                in path, rect, cornerRadius, cornerRadius, cornerRadius, cornerRadius, 
                 meshDrawer.GetSegmentsCount(cornerRadius));
+            
+            Line(path, color, true, thickness, bias);
         }
 
         public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
@@ -287,12 +296,89 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
 
-        public void Line(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness)
+        public void Line(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
+            bias = Mathf.Clamp01(bias);
+            
             meshDrawer.Color = color;
+            meshDrawer.ScaleOffset = defaultTexScaleOffset;
             meshDrawer.UVZ = MAIN_ATLAS_IDX;
             meshDrawer.Depth = DEFAULT_DEPTH;
-            meshDrawer.AddLine(in path, closed, thickness);
+            meshDrawer.AddLine(in path, closed, thickness, bias, 1.0f - bias);
+        }
+
+        public void ConvexFill(in ReadOnlySpan<Vector2> points, Color32 color)
+        {
+            meshDrawer.Color = color;
+            meshDrawer.ScaleOffset = defaultTexScaleOffset;
+            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.Depth = DEFAULT_DEPTH;
+            meshDrawer.AddFilledConvexMesh(in points);
+        }
+        
+        private void GenerateRectOutlinePath(in Span<Vector2> buffer, ImRect rect, float tlr, float trr, float brr, float blr, int segments)
+        {
+            const float PI = Mathf.PI;
+            const float HALF_PI = PI / 2;
+            
+            var p = 0;
+            var step = (1f / segments) * HALF_PI;
+            
+            var cx = rect.X + rect.W - brr;
+            var cy = rect.Y + brr;
+            buffer[p].x = cx + Mathf.Cos(PI + HALF_PI) * brr;
+            buffer[p].y = cy + Mathf.Sin(PI + HALF_PI) * brr;
+            p++;
+            
+            for (int i = 0; i < segments; ++i)
+            {
+                var a = PI + HALF_PI + step * (i + 1);
+                buffer[p].x = cx + Mathf.Cos(a) * brr;
+                buffer[p].y = cy + Mathf.Sin(a) * brr;
+                p++;
+            }
+            
+            cx = rect.X + rect.W - trr;
+            cy = rect.Y + rect.H - trr;
+            buffer[p].x = cx + Mathf.Cos(0) * trr;
+            buffer[p].y = cy + Mathf.Sin(0) * trr;
+            p++;
+            
+            for (int i = 0; i < segments; ++i)
+            {
+                var a = 0 + step * (i + 1);
+                buffer[p].x = cx + Mathf.Cos(a) * trr;
+                buffer[p].y = cy + Mathf.Sin(a) * trr;
+                p++;
+            }
+            
+            cx = rect.X + tlr;
+            cy = rect.Y + rect.H - tlr;
+            buffer[p].x = cx + Mathf.Cos(HALF_PI) * tlr;
+            buffer[p].y = cy + Mathf.Sin(HALF_PI) * tlr;
+            p++;
+            
+            for (int i = 0; i < segments; ++i)
+            {
+                var a = HALF_PI + step * (i + 1);
+                buffer[p].x = cx + Mathf.Cos(a) * tlr;
+                buffer[p].y = cy + Mathf.Sin(a) * tlr;
+                p++;
+            }
+                        
+            cx = rect.X + blr;
+            cy = rect.Y + blr;
+            buffer[p].x = cx + Mathf.Cos(PI) * blr;
+            buffer[p].y = cy + Mathf.Sin(PI) * blr;
+            p++;
+            
+            for (int i = 0; i < segments; ++i)
+            {
+                var a = PI + step * (i + 1);
+                buffer[p].x = cx + Mathf.Cos(a) * blr;
+                buffer[p].y = cy + Mathf.Sin(a) * blr;
+                p++;
+            }
         }
 
         public void Dispose()

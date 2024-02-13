@@ -51,7 +51,7 @@ namespace Imui.Rendering
         }
         
         // TODO (artem-s): add proper texturing
-        public void AddLine(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale = 0.5f, float innerScale = 0.5f)
+        public void AddLine(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
             Vector2 GetNormal2(Vector2 a, Vector2 b)
             {
@@ -163,72 +163,6 @@ namespace Imui.Rendering
 
             buffer.AddIndices(generatedIndices);
             buffer.AddVertices(generatedVertices);
-        }
-        
-        public void AddRoundCornersRectOutline(Vector4 rect, float thickness, float tlr, float trr, float brr, float blr, int segments)
-        {
-            Span<Vector2> path = stackalloc Vector2[(segments + 1) * 4];
-            
-            var p = 0;
-            var step = (1f / segments) * HALF_PI;
-            
-            var cx = rect.x + rect.z - brr;
-            var cy = rect.y + brr;
-            path[p].x = cx + Mathf.Cos(PI + HALF_PI) * brr;
-            path[p].y = cy + Mathf.Sin(PI + HALF_PI) * brr;
-            p++;
-            
-            for (int i = 0; i < segments; ++i)
-            {
-                var a = PI + HALF_PI + step * (i + 1);
-                path[p].x = cx + Mathf.Cos(a) * brr;
-                path[p].y = cy + Mathf.Sin(a) * brr;
-                p++;
-            }
-            
-            cx = rect.x + rect.z - trr;
-            cy = rect.y + rect.w - trr;
-            path[p].x = cx + Mathf.Cos(0) * trr;
-            path[p].y = cy + Mathf.Sin(0) * trr;
-            p++;
-            
-            for (int i = 0; i < segments; ++i)
-            {
-                var a = 0 + step * (i + 1);
-                path[p].x = cx + Mathf.Cos(a) * trr;
-                path[p].y = cy + Mathf.Sin(a) * trr;
-                p++;
-            }
-            
-            cx = rect.x + tlr;
-            cy = rect.y + rect.w - tlr;
-            path[p].x = cx + Mathf.Cos(HALF_PI) * tlr;
-            path[p].y = cy + Mathf.Sin(HALF_PI) * tlr;
-            p++;
-            
-            for (int i = 0; i < segments; ++i)
-            {
-                var a = HALF_PI + step * (i + 1);
-                path[p].x = cx + Mathf.Cos(a) * tlr;
-                path[p].y = cy + Mathf.Sin(a) * tlr;
-                p++;
-            }
-                        
-            cx = rect.x + blr;
-            cy = rect.y + blr;
-            path[p].x = cx + Mathf.Cos(PI) * blr;
-            path[p].y = cy + Mathf.Sin(PI) * blr;
-            p++;
-            
-            for (int i = 0; i < segments; ++i)
-            {
-                var a = PI + step * (i + 1);
-                path[p].x = cx + Mathf.Cos(a) * blr;
-                path[p].y = cy + Mathf.Sin(a) * blr;
-                p++;
-            }
-            
-            AddLine(path, true, thickness, innerScale: 1.0f, outerScale: 0.0f);
         }
         
         // TODO (artem-s): calculate proper UV values
@@ -421,6 +355,59 @@ namespace Imui.Rendering
 
             buffer.AddIndices(6);
             buffer.AddVertices(4);
+        }
+
+        public void AddFilledConvexMesh(in ReadOnlySpan<Vector2> points)
+        {
+            ImuiAssert.True(points.Length > 2, "points.Length > 2");
+            
+            var vc = buffer.VerticesCount;
+            var ic = buffer.IndicesCount;
+            
+            buffer.EnsureVerticesCapacity(vc + points.Length * 4);
+            buffer.EnsureIndicesCapacity(ic + (points.Length - 2) * 3);
+
+            ref readonly var p0 = ref points[0];
+            ref var v0 = ref buffer.Vertices[vc + 0];
+            v0.Position.x = p0.x;
+            v0.Position.y = p0.y;
+            v0.Position.z = Depth;
+            v0.Color = Color;
+            v0.UV.x = ScaleOffset.z;
+            v0.UV.y = ScaleOffset.w;
+            v0.UV.z = UVZ;
+            
+            ref readonly var p1 = ref points[1];
+            ref var v1 = ref buffer.Vertices[vc + 1];
+            v1.Position.x = p1.x;
+            v1.Position.y = p1.y;
+            v1.Position.z = Depth;
+            v1.Color = Color;
+            v1.UV.x = ScaleOffset.z;
+            v1.UV.y = ScaleOffset.w;
+            v1.UV.z = UVZ;
+            
+            for (int i = 2; i < points.Length; ++i)
+            {
+                ref readonly var p = ref points[i];
+                ref var v = ref buffer.Vertices[vc + i];
+                v.Position.x = p.x;
+                v.Position.y = p.y;
+                v.Position.z = Depth;
+                v.Color = Color;
+                v.UV.x = ScaleOffset.z;
+                v.UV.y = ScaleOffset.w;
+                v.UV.z = UVZ;
+
+                buffer.Indices[ic + 0] = vc + i;
+                buffer.Indices[ic + 1] = vc + i - 1;
+                buffer.Indices[ic + 2] = vc;
+                
+                ic += 3;
+            }
+
+            buffer.AddVertices(points.Length * 4);
+            buffer.AddIndices((points.Length - 2) * 3);
         }
         
         private void SetQuad(int index, int i0, int i1, int i2, int i3)
