@@ -9,6 +9,9 @@ using MeshRenderer = Imui.Rendering.MeshRenderer;
 
 namespace Imui.Core
 {
+    // TODO (artem-s):
+    // * Check for per-frame allocations and overall optimization
+    
     public class ImGui : IDisposable, IImuiRenderer
     {
         private const int INIT_MESHES_COUNT = 1024 / 2;
@@ -66,6 +69,7 @@ namespace Imui.Core
         public readonly TextDrawer TextDrawer;
         public readonly ImCanvas Canvas;
         public readonly IImInput Input;
+        public readonly ImLayout Layout;
 
         private FrameData nextFrameData;
         private FrameData frameData;
@@ -84,6 +88,7 @@ namespace Imui.Core
             Canvas = new ImCanvas(MeshDrawer, TextDrawer);
             Renderer = new MeshRenderer();
             Input = input;
+            Layout = new ImLayout();
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY);
@@ -108,10 +113,15 @@ namespace Imui.Core
             Canvas.SetScreen(fbSize, uiScale);
             Canvas.Clear();
             Canvas.PushMeshSettings(Canvas.CreateDefaultMeshSettings());
+
+            Layout.Push(new ImRect(Vector2.zero, fbSize / uiScale), ImLayoutType.Vertical, ImLayoutAnchor.TopLeft);
+            Layout.MakeRoot();
         }
 
         public void EndFrame()
         {
+            Layout.Pop();
+            
             Canvas.PopMeshSettings();
         }
 
