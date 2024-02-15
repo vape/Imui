@@ -221,6 +221,8 @@ namespace Imui.Rendering
             layout.LinesCount = 0;
             layout.Scale = size / FontRenderSize;
             layout.OffsetX = width * alignX;
+            layout.Width = 0;
+            layout.Height = 0;
             
             if (text.Length == 0)
             {
@@ -253,7 +255,7 @@ namespace Imui.Rendering
 
                 var advance = charInfo.glyph.metrics.horizontalAdvance * layout.Scale;
 
-                if (c == NEW_LINE || (width >= 0 && lineWidth > 0 && (lineWidth + advance) > width))
+                if (c == NEW_LINE || (width > 0 && lineWidth > 0 && (lineWidth + advance) > width))
                 {
                     ref var line = ref layout.Lines[layout.LinesCount];
 

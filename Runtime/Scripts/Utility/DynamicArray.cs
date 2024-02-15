@@ -31,7 +31,7 @@ namespace Imui.Utility
             Array[Count++] = value; 
         }
         
-        public void Push(ref T value)
+        public void Push(in T value)
         {
             EnsureCapacity(1);
             Array[Count++] = value;

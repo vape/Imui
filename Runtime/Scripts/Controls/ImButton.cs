@@ -8,27 +8,42 @@ namespace Imui.Controls
 {
     public static class ImButton
     {
-        public static bool Button(this ImGui gui, ImRect rect, in Style style, ReadOnlySpan<char> text)
+        public static bool Button(this ImGui gui, in Style style, in ReadOnlySpan<char> text)
+        {
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 0, 0, style.Text.AlignX,
+                style.Text.AlignY, style.Text.Size);
+
+            var size = new Vector2(
+                textLayout.Width + (style.Padding + style.FrameWidth) * 2 + 0.1f,
+                textLayout.Height + (style.Padding + style.FrameWidth) * 2 + 0.1f);
+            var rect = gui.Layout.AddRect(size);
+
+            return Button(gui, rect, in style, text);
+        }
+        
+        public static bool Button(this ImGui gui, Vector2 size, in Style style, in ReadOnlySpan<char> text)
+        {
+            return Button(gui, gui.Layout.AddRect(size), in style, in text);
+        }
+        
+        public static bool Button(this ImGui gui, ImRect rect, in Style style, in ReadOnlySpan<char> text)
         {
             var clicked = Button(gui, rect, in style, out var content, out var state);
-            gui.Canvas.Text(text, state.FrontColor, content, in style.Text);
+            gui.Canvas.Text(in text, state.FrontColor, content, in style.Text);
             return clicked;
         }
         
         public static bool Button(this ImGui gui, ImRect rect, in Style style, out ImRect content, out StateStyle state)
         {
-            const float FRAME_WIDTH = 1.0f;
-            const float CORNER_RADIUS = 15.0f;
-            
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.ActiveControl == id;
             state = pressed ? style.Pressed : hovered ? style.Hovered : style.Normal;
             
-            gui.Canvas.Rect(rect, state.BackColor, CORNER_RADIUS);
-            gui.Canvas.RectOutline(rect, state.FrameColor, FRAME_WIDTH, CORNER_RADIUS);
+            gui.Canvas.Rect(rect, state.BackColor, style.CornerRadius);
+            gui.Canvas.RectOutline(rect, state.FrameColor, style.FrameWidth, style.CornerRadius);
 
-            content = rect.AddPadding(FRAME_WIDTH);
+            content = rect.AddPadding(style.FrameWidth + style.Padding);
             
             var clicked = false;
 
@@ -61,7 +76,7 @@ namespace Imui.Controls
 
             return clicked;
         }
-
+        
         [Serializable]
         public struct StateStyle
         {
@@ -77,6 +92,9 @@ namespace Imui.Controls
             public StateStyle Hovered;
             public StateStyle Pressed;
             public ImTextSettings Text;
+            public float Padding;
+            public float FrameWidth;
+            public float CornerRadius;
         }
     }
 }

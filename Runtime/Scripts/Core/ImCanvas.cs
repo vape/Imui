@@ -142,14 +142,9 @@ namespace Imui.Core
             return scaleOffset;
         }
         
-        public void PushMeshSettings(MeshSettings settings)
+        public void PushMeshSettings(in MeshSettings settings)
         {
-            PushMeshSettings(ref settings);
-        }
-        
-        public void PushMeshSettings(ref MeshSettings settings)
-        {
-            meshSettingsStack.Push(ref settings);
+            meshSettingsStack.Push(in settings);
             meshDrawer.NextMesh();
             
             ApplyMeshSettings();

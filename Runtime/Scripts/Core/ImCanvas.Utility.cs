@@ -10,7 +10,7 @@ namespace Imui.Core
         {
             var prop = GetActiveMeshSettings();
             prop.Order = order;
-            PushMeshSettings(ref prop);
+            PushMeshSettings(in prop);
         }
 
         public void PopMaterial() => PopMeshSettings();
@@ -18,7 +18,7 @@ namespace Imui.Core
         {
             var prop = GetActiveMeshSettings();
             prop.Material = mat;
-            PushMeshSettings(ref prop);
+            PushMeshSettings(in prop);
         }
 
         public void PopClipRect() => PopMeshSettings();
@@ -32,13 +32,13 @@ namespace Imui.Core
             }
             prop.ClipRect.Enabled = true;
             prop.ClipRect.Rect = clipRect;
-            PushMeshSettings(ref prop);
+            PushMeshSettings(in prop);
         }
         public void PushNoClipRect()
         {
             var prop = GetActiveMeshSettings();
             prop.ClipRect.Enabled = false;
-            PushMeshSettings(ref prop);
+            PushMeshSettings(in prop);
         }
 
         public void PopRectMask() => PopMeshSettings();
@@ -48,7 +48,7 @@ namespace Imui.Core
             prop.MaskRect.Enabled = true;
             prop.MaskRect.Rect = (Rect)rect;
             prop.MaskRect.Radius = radius;
-            PushMeshSettings(ref prop);
+            PushMeshSettings(in prop);
         }
     }
 }
