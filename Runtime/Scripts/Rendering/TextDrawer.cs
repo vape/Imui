@@ -10,7 +10,8 @@ namespace Imui.Rendering
     public class TextDrawer : IDisposable
     {
         private const string ASCII = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-        
+        private const char NEW_LINE = '\n';
+
         private const float FONT_ATLAS_W = 1024;
         private const float FONT_ATLAS_H = 1024;
         
@@ -34,6 +35,11 @@ namespace Imui.Rendering
             public Line[] Lines;
             public int LinesCount;
         }
+
+        private static Layout SharedLayout = new()
+        {
+            Lines = new Line[128]
+        };
 
         public Texture2D FontAtlas => fontAsset.atlasTexture;
         public FontAsset FontAsset => fontAsset;
@@ -202,6 +208,104 @@ namespace Imui.Rendering
             buffer.AddIndices(6);
             
             return metrics.horizontalAdvance * scale;
+        }
+        
+        public ref readonly Layout BuildTempLayout(in ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size)
+        {
+            FillLayout(text, width, height, alignX, alignY, size, ref SharedLayout);
+            return ref SharedLayout;
+        }
+        
+        public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, ref Layout layout)
+        {
+            layout.LinesCount = 0;
+            layout.Scale = size / FontRenderSize;
+            layout.OffsetX = width * alignX;
+            
+            if (text.Length == 0)
+            {
+                return;
+            }
+
+            var maxLineWidth = 0f;
+            var lineHeight = LineHeight * layout.Scale;
+            var lineWidth = 0f;
+            var lineStart = 0;
+            var textLength = text.Length;
+            var fontAsset = FontAsset;
+            var charsTable = fontAsset.characterLookupTable;
+
+            for (int i = 0; i < textLength; ++i)
+            {
+                var c = text[i];
+
+                if (!charsTable.TryGetValue(c, out var charInfo))
+                {
+                    if (fontAsset.HasCharacter(c, tryAddCharacter: true))
+                    {
+                        charInfo = charsTable[c];
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+                var advance = charInfo.glyph.metrics.horizontalAdvance * layout.Scale;
+
+                if (c == NEW_LINE || (width >= 0 && lineWidth > 0 && (lineWidth + advance) > width))
+                {
+                    ref var line = ref layout.Lines[layout.LinesCount];
+
+                    line.Width = lineWidth;
+                    line.Start = lineStart;
+                    line.Count = i - lineStart;
+                    line.OffsetX = (width - lineWidth) * alignX;
+
+                    if (line.Width > maxLineWidth)
+                    {
+                        maxLineWidth = line.Width;
+                    }
+
+                    lineWidth = advance;
+                    lineStart = i;
+
+                    layout.OffsetX = Mathf.Min(line.OffsetX, layout.OffsetX);
+                    layout.LinesCount++;
+
+                    if (layout.LinesCount >= layout.Lines.Length)
+                    {
+                        Array.Resize(ref layout.Lines, layout.Lines.Length * 2);
+                    }
+                }
+                else
+                {
+                    lineWidth += advance;
+                }
+            }
+
+            // TODO (artem-s): merge with rest of the loop
+            if (text.Length > lineStart)
+            {
+                ref var line = ref layout.Lines[layout.LinesCount];
+
+                line.Width = lineWidth;
+                line.Start = lineStart;
+                line.Count = textLength - lineStart;
+                line.OffsetX = (width - lineWidth) * alignX;
+
+                if (line.Width > maxLineWidth)
+                {
+                    maxLineWidth = line.Width;
+                }
+
+                layout.OffsetX = Mathf.Min(line.OffsetX, layout.OffsetX);
+                layout.LinesCount++;
+            }
+
+            layout.Width = maxLineWidth;
+            layout.Height = lineHeight * layout.LinesCount;
+            layout.OffsetY = -(height - layout.LinesCount * lineHeight) * alignY;
         }
 
         public void Dispose()

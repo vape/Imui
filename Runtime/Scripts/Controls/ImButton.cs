@@ -76,7 +76,7 @@ namespace Imui.Controls
             public StateStyle Normal;
             public StateStyle Hovered;
             public StateStyle Pressed;
-            public ImTextLayoutSettings Text;
+            public ImTextSettings Text;
         }
     }
 }

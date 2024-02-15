@@ -182,7 +182,7 @@ namespace Imui.Controls
             public float Height;
             public Color32 BackColor;
             public Color32 FrontColor;
-            public ImTextLayoutSettings Text;
+            public ImTextSettings Text;
         }
         
         [Serializable]

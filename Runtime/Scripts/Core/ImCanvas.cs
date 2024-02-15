@@ -58,7 +58,6 @@ namespace Imui.Core
         }
 
         public Vector2 ScreenSize => screenSize;
-        public ImTextLayoutBuilder TextLayoutBuilder => textLayoutBuilder;
         public Vector4 DefaultTexScaleOffset => defaultTexScaleOffset;
         
         private Shader shader;
@@ -68,7 +67,6 @@ namespace Imui.Core
         private DynamicArray<MeshSettings> meshSettingsStack;
         private Vector2 frameSize;
         private Vector2 screenSize;
-        private ImTextLayoutBuilder textLayoutBuilder;
         private bool disposed;
         
         private readonly Vector4 defaultTexScaleOffset;
@@ -85,7 +83,6 @@ namespace Imui.Core
             atlas = new TextureAtlas(MAIN_ATLAS_W, MAIN_ATLAS_H);
             texturesInfo = new DynamicArray<TextureInfo>(capacity: 64);
             meshSettingsStack = new DynamicArray<MeshSettings>(MESH_SETTINGS_CAPACITY);
-            textLayoutBuilder = new ImTextLayoutBuilder(textDrawer);
 
             defaultTexScaleOffset = AddToAtlas(DefaultTexture);
             defaultTexScaleOffset.x *= 0.5f;
@@ -261,7 +258,7 @@ namespace Imui.Core
             Line(path, color, true, thickness, bias);
         }
 
-        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
+        public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
         {
             textDrawer.Color = color;
             textDrawer.UVZ = FONT_ATLAS_IDX;
@@ -269,7 +266,7 @@ namespace Imui.Core
             textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
         }
 
-        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
+        public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
         {
             textDrawer.Color = color;
             textDrawer.UVZ = FONT_ATLAS_IDX;
@@ -277,15 +274,15 @@ namespace Imui.Core
             textDrawer.AddTextWithLayout(text, in layout, position.x, position.y);
         }
 
-        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextLayoutSettings settings)
+        public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
-            ref readonly var layout = ref textLayoutBuilder.BuildLayout(text, settings, rect.W, rect.H);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.AlignX, settings.AlignY, settings.Size);
             Text(text, color, rect.TopLeft, in layout);
         }
         
-        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextLayoutSettings settings, out ImRect textRect)
+        public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings, out ImRect textRect)
         {
-            ref readonly var layout = ref textLayoutBuilder.BuildLayout(text, settings, rect.W, rect.H);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.AlignX, settings.AlignY, settings.Size);
             
             textRect = new ImRect(
                 rect.X + layout.OffsetX, 
