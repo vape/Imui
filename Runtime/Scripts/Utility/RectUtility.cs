@@ -37,8 +37,16 @@ namespace Imui.Utility
             rect.W = width;
             return rect;
         }
+
+        public static void AddPadding(this ref ImRect rect, float size)
+        {
+            rect.X += size;
+            rect.Y += size;
+            rect.W -= size * 2;
+            rect.H -= size * 2;
+        }
         
-        public static ImRect AddPadding(this ImRect rect, float size)
+        public static ImRect WithPadding(this ImRect rect, float size)
         {
             rect.X += size;
             rect.Y += size;
@@ -48,7 +56,7 @@ namespace Imui.Utility
             return rect;
         }
 
-        public static ImRect AddPadding(this ImRect rect, float left, float top, float right, float bottom)
+        public static ImRect WithPadding(this ImRect rect, float left, float top, float right, float bottom)
         {
             rect.X += left;
             rect.Y += bottom;

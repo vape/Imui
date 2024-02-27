@@ -1,6 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.Core.Input;
+using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
 
@@ -8,41 +9,44 @@ namespace Imui.Controls
 {
     public static class ImWindow
     {
-        public static void DrawBack(ImGui gui, in State state, in Style style, out ImRect content)
+        public static ImWindowStyle Style = ImWindowStyle.Default;
+        
+        public static void DrawBack(ImGui gui, in State state, out ImRect content)
         {
-            gui.Canvas.Rect(state.Rect, style.BackColor, style.CornerRadius);
-            gui.Canvas.RectOutline(state.Rect, style.FrameColor, style.FrameWidth, style.CornerRadius);
+            gui.Canvas.Rect(state.Rect, Style.BackColor, Style.CornerRadius);
+            gui.Canvas.RectOutline(state.Rect, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
 
-            var titleBarRect = GetTitleBarRect(in state, in style, out _);
-            state.Rect.AddPadding(style.FrameWidth).SplitTop(titleBarRect.H, out content);
+            var titleBarRect = GetTitleBarRect(in state, out _);
+            state.Rect.WithPadding(Style.FrameWidth).SplitTop(titleBarRect.H, out content);
+            content.AddPadding(Style.Padding);
         }
 
-        public static void DrawFront(ImGui gui, in State state, in Style style)
+        public static void DrawFront(ImGui gui, in State state)
         {
-            DrawTitleBar(gui, in state, in style);
-            DrawResizeHandle(gui, in state, in style);
+            DrawTitleBar(gui, in state);
+            DrawResizeHandle(gui, in state);
         }
 
-        public static void DrawTitleBar(ImGui gui, in State state, in Style style)
+        public static void DrawTitleBar(ImGui gui, in State state)
         {
-            var rect = GetTitleBarRect(in state, in style, out var radius);
-            var segments = gui.MeshDrawer.GetSegmentsCount(style.CornerRadius);
+            var rect = GetTitleBarRect(in state, out var radius);
+            var segments = gui.MeshDrawer.GetSegmentsCount(Style.CornerRadius);
             
             gui.Canvas.Rect(
                 rect, 
-                style.TitleBar.BackColor, 
+                Style.TitleBar.BackColor, 
                 gui.Canvas.DefaultTexScaleOffset,
                 radius, segments);
             
-            gui.Canvas.Text(state.Title, style.TitleBar.FrontColor, rect, in style.TitleBar.Text);
+            gui.Canvas.Text(state.Title, Style.TitleBar.FrontColor, rect, in Style.TitleBar.Text);
         }
 
-        public static void DrawResizeHandle(ImGui gui, in State state, in Style style)
+        public static void DrawResizeHandle(ImGui gui, in State state)
         {
             const float PI = Mathf.PI;
             const float HALF_PI = PI / 2;
 
-            var rect = GetResizeHandleRect(in state, in style, out var radius);
+            var rect = GetResizeHandleRect(in state, out var radius);
             
             var segments = gui.MeshDrawer.GetSegmentsCount(radius);
             var step = (1f / segments) * HALF_PI;
@@ -62,20 +66,20 @@ namespace Imui.Controls
                 buffer[i + 1].y = cy + Mathf.Sin(a) * radius;
             }
             
-            gui.Canvas.ConvexFill(buffer, style.ResizeHandleColor);
+            gui.Canvas.ConvexFill(buffer, Style.ResizeHandleColor);
         }
 
-        public static void WindowBehaviour(ImGui gui, ref State state, in Style style)
+        public static void WindowBehaviour(ImGui gui, ref State state)
         {
-            TitleBarBehaviour(gui, ref state, in style);
-            ResizeHandleBehaviour(gui, ref state, in style);
+            TitleBarBehaviour(gui, ref state);
+            ResizeHandleBehaviour(gui, ref state);
         }
         
-        public static void TitleBarBehaviour(ImGui gui, ref State state, in Style style)
+        public static void TitleBarBehaviour(ImGui gui, ref State state)
         {
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
-            var rect = GetTitleBarRect(in state, in style, out _);
+            var rect = GetTitleBarRect(in state, out _);
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -111,11 +115,11 @@ namespace Imui.Controls
             gui.HandleControl(id, rect);
         }
 
-        public static void ResizeHandleBehaviour(ImGui gui, ref State state, in Style style)
+        public static void ResizeHandleBehaviour(ImGui gui, ref State state)
         {
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
-            var rect = GetResizeHandleRect(in state, in style, out _);
+            var rect = GetResizeHandleRect(in state, out _);
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -153,22 +157,22 @@ namespace Imui.Controls
             gui.HandleControl(id, rect);
         }
 
-        public static ImRect GetResizeHandleRect(in State state, in Style style, out float cornerRadius)
+        public static ImRect GetResizeHandleRect(in State state, out float cornerRadius)
         {
-            cornerRadius = Mathf.Max(style.CornerRadius - style.FrameWidth, 0);
+            cornerRadius = Mathf.Max(Style.CornerRadius - Style.FrameWidth, 0);
             
-            var size = Mathf.Max(style.ResizeHandleSize, cornerRadius);
-            var rect = state.Rect.AddPadding(style.FrameWidth);
+            var size = Mathf.Max(Style.ResizeHandleSize, cornerRadius);
+            var rect = state.Rect.WithPadding(Style.FrameWidth);
             rect.X += rect.W - size;
             rect.W = size;
             rect.H = size;
             return rect;
         }
         
-        public static ImRect GetTitleBarRect(in State state, in Style style, out Vector4 cornerRadius)
+        public static ImRect GetTitleBarRect(in State state, out Vector4 cornerRadius)
         {
-            cornerRadius = new Vector4(style.CornerRadius - style.FrameWidth, style.CornerRadius - style.FrameWidth, 0, 0);
-            return state.Rect.AddPadding(style.FrameWidth).SplitTop(Mathf.Max(cornerRadius[0], style.TitleBar.Height), out _);
+            cornerRadius = new Vector4(Style.CornerRadius - Style.FrameWidth, Style.CornerRadius - Style.FrameWidth, 0, 0);
+            return state.Rect.WithPadding(Style.FrameWidth).SplitTop(Mathf.Max(cornerRadius[0], Style.TitleBar.Height), out _);
         }
 
         [Serializable]
@@ -177,26 +181,50 @@ namespace Imui.Controls
             public string Title;
             public ImRect Rect;
         }
-
-        [Serializable]
-        public struct TitleBarStyle
-        {
-            public float Height;
-            public Color32 BackColor;
-            public Color32 FrontColor;
-            public ImTextSettings Text;
-        }
+    }
+    
+    [Serializable]
+    public struct ImWindowTitleBarStyle
+    {
+        public float Height;
+        public Color32 BackColor;
+        public Color32 FrontColor;
+        public ImTextSettings Text;
+    }
         
-        [Serializable]
-        public struct Style
+    [Serializable]
+    public struct ImWindowStyle
+    {
+        public static readonly ImWindowStyle Default = new ImWindowStyle()
         {
-            public Color32 BackColor;
-            public Color32 FrameColor;
-            public Color32 ResizeHandleColor;
-            public float FrameWidth;
-            public float CornerRadius;
-            public float ResizeHandleSize;
-            public TitleBarStyle TitleBar;
-        }
+            BackColor = ImColors.White,
+            FrameColor = ImColors.Black,
+            ResizeHandleColor = ImColors.Gray2,
+            FrameWidth = 1,
+            CornerRadius = 5,
+            ResizeHandleSize = 10,
+            Padding = 1,
+            TitleBar = new ImWindowTitleBarStyle()
+            {
+                BackColor = ImColors.Gray6,
+                FrontColor = ImColors.Gray1,
+                Height = 32,
+                Text = new ImTextSettings()
+                {
+                    AlignX = 0.5f,
+                    AlignY = 0.5f,
+                    Size = 24
+                }
+            }
+        };
+        
+        public Color32 BackColor;
+        public Color32 FrameColor;
+        public Color32 ResizeHandleColor;
+        public float FrameWidth;
+        public float CornerRadius;
+        public float ResizeHandleSize;
+        public float Padding;
+        public ImWindowTitleBarStyle TitleBar;
     }
 }
