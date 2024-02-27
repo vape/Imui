@@ -4,12 +4,6 @@ using UnityEngine;
 
 namespace Imui.Core
 {
-    public enum ImLayoutType
-    {
-        Horizontal,
-        Vertical
-    }
-
     [Flags]
     public enum ImLayoutFlag
     {
@@ -19,21 +13,21 @@ namespace Imui.Core
     
     public struct ImLayoutFrame
     {
-        public ImLayoutType Type;
+        public ImAxis Axis;
         public Vector2 Size;
         public ImRect Bounds;
+        public Vector2 Offset;
         public ImLayoutFlag Flags;
-        public Vector2 Anchor;
 
         public void AddSize(Vector2 size)
         {
-            switch (Type)
+            switch (Axis)
             {
-                case ImLayoutType.Vertical:
+                case ImAxis.Vertical:
                     Size.x = Mathf.Max(Size.x, size.x);
                     Size.y += size.y;
                     break;
-                case ImLayoutType.Horizontal:
+                case ImAxis.Horizontal:
                     Size.x += size.x;
                     Size.y = Mathf.Max(Size.y, size.y);
                     break;
@@ -43,51 +37,30 @@ namespace Imui.Core
         }
     }
 
-    public static class ImLayoutAnchor
-    {
-        public static readonly Vector2 TopLeft = new Vector2(0, 1);
-        public static readonly Vector2 TopRight = new Vector2(1, 1);
-        public static readonly Vector2 BottomLeft = new Vector2(0, 0);
-        public static readonly Vector2 BottomRight = new Vector2(1, 0);
-    } 
-
     public class ImLayout
     {
         private const int FRAME_STACK_CAPACITY = 32;
         
         private DynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
         
-        public void Push(ImLayoutType type)
+        public void Push(ImAxis axis)
         {
-            Push(Vector2.zero, type);
+            Push(Vector2.zero, axis);
         }
         
-        public void Push(Vector2 size, ImLayoutType type)
+        public void Push(Vector2 size, ImAxis type)
         {
-            var anchor = Vector2.zero;
-            if (frames.Count > 0)
-            {
-                ref readonly var parent = ref frames.Peek();
-                anchor = parent.Anchor;
-            }
-            
-            Push(size, type, anchor);
+            Push(GetRect(size), type);
         }
-
-        public void Push(Vector2 size, ImLayoutType type, Vector2 anchor)
-        {
-            Push(GetRect(size), type, anchor);
-        }
-
-        public void Push(ImRect rect, ImLayoutType type, Vector2 anchor)
+        
+        public void Push(ImRect rect, ImAxis axis)
         {
             var frame = new ImLayoutFrame
             {
-                Type = type,
+                Axis = axis,
                 Size = default,
                 Bounds = rect,
-                Flags = ImLayoutFlag.None,
-                Anchor = anchor
+                Flags = ImLayoutFlag.None
             };
 
             frames.Push(in frame);
@@ -110,42 +83,92 @@ namespace Imui.Core
             frame.Flags |= ImLayoutFlag.Root;
         }
 
+        public void SetOffset(Vector2 offset)
+        {
+            ref var frame = ref frames.Peek();
+            frame.Offset = offset;
+        }
+        
         public ref readonly ImLayoutFrame GetFrame()
         {
             return ref frames.Peek();
+        }
+        
+        public Vector2 GetFreeSpace()
+        {
+            ref readonly var frame = ref GetFrame();
+            var w = frame.Bounds.W;
+            var h = frame.Bounds.H;
+            
+            switch (frame.Axis)
+            {
+                case ImAxis.Vertical:
+                    h -= frame.Size.y;
+                    break;
+                case ImAxis.Horizontal:
+                    w -= frame.Size.x;
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+            
+            return new Vector2(w, h);
+        }
+
+        public ImRect GetWholeRect()
+        {
+            var rect = GetBoundsRect();
+            rect.Encapsulate(GetContentRect());
+
+            return rect;
+        }
+
+        public ImRect GetBoundsRect()
+        {
+            ref readonly var frame = ref frames.Peek();
+            return frame.Bounds;
         }
 
         public ImRect GetContentRect()
         {
             ref readonly var frame = ref frames.Peek();
-            return new ImRect(GetPosition(frame.Type, frame.Bounds, frame.Anchor, Vector2.zero, frame.Size), frame.Size);
+            var x = frame.Bounds.X;
+            var y = frame.Bounds.Y + frame.Bounds.H - frame.Size.y;
+            var w = frame.Size.x;
+            var h = frame.Size.y;
+            return new ImRect(x, y, w, h);
         }
         
         public ImRect GetRect(Vector2 size)
         {
             ref readonly var frame = ref frames.Peek();
-            var position = GetPosition(frame.Type, frame.Bounds, frame.Anchor, frame.Size, size);
+            var position = GetNextPosition(in frame, size);
             return new ImRect(position, size);
         }
 
         public ImRect AddRect(Vector2 size)
         {
             ref var frame = ref frames.Peek();
-            var position = GetPosition(frame.Type, frame.Bounds, frame.Anchor, frame.Size, size);
+            var position = GetNextPosition(in frame, size);
             frame.AddSize(size);
             return new ImRect(position, size);
         }
-        
-        private static Vector2 GetPosition(ImLayoutType type, ImRect bounds, Vector2 anchor, Vector2 size, Vector2 rect)
+
+        public ImRect AddRect(ImRect rect)
         {
-            var ax = anchor.x * 2 - 1f;
-            var ay = anchor.y * 2 - 1;
+            ref var frame = ref frames.Peek();
+            rect.Encapsulate(GetNextPosition(in frame, Vector2.zero));
+            frame.AddSize(rect.Size);
+            return rect;
+        }
+
+        private static Vector2 GetNextPosition(in ImLayoutFrame frame, Vector2 size)
+        {
+            var hm = frame.Axis == ImAxis.Horizontal ? 1 : 0;
+            var vm = frame.Axis == ImAxis.Vertical ? 1 : 0;
             
-            var hm = type == ImLayoutType.Horizontal ? 1 : 0;
-            var vm = type == ImLayoutType.Vertical ? 1 : 0;
-            
-            var x = bounds.X + (size.x * -ax * hm) + (bounds.W * anchor.x) + (rect.x * -anchor.x);
-            var y = bounds.Y + (size.y * -ay * vm) + (bounds.H * anchor.y) + (rect.y * -anchor.y);
+            var x = frame.Bounds.X + frame.Offset.x + (frame.Size.x * hm);
+            var y = frame.Bounds.Y + frame.Offset.y + frame.Bounds.H + - (frame.Size.y * vm) - size.y;
             
             return new Vector2(x, y);
         }

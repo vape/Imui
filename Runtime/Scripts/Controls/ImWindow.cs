@@ -155,7 +155,8 @@ namespace Imui.Controls
 
         public static ImRect GetResizeHandleRect(in State state, in Style style, out float cornerRadius)
         {
-            cornerRadius = Mathf.Max(style.CornerRadius - style.FrameWidth);
+            cornerRadius = Mathf.Max(style.CornerRadius - style.FrameWidth, 0);
+            
             var size = Mathf.Max(style.ResizeHandleSize, cornerRadius);
             var rect = state.Rect.AddPadding(style.FrameWidth);
             rect.X += rect.W - size;
@@ -170,6 +171,7 @@ namespace Imui.Controls
             return state.Rect.AddPadding(style.FrameWidth).SplitTop(Mathf.Max(cornerRadius[0], style.TitleBar.Height), out _);
         }
 
+        [Serializable]
         public struct State
         {
             public string Title;

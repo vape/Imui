@@ -84,8 +84,34 @@ namespace Imui.Core
             var y1 = Mathf.Max(Y, other.Y);
             var x2 = Mathf.Min(X + W, other.X + other.W);
             var y2 = Mathf.Min(Y + H, other.Y + other.H);
-
+            
             return new ImRect(x1, y1, x2 - x1, y2 - y1);
+        }
+
+        public void Encapsulate(in ImRect other)
+        {
+            var l = Mathf.Min(other.X, X);
+            var b = Mathf.Min(other.Y, Y);
+            var t = Mathf.Max(Y + H, other.Y + other.H);
+            var r = Mathf.Max(X + W, other.X + other.W);
+
+            X = l;
+            Y = b;
+            W = r - l;
+            H = t - b;
+        }
+
+        public void Encapsulate(Vector2 point)
+        {
+            var l = Mathf.Min(point.x, X);
+            var b = Mathf.Min(point.y, Y);
+            var t = Mathf.Max(Y + H, point.y);
+            var r = Mathf.Max(X + W, point.x);
+
+            X = l;
+            Y = b;
+            W = r - l;
+            H = t - b;
         }
 
         public override string ToString()

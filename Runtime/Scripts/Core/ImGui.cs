@@ -114,7 +114,7 @@ namespace Imui.Core
             Canvas.Clear();
             Canvas.PushMeshSettings(Canvas.CreateDefaultMeshSettings());
 
-            Layout.Push(new ImRect(Vector2.zero, fbSize / uiScale), ImLayoutType.Vertical, ImLayoutAnchor.TopLeft);
+            Layout.Push(new ImRect(Vector2.zero, fbSize / uiScale), ImAxis.Vertical);
             Layout.MakeRoot();
         }
 

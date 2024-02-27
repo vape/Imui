@@ -5,6 +5,11 @@ namespace Imui.Utility
 {
     public static class RectUtility
     {
+        public static Vector2 Max(this Vector2 vec, float x, float y)
+        {
+            return new Vector2(Mathf.Max(vec.x, x), Mathf.Max(vec.y, y));
+        }
+        
         public static Rect Intersection(this Rect rect, Rect other)
         {
             var x1 = Mathf.Max(rect.x, other.x);
