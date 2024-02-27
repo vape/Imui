@@ -23,6 +23,8 @@ namespace Imui.Core
 
         private const int HOVERED_GROUPS_CAPACITY = 16;
 
+        private const int DEFAULT_STORAGE_CAPACITY = 2048;
+
         private struct ControlData
         {
             public int Id;
@@ -70,7 +72,8 @@ namespace Imui.Core
         public readonly ImCanvas Canvas;
         public readonly IImInput Input;
         public readonly ImLayout Layout;
-
+        public readonly ImStorage Storage;
+        
         private FrameData nextFrameData;
         private FrameData frameData;
         private int idGen;
@@ -89,6 +92,7 @@ namespace Imui.Core
             Renderer = new MeshRenderer();
             Input = input;
             Layout = new ImLayout();
+            Storage = new ImStorage(2048);
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY);
@@ -123,6 +127,8 @@ namespace Imui.Core
             Layout.Pop();
             
             Canvas.PopMeshSettings();
+            
+            Storage.CollectAndCompact();
         }
 
         public int GetNextControlId()

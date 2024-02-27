@@ -30,7 +30,7 @@ namespace Imui.Rendering
             }
 
             ref var meshData = ref Meshes[MeshesCount - 1];
-            while (meshData.VerticesCount == 0 || meshData.IndicesCount == 0)
+            while ((meshData.VerticesCount == 0 || meshData.IndicesCount == 0) && MeshesCount > 1)
             {
                 meshData = ref Meshes[--MeshesCount - 1];
             }

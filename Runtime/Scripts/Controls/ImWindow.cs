@@ -21,13 +21,13 @@ namespace Imui.Controls
             content.AddPadding(Style.Padding);
         }
 
-        public static void DrawFront(ImGui gui, in State state)
+        public static void DrawFront(ImGui gui, string title, in State state)
         {
-            DrawTitleBar(gui, in state);
+            DrawTitleBar(gui, title, in state);
             DrawResizeHandle(gui, in state);
         }
 
-        public static void DrawTitleBar(ImGui gui, in State state)
+        public static void DrawTitleBar(ImGui gui, string title, in State state)
         {
             var rect = GetTitleBarRect(in state, out var radius);
             var segments = gui.MeshDrawer.GetSegmentsCount(Style.CornerRadius);
@@ -38,7 +38,7 @@ namespace Imui.Controls
                 gui.Canvas.DefaultTexScaleOffset,
                 radius, segments);
             
-            gui.Canvas.Text(state.Title, Style.TitleBar.FrontColor, rect, in Style.TitleBar.Text);
+            gui.Canvas.Text(title, Style.TitleBar.FrontColor, rect, in Style.TitleBar.Text);
         }
 
         public static void DrawResizeHandle(ImGui gui, in State state)
@@ -178,7 +178,6 @@ namespace Imui.Controls
         [Serializable]
         public struct State
         {
-            public string Title;
             public ImRect Rect;
         }
     }
