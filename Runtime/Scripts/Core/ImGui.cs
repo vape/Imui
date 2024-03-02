@@ -24,6 +24,7 @@ namespace Imui.Core
         private const float UI_SCALE_MAX = 16.0f;
 
         private const int HOVERED_GROUPS_CAPACITY = 16;
+        private const int SCOPES_STACK_CAPACITY = 32;
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
 
@@ -75,10 +76,12 @@ namespace Imui.Core
         public readonly IImInput Input;
         public readonly ImLayout Layout;
         public readonly ImStorage Storage;
+        public readonly ImWindowManager WindowManager;
         
         private FrameData nextFrameData;
         private FrameData frameData;
         private DynamicArray<uint> idsStack;
+        private DynamicArray<uint> scopes;
         
         private float uiScale = 1.0f;
         private Vector2 fbSize = Vector2.zero;
@@ -95,10 +98,12 @@ namespace Imui.Core
             Input = input;
             Layout = new ImLayout();
             Storage = new ImStorage(2048);
+            WindowManager = new ImWindowManager();
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY);
             idsStack = new DynamicArray<uint>(CONTROL_IDS_CAPACITY);
+            scopes = new DynamicArray<uint>(SCOPES_STACK_CAPACITY);
         }
 
         public void SetFont(Font font)
@@ -133,16 +138,27 @@ namespace Imui.Core
             
             Storage.CollectAndCompact();
         }
-        
-        public void PushId(ReadOnlySpan<char> id)
+
+        public void BeginScope(uint id)
         {
-            var current = idsStack.TryPeek(0);
-            idsStack.Push(ImHash.Get(id, current));
+            scopes.Push(id);
         }
 
-        public void PopId()
+        public void EndScope(out uint id)
         {
-            idsStack.Pop();
+            id = scopes.Pop();
+        }
+        
+        public uint PushId(ReadOnlySpan<char> name)
+        {
+            var id = GetControlId(name);
+            idsStack.Push(id);
+            return id;
+        }
+
+        public uint PopId()
+        {
+            return idsStack.Pop();
         }
 
         public uint GetControlId(ReadOnlySpan<char> name)

@@ -9,55 +9,142 @@ namespace Imui.Controls
 {
     public static class ImWindow
     {
+        private const short ORDER_OFFSET = 64;
+        
         public static ImWindowStyle Style = ImWindowStyle.Default;
         
-        public static void DrawBack(ImGui gui, in State state, out ImRect content)
+        public static void BeginWindow(this ImGui gui, string title)
         {
-            gui.Canvas.Rect(state.Rect, Style.BackColor, Style.CornerRadius);
-            gui.Canvas.RectOutline(state.Rect, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
+            var id = gui.PushId(title);
+            
+            ref var state = ref gui.WindowManager.RegisterWindow(id, title);
+            
+            gui.Canvas.PushOrder(state.Order * ORDER_OFFSET);
+            gui.Canvas.PushRectMask(state.Rect, Style.CornerRadius);
+            gui.Canvas.PushClipRect(state.Rect);
+            Back(gui, in state.Rect, out var contentRect);
+            
+            gui.HandleControl(id, state.Rect);
+            
+            gui.BeginScope(id);
+            gui.Layout.Push(contentRect, ImAxis.Vertical);
+            gui.Layout.MakeRoot();
+        }
 
-            var titleBarRect = GetTitleBarRect(in state, out _);
-            state.Rect.WithPadding(Style.FrameWidth).SplitTop(titleBarRect.H, out content);
+        public static void EndWindow(this ImGui gui)
+        {
+            gui.Layout.Pop();
+            gui.EndScope(out var id);
+            
+            ref var state = ref gui.WindowManager.GetWindowState(id);
+            
+            Front(gui, state.Rect);
+            
+            var clicked = false;
+            clicked |= TitleBar(gui, state.Title, ref state.Rect);
+            clicked |= ResizeHandle(gui, ref state.Rect);
+            
+            if (clicked)
+            {
+                gui.WindowManager.RequestFocus(id);
+            }
+            
+            gui.HandleGroup(id, state.Rect);
+            
+            gui.Canvas.PopRectMask();
+            gui.Canvas.PopClipRect();
+            gui.Canvas.PopOrder();
+            
+            gui.PopId();
+        }
+        
+        public static void Back(ImGui gui, in ImRect rect, out ImRect content)
+        {
+            gui.Canvas.Rect(rect, Style.BackColor, Style.CornerRadius);
+            
+            var titleBarRect = GetTitleBarRect(in rect, out _);
+            rect.WithPadding(Style.FrameWidth).SplitTop(titleBarRect.H, out content);
             content.AddPadding(Style.Padding);
         }
 
-        public static void DrawFront(ImGui gui, string title, in State state)
+        public static void Front(ImGui gui, in ImRect rect)
         {
-            DrawTitleBar(gui, title, in state);
-            DrawResizeHandle(gui, in state);
+            gui.Canvas.RectOutline(rect, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
         }
-
-        public static void DrawTitleBar(ImGui gui, string title, in State state)
+        
+        public static bool TitleBar(ImGui gui, in ReadOnlySpan<char> text, ref ImRect rect)
         {
-            var rect = GetTitleBarRect(in state, out var radius);
+            var id = gui.GetControlId("title_bar");
+            var hovered = gui.IsControlHovered(id);
+            var titleBarRect = GetTitleBarRect(in rect, out var radius);
+
             var segments = gui.MeshDrawer.GetSegmentsCount(Style.CornerRadius);
             
             gui.Canvas.Rect(
-                rect, 
+                titleBarRect, 
                 Style.TitleBar.BackColor, 
                 gui.Canvas.DefaultTexScaleOffset,
                 radius, segments);
             
-            gui.Canvas.Text(title, Style.TitleBar.FrontColor, rect, in Style.TitleBar.Text);
-        }
+            gui.Canvas.Text(text, Style.TitleBar.FrontColor, titleBarRect, in Style.TitleBar.Text);
 
-        public static void DrawResizeHandle(ImGui gui, in State state)
+            var clicked = false;
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            switch (evt.Type)
+            {
+                case ImInputEventMouseType.Down:
+                    if (hovered)
+                    {
+                        clicked = true;
+                        gui.ActiveControl = id;
+                        gui.Input.UseMouse();
+                    }
+
+                    break;
+                
+                case ImInputEventMouseType.Drag:
+                    if (gui.ActiveControl == id)
+                    {
+                        rect.Position += evt.Delta;
+                        gui.Input.UseMouse();
+                    }
+
+                    break;
+                
+                case ImInputEventMouseType.Up:
+                    if (gui.ActiveControl == id)
+                    {
+                        gui.ActiveControl = 0;
+                        gui.Input.UseMouse();
+                    }
+
+                    break;
+            }
+            
+            gui.HandleControl(id, titleBarRect);
+            
+            return clicked;
+        }
+        
+        public static bool ResizeHandle(ImGui gui, ref ImRect rect)
         {
             const float PI = Mathf.PI;
             const float HALF_PI = PI / 2;
 
-            var rect = GetResizeHandleRect(in state, out var radius);
+            var id = gui.GetControlId("resize_handle");
+            var hovered = gui.IsControlHovered(id);
+            var handleRect = GetResizeHandleRect(in rect, out var radius);
             
             var segments = gui.MeshDrawer.GetSegmentsCount(radius);
             var step = (1f / segments) * HALF_PI;
 
             Span<Vector2> buffer = stackalloc Vector2[segments + 1 + 2];
 
-            buffer[0] = rect.BottomLeft;
-            buffer[^1] = rect.TopRight;
+            buffer[0] = handleRect.BottomLeft;
+            buffer[^1] = handleRect.TopRight;
 
-            var cx = rect.BottomRight.x - radius;
-            var cy = rect.Y + radius;
+            var cx = handleRect.BottomRight.x - radius;
+            var cy = handleRect.Y + radius;
             
             for (int i = 0; i < segments + 1; ++i)
             {
@@ -67,26 +154,15 @@ namespace Imui.Controls
             }
             
             gui.Canvas.ConvexFill(buffer, Style.ResizeHandleColor);
-        }
 
-        public static void WindowBehaviour(ImGui gui, ref State state)
-        {
-            TitleBarBehaviour(gui, ref state);
-            ResizeHandleBehaviour(gui, ref state);
-        }
-        
-        public static void TitleBarBehaviour(ImGui gui, ref State state)
-        {
-            var id = gui.GetControlId("title_bar");
-            var hovered = gui.IsControlHovered(id);
-            var rect = GetTitleBarRect(in state, out _);
-
+            var clicked = false;
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
                 case ImInputEventMouseType.Down:
                     if (hovered)
                     {
+                        clicked = true;
                         gui.ActiveControl = id;
                         gui.Input.UseMouse();
                     }
@@ -96,7 +172,9 @@ namespace Imui.Controls
                 case ImInputEventMouseType.Drag:
                     if (gui.ActiveControl == id)
                     {
-                        state.Rect.Position += evt.Delta;
+                        rect.W += evt.Delta.x;
+                        rect.H -= evt.Delta.y;
+                        rect.Y += evt.Delta.y;
                         gui.Input.UseMouse();
                     }
 
@@ -112,73 +190,28 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, rect);
+            gui.HandleControl(id, handleRect);
+            return clicked;
         }
 
-        public static void ResizeHandleBehaviour(ImGui gui, ref State state)
-        {
-            var id = gui.GetControlId("size_handle");
-            var hovered = gui.IsControlHovered(id);
-            var rect = GetResizeHandleRect(in state, out _);
-
-            ref readonly var evt = ref gui.Input.MouseEvent;
-            switch (evt.Type)
-            {
-                case ImInputEventMouseType.Down:
-                    if (hovered)
-                    {
-                        gui.ActiveControl = id;
-                        gui.Input.UseMouse();
-                    }
-
-                    break;
-                
-                case ImInputEventMouseType.Drag:
-                    if (gui.ActiveControl == id)
-                    {
-                        state.Rect.W += evt.Delta.x;
-                        state.Rect.H -= evt.Delta.y;
-                        state.Rect.Y += evt.Delta.y;
-                        gui.Input.UseMouse();
-                    }
-
-                    break;
-                
-                case ImInputEventMouseType.Up:
-                    if (gui.ActiveControl == id)
-                    {
-                        gui.ActiveControl = 0;
-                        gui.Input.UseMouse();
-                    }
-
-                    break;
-            }
-            
-            gui.HandleControl(id, rect);
-        }
-
-        public static ImRect GetResizeHandleRect(in State state, out float cornerRadius)
+        private static ImRect GetResizeHandleRect(in ImRect rect, out float cornerRadius)
         {
             cornerRadius = Mathf.Max(Style.CornerRadius - Style.FrameWidth, 0);
             
-            var size = Mathf.Max(Style.ResizeHandleSize, cornerRadius);
-            var rect = state.Rect.WithPadding(Style.FrameWidth);
-            rect.X += rect.W - size;
-            rect.W = size;
-            rect.H = size;
-            return rect;
+            var handleSize = Mathf.Max(Style.ResizeHandleSize, cornerRadius);
+            var handleRect = rect;
+            handleRect.AddPadding(Style.FrameWidth);
+            handleRect.X += handleRect.W - handleSize;
+            handleRect.W = handleSize;
+            handleRect.H = handleSize;
+            
+            return handleRect;
         }
         
-        public static ImRect GetTitleBarRect(in State state, out Vector4 cornerRadius)
+        private static ImRect GetTitleBarRect(in ImRect rect, out Vector4 cornerRadius)
         {
             cornerRadius = new Vector4(Style.CornerRadius - Style.FrameWidth, Style.CornerRadius - Style.FrameWidth, 0, 0);
-            return state.Rect.WithPadding(Style.FrameWidth).SplitTop(Mathf.Max(cornerRadius[0], Style.TitleBar.Height), out _);
-        }
-
-        [Serializable]
-        public struct State
-        {
-            public ImRect Rect;
+            return rect.WithPadding(Style.FrameWidth).SplitTop(Mathf.Max(cornerRadius[0], Style.TitleBar.Height), out _);
         }
     }
     
@@ -201,7 +234,7 @@ namespace Imui.Controls
             ResizeHandleColor = ImColors.Gray2,
             FrameWidth = 1,
             CornerRadius = 5,
-            ResizeHandleSize = 10,
+            ResizeHandleSize = 20,
             Padding = 1,
             TitleBar = new ImWindowTitleBarStyle()
             {

@@ -24,6 +24,16 @@ namespace Imui.Utility
             Count--;
             return true;
         }
+
+        public void RemoveAt(int index)
+        {
+            if (index < 0 || index >= Count)
+            {
+                throw new IndexOutOfRangeException($"{index} out of range, count: {Count}");
+            }
+
+            System.Array.Copy(Array, index + 1, Array, index, --Count - index);
+        }
         
         public void Add(T value)
         {
