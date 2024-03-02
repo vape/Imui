@@ -18,8 +18,8 @@ namespace Imui.Controls
             var dx = 0f;
             var dy = 0f;
 
-            var horId = gui.GetNextControlId();
-            var verId = gui.GetNextControlId();
+            var horId = gui.GetControlId("h_bar");
+            var verId = gui.GetControlId("v_bar");
 
             size.x += adjust.x;
             size.y += adjust.y;
@@ -49,7 +49,7 @@ namespace Imui.Controls
         }
         
         public static float Bar(
-            int id,
+            uint id,
             ImGui gui,
             ImRect rect, 
             float normalSize, 

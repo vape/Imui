@@ -19,7 +19,7 @@ namespace Imui.Core
         {
             public Flag Flag;
             public byte Size;
-            public int Id;
+            public uint Id;
         }
 
         public int OccupiedSize => (int)tail - (int)data;
@@ -38,7 +38,7 @@ namespace Imui.Core
             tail = data;
         }
 
-        public ref T Get<T>(int id, in T defaultValue = default) where T : unmanaged
+        public ref T Get<T>(uint id, in T defaultValue = default) where T : unmanaged
         {
             if (!TryGet(out T* value, out Metadata* metadata, id))
             {
@@ -79,7 +79,7 @@ namespace Imui.Core
             tail -= free;
         }
 
-        private T* AddValue<T>(int id, T value = default) where T : unmanaged
+        private T* AddValue<T>(uint id, T value = default) where T : unmanaged
         {
             Assert.IsTrue(sizeof(T) <= byte.MaxValue);
             
@@ -104,7 +104,7 @@ namespace Imui.Core
             return GetValueRef<T>(ptr);
         }
 
-        private bool TryGet<T>(out T* value, out Metadata* metadata, int id) where T: unmanaged
+        private bool TryGet<T>(out T* value, out Metadata* metadata, uint id) where T: unmanaged
         {
             var size = sizeof(T);
             var ptr = data;

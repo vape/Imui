@@ -31,14 +31,14 @@ namespace Imui.Controls
         
         public static bool Button(this ImGui gui, ImRect rect, in ReadOnlySpan<char> text)
         {
-            var clicked = Button(gui, rect, out var content, out var state);
+            var id = gui.GetControlId(text);
+            var clicked = Button(gui, id, rect, out var content, out var state);
             gui.Canvas.Text(in text, state.FrontColor, content, in Style.Text);
             return clicked;
         }
         
-        public static bool Button(this ImGui gui, ImRect rect, out ImRect content, out ImButtonStateStyle state)
+        public static bool Button(this ImGui gui, uint id, ImRect rect, out ImRect content, out ImButtonStateStyle state)
         {
-            var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.ActiveControl == id;
             state = pressed ? Style.Pressed : hovered ? Style.Hovered : Style.Normal;

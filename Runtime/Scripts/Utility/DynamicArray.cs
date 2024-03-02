@@ -37,11 +37,33 @@ namespace Imui.Utility
             Array[Count++] = value;
         }
 
+        public bool TryPop(out T value)
+        {
+            if (Count > 0)
+            {
+                value = Pop();
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+        
         public T Pop()
         {
             ImuiAssert.True(Count >= 0, "Popping empty array");
             
             return Array[--Count];
+        }
+
+        public T TryPeek(T @default)
+        {
+            if (Count == 0)
+            {
+                return default;
+            }
+
+            return Peek();
         }
         
         public ref T Peek()

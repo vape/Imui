@@ -77,7 +77,7 @@ namespace Imui.Controls
         
         public static void TitleBarBehaviour(ImGui gui, ref State state)
         {
-            var id = gui.GetNextControlId();
+            var id = gui.GetControlId("title_bar");
             var hovered = gui.IsControlHovered(id);
             var rect = GetTitleBarRect(in state, out _);
 
@@ -117,7 +117,7 @@ namespace Imui.Controls
 
         public static void ResizeHandleBehaviour(ImGui gui, ref State state)
         {
-            var id = gui.GetNextControlId();
+            var id = gui.GetControlId("size_handle");
             var hovered = gui.IsControlHovered(id);
             var rect = GetResizeHandleRect(in state, out _);
 

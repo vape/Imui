@@ -14,6 +14,8 @@ namespace Imui.Core
     
     public class ImGui : IDisposable, IImuiRenderer
     {
+        private const int CONTROL_IDS_CAPACITY = 32;
+        
         private const int INIT_MESHES_COUNT = 1024 / 2;
         private const int INIT_VERTICES_COUNT = 1024 * 16;
         private const int INIT_INDICES_COUNT = INIT_VERTICES_COUNT * 3;
@@ -27,7 +29,7 @@ namespace Imui.Core
 
         private struct ControlData
         {
-            public int Id;
+            public uint Id;
             public int Order;
             public ImRect Rect;
         }
@@ -63,7 +65,7 @@ namespace Imui.Core
             }
         }
 
-        public int ActiveControl;
+        public uint ActiveControl;
 
         public readonly MeshBuffer MeshBuffer;
         public readonly MeshRenderer Renderer;
@@ -76,7 +78,7 @@ namespace Imui.Core
         
         private FrameData nextFrameData;
         private FrameData frameData;
-        private int idGen;
+        private DynamicArray<uint> idsStack;
         
         private float uiScale = 1.0f;
         private Vector2 fbSize = Vector2.zero;
@@ -96,6 +98,7 @@ namespace Imui.Core
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY);
+            idsStack = new DynamicArray<uint>(CONTROL_IDS_CAPACITY);
         }
 
         public void SetFont(Font font)
@@ -105,7 +108,7 @@ namespace Imui.Core
         
         public void BeginFrame()
         {
-            idGen = 0;
+            idsStack.Clear(false);
             
             // ReSharper disable once SwapViaDeconstruction
             frameData = nextFrameData;
@@ -130,18 +133,34 @@ namespace Imui.Core
             
             Storage.CollectAndCompact();
         }
-
-        public int GetNextControlId()
+        
+        public void PushId(ReadOnlySpan<char> id)
         {
-            return ++idGen;
+            var current = idsStack.TryPeek(0);
+            idsStack.Push(ImHash.Get(id, current));
         }
 
-        public bool IsControlHovered(int controlId)
+        public void PopId()
+        {
+            idsStack.Pop();
+        }
+
+        public uint GetControlId(ReadOnlySpan<char> name)
+        {
+            return ImHash.Get(name, idsStack.TryPeek(0));
+        }
+
+        public uint GetHoveredControl()
+        {
+            return frameData.HoveredControl.Id;
+        }
+
+        public bool IsControlHovered(uint controlId)
         {
             return frameData.HoveredControl.Id == controlId;
         }
 
-        public bool IsGroupHovered(int controlId)
+        public bool IsGroupHovered(uint controlId)
         {
             for (int i = 0; i < frameData.HoveredGroups.Count; ++i)
             {
@@ -154,7 +173,7 @@ namespace Imui.Core
             return false;
         }
         
-        public void HandleControl(int controlId, ImRect rect)
+        public void HandleControl(uint controlId, ImRect rect)
         {
             ref readonly var meshProperties = ref Canvas.GetActiveMeshSettingsRef();
             
@@ -171,7 +190,7 @@ namespace Imui.Core
             }
         }
 
-        public void HandleGroup(int controlId, ImRect rect)
+        public void HandleGroup(uint controlId, ImRect rect)
         {
             ref readonly var meshProperties = ref Canvas.GetActiveMeshSettingsRef();
             
