@@ -65,10 +65,11 @@ namespace Imui.Core
 
             frames.Push(in frame);
         }
-        
-        public void Pop()
-        {
-            var frame = frames.Pop();
+
+        public void Pop() => Pop(out _);
+        public void Pop(out ImLayoutFrame frame)
+        { 
+            frame = frames.Pop();
             
             if ((frame.Flags & ImLayoutFlag.Root) == 0 && frames.Count > 0)
             {
