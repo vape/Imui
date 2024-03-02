@@ -28,14 +28,14 @@ namespace Imui.Core
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
 
-        private struct ControlData
+        internal struct ControlData
         {
             public uint Id;
             public int Order;
             public ImRect Rect;
         }
         
-        private struct FrameData
+        internal struct FrameData
         {
             public ControlData HoveredControl;
             public DynamicArray<ControlData> HoveredGroups;
@@ -78,8 +78,8 @@ namespace Imui.Core
         public readonly ImStorage Storage;
         public readonly ImWindowManager WindowManager;
         
-        private FrameData nextFrameData;
-        private FrameData frameData;
+        internal FrameData nextFrameData;
+        internal FrameData frameData;
         private DynamicArray<uint> idsStack;
         private DynamicArray<uint> scopes;
         
