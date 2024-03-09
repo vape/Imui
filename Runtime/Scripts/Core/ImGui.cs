@@ -28,6 +28,18 @@ namespace Imui.Core
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
 
+        private struct ControlId
+        {
+            public uint Id;
+            public int Gen;
+
+            public ControlId(uint id)
+            {
+                Id = id;
+                Gen = 0;
+            }
+        }
+        
         internal struct ControlData
         {
             public uint Id;
@@ -80,7 +92,7 @@ namespace Imui.Core
         
         internal FrameData nextFrameData;
         internal FrameData frameData;
-        private DynamicArray<uint> idsStack;
+        private DynamicArray<ControlId> idsStack;
         private DynamicArray<uint> scopes;
         
         private float uiScale = 1.0f;
@@ -97,12 +109,12 @@ namespace Imui.Core
             Renderer = new MeshRenderer();
             Input = input;
             Layout = new ImLayout();
-            Storage = new ImStorage(2048);
+            Storage = new ImStorage(DEFAULT_STORAGE_CAPACITY);
             WindowManager = new ImWindowManager();
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY);
-            idsStack = new DynamicArray<uint>(CONTROL_IDS_CAPACITY);
+            idsStack = new DynamicArray<ControlId>(CONTROL_IDS_CAPACITY);
             scopes = new DynamicArray<uint>(SCOPES_STACK_CAPACITY);
         }
 
@@ -128,10 +140,14 @@ namespace Imui.Core
 
             Layout.Push(new ImRect(Vector2.zero, fbSize / uiScale), ImAxis.Vertical);
             Layout.MakeRoot();
+
+            idsStack.Push(new ControlId(ImHash.Get("root", 0)));
         }
 
         public void EndFrame()
         {
+            idsStack.Pop();
+            
             Layout.Pop();
             
             Canvas.PopMeshSettings();
@@ -152,18 +168,25 @@ namespace Imui.Core
         public uint PushId(ReadOnlySpan<char> name)
         {
             var id = GetControlId(name);
-            idsStack.Push(id);
+            idsStack.Push(new ControlId(id));
             return id;
         }
 
         public uint PopId()
         {
-            return idsStack.Pop();
+            return idsStack.Pop().Id;
+        }
+
+        public uint GetNextControlId()
+        {
+            ref var parent = ref idsStack.Peek();
+            return ImHash.Get(++parent.Gen, parent.Id);
         }
 
         public uint GetControlId(in ReadOnlySpan<char> name)
         {
-            return ImHash.Get(name, idsStack.TryPeek(0));
+            ref var parent = ref idsStack.Peek();
+            return ImHash.Get(name, parent.Id);
         }
 
         public uint GetHoveredControl()

@@ -66,7 +66,7 @@ namespace Imui.Utility
             return Array[--Count];
         }
 
-        public T TryPeek(T @default)
+        public T TryPeek(T @default = default)
         {
             if (Count == 0)
             {

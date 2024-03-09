@@ -11,18 +11,19 @@ namespace Imui.Controls
     {
         public static ImScrollStyle Style = ImScrollStyle.Default;
         
-        public static void BeginScrollable(this ImGui gui, uint id)
+        public static void BeginScrollable(this ImGui gui)
         {
-            ref readonly var frame = ref gui.Layout.GetFrame();
-            
+            var id = gui.GetNextControlId();
             var state = gui.Storage.Get<State>(id);
+            
+            ref readonly var frame = ref gui.Layout.GetFrame();
             var visible = GetVisibleRect(frame.Bounds, in state);
             
             gui.Layout.Push(visible, frame.Axis);
             gui.Layout.SetOffset(state.Offset);
             gui.BeginScope(id);
         }
-
+        
         public static void EndScrollable(this ImGui gui)
         {
             gui.EndScope(out var id);
@@ -40,8 +41,8 @@ namespace Imui.Controls
             var dx = 0f;
             var dy = 0f;
 
-            var horId = gui.GetControlId("h_bar");
-            var verId = gui.GetControlId("v_bar");
+            var horId = gui.GetNextControlId();
+            var verId = gui.GetNextControlId();
 
             size.x += adjust.x;
             size.y += adjust.y;

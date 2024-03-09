@@ -17,7 +17,7 @@ namespace Imui.Controls
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style);
             ImButton.Style.Padding.Right += Style.ArrowWidth;
 
-            var id = gui.GetControlId(in label);
+            var id = gui.GetNextControlId();
             var size = ImButton.MeasureSize(gui, in label);
             var rect = gui.Layout.AddRect(size);
             var clicked = gui.Button(id, rect, out var content, out var style);

@@ -30,7 +30,7 @@ namespace Imui.Controls
             gui.Layout.Push(contentRect, ImAxis.Vertical);
             gui.Layout.MakeRoot();
             
-            gui.BeginScrollable(gui.GetControlId("win_scroll"));
+            gui.BeginScrollable();
         }
 
         public static void EndWindow(this ImGui gui)
@@ -78,7 +78,7 @@ namespace Imui.Controls
         
         public static bool TitleBar(ImGui gui, in ReadOnlySpan<char> text, ref ImRect rect)
         {
-            var id = gui.GetControlId("win_title");
+            var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var titleBarRect = GetTitleBarRect(in rect, out var radius);
 
@@ -135,7 +135,7 @@ namespace Imui.Controls
             const float PI = Mathf.PI;
             const float HALF_PI = PI / 2;
 
-            var id = gui.GetControlId("win_handle");
+            var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var handleRect = GetResizeHandleRect(in rect, out var radius);
             
