@@ -1,4 +1,5 @@
 using Imui.Core;
+using Imui.Styling;
 using UnityEngine;
 
 namespace Imui.Utility
@@ -46,6 +47,17 @@ namespace Imui.Utility
             rect.H -= size * 2;
         }
         
+        public static ImRect WithAspect(this ImRect rect, float aspect)
+        {
+            var rectAspect = rect.W / rect.H;
+            var w = rectAspect > aspect ? rect.W / (rectAspect / aspect) : rect.W;
+            var h = rectAspect > aspect ? rect.H : rect.H * (rectAspect / aspect);
+            var x = rect.X + (0.5f * (rect.W - w));
+            var y = rect.Y + (0.5f * (rect.H - h));
+            
+            return new ImRect(x, y, w, h);
+        }
+        
         public static ImRect WithPadding(this ImRect rect, float size)
         {
             rect.X += size;
@@ -62,6 +74,16 @@ namespace Imui.Utility
             rect.Y += bottom;
             rect.W -= left + right;
             rect.H -= top + bottom;
+
+            return rect;
+        }
+
+        public static ImRect WithPadding(this ImRect rect, ImPadding padding)
+        {
+            rect.X += padding.Left;
+            rect.Y += padding.Bottom;
+            rect.W -= padding.Left + padding.Right;
+            rect.H -= padding.Top + padding.Bottom;
 
             return rect;
         }

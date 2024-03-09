@@ -161,7 +161,7 @@ namespace Imui.Core
             return idsStack.Pop();
         }
 
-        public uint GetControlId(ReadOnlySpan<char> name)
+        public uint GetControlId(in ReadOnlySpan<char> name)
         {
             return ImHash.Get(name, idsStack.TryPeek(0));
         }

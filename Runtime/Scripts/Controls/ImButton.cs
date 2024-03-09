@@ -11,29 +11,24 @@ namespace Imui.Controls
     {
         public static ImButtonStyle Style = ImButtonStyle.Default;
         
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> text)
+        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label)
         {
-            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 0, 0, Style.Text.AlignX,
-                Style.Text.AlignY, Style.Text.Size);
-
-            var size = new Vector2(
-                textLayout.Width + (Style.Padding + Style.FrameWidth) * 2 + 0.1f,
-                textLayout.Height + (Style.Padding + Style.FrameWidth) * 2 + 0.1f);
+            var size = MeasureSize(gui, in label);
             var rect = gui.Layout.AddRect(size);
 
-            return Button(gui, rect, text);
+            return Button(gui, rect, label);
         }
         
-        public static bool Button(this ImGui gui, Vector2 size, in ReadOnlySpan<char> text)
+        public static bool Button(this ImGui gui, Vector2 size, in ReadOnlySpan<char> label)
         {
-            return Button(gui, gui.Layout.AddRect(size), in text);
+            return Button(gui, gui.Layout.AddRect(size), label);
         }
         
-        public static bool Button(this ImGui gui, ImRect rect, in ReadOnlySpan<char> text)
+        public static bool Button(this ImGui gui, ImRect rect, in ReadOnlySpan<char> label)
         {
-            var id = gui.GetControlId(text);
+            var id = gui.GetControlId(in label);
             var clicked = Button(gui, id, rect, out var content, out var state);
-            gui.Canvas.Text(in text, state.FrontColor, content, in Style.Text);
+            gui.Canvas.Text(in label, state.FrontColor, content, in Style.Text);
             return clicked;
         }
         
@@ -46,7 +41,7 @@ namespace Imui.Controls
             gui.Canvas.Rect(rect, state.BackColor, Style.CornerRadius);
             gui.Canvas.RectOutline(rect, state.FrameColor, Style.FrameWidth, Style.CornerRadius);
 
-            content = rect.WithPadding(Style.FrameWidth + Style.Padding);
+            content = rect.WithPadding(Style.FrameWidth).WithPadding(Style.Padding);
             
             var clicked = false;
 
@@ -79,6 +74,16 @@ namespace Imui.Controls
 
             return clicked;
         }
+
+        public static Vector2 MeasureSize(ImGui gui, in ReadOnlySpan<char> text)
+        {
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 0, 0, Style.Text.AlignX,
+                Style.Text.AlignY, Style.Text.Size);
+
+            return new Vector2(
+                textLayout.Width + Style.Padding.Left + Style.Padding.Right + (Style.FrameWidth * 2) + 0.1f,
+                textLayout.Height + Style.Padding.Top + Style.Padding.Bottom + (Style.FrameWidth * 2) + 0.1f);
+        }
     }
     
     [Serializable]
@@ -94,7 +99,7 @@ namespace Imui.Controls
     {
         public static readonly ImButtonStyle Default = new ImButtonStyle()
         {
-            Padding = 1,
+            Padding = 1.0f,
             FrameWidth = 1,
             CornerRadius = 3,
             Text = new ImTextSettings()
@@ -127,7 +132,7 @@ namespace Imui.Controls
         public ImButtonStateStyle Hovered;
         public ImButtonStateStyle Pressed;
         public ImTextSettings Text;
-        public float Padding;
+        public ImPadding Padding;
         public float FrameWidth;
         public float CornerRadius;
     }
