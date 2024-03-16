@@ -2,6 +2,9 @@ namespace Imui.Styling
 {
     public struct ImPadding
     {
+        public float Vertical => Top + Bottom;
+        public float Horizontal => Left + Right;
+        
         public float Left;
         public float Right;
         public float Top;

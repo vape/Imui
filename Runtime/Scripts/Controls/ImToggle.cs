@@ -45,6 +45,8 @@ namespace Imui.Controls
         
         public static void Toggle(this ImGui gui, ref bool value, in ImRect rect, in ImRect clickable)
         {
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
+            
             var buttonRect = rect.WithAspect(1.0f);
             var id = gui.GetNextControlId();
             var clicked = gui.Button(id, in buttonRect, out var content, out var style, in clickable);
@@ -65,7 +67,7 @@ namespace Imui.Controls
     {
         public const float DEFAULT_SIZE = 24;
 
-        public static ImToggleStyle Default = new ImToggleStyle()
+        public static readonly ImToggleStyle Default = new ImToggleStyle()
         {
             DefaultSize = DEFAULT_SIZE,
             Button = ImButtonStyle.Default,
