@@ -40,6 +40,9 @@ namespace Imui.Controls
 
             return clicked;
         }
+        
+        // TODO (artem-s): Select(this ImGui gui, ImRect rect,  ...)
+        // TODO (artem-s): Select(this ImGui gui, Vector2 size, ...)
     }
 
     public struct ImSelectStyle

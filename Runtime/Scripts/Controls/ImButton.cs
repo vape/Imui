@@ -16,7 +16,7 @@ namespace Imui.Controls
             var size = MeasureSize(gui, in label);
             var rect = gui.Layout.AddRect(size);
 
-            return Button(gui, rect, label);
+            return Button(gui, in rect, label);
         }
         
         public static bool Button(this ImGui gui, Vector2 size, in ReadOnlySpan<char> label)
@@ -24,15 +24,20 @@ namespace Imui.Controls
             return Button(gui, gui.Layout.AddRect(size), label);
         }
         
-        public static bool Button(this ImGui gui, ImRect rect, in ReadOnlySpan<char> label)
+        public static bool Button(this ImGui gui, in ImRect rect, in ReadOnlySpan<char> label)
         {
             var id = gui.GetNextControlId();
-            var clicked = Button(gui, id, rect, out var content, out var state);
+            var clicked = Button(gui, id, in rect, out var content, out var state);
             gui.Canvas.Text(in label, state.FrontColor, content, in Style.Text);
             return clicked;
         }
+
+        public static bool Button(this ImGui gui, uint id, in ImRect rect, out ImRect content, out ImButtonStateStyle state)
+        {
+            return Button(gui, id, in rect, out content, out state, in rect);
+        }
         
-        public static bool Button(this ImGui gui, uint id, ImRect rect, out ImRect content, out ImButtonStateStyle state)
+        public static bool Button(this ImGui gui, uint id, in ImRect rect, out ImRect content, out ImButtonStateStyle state, in ImRect clickable)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.ActiveControl == id;
@@ -70,7 +75,7 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, rect);
+            gui.HandleControl(id, clickable);
 
             return clicked;
         }
