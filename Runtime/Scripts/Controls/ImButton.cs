@@ -75,6 +75,49 @@ namespace Imui.Controls
             return clicked;
         }
 
+        public static bool InvisibleButton(this ImGui gui, ImRect rect)
+        {
+            var id = gui.GetNextControlId();
+
+            return InvisibleButton(gui, id, rect);
+        }
+        
+        public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect)
+        {
+            var hovered = gui.IsControlHovered(id);
+            var pressed = gui.ActiveControl == id;
+            var clicked = false;
+            
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            switch (evt.Type)
+            {
+                case ImInputEventMouseType.Down:
+                    if (!pressed && hovered)
+                    {
+                        gui.ActiveControl = id;
+                        gui.Input.UseMouse();
+                    }
+                    break;
+                
+                case ImInputEventMouseType.Up:
+                    if (pressed)
+                    {
+                        gui.ActiveControl = 0;
+                        clicked = hovered;
+                        
+                        if (clicked)
+                        {
+                            gui.Input.UseMouse();
+                        }
+                    }
+                    break;
+            }
+            
+            gui.HandleControl(id, rect);
+
+            return clicked;
+        }
+
         public static Vector2 MeasureSize(ImGui gui, in ReadOnlySpan<char> text)
         {
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 0, 0, Style.Text.AlignX,

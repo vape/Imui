@@ -87,5 +87,15 @@ namespace Imui.Utility
 
             return rect;
         }
+
+        public static ImRect WithMargin(this ImRect rect, ImPadding margin)
+        {
+            rect.X -= margin.Left;
+            rect.Y -= margin.Bottom;
+            rect.W += margin.Left + margin.Right;
+            rect.H += margin.Top + margin.Bottom;
+
+            return rect;
+        }
     }
 }

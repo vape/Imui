@@ -57,6 +57,7 @@ namespace Imui.Core
             DefaultTexture.Apply();
         }
 
+        public ImRect ScreenRect => new ImRect(Vector2.zero, ScreenSize);
         public Vector2 ScreenSize => screenSize;
         public Vector4 DefaultTexScaleOffset => defaultTexScaleOffset;
         
