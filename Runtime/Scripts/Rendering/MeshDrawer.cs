@@ -5,12 +5,17 @@ namespace Imui.Rendering
 {
     public class MeshDrawer
     {
+        public const float MAIN_ATLAS_ID = 0.0f;
+        public const float FONT_ATLAS_ID = 1.0f;
+        
         private const float PI = Mathf.PI;
         private const float HALF_PI = PI / 2;
 
+        private static readonly Vector2 zero = Vector2.zero;
+
         // ReSharper disable once InconsistentNaming
         public float Depth;
-        public float UVZ;
+        public float Atlas;
         public Color32 Color;
         public Vector4 ScaleOffset;
 
@@ -96,15 +101,15 @@ namespace Imui.Rendering
             v0.Color = Color;
             v0.UV.x = ScaleOffset.z;
             v0.UV.y = ScaleOffset.w;
-            v0.UV.z = UVZ;
+            v0.Atlas = Atlas;
 
             ref var v1 = ref buffer.Vertices[vc + 1];
             v1.Position.x = path[0].x + prevNormal.x * innerThickness;
             v1.Position.y = path[0].y + prevNormal.y * innerThickness;
             v1.Position.z = Depth;
             v1.Color = Color;
-            v1.UV = Vector2.zero;
-            v1.UV.z = UVZ;
+            v1.UV = zero;
+            v1.Atlas = Atlas;
 
             for (int i = 0; i < pointsCount; ++i)
             {
@@ -139,7 +144,7 @@ namespace Imui.Rendering
                 v2.Color = Color;
                 v2.UV.x = ScaleOffset.z;
                 v2.UV.y = ScaleOffset.w;
-                v2.UV.z = UVZ;
+                v2.Atlas = Atlas;
 
                 ref var v3 = ref buffer.Vertices[vc + 3];
                 v3.Position.x = b.x + normalX * innerThickness;
@@ -148,7 +153,7 @@ namespace Imui.Rendering
                 v3.Color = Color;
                 v3.UV.x = ScaleOffset.z;
                 v3.UV.y = ScaleOffset.w;
-                v3.UV.z = UVZ;
+                v3.Atlas = Atlas;
 
                 buffer.Indices[ic + 0] = vc + 0;
                 buffer.Indices[ic + 1] = vc + 1;
@@ -184,7 +189,7 @@ namespace Imui.Rendering
             v0.Color = Color;
             v0.UV.x = ScaleOffset.z;
             v0.UV.y = ScaleOffset.w;
-            v0.UV.z = UVZ;
+            v0.Atlas = Atlas;
             
             ref var v1 = ref buffer.Vertices[vc + 1];
             v1.Position.x = center.x + Mathf.Cos(from) * radius;
@@ -193,7 +198,7 @@ namespace Imui.Rendering
             v1.Color = Color;
             v1.UV.x = ScaleOffset.z;
             v1.UV.y = ScaleOffset.w;
-            v1.UV.z = UVZ;
+            v1.Atlas = Atlas;
 
             var angleStep = (1f / segments) * (to - from);
             for (int i = 0; i < segments; ++i)
@@ -208,7 +213,7 @@ namespace Imui.Rendering
                 v2.Color = Color;
                 v2.UV.x = ScaleOffset.z;
                 v2.UV.y = ScaleOffset.w;
-                v2.UV.z = UVZ;
+                v2.Atlas = Atlas;
 
                 buffer.Indices[ic + (i * 3) + 0] = vc + 0;
                 buffer.Indices[ic + (i * 3) + 1] = idx;
@@ -262,7 +267,7 @@ namespace Imui.Rendering
             v0.Color = Color;
             v0.UV.x = ScaleOffset.z;
             v0.UV.y = ScaleOffset.w;
-            v0.UV.z = UVZ;
+            v0.Atlas = Atlas;
 
             ref var v1 = ref buffer.Vertices[vc + 1];
             v1.Position.x = x1;
@@ -271,7 +276,7 @@ namespace Imui.Rendering
             v1.Color = Color;
             v1.UV.x = ScaleOffset.z;
             v1.UV.y = (ScaleOffset.w + ScaleOffset.y);
-            v1.UV.z = UVZ;
+            v1.Atlas = Atlas;
             
             ref var v2 = ref buffer.Vertices[vc + 2];
             v2.Position.x = x2;
@@ -280,7 +285,7 @@ namespace Imui.Rendering
             v2.Color = Color;
             v2.UV.x = (ScaleOffset.z + ScaleOffset.x);
             v2.UV.y = (ScaleOffset.w + ScaleOffset.y);
-            v2.UV.z = UVZ;
+            v2.Atlas = Atlas;
 
             ref var v3 = ref buffer.Vertices[vc + 3];
             v3.Position.x = x3;
@@ -289,7 +294,7 @@ namespace Imui.Rendering
             v3.Color = Color;
             v3.UV.x = (ScaleOffset.z + ScaleOffset.x);
             v3.UV.y = (ScaleOffset.w);
-            v3.UV.z = UVZ;
+            v3.Atlas = Atlas;
 
             buffer.Indices[ic + 0] = vc + 0;
             buffer.Indices[ic + 1] = vc + 1;
@@ -317,7 +322,7 @@ namespace Imui.Rendering
             v0.Color = Color;
             v0.UV.x = ScaleOffset.z;
             v0.UV.y = ScaleOffset.w;
-            v0.UV.z = UVZ;
+            v0.Atlas = Atlas;
 
             ref var v1 = ref buffer.Vertices[vc + 1];
             v1.Position.x = x;
@@ -326,7 +331,7 @@ namespace Imui.Rendering
             v1.Color = Color;
             v1.UV.x = ScaleOffset.z;
             v1.UV.y = (ScaleOffset.w + ScaleOffset.y);
-            v1.UV.z = UVZ;
+            v1.Atlas = Atlas;
             
             ref var v2 = ref buffer.Vertices[vc + 2];
             v2.Position.x = x + w;
@@ -335,7 +340,7 @@ namespace Imui.Rendering
             v2.Color = Color;
             v2.UV.x = (ScaleOffset.z + ScaleOffset.x);
             v2.UV.y = (ScaleOffset.w + ScaleOffset.y);
-            v2.UV.z = UVZ;
+            v2.Atlas = Atlas;
 
             ref var v3 = ref buffer.Vertices[vc + 3];
             v3.Position.x = x + w;
@@ -344,7 +349,7 @@ namespace Imui.Rendering
             v3.Color = Color;
             v3.UV.x = (ScaleOffset.z + ScaleOffset.x);
             v3.UV.y = (ScaleOffset.w);
-            v3.UV.z = UVZ;
+            v3.Atlas = Atlas;
 
             buffer.Indices[ic + 0] = vc + 0;
             buffer.Indices[ic + 1] = vc + 1;
@@ -375,7 +380,7 @@ namespace Imui.Rendering
             v0.Color = Color;
             v0.UV.x = ScaleOffset.z;
             v0.UV.y = ScaleOffset.w;
-            v0.UV.z = UVZ;
+            v0.Atlas = Atlas;
             
             ref readonly var p1 = ref points[1];
             ref var v1 = ref buffer.Vertices[vc + 1];
@@ -385,7 +390,7 @@ namespace Imui.Rendering
             v1.Color = Color;
             v1.UV.x = ScaleOffset.z;
             v1.UV.y = ScaleOffset.w;
-            v1.UV.z = UVZ;
+            v1.Atlas = Atlas;
             
             for (int i = 2; i < points.Length; ++i)
             {
@@ -397,7 +402,7 @@ namespace Imui.Rendering
                 v.Color = Color;
                 v.UV.x = ScaleOffset.z;
                 v.UV.y = ScaleOffset.w;
-                v.UV.z = UVZ;
+                v.Atlas = Atlas;
 
                 buffer.Indices[ic + 0] = vc + i;
                 buffer.Indices[ic + 1] = vc + i - 1;
