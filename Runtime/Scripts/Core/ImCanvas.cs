@@ -37,6 +37,8 @@ namespace Imui.Core
             public MeshClipRect ClipRect;
             public MeshMaskRect MaskRect;
             public int Order;
+            public Texture MainTex;
+            public Texture FontTex;
         }
         
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
@@ -97,9 +99,6 @@ namespace Imui.Core
 
         public void Clear()
         {
-            material.SetTexture(MainTexId, atlas.AtlasTexture);
-            material.SetTexture(FontTexId, textDrawer.FontAtlas);
-            
             meshDrawer.Clear();
         }
         
@@ -179,7 +178,9 @@ namespace Imui.Core
                     Enabled = true,
                     Rect = new Rect(Vector2.zero, screenSize)
                 },
-                Material = material
+                Material = material,
+                MainTex = atlas.AtlasTexture,
+                FontTex = textDrawer.FontAtlas
             };
         }
 
@@ -188,6 +189,8 @@ namespace Imui.Core
             ref var mesh = ref meshDrawer.GetMesh();
             ref var settings = ref meshSettingsStack.Peek();
 
+            mesh.FontTex = settings.FontTex;
+            mesh.MainTex = settings.MainTex;
             mesh.Material = settings.Material;
             mesh.Order = settings.Order;
             mesh.ClipRect = settings.ClipRect;

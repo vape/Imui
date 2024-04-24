@@ -56,6 +56,7 @@ namespace Imui.Rendering
         }
         
         // TODO (artem-s): add proper texturing
+        // TODO (artem-s): slow as hell, needs optimizations
         public void AddLine(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
             Vector2 GetNormal2(Vector2 a, Vector2 b)

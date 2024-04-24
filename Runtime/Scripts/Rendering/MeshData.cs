@@ -17,6 +17,8 @@ namespace Imui.Rendering
     
     public struct MeshData
     {
+        public Texture MainTex;
+        public Texture FontTex;
         public Material Material;
         public int IndicesOffset;
         public int VerticesOffset;
@@ -29,6 +31,8 @@ namespace Imui.Rendering
         
         public void ClearOptions()
         {
+            MainTex = null;
+            FontTex = null;
             Material = null;
             Topology = default;
             Order = 0;

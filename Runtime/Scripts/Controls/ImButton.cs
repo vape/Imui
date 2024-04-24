@@ -26,9 +26,15 @@ namespace Imui.Controls
         
         public static bool Button(this ImGui gui, in ImRect rect, in ReadOnlySpan<char> label)
         {
-            var id = gui.GetNextControlId();
-            var clicked = Button(gui, id, in rect, out var content, out var state);
+            var clicked = Button(gui, in rect, out var content, out var state);
             gui.Canvas.Text(in label, state.FrontColor, content, in Style.Text);
+            return clicked;
+        }
+
+        public static bool Button(this ImGui gui, in ImRect rect, out ImRect content, out ImButtonStateStyle state)
+        {
+            var id = gui.GetNextControlId();
+            var clicked = Button(gui, id, in rect, out content, out state);
             return clicked;
         }
 

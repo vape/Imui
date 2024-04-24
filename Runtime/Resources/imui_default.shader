@@ -2,8 +2,8 @@
 {
     Properties
     {
-        _MainTex("Texture", 2D) = "white" {}
-        
+        [PerRendererData] _MainTex("Main Texture", 2D) = "white" {}
+        [PerRendererData] _FontTex("Font Texture", 2D) = "white" {}
         [PerRendererData] _MaskEnable("Enable Masking", int) = 0
         [PerRendererData] _MaskRect("Mask Rect", Vector) = (0, 0, 0, 0)
         [PerRendererData] _MaskCornerRadius("Mask Corner Radius", float) = 0
