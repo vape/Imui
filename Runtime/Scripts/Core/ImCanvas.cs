@@ -20,9 +20,6 @@ namespace Imui.Core
         private const int MAIN_ATLAS_W = 1024;
         private const int MAIN_ATLAS_H = 1024;
         
-        private const float MAIN_ATLAS_IDX = 0;
-        private const float FONT_ATLAS_IDX = 1;
-        
         private const int MESH_SETTINGS_CAPACITY = 32;
         
         private const string SHADER_NAME = "imui_default";
@@ -40,6 +37,8 @@ namespace Imui.Core
             public MeshClipRect ClipRect;
             public MeshMaskRect MaskRect;
             public int Order;
+            public Texture MainTex;
+            public Texture FontTex;
         }
         
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
@@ -100,9 +99,6 @@ namespace Imui.Core
 
         public void Clear()
         {
-            material.SetTexture(MainTexId, atlas.AtlasTexture);
-            material.SetTexture(FontTexId, textDrawer.FontAtlas);
-            
             meshDrawer.Clear();
         }
         
@@ -182,7 +178,9 @@ namespace Imui.Core
                     Enabled = true,
                     Rect = new Rect(Vector2.zero, screenSize)
                 },
-                Material = material
+                Material = material,
+                MainTex = atlas.AtlasTexture,
+                FontTex = textDrawer.FontAtlas
             };
         }
 
@@ -191,6 +189,8 @@ namespace Imui.Core
             ref var mesh = ref meshDrawer.GetMesh();
             ref var settings = ref meshSettingsStack.Peek();
 
+            mesh.FontTex = settings.FontTex;
+            mesh.MainTex = settings.MainTex;
             mesh.Material = settings.Material;
             mesh.Order = settings.Order;
             mesh.ClipRect = settings.ClipRect;
@@ -206,7 +206,7 @@ namespace Imui.Core
         {
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = texScaleOffset;
-            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H);
         }
@@ -230,7 +230,7 @@ namespace Imui.Core
         {
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = texScaleOffset;
-            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddRoundCornersRect(
                 (Vector4)rect, 
@@ -257,7 +257,6 @@ namespace Imui.Core
         public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
         {
             textDrawer.Color = color;
-            textDrawer.UVZ = FONT_ATLAS_IDX;
             textDrawer.Depth = DEFAULT_DEPTH;
             textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
         }
@@ -265,7 +264,6 @@ namespace Imui.Core
         public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
         {
             textDrawer.Color = color;
-            textDrawer.UVZ = FONT_ATLAS_IDX;
             textDrawer.Depth = DEFAULT_DEPTH;
             textDrawer.AddTextWithLayout(text, in layout, position.x, position.y);
         }
@@ -295,7 +293,7 @@ namespace Imui.Core
             
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddLine(in path, closed, thickness, bias, 1.0f - bias);
         }
@@ -304,7 +302,7 @@ namespace Imui.Core
         {
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.UVZ = MAIN_ATLAS_IDX;
+            meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddFilledConvexMesh(in points);
         }

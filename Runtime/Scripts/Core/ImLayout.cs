@@ -139,12 +139,22 @@ namespace Imui.Core
             var h = frame.Size.y;
             return new ImRect(x, y, w, h);
         }
+
+        public ImRect GetRect(float width, float height)
+        {
+            return GetRect(new Vector2(width, height));
+        }
         
         public ImRect GetRect(Vector2 size)
         {
             ref readonly var frame = ref frames.Peek();
             var position = GetNextPosition(in frame, size);
             return new ImRect(position, size);
+        }
+
+        public ImRect AddRect(float width, float height)
+        {
+            return AddRect(new Vector2(width, height));
         }
 
         public ImRect AddRect(Vector2 size)

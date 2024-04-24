@@ -12,19 +12,21 @@ namespace Imui.Rendering
             MeshUpdateFlags.DontResetBoneBounds |
             MeshUpdateFlags.DontValidateIndices;
 
+        private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        private static readonly int FontTexId = Shader.PropertyToID("_FontTex");
         private static readonly int ViewProjectionId = Shader.PropertyToID("_VP");
         private static readonly int MaskEnabledId = Shader.PropertyToID("_MaskEnable");
         private static readonly int MaskRectId = Shader.PropertyToID("_MaskRect");
         private static readonly int MaskCornerRadiusId = Shader.PropertyToID("_MaskCornerRadius");
         
-        private readonly MaterialPropertyBlock sharedPropertyBlock;
+        private readonly MaterialPropertyBlock properties;
         
         private Mesh mesh;
         private bool disposed;
         
         public MeshRenderer()
         {
-            sharedPropertyBlock = new MaterialPropertyBlock();
+            properties = new MaterialPropertyBlock();
             
             mesh = new Mesh();
             mesh.MarkDynamic();
@@ -79,8 +81,9 @@ namespace Imui.Rendering
             for (int i = 0; i < buffer.MeshesCount; ++i)
             {
                 ref var meshData = ref buffer.Meshes[i];
-                
-                MaterialPropertyBlock properties = null;
+
+                properties.SetTexture(MainTexId, meshData.MainTex);
+                properties.SetTexture(FontTexId, meshData.FontTex);
                 
                 if (meshData.MaskRect.Enabled)
                 {
@@ -90,10 +93,13 @@ namespace Imui.Rendering
                     var hh = rect.height / 2f;
                     var vec = new Vector4((rect.x + hw) * scale, (rect.y + hh) * scale, hw * scale, hh * scale);
 
-                    properties = sharedPropertyBlock;
                     properties.SetInteger(MaskEnabledId, 1);
                     properties.SetVector(MaskRectId, vec);
                     properties.SetFloat(MaskCornerRadiusId, radius);
+                }
+                else
+                {
+                    properties.SetInteger(MaskEnabledId, 0);
                 }
                 
                 if (meshData.ClipRect.Enabled)
