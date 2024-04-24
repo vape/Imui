@@ -12,7 +12,7 @@ namespace Imui.Controls
         {
             gui.Canvas.PushOrder(ORDER_CONTENT);
             gui.Layout.Push(size, ImAxis.Vertical);
-            gui.Layout.MakeRoot();
+            gui.Layout.SetFlags(ImLayoutFlag.Root);
         }
 
         public static void EndPopup(this ImGui gui, out bool close)

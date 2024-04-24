@@ -28,7 +28,7 @@ namespace Imui.Controls
             
             gui.BeginScope(id);
             gui.Layout.Push(contentRect, ImAxis.Vertical);
-            gui.Layout.MakeRoot();
+            gui.Layout.SetFlags(ImLayoutFlag.Root);
             
             gui.BeginScrollable();
         }

@@ -139,7 +139,7 @@ namespace Imui.Core
             Canvas.PushMeshSettings(Canvas.CreateDefaultMeshSettings());
 
             Layout.Push(new ImRect(Vector2.zero, fbSize / uiScale), ImAxis.Vertical);
-            Layout.MakeRoot();
+            Layout.SetFlags(ImLayoutFlag.Root);
 
             idsStack.Push(new ControlId(ImHash.Get("root", 0)));
         }

@@ -8,7 +8,8 @@ namespace Imui.Core
     public enum ImLayoutFlag
     {
         None = 0,
-        Root = 1 << 0
+        Root = 1 << 0,
+        IncludeBounds = 1 << 1
     }
     
     public struct ImLayoutFrame
@@ -74,14 +75,22 @@ namespace Imui.Core
             if ((frame.Flags & ImLayoutFlag.Root) == 0 && frames.Count > 0)
             {
                 ref var active = ref frames.Peek();
-                active.AddSize(frame.Size);
+                
+                var size = frame.Size;
+                if ((frame.Flags & ImLayoutFlag.IncludeBounds) != 0)
+                {
+                    size.x = Mathf.Max(frame.Bounds.W, size.x);
+                    size.y = Mathf.Max(frame.Bounds.H, size.y);
+                }
+                
+                active.AddSize(size);
             }
         }
 
-        public void MakeRoot()
+        public void SetFlags(ImLayoutFlag flag)
         {
             ref var frame = ref frames.Peek();
-            frame.Flags |= ImLayoutFlag.Root;
+            frame.Flags |= flag;
         }
 
         public void SetOffset(Vector2 offset)
