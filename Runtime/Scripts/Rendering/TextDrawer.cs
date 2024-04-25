@@ -142,6 +142,10 @@ namespace Imui.Rendering
                 for (int k = 0; k < line.Count; ++k)
                 {
                     var c = text[line.Start + k];
+#if IMUI_DEBUG
+                    AddControlGlyphQuad(c, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+#endif
+                    // TODO (artem-s): handle tabs
                     if (!ct.TryGetValue(c, out var charInfo))
                     {
                         continue;
@@ -154,6 +158,27 @@ namespace Imui.Rendering
                 x = sx;
             }
         }
+
+        
+#if IMUI_DEBUG
+        private void AddControlGlyphQuad(char c, float px, float py, float scale)
+        {
+            var ct = fontAsset.characterLookupTable;
+            
+            switch (c)
+            {
+                case '\n':
+                    px += AddGlyphQuad(ct['\\'].glyph, px, py, scale);
+                    px += AddGlyphQuad(ct['n'].glyph, px, py, scale);
+                    break;
+                case '\t':
+                    px += AddGlyphQuad(ct['\\'].glyph, px, py, scale);
+                    px += AddGlyphQuad(ct['t'].glyph, px, py, scale);
+                    break;
+                
+            }
+        }
+#endif
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private float AddGlyphQuad(Glyph glyph, float px, float py, float scale)
@@ -268,14 +293,15 @@ namespace Imui.Rendering
                 }
 
                 var advance = charInfo.glyph.metrics.horizontalAdvance * layout.Scale;
-
-                if (c == NEW_LINE || (width > 0 && lineWidth > 0 && (lineWidth + advance) > width))
+                var newLine = c == NEW_LINE;
+                
+                if (newLine || (width > 0 && lineWidth > 0 && (lineWidth + advance) > width))
                 {
                     ref var line = ref layout.Lines[layout.LinesCount];
-
+                    
                     line.Width = lineWidth;
                     line.Start = lineStart;
-                    line.Count = i - lineStart;
+                    line.Count = i - lineStart + (newLine ? 1 : 0);
                     line.OffsetX = (width - lineWidth) * alignX;
 
                     if (line.Width > maxLineWidth)
@@ -284,7 +310,7 @@ namespace Imui.Rendering
                     }
 
                     lineWidth = advance;
-                    lineStart = i;
+                    lineStart = i + (newLine ? 1 : 0);
 
                     layout.OffsetX = Mathf.Min(line.OffsetX, layout.OffsetX);
                     layout.LinesCount++;
@@ -301,7 +327,7 @@ namespace Imui.Rendering
             }
 
             // TODO (artem-s): merge with rest of the loop
-            if (text.Length > lineStart)
+            if (text.Length > lineStart || text[lineStart - 1] == NEW_LINE)
             {
                 ref var line = ref layout.Lines[layout.LinesCount];
 

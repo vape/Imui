@@ -8,6 +8,12 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    // TODO (artem-s): add up/down caret movement with keyboard
+    // TODO (artem-s): add text selection
+    // TODO (artem-s): add copy/paste
+    // TODO (artem-s): handle 'Delete' key
+    // TODO (artem-s): handle shortcuts like cmd+a (and ctrl+a for windows)
+    // TODO (artem-s): implement some filtering API for numeric only input fields
     public static class ImTextEdit
     {
         public static ImTextEditStyle Style = ImTextEditStyle.Default;
@@ -52,8 +58,6 @@ namespace Imui.Controls
         {
             var selected = gui.ActiveControl == id;
             var hovered = gui.GetHoveredControl() == id;
-
-            state.Caret = Mathf.Clamp(state.Caret, 0, text.Length);
             
             var stateStyle = selected ? Style.Selected : Style.Normal;
             DrawBack(gui, in stateStyle, in rect, out var contentRect);
@@ -65,15 +69,6 @@ namespace Imui.Controls
             
             gui.Canvas.Text(text, stateStyle.FrontColor, contentRect, in layout);
             
-            var changed = false;
-            if (selected)
-            {
-                var caretViewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in contentRect, in layout, in text);
-                DrawCaret(gui, in layout, in stateStyle, caretViewPosition);
-                
-                changed = HandleKeyboard(gui, ref state, ref text);
-            }
-            
             ref readonly var mouseEvent = ref gui.Input.MouseEvent;
             if (mouseEvent.Type == ImInputEventMouseType.Down && hovered)
             {
@@ -82,7 +77,19 @@ namespace Imui.Controls
                     gui.ActiveControl = id;
                 }
                 
+                state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in contentRect, in layout, in text);
                 gui.Input.UseMouse();
+            }
+            
+            state.Caret = Mathf.Clamp(state.Caret, 0, text.Length);
+            
+            var changed = false;
+            if (selected)
+            {
+                var caretViewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in contentRect, in layout, in text);
+                DrawCaret(gui, in layout, in stateStyle, caretViewPosition);
+                
+                changed = HandleKeyboard(gui, ref state, ref text);
             }
             
             gui.HandleControl(id, rect);
@@ -131,11 +138,60 @@ namespace Imui.Controls
 
             return false;
         }
+
+        private static int ViewToCaretPosition(Vector2 position, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
+        {
+            var origin = rect.TopLeft;
+            var py = origin.y + layout.OffsetY;
+            var line = 0;
+
+            while (line <= layout.LinesCount + 1 && (py < position.y || (py - layout.LineHeight) > position.y))
+            {
+                py -= layout.LineHeight;
+                line++;
+            }
+
+            if (line >= layout.LinesCount)
+            {
+                return buffer.Length;
+            }
+
+            var caret = layout.Lines[line].Start;
+            var px = origin.x + layout.Lines[line].OffsetX;
+            var span = ((ReadOnlySpan<char>)buffer);
+            
+            var start = caret;
+            var end = start + layout.Lines[line].Count;
+            if (span[end - 1] == '\n')
+            {
+                end -= 1;
+            }
+            
+            for (int i = start; i < end; ++i)
+            {
+                var width = drawer.GetCharacterWidth(span[i], layout.Size);
+                if (px > position.x || (px + width) < position.x)
+                {
+                    px += width;
+                    caret++;
+                    continue;
+                }
+
+                if ((position.x - px) > (width / 2.0f))
+                {
+                    caret++;
+                }
+
+                break;
+            }
+
+            return caret;
+        }
         
         private static Vector2 CaretToViewPosition(int caret, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
         {
             var line = 0;
-            while (layout.LinesCount > line && layout.Lines[line].Count < caret)
+            while (layout.LinesCount - 1 > line && layout.Lines[line].Count <= caret)
             {
                 caret -= layout.Lines[line].Count;
                 line++;
