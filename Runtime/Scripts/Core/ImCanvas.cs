@@ -260,6 +260,11 @@ namespace Imui.Core
             textDrawer.Depth = DEFAULT_DEPTH;
             textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
         }
+        
+        public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in TextDrawer.Layout layout)
+        {
+            Text(in text, color, rect.TopLeft, in layout);
+        }
 
         public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
         {

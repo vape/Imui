@@ -27,6 +27,7 @@ namespace Imui.Rendering
     
         public struct Layout
         {
+            public float Size;
             public float Scale;
             public float OffsetX;
             public float OffsetY;
@@ -34,6 +35,7 @@ namespace Imui.Rendering
             public float Height;
             public Line[] Lines;
             public int LinesCount;
+            public float LineHeight;
         }
 
         private static Layout SharedLayout = new()
@@ -87,6 +89,17 @@ namespace Imui.Rendering
             
             UnityEngine.Object.Destroy(fontAsset);
             fontAsset = null;
+        }
+
+        public float GetCharacterWidth(char c, float size)
+        {
+            if (!fontAsset.characterLookupTable.TryGetValue(c, out var character))
+            {
+                return 0f;
+            }
+            
+            var scale = size / FontRenderSize;
+            return character.glyph.metrics.horizontalAdvance * scale;
         }
 
         public void AddText(ReadOnlySpan<char> text, float scale, float x, float y)
@@ -222,6 +235,8 @@ namespace Imui.Rendering
             layout.OffsetX = width * alignX;
             layout.Width = 0;
             layout.Height = 0;
+            layout.Size = size;
+            layout.LineHeight = this.lineHeight * layout.Scale;
             
             if (text.Length == 0)
             {
@@ -229,9 +244,9 @@ namespace Imui.Rendering
             }
 
             var maxLineWidth = 0f;
-            var lineHeight = LineHeight * layout.Scale;
             var lineWidth = 0f;
             var lineStart = 0;
+            var lineHeight = layout.LineHeight;
             var textLength = text.Length;
             var fontAsset = FontAsset;
             var charsTable = fontAsset.characterLookupTable;
