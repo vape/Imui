@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): add up/down caret movement with keyboard
     // TODO (artem-s): add text selection
     // TODO (artem-s): add copy/paste
     // TODO (artem-s): handle 'Delete' key
@@ -89,7 +88,7 @@ namespace Imui.Controls
                 var caretViewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in contentRect, in layout, in text);
                 DrawCaret(gui, in layout, in stateStyle, caretViewPosition);
                 
-                changed = HandleKeyboard(gui, ref state, ref text);
+                changed = HandleKeyboard(gui, ref state, ref text, in gui.TextDrawer, in contentRect, in layout);
             }
             
             gui.HandleControl(id, rect);
@@ -97,7 +96,7 @@ namespace Imui.Controls
             return changed;
         }
 
-        private static bool HandleKeyboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        private static bool HandleKeyboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer, in TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout)
         {
             ref readonly var kb = ref gui.Input.KeyboardEvent;
             if (kb.Type != ImInputEventKeyboardType.Down)
@@ -115,6 +114,22 @@ namespace Imui.Controls
                     gui.Input.UseKeyboard();
                     state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
                     break;
+                case KeyCode.UpArrow:
+                {
+                    gui.Input.UseKeyboard();
+                    var viewPosition = CaretToViewPosition(state.Caret, drawer, in rect, in layout, in buffer);
+                    viewPosition.y += layout.LineHeight - (layout.LineHeight * 0.5f);
+                    state.Caret = ViewToCaretPosition(viewPosition, drawer, in rect, in layout, in buffer);
+                    break;
+                }
+                case KeyCode.DownArrow:
+                {
+                    gui.Input.UseKeyboard();
+                    var viewPosition = CaretToViewPosition(state.Caret, drawer, in rect, in layout, in buffer);
+                    viewPosition.y -= layout.LineHeight + (layout.LineHeight * 0.5f);
+                    state.Caret = ViewToCaretPosition(viewPosition, drawer, in rect, in layout, in buffer);
+                    break;
+                }
                 case KeyCode.Backspace:
                     gui.Input.UseKeyboard();
                     if (state.Caret > 0)
@@ -144,6 +159,11 @@ namespace Imui.Controls
             var origin = rect.TopLeft;
             var py = origin.y + layout.OffsetY;
             var line = 0;
+
+            if (position.y > origin.y)
+            {
+                return 0;
+            }
 
             while (line <= layout.LinesCount + 1 && (py < position.y || (py - layout.LineHeight) > position.y))
             {
