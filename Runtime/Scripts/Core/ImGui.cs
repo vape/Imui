@@ -273,7 +273,9 @@ namespace Imui.Core
             }
             
             Canvas.Dispose();
+            TextDrawer.Dispose();
             Renderer.Dispose();
+            Storage.Dispose();
             
             disposed = true;
         }

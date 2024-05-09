@@ -8,9 +8,9 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): add text selection with keyboard shortcuts
+    // TODO (artem-s): show keyboard on selecting text field on mobile devices
     // TODO (artem-s): add copy/paste
-    // TODO (artem-s): handle shortcuts like cmd+a (and ctrl+a for windows)
+    // TODO (artem-s): masking
     // TODO (artem-s): implement some filtering API for numeric only input fields
     // TODO (artem-s): refactoring
     public static class ImTextEdit
@@ -103,8 +103,16 @@ namespace Imui.Controls
                 var caretViewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in contentRect, in layout, in text);
                 DrawCaret(gui, in layout, in stateStyle, caretViewPosition);
                 DrawSelection(gui, in state, in gui.TextDrawer, in contentRect, in text, in layout, in stateStyle);
-                
-                changed = HandleKeyboard(gui, ref state, ref text, in gui.TextDrawer, in contentRect, in layout);
+
+                for (int i = 0; i < gui.Input.KeyboardEventsCount; ++i)
+                {
+                    ref readonly var evt = ref gui.Input.GetKeyboardEvent(i);
+
+                    if (HandleKeyboard(gui, in evt, ref state, ref text, in gui.TextDrawer, in contentRect, in layout, out changed))
+                    {
+                        gui.Input.UseKeyboard(i);
+                    }
+                }
             }
             
             gui.HandleControl(id, rect);
@@ -112,20 +120,28 @@ namespace Imui.Controls
             return changed;
         }
 
-        private static bool HandleKeyboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer, in TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout)
+        private static bool HandleKeyboard(ImGui gui, 
+            in ImInputKeyboardEvent evt, 
+            ref ImTextEditState state, 
+            ref ImTextEditBuffer buffer, 
+            in TextDrawer drawer, 
+            in ImRect rect, 
+            in TextDrawer.Layout layout,
+            out bool changed)
         {
-            ref readonly var kb = ref gui.Input.KeyboardEvent;
-            if (kb.Type != ImInputEventKeyboardType.Down)
+            changed = false;
+            
+            if (evt.Type != ImInputEventKeyboardType.Down)
             {
                 return false;
             }
 
             var previousCaret = state.Caret;
 
-            switch (kb.Key)
+            switch (evt.Key)
             {
                 case KeyCode.LeftArrow:
-                    if (state.Selection != 0 && !kb.Command.HasFlag(ImInputKeyboardCommand.Selection))
+                    if (state.Selection != 0 && !evt.Command.HasFlag(ImInputKeyboardCommand.Selection))
                     {
                         state.Caret = Mathf.Max(Mathf.Min(state.Caret + state.Selection, state.Caret), 0);
                     }
@@ -134,12 +150,12 @@ namespace Imui.Controls
                         state.Caret = Mathf.Max(state.Caret - 1, 0);
                     }
 
-                    if (kb.Command.HasFlag(ImInputKeyboardCommand.JumpWord))
+                    if (evt.Command.HasFlag(ImInputKeyboardCommand.JumpWord))
                     {
                         state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, -1, buffer);
                     }
 
-                    if (kb.Command.HasFlag(ImInputKeyboardCommand.Selection))
+                    if (evt.Command.HasFlag(ImInputKeyboardCommand.Selection))
                     {
                         state.Selection += previousCaret - state.Caret;
                     }
@@ -147,11 +163,10 @@ namespace Imui.Controls
                     {
                         state.Selection = 0;
                     }
-                    
-                    gui.Input.UseKeyboard();
                     break;
+                
                 case KeyCode.RightArrow:
-                    if (state.Selection != 0 && !kb.Command.HasFlag(ImInputKeyboardCommand.Selection))
+                    if (state.Selection != 0 && !evt.Command.HasFlag(ImInputKeyboardCommand.Selection))
                     {
                         state.Caret = Mathf.Min(Mathf.Max(state.Caret + state.Selection, state.Caret), buffer.Length);
                     }
@@ -160,12 +175,12 @@ namespace Imui.Controls
                         state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
                     }
                     
-                    if (kb.Command.HasFlag(ImInputKeyboardCommand.JumpWord))
+                    if (evt.Command.HasFlag(ImInputKeyboardCommand.JumpWord))
                     {
                         state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, 1, buffer);
                     }
                     
-                    if (kb.Command.HasFlag(ImInputKeyboardCommand.Selection))
+                    if (evt.Command.HasFlag(ImInputKeyboardCommand.Selection))
                     {
                         state.Selection += previousCaret - state.Caret;
                     }
@@ -173,12 +188,11 @@ namespace Imui.Controls
                     {
                         state.Selection = 0;
                     }
-                    
-                    gui.Input.UseKeyboard();
+
                     break;
+                
                 case KeyCode.UpArrow:
                 {
-                    gui.Input.UseKeyboard();
                     var viewPosition = CaretToViewPosition(state.Caret, drawer, in rect, in layout, in buffer);
                     viewPosition.y += layout.LineHeight - (layout.LineHeight * 0.5f);
                     state.Caret = ViewToCaretPosition(viewPosition, drawer, in rect, in layout, in buffer);
@@ -186,14 +200,12 @@ namespace Imui.Controls
                 }
                 case KeyCode.DownArrow:
                 {
-                    gui.Input.UseKeyboard();
                     var viewPosition = CaretToViewPosition(state.Caret, drawer, in rect, in layout, in buffer);
                     viewPosition.y -= layout.LineHeight + (layout.LineHeight * 0.5f);
                     state.Caret = ViewToCaretPosition(viewPosition, drawer, in rect, in layout, in buffer);
                     break;
                 }
                 case KeyCode.Delete:
-                    gui.Input.UseKeyboard();
                     if (state.Caret < buffer.Length)
                     {
                         if (state.Selection != 0)
@@ -210,12 +222,11 @@ namespace Imui.Controls
                         {
                             buffer.Delete(state.Caret, 1);
                         }
-                        
-                        return true;
+
+                        changed = true;
                     }
                     break;
                 case KeyCode.Backspace:
-                    gui.Input.UseKeyboard();
                     if (state.Selection != 0)
                     {
                         if (state.Selection < 0)
@@ -225,22 +236,20 @@ namespace Imui.Controls
                         
                         buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
                         state.Selection = 0;
-                        return true;
+                        changed = true;
                     }
                     else if (state.Caret > 0)
                     {
                         buffer.Delete(--state.Caret, 1);
-                        return true;
+                        changed = true;
                     }
                     break;
                 default:
-                    var c = kb.Char;
-                    if (kb.Command == ImInputKeyboardCommand.SelectAll)
+                    var c = evt.Char;
+                    if (evt.Command == ImInputKeyboardCommand.SelectAll)
                     {
                         state.Selection = -buffer.Length;
                         state.Caret = buffer.Length;
-                        gui.Input.UseKeyboard();
-                        return true;
                     }
                     else if (c != 0)
                     {
@@ -257,13 +266,12 @@ namespace Imui.Controls
                         
                         buffer.Insert(state.Caret, c);
                         state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
-                        gui.Input.UseKeyboard();
-                        return true;
+                        changed = true;
                     }
                     break;
             }
 
-            return false;
+            return true;
         }
 
         private static int ViewToCaretPosition(Vector2 position, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)

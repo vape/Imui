@@ -11,25 +11,38 @@ namespace Imui.Core.Input
 {
     public class ImInputUnityImGui : IDisposable, IImInput
     {
+        private const int KEYBOARD_EVENTS_QUEUE_SIZE = 16;
+        
         public Vector2 MousePosition => mousePosition;
         
         public ref readonly ImInputMouseEvent MouseEvent => ref mouseEvent;
-        public ref readonly ImInputKeyboardEvent KeyboardEvent => ref keyboardEvent;
-
+        public int KeyboardEventsCount => keyboardEvents.Count;
+        
         private Vector2 mousePosition;
         private ImInputMouseEvent mouseEvent;
-        private ImInputKeyboardEvent keyboardEvent;
+        private CircularBuffer<ImInputKeyboardEvent> keyboardEvents;
         
         private Queue<ImInputMouseEvent> mouseEventsQueue = new(capacity: 4);
         private float scale = 1.0f;
         private Vector2 prevEventMousePosition;
         private ImInputMouseEvent nextMouseEvent;
-        private ImInputKeyboardEvent nextKeyboardEvent;
         private bool disposed;
+        private CircularBuffer<ImInputKeyboardEvent> nextKeyboardEventsQueue;
 
-        public void UseKeyboard()
+        public ImInputUnityImGui()
         {
-            keyboardEvent = default;
+            keyboardEvents = new CircularBuffer<ImInputKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
+            nextKeyboardEventsQueue = new CircularBuffer<ImInputKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
+        }
+        
+        public ref readonly ImInputKeyboardEvent GetKeyboardEvent(int index)
+        {
+            return ref keyboardEvents.Get(index);
+        }
+        
+        public void UseKeyboard(int index)
+        {
+            keyboardEvents.Set(index, default);
         }
 
         public void UseMouse()
@@ -51,10 +64,11 @@ namespace Imui.Core.Input
             
             mousePosition = UnityEngine.Input.mousePosition / scale;
             mouseEvent = nextMouseEvent;
-            keyboardEvent = nextKeyboardEvent;
+
+            (nextKeyboardEventsQueue, keyboardEvents) = (keyboardEvents, nextKeyboardEventsQueue);
 
             nextMouseEvent = default;
-            nextKeyboardEvent = default;
+            nextKeyboardEventsQueue.Clear();
         }
 
         public void SetScale(float scale)
@@ -104,10 +118,10 @@ namespace Imui.Core.Input
                     nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Scroll, e.button, e.modifiers, e.delta);
                     break;
                 case EventType.KeyDown:
-                    nextKeyboardEvent = new ImInputKeyboardEvent(ImInputEventKeyboardType.Down, e.keyCode, e.modifiers, ParseCommand(e), e.character);
+                    nextKeyboardEventsQueue.PushFront(new ImInputKeyboardEvent(ImInputEventKeyboardType.Down, e.keyCode, e.modifiers, ParseCommand(e), e.character));
                     break;
                 case EventType.KeyUp:
-                    nextKeyboardEvent = new ImInputKeyboardEvent(ImInputEventKeyboardType.Up, e.keyCode, e.modifiers, ParseCommand(e), e.character);
+                    nextKeyboardEventsQueue.PushFront(new ImInputKeyboardEvent(ImInputEventKeyboardType.Up, e.keyCode, e.modifiers, ParseCommand(e), e.character));
                     break;
             }
         }

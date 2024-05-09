@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Imui.Core.Input
@@ -7,9 +8,11 @@ namespace Imui.Core.Input
         Vector2 MousePosition { get; }
         
         ref readonly ImInputMouseEvent MouseEvent { get; }
-        ref readonly ImInputKeyboardEvent KeyboardEvent { get; }
-
-        void UseKeyboard();
+        int KeyboardEventsCount { get; }
+        
+        ref readonly ImInputKeyboardEvent GetKeyboardEvent(int index);
+        
+        void UseKeyboard(int index);
         void UseMouse();
 
         void Pull();
