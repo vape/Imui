@@ -1,3 +1,7 @@
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_IOS
+#define IMUI_MACOS
+#endif
+
 using System;
 using System.Collections.Generic;
 using Imui.Utility;
@@ -100,12 +104,47 @@ namespace Imui.Core.Input
                     nextMouseEvent = new ImInputMouseEvent(ImInputEventMouseType.Scroll, e.button, e.modifiers, e.delta);
                     break;
                 case EventType.KeyDown:
-                    nextKeyboardEvent = new ImInputKeyboardEvent(ImInputEventKeyboardType.Down, e.keyCode, e.modifiers, e.character);
+                    nextKeyboardEvent = new ImInputKeyboardEvent(ImInputEventKeyboardType.Down, e.keyCode, e.modifiers, ParseCommand(e), e.character);
                     break;
                 case EventType.KeyUp:
-                    nextKeyboardEvent = new ImInputKeyboardEvent(ImInputEventKeyboardType.Up, e.keyCode, e.modifiers, e.character);
+                    nextKeyboardEvent = new ImInputKeyboardEvent(ImInputEventKeyboardType.Up, e.keyCode, e.modifiers, ParseCommand(e), e.character);
                     break;
             }
+        }
+
+        private ImInputKeyboardCommand ParseCommand(Event e)
+        {
+            var command = ImInputKeyboardCommand.None;
+            var code = (int)e.keyCode;
+            var isArrow = code >= 274 && code <= 276;
+
+            if (isArrow && e.modifiers.HasFlag(EventModifiers.Shift))
+            {
+                command |= ImInputKeyboardCommand.Selection;
+            }
+
+            var jumpModifier = false;
+            var selectModifier = false;
+            
+            #if IMUI_MACOS
+            jumpModifier = e.modifiers.HasFlag(EventModifiers.Alt);
+            selectModifier = e.modifiers.HasFlag(EventModifiers.Command);
+            #else
+            jumpModifier = e.modifiers.HasFlag(EventModifiers.Control);
+            selectModifier = e.modifiers.HasFlag(EventModifiers.Control);
+            #endif
+
+            if (isArrow && jumpModifier)
+            {
+                command |= ImInputKeyboardCommand.JumpWord;
+            }
+
+            if (selectModifier && e.keyCode == KeyCode.A)
+            {
+                command |= ImInputKeyboardCommand.SelectAll;
+            }
+            
+            return command;
         }
         
         private bool IsTouchSupported()

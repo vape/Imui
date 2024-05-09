@@ -120,12 +120,12 @@ namespace Imui.Controls
                 return false;
             }
 
+            var previousCaret = state.Caret;
+
             switch (kb.Key)
             {
                 case KeyCode.LeftArrow:
-                    gui.Input.UseKeyboard();
-                    
-                    if (state.Selection != 0)
+                    if (state.Selection != 0 && !kb.Command.HasFlag(ImInputKeyboardCommand.Selection))
                     {
                         state.Caret = Mathf.Max(Mathf.Min(state.Caret + state.Selection, state.Caret), 0);
                     }
@@ -133,13 +133,25 @@ namespace Imui.Controls
                     {
                         state.Caret = Mathf.Max(state.Caret - 1, 0);
                     }
+
+                    if (kb.Command.HasFlag(ImInputKeyboardCommand.JumpWord))
+                    {
+                        state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, -1, buffer);
+                    }
+
+                    if (kb.Command.HasFlag(ImInputKeyboardCommand.Selection))
+                    {
+                        state.Selection += previousCaret - state.Caret;
+                    }
+                    else
+                    {
+                        state.Selection = 0;
+                    }
                     
-                    state.Selection = 0;
+                    gui.Input.UseKeyboard();
                     break;
                 case KeyCode.RightArrow:
-                    gui.Input.UseKeyboard();
-                    
-                    if (state.Selection != 0)
+                    if (state.Selection != 0 && !kb.Command.HasFlag(ImInputKeyboardCommand.Selection))
                     {
                         state.Caret = Mathf.Min(Mathf.Max(state.Caret + state.Selection, state.Caret), buffer.Length);
                     }
@@ -148,7 +160,21 @@ namespace Imui.Controls
                         state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
                     }
                     
-                    state.Selection = 0;
+                    if (kb.Command.HasFlag(ImInputKeyboardCommand.JumpWord))
+                    {
+                        state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, 1, buffer);
+                    }
+                    
+                    if (kb.Command.HasFlag(ImInputKeyboardCommand.Selection))
+                    {
+                        state.Selection += previousCaret - state.Caret;
+                    }
+                    else
+                    {
+                        state.Selection = 0;
+                    }
+                    
+                    gui.Input.UseKeyboard();
                     break;
                 case KeyCode.UpArrow:
                 {
@@ -190,7 +216,33 @@ namespace Imui.Controls
                     break;
                 case KeyCode.Backspace:
                     gui.Input.UseKeyboard();
-                    if (state.Caret > 0)
+                    if (state.Selection != 0)
+                    {
+                        if (state.Selection < 0)
+                        {
+                            state.Caret += state.Selection;
+                        }
+                        
+                        buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
+                        state.Selection = 0;
+                        return true;
+                    }
+                    else if (state.Caret > 0)
+                    {
+                        buffer.Delete(--state.Caret, 1);
+                        return true;
+                    }
+                    break;
+                default:
+                    var c = kb.Char;
+                    if (kb.Command == ImInputKeyboardCommand.SelectAll)
+                    {
+                        state.Selection = -buffer.Length;
+                        state.Caret = buffer.Length;
+                        gui.Input.UseKeyboard();
+                        return true;
+                    }
+                    else if (c != 0)
                     {
                         if (state.Selection != 0)
                         {
@@ -198,26 +250,14 @@ namespace Imui.Controls
                             {
                                 state.Caret += state.Selection;
                             }
-                            
+                        
                             buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
                             state.Selection = 0;
                         }
-                        else
-                        {
-                            buffer.Delete(--state.Caret, 1);
-                        }
                         
-                        return true;
-                    }
-                    break;
-                default:
-                    var c = kb.Char;
-                    gui.Input.UseKeyboard();
-                    
-                    if (c != 0)
-                    {
                         buffer.Insert(state.Caret, c);
                         state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
+                        gui.Input.UseKeyboard();
                         return true;
                     }
                     break;
@@ -315,6 +355,53 @@ namespace Imui.Controls
 
             linePosition = caret;
             return line;
+        }
+
+        private static int FindEndOfWordOrSpacesSequence(int caret, int dir, ReadOnlySpan<char> buffer)
+        {
+            dir = Math.Sign(dir);
+            caret = Mathf.Clamp(caret + dir, 0, buffer.Length);
+
+            var visitedLetter = false;
+            var spaces = 0;
+            
+            while (caret > 0 && caret < buffer.Length)
+            {
+                var c = buffer[caret];
+                var isWhiteSpace = char.IsWhiteSpace(c);
+                if (isWhiteSpace)
+                {
+                    spaces++;
+                }
+
+                var isLetter = char.IsLetterOrDigit(c) || char.IsSymbol(c);
+                if (isLetter)
+                {
+                    visitedLetter = true;
+                }
+                else if (visitedLetter)
+                {
+                    if (dir < 0)
+                    {
+                        caret++;
+                    }
+
+                    break;
+                }
+                else if (!isWhiteSpace && spaces > 1)
+                {
+                    if (dir < 0)
+                    {
+                        caret++;
+                    }
+
+                    break;
+                }
+                
+                caret += dir;
+            }
+
+            return caret;
         }
 
         private static void DrawCaret(ImGui gui, in TextDrawer.Layout layout, in ImTextEditStateStyle style, Vector2 position)
