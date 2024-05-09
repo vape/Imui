@@ -8,11 +8,11 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): add text selection
+    // TODO (artem-s): add text selection with keyboard shortcuts
     // TODO (artem-s): add copy/paste
-    // TODO (artem-s): handle 'Delete' key
     // TODO (artem-s): handle shortcuts like cmd+a (and ctrl+a for windows)
     // TODO (artem-s): implement some filtering API for numeric only input fields
+    // TODO (artem-s): refactoring
     public static class ImTextEdit
     {
         public static ImTextEditStyle Style = ImTextEditStyle.Default;
@@ -77,6 +77,21 @@ namespace Imui.Controls
                 }
                 
                 state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in contentRect, in layout, in text);
+                
+                if (selected)
+                {
+                    state.Selection = 0;
+                }
+                
+                gui.Input.UseMouse();
+            }
+            else if (mouseEvent.Type == ImInputEventMouseType.Drag && selected)
+            {
+                var underMousePosition = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in contentRect, in layout, in text);
+                var delta = underMousePosition - state.Caret;
+                state.Selection -= delta;
+                state.Caret = underMousePosition;
+                
                 gui.Input.UseMouse();
             }
             
@@ -87,6 +102,7 @@ namespace Imui.Controls
             {
                 var caretViewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in contentRect, in layout, in text);
                 DrawCaret(gui, in layout, in stateStyle, caretViewPosition);
+                DrawSelection(gui, in state, in gui.TextDrawer, in contentRect, in text, in layout, in stateStyle);
                 
                 changed = HandleKeyboard(gui, ref state, ref text, in gui.TextDrawer, in contentRect, in layout);
             }
@@ -108,11 +124,31 @@ namespace Imui.Controls
             {
                 case KeyCode.LeftArrow:
                     gui.Input.UseKeyboard();
-                    state.Caret = Mathf.Max(state.Caret - 1, 0);
+                    
+                    if (state.Selection != 0)
+                    {
+                        state.Caret = Mathf.Max(Mathf.Min(state.Caret + state.Selection, state.Caret), 0);
+                    }
+                    else
+                    {
+                        state.Caret = Mathf.Max(state.Caret - 1, 0);
+                    }
+                    
+                    state.Selection = 0;
                     break;
                 case KeyCode.RightArrow:
                     gui.Input.UseKeyboard();
-                    state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
+                    
+                    if (state.Selection != 0)
+                    {
+                        state.Caret = Mathf.Min(Mathf.Max(state.Caret + state.Selection, state.Caret), buffer.Length);
+                    }
+                    else
+                    {
+                        state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
+                    }
+                    
+                    state.Selection = 0;
                     break;
                 case KeyCode.UpArrow:
                 {
@@ -130,11 +166,47 @@ namespace Imui.Controls
                     state.Caret = ViewToCaretPosition(viewPosition, drawer, in rect, in layout, in buffer);
                     break;
                 }
+                case KeyCode.Delete:
+                    gui.Input.UseKeyboard();
+                    if (state.Caret < buffer.Length)
+                    {
+                        if (state.Selection != 0)
+                        {
+                            if (state.Selection < 0)
+                            {
+                                state.Caret += state.Selection;
+                            }
+                            
+                            buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
+                            state.Selection = 0;
+                        }
+                        else
+                        {
+                            buffer.Delete(state.Caret, 1);
+                        }
+                        
+                        return true;
+                    }
+                    break;
                 case KeyCode.Backspace:
                     gui.Input.UseKeyboard();
                     if (state.Caret > 0)
                     {
-                        buffer.Delete(--state.Caret, 1);
+                        if (state.Selection != 0)
+                        {
+                            if (state.Selection < 0)
+                            {
+                                state.Caret += state.Selection;
+                            }
+                            
+                            buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
+                            state.Selection = 0;
+                        }
+                        else
+                        {
+                            buffer.Delete(--state.Caret, 1);
+                        }
+                        
                         return true;
                     }
                     break;
@@ -210,6 +282,30 @@ namespace Imui.Controls
         
         private static Vector2 CaretToViewPosition(int caret, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
         {
+            return LineToViewPosition(FindLineAtCaretPosition(caret, in layout, out var linePosition), linePosition, buffer, in rect, in drawer, in layout);
+        }
+
+        private static Vector2 LineToViewPosition(int line, int pos, ReadOnlySpan<char> buffer, in ImRect rect, in TextDrawer drawer, in TextDrawer.Layout layout)
+        {
+            var yOffset = line * -layout.LineHeight + layout.OffsetY;
+            var xOffset = line >= layout.LinesCount ? layout.OffsetX : layout.Lines[line].OffsetX;
+
+            if (line < layout.LinesCount && pos <= layout.Lines[line].Count)
+            {
+                ref readonly var lineLayout = ref layout.Lines[line];
+                var slice = buffer[lineLayout.Start..(lineLayout.Start + lineLayout.Count)];
+                
+                for (int i = 0; i < pos; ++i)
+                {
+                    xOffset += drawer.GetCharacterWidth(slice[i], layout.Size);
+                }
+            }
+
+            return rect.TopLeft + new Vector2(xOffset, yOffset);
+        }
+
+        private static int FindLineAtCaretPosition(int caret, in TextDrawer.Layout layout, out int linePosition)
+        {
             var line = 0;
             while (layout.LinesCount - 1 > line && layout.Lines[line].Count <= caret)
             {
@@ -217,21 +313,8 @@ namespace Imui.Controls
                 line++;
             }
 
-            var yOffset = line * -layout.LineHeight + layout.OffsetY;
-            var xOffset = line >= layout.LinesCount ? layout.OffsetX : layout.Lines[line].OffsetX;
-
-            if (line < layout.LinesCount && caret <= layout.Lines[line].Count)
-            {
-                ref readonly var lineLayout = ref layout.Lines[line];
-                var slice = ((ReadOnlySpan<char>)buffer)[lineLayout.Start..(lineLayout.Start + lineLayout.Count)];
-                
-                for (int i = 0; i < caret; ++i)
-                {
-                    xOffset += drawer.GetCharacterWidth(slice[i], layout.Size);
-                }
-            }
-
-            return rect.TopLeft + new Vector2(xOffset, yOffset);
+            linePosition = caret;
+            return line;
         }
 
         private static void DrawCaret(ImGui gui, in TextDrawer.Layout layout, in ImTextEditStateStyle style, Vector2 position)
@@ -243,6 +326,45 @@ namespace Imui.Controls
                 layout.LineHeight);
             
             gui.Canvas.Rect(rect, style.FrontColor);
+        }
+
+        private static void DrawSelection(ImGui gui, 
+            in ImTextEditState state, 
+            in TextDrawer drawer, 
+            in ImRect rect, 
+            in ImTextEditBuffer buffer,
+            in TextDrawer.Layout layout, 
+            in ImTextEditStateStyle style)
+        {
+            if (state.Selection == 0)
+            {
+                return;
+            }
+
+            var begin = state.Selection < 0 ? state.Caret + state.Selection : state.Caret;
+            var end = state.Selection < 0 ? state.Caret : state.Caret + state.Selection;
+            
+            var beginLine = FindLineAtCaretPosition(begin, in layout, out _);
+            var endLine = FindLineAtCaretPosition(end, in layout, out _);
+            
+            for (int i = beginLine; i <= endLine; ++i)
+            {
+                ref readonly var line = ref layout.Lines[i];
+                
+                var lineRelativeBegin = Mathf.Max(0, begin - line.Start);
+                var lineRelativeEnd = Mathf.Min(line.Count, end - line.Start);
+
+                var p0 = LineToViewPosition(i, lineRelativeBegin, buffer, in rect, in drawer, in layout);
+                var p1 = LineToViewPosition(i, lineRelativeEnd, buffer, in rect, in drawer, in layout);
+                
+                var lineSelectionRect = new ImRect(
+                    p0.x, 
+                    p0.y - layout.LineHeight, 
+                    p1.x - p0.x,
+                    layout.LineHeight);
+                
+                gui.Canvas.Rect(lineSelectionRect, style.SelectionColor);
+            }
         }
         
         private static void DrawBack(ImGui gui, in ImTextEditStateStyle style, in ImRect rect, out ImRect content)
@@ -257,6 +379,7 @@ namespace Imui.Controls
     public struct ImTextEditState
     {
         public int Caret;
+        public int Selection;
     }
 
     public class ImTextEditStyle
@@ -267,13 +390,15 @@ namespace Imui.Controls
             {
                 BackColor = ImColors.Gray7,
                 FrontColor = ImColors.Black,
-                FrameColor = ImColors.Gray1
+                FrameColor = ImColors.Gray1,
+                SelectionColor = ImColors.Black.WithAlpha(32)
             },
             Selected = new ImTextEditStateStyle()
             {
                 BackColor = ImColors.White,
                 FrontColor = ImColors.Black,
-                FrameColor = ImColors.Black
+                FrameColor = ImColors.Black,
+                SelectionColor = ImColors.Black.WithAlpha(64)
             },
             CornerRadius = 3.0f,
             FrameWidth = 1.0f,
@@ -292,6 +417,7 @@ namespace Imui.Controls
         public Color32 BackColor;
         public Color32 FrontColor;
         public Color32 FrameColor;
+        public Color32 SelectionColor;
     }
 
     public ref struct ImTextEditBuffer
@@ -340,7 +466,7 @@ namespace Imui.Controls
             }
         }
 
-        public unsafe void Delete(int position, int count)
+        public void Delete(int position, int count)
         {
             MakeMutable(Length);
             
