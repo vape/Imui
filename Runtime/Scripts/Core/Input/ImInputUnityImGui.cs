@@ -12,14 +12,19 @@ namespace Imui.Core.Input
     public class ImInputUnityImGui : IDisposable, IImInput
     {
         private const int KEYBOARD_EVENTS_QUEUE_SIZE = 16;
+        private const int TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD = 3;
         
         public Vector2 MousePosition => mousePosition;
         
         public ref readonly ImInputMouseEvent MouseEvent => ref mouseEvent;
+
+        public ref readonly ImInputTextEvent TextEvent => ref textEvent;
+
         public int KeyboardEventsCount => keyboardEvents.Count;
         
         private Vector2 mousePosition;
         private ImInputMouseEvent mouseEvent;
+        private ImInputTextEvent textEvent;
         private CircularBuffer<ImInputKeyboardEvent> keyboardEvents;
         
         private Queue<ImInputMouseEvent> mouseEventsQueue = new(capacity: 4);
@@ -28,7 +33,9 @@ namespace Imui.Core.Input
         private ImInputMouseEvent nextMouseEvent;
         private bool disposed;
         private CircularBuffer<ImInputKeyboardEvent> nextKeyboardEventsQueue;
-
+        private TouchScreenKeyboard touchScreenKeyboard;
+        private int touchScreenKeyboardRequestedFrame;
+            
         public ImInputUnityImGui()
         {
             keyboardEvents = new CircularBuffer<ImInputKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
@@ -48,6 +55,31 @@ namespace Imui.Core.Input
         public void UseMouse()
         {
             mouseEvent = default;
+        }
+
+        public void UseText()
+        {
+            textEvent = default;
+        }
+        
+        public void RequestKeyboard(ReadOnlySpan<char> text)
+        {
+            if (!TouchScreenKeyboard.isSupported)
+            {
+                return;
+            }
+
+            if (touchScreenKeyboard == null)
+            {
+                touchScreenKeyboard = TouchScreenKeyboard.Open(new string(text), TouchScreenKeyboardType.Default);
+            }
+
+            if (!touchScreenKeyboard.active)
+            {
+                touchScreenKeyboard.active = true;
+            }
+            
+            touchScreenKeyboardRequestedFrame = Time.frameCount;
         }
         
         public void Pull()
@@ -69,6 +101,29 @@ namespace Imui.Core.Input
 
             nextMouseEvent = default;
             nextKeyboardEventsQueue.Clear();
+
+            textEvent = default;
+            
+            if (touchScreenKeyboard != null)
+            {
+                switch (touchScreenKeyboard.status)
+                {
+                    case TouchScreenKeyboard.Status.Canceled:
+                        textEvent = new ImInputTextEvent(ImInputTextEventType.Cancel);
+                        break;
+                    case TouchScreenKeyboard.Status.Done:
+                        textEvent = new ImInputTextEvent(ImInputTextEventType.Submit, touchScreenKeyboard.text);
+                        break;
+                }
+                
+                var shouldHide = (Time.frameCount - touchScreenKeyboardRequestedFrame) > TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD;
+                
+                if (shouldHide)
+                {
+                    touchScreenKeyboard.active = false;
+                    touchScreenKeyboard = null;
+                }
+            }
         }
 
         public void SetScale(float scale)

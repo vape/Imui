@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): show keyboard on selecting text field on mobile devices
     // TODO (artem-s): add copy/paste
     // TODO (artem-s): masking
     // TODO (artem-s): implement some filtering API for numeric only input fields
@@ -103,7 +102,7 @@ namespace Imui.Controls
                 var caretViewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in contentRect, in layout, in text);
                 DrawCaret(gui, in layout, in stateStyle, caretViewPosition);
                 DrawSelection(gui, in state, in gui.TextDrawer, in contentRect, in text, in layout, in stateStyle);
-
+                
                 for (int i = 0; i < gui.Input.KeyboardEventsCount; ++i)
                 {
                     ref readonly var evt = ref gui.Input.GetKeyboardEvent(i);
@@ -113,6 +112,24 @@ namespace Imui.Controls
                         gui.Input.UseKeyboard(i);
                     }
                 }
+                
+                ref readonly var textEvt = ref gui.Input.TextEvent;
+                switch (textEvt.Type)
+                {
+                    case ImInputTextEventType.Cancel:
+                        gui.ActiveControl = 0;
+                        break;
+                    case ImInputTextEventType.Submit:
+                        gui.ActiveControl = 0;
+                        text = new ImTextEditBuffer(textEvt.Text);
+                        changed = true;
+                        break;
+                }
+            }
+
+            if (gui.ActiveControl == id)
+            {
+                gui.Input.RequestKeyboard(text);
             }
             
             gui.HandleControl(id, rect);
