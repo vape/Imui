@@ -159,6 +159,11 @@ namespace Imui.Core
             scopes.Push(id);
         }
 
+        public uint GetScope()
+        {
+            return scopes.Peek();
+        }
+
         public void EndScope(out uint id)
         {
             id = scopes.Pop();

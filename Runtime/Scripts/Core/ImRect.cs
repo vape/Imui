@@ -6,6 +6,9 @@ namespace Imui.Core
     [Serializable]
     public struct ImRect : IEquatable<ImRect>
     {
+        public float Top => Y + H;
+        public float Bottom => Y;
+        
         public Vector2 TopLeft => new Vector2(X, Y + H);
         public Vector2 TopRight => new Vector2(X + W, Y + H);
         public Vector2 BottomLeft => Position;

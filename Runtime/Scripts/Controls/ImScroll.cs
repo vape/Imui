@@ -33,6 +33,21 @@ namespace Imui.Controls
             
             Scroll(gui, in bounds, contentFrame.Size, ref gui.Storage.Get<State>(id));
         }
+
+        public static Vector2 GetScrollOffset(this ImGui gui)
+        {
+            var id = gui.GetScope();
+            
+            return gui.Storage.Get<State>(id).Offset;
+        }
+
+        public static void SetScrollOffset(this ImGui gui, Vector2 offset)
+        {
+            var id = gui.GetScope();
+            ref var state = ref gui.Storage.Get<State>(id);
+            
+            state.Offset = offset;
+        }
         
         public static void Scroll(ImGui gui, in ImRect view, Vector2 size, ref State state)
         {

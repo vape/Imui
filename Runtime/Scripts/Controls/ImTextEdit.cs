@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): masking
     // TODO (artem-s): implement some filtering API for numeric only input fields
     // TODO (artem-s): refactoring
     public static class ImTextEdit
@@ -48,10 +47,20 @@ namespace Imui.Controls
             
             var layout = gui.TextDrawer.BuildTempLayout(
                 text, 
-                rect.W, rect.H, 
+                contentRect.W, contentRect.H, 
                 Style.TextSettings.AlignX, Style.TextSettings.AlignY, Style.TextSettings.Size);
             
+            gui.Canvas.PushRectMask(rect, Style.CornerRadius);
+            
+            gui.Layout.Push(contentRect, ImAxis.Vertical);
+            gui.Layout.SetFlags(ImLayoutFlag.Root);
+            gui.BeginScrollable();
+            
+            contentRect = gui.Layout.AddRect(layout.Width, layout.Height);
             gui.Canvas.Text(text, stateStyle.FrontColor, contentRect, in layout);
+            gui.HandleControl(id, rect);
+            
+            selected = gui.ActiveControl == id;
             
             ref readonly var mouseEvent = ref gui.Input.MouseEvent;
             if (mouseEvent.Type == ImInputMouseEventType.Down && hovered)
@@ -62,12 +71,8 @@ namespace Imui.Controls
                 }
                 
                 state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in contentRect, in layout, in text);
-                
-                if (selected)
-                {
-                    state.Selection = 0;
-                }
-                
+                state.Selection = 0;
+
                 gui.Input.UseMouseEvent();
             }
             else if (mouseEvent.Type == ImInputMouseEventType.Drag && selected)
@@ -81,7 +86,7 @@ namespace Imui.Controls
             }
             
             state.Caret = Mathf.Clamp(state.Caret, 0, text.Length);
-            
+
             var changed = false;
             if (selected)
             {
@@ -111,15 +116,31 @@ namespace Imui.Controls
                         changed = true;
                         break;
                 }
+
+                ref readonly var layoutFrame = ref gui.Layout.GetFrame();
+                
+                var scrollOffset = gui.GetScrollOffset();
+                var caretViewRect = GetCaretRect(caretViewPosition, layout.LineHeight);
+                if (layoutFrame.Bounds.Top < caretViewRect.Top)
+                {
+                    gui.SetScrollOffset(scrollOffset + new Vector2(0, layoutFrame.Bounds.Top - caretViewRect.Top));
+                }
+                else if (layoutFrame.Bounds.Bottom > caretViewRect.Bottom)
+                {
+                    gui.SetScrollOffset(scrollOffset + new Vector2(0, layoutFrame.Bounds.Bottom - caretViewRect.Bottom));
+                }
             }
+                        
+            gui.EndScrollable();
+            gui.Layout.Pop();
+
+            gui.Canvas.PopRectMask();
 
             selected = gui.ActiveControl == id;
             if (selected)
             {
                 gui.Input.RequestTouchKeyboard(text);
             }
-            
-            gui.HandleControl(id, rect);
             
             return changed;
         }
@@ -451,15 +472,18 @@ namespace Imui.Controls
             return caret;
         }
 
+        private static ImRect GetCaretRect(Vector2 position, float lineHeight)
+        {
+            return new ImRect(
+                position.x, 
+                position.y - lineHeight, 
+                Style.CaretWidth,
+                lineHeight);
+        }
+        
         private static void DrawCaret(ImGui gui, in TextDrawer.Layout layout, in ImTextEditStateStyle style, Vector2 position)
         {
-            var rect = new ImRect(
-                position.x, 
-                position.y - layout.LineHeight, 
-                Style.CaretWidth,
-                layout.LineHeight);
-            
-            gui.Canvas.Rect(rect, style.FrontColor);
+            gui.Canvas.Rect(GetCaretRect(position, layout.LineHeight), style.FrontColor);
         }
 
         private static void DrawSelection(ImGui gui, 
@@ -506,7 +530,7 @@ namespace Imui.Controls
             gui.Canvas.Rect(rect, style.BackColor, Style.CornerRadius);
             gui.Canvas.RectOutline(rect, style.FrameColor, Style.FrameWidth, Style.CornerRadius);
             
-            content = rect.WithPadding(Style.FrameWidth);
+            content = rect.WithPadding(Style.FrameWidth + Style.Padding);
         }
     }
 
@@ -537,6 +561,7 @@ namespace Imui.Controls
             CornerRadius = 3.0f,
             FrameWidth = 1.0f,
             CaretWidth = 2.0f,
+            Padding = 1.0f,
             TextSettings = new ImTextSettings()
             {
                 AlignX = 0,
@@ -550,6 +575,7 @@ namespace Imui.Controls
         public float FrameWidth;
         public float CornerRadius;
         public float CaretWidth;
+        public float Padding;
         public ImTextSettings TextSettings;
     }
 
