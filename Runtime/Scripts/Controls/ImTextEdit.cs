@@ -174,94 +174,115 @@ namespace Imui.Controls
                     break;
                 
                 case KeyCode.Delete:
-                    if (state.Caret < buffer.Length)
-                    {
-                        if (state.Selection != 0)
-                        {
-                            if (state.Selection < 0)
-                            {
-                                state.Caret += state.Selection;
-                            }
-                            
-                            buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
-                            state.Selection = 0;
-                        }
-                        else
-                        {
-                            buffer.Delete(state.Caret, 1);
-                        }
-
-                        changed = true;
-                    }
+                    changed |= DeleteForward(ref state, ref buffer);
                     break;
+                
                 case KeyCode.Backspace:
-                    if (state.Selection != 0)
-                    {
-                        if (state.Selection < 0)
-                        {
-                            state.Caret += state.Selection;
-                        }
-                        
-                        buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
-                        state.Selection = 0;
-                        changed = true;
-                    }
-                    else if (state.Caret > 0)
-                    {
-                        buffer.Delete(--state.Caret, 1);
-                        changed = true;
-                    }
+                    changed |= DeleteBackward(ref state, ref buffer);
                     break;
-                default:
-                    var c = evt.Char;
-                    if (evt.Command == ImInputKeyboardCommandFlag.SelectAll)
-                    {
-                        state.Selection = -buffer.Length;
-                        state.Caret = buffer.Length;
-                    }
-                    else if (evt.Command == ImInputKeyboardCommandFlag.Copy)
-                    {
-                        gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
-                    }
-                    else if (evt.Command == ImInputKeyboardCommandFlag.Paste)
-                    {
-                        if (state.Selection != 0)
-                        {
-                            if (state.Selection < 0)
-                            {
-                                state.Caret += state.Selection;
-                            }
-                        
-                            buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
-                            state.Selection = 0;
-                        }
 
-                        var clipboardText = gui.Input.Clipboard;
-                        buffer.Insert(state.Caret, clipboardText);
-                        state.Caret += clipboardText.Length;
-                        changed = true;
-                    }
-                    else if (c != 0)
+                default:
+                {
+                    switch (evt.Command)
                     {
-                        if (state.Selection != 0)
+                        case ImInputKeyboardCommandFlag.SelectAll:
+                            state.Selection = -buffer.Length;
+                            state.Caret = buffer.Length;
+                            break;
+                        
+                        case ImInputKeyboardCommandFlag.Copy:
+                            gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
+                            break;
+                        
+                        case ImInputKeyboardCommandFlag.Paste:
+                            changed |= PasteFromClipboard(gui, ref state, ref buffer);
+                            break;
+
+                        default:
                         {
-                            if (state.Selection < 0)
+                            if (evt.Char == 0)
                             {
-                                state.Caret += state.Selection;
+                                break;
                             }
-                        
-                            buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
-                            state.Selection = 0;
+
+                            DeleteSelection(ref state, ref buffer);
+                            buffer.Insert(state.Caret, evt.Char);
+                            state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
+                            changed = true;
+                            break;
                         }
-                        
-                        buffer.Insert(state.Caret, c);
-                        state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
-                        changed = true;
                     }
+
                     break;
+                }
             }
 
             return true;
+        }
+
+        private static bool PasteFromClipboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        {
+            var clipboardText = gui.Input.Clipboard;
+            if (clipboardText.Length == 0)
+            {
+                return false;
+            }
+
+            DeleteSelection(ref state, ref buffer);
+            
+            buffer.Insert(state.Caret, clipboardText);
+            state.Caret += clipboardText.Length;
+
+            return true;
+        }
+        
+        private static bool DeleteSelection(ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        {
+            if (state.Selection == 0)
+            {
+                return false;
+            }
+            
+            if (state.Selection < 0)
+            {
+                state.Caret += state.Selection;
+            }
+                        
+            buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
+            state.Selection = 0;
+            return true;
+        }
+
+        private static bool DeleteBackward(ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        {
+            if (DeleteSelection(ref state, ref buffer))
+            {
+                return true;
+            }
+            
+            if (state.Caret > 0)
+            {
+                buffer.Delete(--state.Caret, 1);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool DeleteForward(ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        {
+            if (DeleteSelection(ref state, ref buffer))
+            {
+                return true;
+            }
+            
+            if (state.Caret < buffer.Length)
+            {
+                buffer.Delete(state.Caret, 1);
+                return true;
+            }
+
+            return false;
         }
         
         private static int FindEndOfWordOrSpacesSequence(int caret, int dir, ReadOnlySpan<char> buffer)
@@ -399,6 +420,7 @@ namespace Imui.Controls
                 return 0;
             }
 
+            // TODO (artem-s): can't we just do something like 'position / layout.Height * layout.LinesCount'
             while (line <= layout.LinesCount + 1 && (py < position.y || (py - layout.LineHeight) > position.y))
             {
                 py -= layout.LineHeight;
@@ -444,20 +466,20 @@ namespace Imui.Controls
         
         private static Vector2 CaretToViewPosition(int caret, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
         {
-            return LineToViewPosition(FindLineAtCaretPosition(caret, in layout, out var linePosition), linePosition, buffer, in rect, drawer, in layout);
+            return LineOffsetToViewPosition(FindLineAtCaretPosition(caret, in layout, out var linePosition), linePosition, buffer, in rect, drawer, in layout);
         }
 
-        private static Vector2 LineToViewPosition(int line, int pos, ReadOnlySpan<char> buffer, in ImRect rect, TextDrawer drawer, in TextDrawer.Layout layout)
+        private static Vector2 LineOffsetToViewPosition(int line, int offset, ReadOnlySpan<char> buffer, in ImRect rect, TextDrawer drawer, in TextDrawer.Layout layout)
         {
             var yOffset = line * -layout.LineHeight + layout.OffsetY;
             var xOffset = line >= layout.LinesCount ? layout.OffsetX : layout.Lines[line].OffsetX;
 
-            if (line < layout.LinesCount && pos <= layout.Lines[line].Count)
+            if (line < layout.LinesCount && offset <= layout.Lines[line].Count)
             {
                 ref readonly var lineLayout = ref layout.Lines[line];
                 var slice = buffer[lineLayout.Start..(lineLayout.Start + lineLayout.Count)];
                 
-                for (int i = 0; i < pos; ++i)
+                for (int i = 0; i < offset; ++i)
                 {
                     xOffset += drawer.GetCharacterWidth(slice[i], layout.Size);
                 }
@@ -478,15 +500,6 @@ namespace Imui.Controls
             linePosition = caret;
             return line;
         }
-
-        private static ImRect GetCaretRect(Vector2 position, float lineHeight)
-        {
-            return new ImRect(
-                position.x, 
-                position.y - lineHeight, 
-                Style.CaretWidth,
-                lineHeight);
-        }
         
         private static void DrawCaret(ImGui gui, 
             int position,
@@ -497,7 +510,11 @@ namespace Imui.Controls
             out ImRect caretViewRect)
         {
             var viewPosition = CaretToViewPosition(position, gui.TextDrawer, in textRect, in layout, in buffer);
-            caretViewRect = GetCaretRect(viewPosition, layout.LineHeight);
+            caretViewRect = new ImRect(
+                viewPosition.x, 
+                viewPosition.y - layout.LineHeight, 
+                Style.CaretWidth,
+                layout.LineHeight);
             
             gui.Canvas.Rect(caretViewRect, style.FrontColor);
         }
@@ -528,8 +545,8 @@ namespace Imui.Controls
                 var lineRelativeBegin = Mathf.Max(0, begin - line.Start);
                 var lineRelativeEnd = Mathf.Min(line.Count, end - line.Start);
 
-                var p0 = LineToViewPosition(i, lineRelativeBegin, buffer, in textRect, gui.TextDrawer, in layout);
-                var p1 = LineToViewPosition(i, lineRelativeEnd, buffer, in textRect, gui.TextDrawer, in layout);
+                var p0 = LineOffsetToViewPosition(i, lineRelativeBegin, buffer, in textRect, gui.TextDrawer, in layout);
+                var p1 = LineOffsetToViewPosition(i, lineRelativeEnd, buffer, in textRect, gui.TextDrawer, in layout);
                 
                 var lineSelectionRect = new ImRect(
                     p0.x, 

@@ -118,7 +118,7 @@ namespace Imui.Core
         {
             get
             {
-                return GUIUtility.systemCopyBuffer;
+                return GUIUtility.systemCopyBuffer ?? string.Empty;
             }
             set
             {
