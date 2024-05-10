@@ -1,5 +1,4 @@
 using System;
-using Imui.Core.Input;
 using Imui.Rendering;
 using Imui.Rendering.Backend;
 using Imui.Utility;
@@ -85,7 +84,7 @@ namespace Imui.Core
         public readonly MeshDrawer MeshDrawer;
         public readonly TextDrawer TextDrawer;
         public readonly ImCanvas Canvas;
-        public readonly IImInput Input;
+        public readonly ImInput Input;
         public readonly ImLayout Layout;
         public readonly ImStorage Storage;
         public readonly ImWindowManager WindowManager;
@@ -100,14 +99,14 @@ namespace Imui.Core
         
         private bool disposed;
         
-        public ImGui(IImInput input)
+        public ImGui()
         {
             MeshBuffer = new MeshBuffer(INIT_MESHES_COUNT, INIT_VERTICES_COUNT, INIT_INDICES_COUNT);
             MeshDrawer = new MeshDrawer(MeshBuffer);
             TextDrawer = new TextDrawer(MeshBuffer);
             Canvas = new ImCanvas(MeshDrawer, TextDrawer);
             Renderer = new MeshRenderer();
-            Input = input;
+            Input = new ImInputLegacy();
             Layout = new ImLayout();
             Storage = new ImStorage(DEFAULT_STORAGE_CAPACITY);
             WindowManager = new ImWindowManager();
@@ -276,6 +275,7 @@ namespace Imui.Core
             TextDrawer.Dispose();
             Renderer.Dispose();
             Storage.Dispose();
+            Input.Dispose();
             
             disposed = true;
         }

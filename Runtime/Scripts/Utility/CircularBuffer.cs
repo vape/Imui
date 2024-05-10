@@ -1,5 +1,3 @@
-using System;
-
 namespace Imui.Utility
 {
     internal struct CircularBuffer<T>
@@ -52,23 +50,20 @@ namespace Imui.Utility
             }
         }
 
-        public void PopBack(out T value)
-        {
-            value = Array[Head];
-            PopBack();
-        }
-
-        public void PopBack()
+        public bool TryPopBack(out T value)
         {
             if (Count == 0)
             {
-                return;
+                value = default;
+                return false;
             }
-            
+
+            value = Array[Head];
             Head = (Head + 1) % Capacity;
             Count--;
+            return true;
         }
-
+        
         public void PushFront(T value)
         {
             Array[(Head + Count) % Capacity] = value;
@@ -83,25 +78,17 @@ namespace Imui.Utility
             }
         }
 
-        public void PopFront(out T value)
+        public bool TryPopFront(out T value)
         {
-            if (Count > 0)
-            {
-                value = Array[(Head + Count - 1) % Capacity];
-                Count--;
-            }
-            else
+            if (Count == 0)
             {
                 value = default;
+                return false;
             }
-        }
 
-        public void PopFront()
-        {
-            if (Count > 0)
-            {
-                Count--;
-            }
+            value = Array[(Head + Count - 1) % Capacity];
+            Count--;
+            return true;
         }
     }
 }

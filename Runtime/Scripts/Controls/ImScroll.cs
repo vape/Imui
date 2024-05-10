@@ -1,12 +1,12 @@
 using System;
 using Imui.Core;
-using Imui.Core.Input;
 using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
 
 namespace Imui.Controls
 {
+    // TODO (artem-s): handle mouse wheel
     public static class ImScroll
     {
         public static ImScrollStyle Style = ImScrollStyle.Default;
@@ -101,27 +101,27 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputEventMouseType.Up:
+                case ImInputMouseEventType.Up:
                     if (pressed)
                     {
                         gui.ActiveControl = default;
                     }
 
                     break;
-                case ImInputEventMouseType.Down:
+                case ImInputMouseEventType.Down:
                     if (evt.Button == 0 && hovered)
                     {
                         gui.ActiveControl = id;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
                 
-                case ImInputEventMouseType.Drag:
+                case ImInputMouseEventType.Drag:
                     if (pressed)
                     {
                         delta = evt.Delta[axis] / absoluteSize;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;

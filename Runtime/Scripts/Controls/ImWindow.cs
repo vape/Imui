@@ -1,6 +1,5 @@
 using System;
 using Imui.Core;
-using Imui.Core.Input;
 using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
@@ -96,30 +95,30 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputEventMouseType.Down:
+                case ImInputMouseEventType.Down:
                     if (hovered)
                     {
                         clicked = true;
                         gui.ActiveControl = id;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
                 
-                case ImInputEventMouseType.Drag:
+                case ImInputMouseEventType.Drag:
                     if (gui.ActiveControl == id)
                     {
                         rect.Position += evt.Delta;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
                 
-                case ImInputEventMouseType.Up:
+                case ImInputMouseEventType.Up:
                     if (gui.ActiveControl == id)
                     {
                         gui.ActiveControl = 0;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
@@ -163,32 +162,32 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputEventMouseType.Down:
+                case ImInputMouseEventType.Down:
                     if (hovered)
                     {
                         clicked = true;
                         gui.ActiveControl = id;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
                 
-                case ImInputEventMouseType.Drag:
+                case ImInputMouseEventType.Drag:
                     if (gui.ActiveControl == id)
                     {
                         rect.W += evt.Delta.x;
                         rect.H -= evt.Delta.y;
                         rect.Y += evt.Delta.y;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
                 
-                case ImInputEventMouseType.Up:
+                case ImInputMouseEventType.Up:
                     if (gui.ActiveControl == id)
                     {
                         gui.ActiveControl = 0;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
