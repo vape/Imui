@@ -14,6 +14,7 @@ namespace Imui.Core
         Up
     }
 
+    // TODO (artem-s): add cut
     [Flags]
     public enum ImInputKeyboardCommandFlag : uint
     {
@@ -170,17 +171,20 @@ namespace Imui.Core
             
             if (TouchKeyboard != null)
             {
+                var shouldHide = Mathf.Abs(Time.frameCount - TouchKeyboardRequestFrame) > TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD;
+                
                 switch (TouchKeyboard.status)
                 {
                     case TouchScreenKeyboard.Status.Canceled:
                         textEvent = new ImInputTextEvent(ImInputTextEventType.Cancel);
+                        shouldHide = true;
                         break;
                     case TouchScreenKeyboard.Status.Done:
                         textEvent = new ImInputTextEvent(ImInputTextEventType.Submit, TouchKeyboard.text);
+                        shouldHide = true;
                         break;
                 }
                 
-                var shouldHide = Mathf.Abs(Time.frameCount - TouchKeyboardRequestFrame) > TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD;
                 if (shouldHide)
                 {
                     TouchKeyboard.active = false;
@@ -192,7 +196,7 @@ namespace Imui.Core
         protected static ImInputKeyboardCommandFlag ParseKeyboardCommand(Event evt)
         {
             var result = ImInputKeyboardCommandFlag.None;
-            var arrow = (int)evt.keyCode >= 274 && (int)evt.keyCode <= 276;
+            var arrow = (int)evt.keyCode >= 273 && (int)evt.keyCode <= 276;
             var jump = false;
             var control = false;
 
