@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): add copy/paste
     // TODO (artem-s): masking
     // TODO (artem-s): implement some filtering API for numeric only input fields
     // TODO (artem-s): refactoring
@@ -268,6 +267,28 @@ namespace Imui.Controls
                         state.Selection = -buffer.Length;
                         state.Caret = buffer.Length;
                     }
+                    else if (evt.Command == ImInputKeyboardCommand.Copy)
+                    {
+                        gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
+                    }
+                    else if (evt.Command == ImInputKeyboardCommand.Paste)
+                    {
+                        if (state.Selection != 0)
+                        {
+                            if (state.Selection < 0)
+                            {
+                                state.Caret += state.Selection;
+                            }
+                        
+                            buffer.Delete(state.Caret, Mathf.Abs(state.Selection));
+                            state.Selection = 0;
+                        }
+
+                        var clipboardText = gui.Input.Clipboard;
+                        buffer.Insert(state.Caret, clipboardText);
+                        state.Caret += clipboardText.Length;
+                        changed = true;
+                    }
                     else if (c != 0)
                     {
                         if (state.Selection != 0)
@@ -289,6 +310,19 @@ namespace Imui.Controls
             }
 
             return true;
+        }
+
+        private static ReadOnlySpan<char> GetSelectedText(in ImTextEditState state, in ImTextEditBuffer buffer)
+        {
+            if (state.Selection == 0)
+            {
+                return ReadOnlySpan<char>.Empty;
+            }
+            
+            var begin = state.Selection < 0 ? state.Caret + state.Selection : state.Caret;
+            var end = state.Selection < 0 ? state.Caret : state.Caret + state.Selection;
+
+            return ((ReadOnlySpan<char>)buffer).Slice(begin, end - begin);
         }
 
         private static int ViewToCaretPosition(Vector2 position, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)

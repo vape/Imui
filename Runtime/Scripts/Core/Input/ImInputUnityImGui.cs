@@ -15,6 +15,12 @@ namespace Imui.Core.Input
         private const int TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD = 3;
         
         public Vector2 MousePosition => mousePosition;
+
+        public string Clipboard
+        {
+            get => GUIUtility.systemCopyBuffer;
+            set => GUIUtility.systemCopyBuffer = value;
+        }
         
         public ref readonly ImInputMouseEvent MouseEvent => ref mouseEvent;
 
@@ -211,6 +217,16 @@ namespace Imui.Core.Input
             if (selectModifier && e.keyCode == KeyCode.A)
             {
                 command |= ImInputKeyboardCommand.SelectAll;
+            }
+
+            if (selectModifier && e.keyCode == KeyCode.C)
+            {
+                command |= ImInputKeyboardCommand.Copy;
+            }
+
+            if (selectModifier && e.keyCode == KeyCode.V)
+            {
+                command |= ImInputKeyboardCommand.Paste;
             }
             
             return command;

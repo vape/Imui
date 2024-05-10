@@ -16,7 +16,9 @@ namespace Imui.Core.Input
         None      = 0,
         Selection = 1 << 0,
         JumpWord  = 1 << 1,
-        SelectAll = 1 << 2
+        SelectAll = 1 << 2,
+        Copy      = 1 << 3,
+        Paste     = 1 << 4
     }
     
     public readonly struct ImInputKeyboardEvent

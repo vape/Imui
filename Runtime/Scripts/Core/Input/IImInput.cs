@@ -6,7 +6,9 @@ namespace Imui.Core.Input
     public interface IImInput
     {
         Vector2 MousePosition { get; }
-        
+
+        string Clipboard { get; set; }
+
         ref readonly ImInputMouseEvent MouseEvent { get; }
         ref readonly ImInputTextEvent TextEvent { get; }
         
