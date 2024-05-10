@@ -57,7 +57,7 @@ namespace Imui.Controls
             gui.BeginScrollable();
             
             contentRect = gui.Layout.AddRect(layout.Width, layout.Height);
-            gui.Canvas.Text(text, stateStyle.FrontColor, contentRect, in layout);
+            gui.Canvas.Text(text, stateStyle.FrontColor, contentRect.TopLeft, in layout);
             gui.HandleControl(id, rect);
             
             selected = gui.ActiveControl == id;
@@ -166,7 +166,7 @@ namespace Imui.Controls
             switch (evt.Key)
             {
                 case KeyCode.LeftArrow:
-                    if (state.Selection != 0 && !evt.Command.HasFlag(ImInputKeyboardCommandType.Selection))
+                    if (state.Selection != 0 && !evt.Command.HasFlag(ImInputKeyboardCommandFlag.Selection))
                     {
                         state.Caret = Mathf.Max(Mathf.Min(state.Caret + state.Selection, state.Caret), 0);
                     }
@@ -175,12 +175,12 @@ namespace Imui.Controls
                         state.Caret = Mathf.Max(state.Caret - 1, 0);
                     }
 
-                    if (evt.Command.HasFlag(ImInputKeyboardCommandType.NextWord))
+                    if (evt.Command.HasFlag(ImInputKeyboardCommandFlag.NextWord))
                     {
                         state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, -1, buffer);
                     }
 
-                    if (evt.Command.HasFlag(ImInputKeyboardCommandType.Selection))
+                    if (evt.Command.HasFlag(ImInputKeyboardCommandFlag.Selection))
                     {
                         state.Selection += previousCaret - state.Caret;
                     }
@@ -191,7 +191,7 @@ namespace Imui.Controls
                     break;
                 
                 case KeyCode.RightArrow:
-                    if (state.Selection != 0 && !evt.Command.HasFlag(ImInputKeyboardCommandType.Selection))
+                    if (state.Selection != 0 && !evt.Command.HasFlag(ImInputKeyboardCommandFlag.Selection))
                     {
                         state.Caret = Mathf.Min(Mathf.Max(state.Caret + state.Selection, state.Caret), buffer.Length);
                     }
@@ -200,12 +200,12 @@ namespace Imui.Controls
                         state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
                     }
                     
-                    if (evt.Command.HasFlag(ImInputKeyboardCommandType.NextWord))
+                    if (evt.Command.HasFlag(ImInputKeyboardCommandFlag.NextWord))
                     {
                         state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, 1, buffer);
                     }
                     
-                    if (evt.Command.HasFlag(ImInputKeyboardCommandType.Selection))
+                    if (evt.Command.HasFlag(ImInputKeyboardCommandFlag.Selection))
                     {
                         state.Selection += previousCaret - state.Caret;
                     }
@@ -271,16 +271,16 @@ namespace Imui.Controls
                     break;
                 default:
                     var c = evt.Char;
-                    if (evt.Command == ImInputKeyboardCommandType.SelectAll)
+                    if (evt.Command == ImInputKeyboardCommandFlag.SelectAll)
                     {
                         state.Selection = -buffer.Length;
                         state.Caret = buffer.Length;
                     }
-                    else if (evt.Command == ImInputKeyboardCommandType.Copy)
+                    else if (evt.Command == ImInputKeyboardCommandFlag.Copy)
                     {
                         gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
                     }
-                    else if (evt.Command == ImInputKeyboardCommandType.Paste)
+                    else if (evt.Command == ImInputKeyboardCommandFlag.Paste)
                     {
                         if (state.Selection != 0)
                         {

@@ -15,7 +15,7 @@ namespace Imui.Core
     }
 
     [Flags]
-    public enum ImInputKeyboardCommandType : uint
+    public enum ImInputKeyboardCommandFlag : uint
     {
         None      = 0,
         Selection = 1 << 0,
@@ -37,9 +37,9 @@ namespace Imui.Core
     
     public enum ImInputTextEventType
     {
-        None = 0,
-        Cancel = 1,
-        Submit = 2
+        None,
+        Cancel,
+        Submit
     }
     
     public readonly struct ImInputKeyboardEvent
@@ -47,10 +47,10 @@ namespace Imui.Core
         public readonly ImInputKeyboardEventType Type;
         public readonly KeyCode Key;
         public readonly EventModifiers Modifiers;
-        public readonly ImInputKeyboardCommandType Command;
+        public readonly ImInputKeyboardCommandFlag Command;
         public readonly char Char;
 
-        public ImInputKeyboardEvent(ImInputKeyboardEventType type, KeyCode key, EventModifiers modifiers, ImInputKeyboardCommandType command, char c)
+        public ImInputKeyboardEvent(ImInputKeyboardEventType type, KeyCode key, EventModifiers modifiers, ImInputKeyboardCommandFlag command, char c)
         {
             Type = type;
             Key = key;
@@ -189,9 +189,9 @@ namespace Imui.Core
             }
         }
 
-        protected static ImInputKeyboardCommandType ParseKeyboardCommand(Event evt)
+        protected static ImInputKeyboardCommandFlag ParseKeyboardCommand(Event evt)
         {
-            var result = ImInputKeyboardCommandType.None;
+            var result = ImInputKeyboardCommandFlag.None;
             var arrow = (int)evt.keyCode >= 274 && (int)evt.keyCode <= 276;
             var jump = false;
             var control = false;
@@ -206,27 +206,27 @@ namespace Imui.Core
             
             if (arrow && evt.modifiers.HasFlag(EventModifiers.Shift))
             {
-                result |= ImInputKeyboardCommandType.Selection;
+                result |= ImInputKeyboardCommandFlag.Selection;
             }
 
             if (arrow && jump)
             {
-                result |= ImInputKeyboardCommandType.NextWord;
+                result |= ImInputKeyboardCommandFlag.NextWord;
             }
 
             if (control && evt.keyCode == KeyCode.A)
             {
-                result |= ImInputKeyboardCommandType.SelectAll;
+                result |= ImInputKeyboardCommandFlag.SelectAll;
             }
 
             if (control && evt.keyCode == KeyCode.C)
             {
-                result |= ImInputKeyboardCommandType.Copy;
+                result |= ImInputKeyboardCommandFlag.Copy;
             }
 
             if (control && evt.keyCode == KeyCode.V)
             {
-                result |= ImInputKeyboardCommandType.Paste;
+                result |= ImInputKeyboardCommandFlag.Paste;
             }
             
             return result;
