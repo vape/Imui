@@ -22,35 +22,23 @@ namespace Imui.Controls
         
         public static void TextEdit(this ImGui gui, in ImRect rect, ref string text)
         {
-            var settings = new ImTextSettings
-            {
-                Size = 24,
-                AlignX = 0,
-                AlignY = 0
-            };
-            
-            TextEdit(gui, in rect, ref text, in settings);
-        }
-        
-        public static void TextEdit(this ImGui gui, in ImRect rect, ref string text, in ImTextSettings settings)
-        {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            TextEdit(gui, id, in rect, ref text, in settings, ref state);
+            TextEdit(gui, id, in rect, ref text, ref state);
         }
         
-        public static void TextEdit(this ImGui gui, uint id, in ImRect rect, ref string text, in ImTextSettings settings, ref ImTextEditState state)
+        public static void TextEdit(this ImGui gui, uint id, in ImRect rect, ref string text, ref ImTextEditState state)
         {
             var buffer = new ImTextEditBuffer(text);
-            var changed = TextEdit(gui, id, in rect, ref buffer, in settings, ref state);
+            var changed = TextEdit(gui, id, in rect, ref buffer, ref state);
             if (changed)
             {
                 text = buffer.GetString();
             }
         }
         
-        private static bool TextEdit(this ImGui gui, uint id, in ImRect rect, ref ImTextEditBuffer text, in ImTextSettings settings, ref ImTextEditState state)
+        private static bool TextEdit(this ImGui gui, uint id, in ImRect rect, ref ImTextEditBuffer text, ref ImTextEditState state)
         {
             var selected = gui.ActiveControl == id;
             var hovered = gui.GetHoveredControl() == id;
@@ -61,7 +49,7 @@ namespace Imui.Controls
             var layout = gui.TextDrawer.BuildTempLayout(
                 text, 
                 rect.W, rect.H, 
-                settings.AlignX, settings.AlignY, settings.Size);
+                Style.TextSettings.AlignX, Style.TextSettings.AlignY, Style.TextSettings.Size);
             
             gui.Canvas.Text(text, stateStyle.FrontColor, contentRect, in layout);
             
@@ -548,7 +536,13 @@ namespace Imui.Controls
             },
             CornerRadius = 3.0f,
             FrameWidth = 1.0f,
-            CaretWidth = 2.0f
+            CaretWidth = 2.0f,
+            TextSettings = new ImTextSettings()
+            {
+                AlignX = 0,
+                AlignY = 0,
+                Size = ImText.DEFAULT_TEXT_SIZE
+            }
         };
         
         public ImTextEditStateStyle Normal;
@@ -556,6 +550,7 @@ namespace Imui.Controls
         public float FrameWidth;
         public float CornerRadius;
         public float CaretWidth;
+        public ImTextSettings TextSettings;
     }
 
     public class ImTextEditStateStyle
