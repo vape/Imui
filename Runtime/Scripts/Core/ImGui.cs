@@ -1,5 +1,4 @@
 using System;
-using Imui.Core.Input;
 using Imui.Rendering;
 using Imui.Rendering.Backend;
 using Imui.Utility;
@@ -85,7 +84,7 @@ namespace Imui.Core
         public readonly MeshDrawer MeshDrawer;
         public readonly TextDrawer TextDrawer;
         public readonly ImCanvas Canvas;
-        public readonly IImInput Input;
+        public readonly ImInput Input;
         public readonly ImLayout Layout;
         public readonly ImStorage Storage;
         public readonly ImWindowManager WindowManager;
@@ -100,14 +99,14 @@ namespace Imui.Core
         
         private bool disposed;
         
-        public ImGui(IImInput input)
+        public ImGui()
         {
             MeshBuffer = new MeshBuffer(INIT_MESHES_COUNT, INIT_VERTICES_COUNT, INIT_INDICES_COUNT);
             MeshDrawer = new MeshDrawer(MeshBuffer);
             TextDrawer = new TextDrawer(MeshBuffer);
             Canvas = new ImCanvas(MeshDrawer, TextDrawer);
             Renderer = new MeshRenderer();
-            Input = input;
+            Input = new ImInputLegacy();
             Layout = new ImLayout();
             Storage = new ImStorage(DEFAULT_STORAGE_CAPACITY);
             WindowManager = new ImWindowManager();
@@ -126,9 +125,8 @@ namespace Imui.Core
         public void BeginFrame()
         {
             idsStack.Clear(false);
-            
-            // ReSharper disable once SwapViaDeconstruction
-            frameData = nextFrameData;
+
+            (nextFrameData, frameData) = (frameData, nextFrameData);
             nextFrameData.Clear();
             
             Input.SetScale(uiScale);
@@ -158,6 +156,11 @@ namespace Imui.Core
         public void BeginScope(uint id)
         {
             scopes.Push(id);
+        }
+
+        public uint GetScope()
+        {
+            return scopes.Peek();
         }
 
         public void EndScope(out uint id)
@@ -240,6 +243,16 @@ namespace Imui.Core
 
             if (rect.Contains(Input.MousePosition))
             {
+                var currentOrder = meshProperties.Order;
+                
+                for (int i = nextFrameData.HoveredGroups.Count - 1; i >= 0; --i)
+                {
+                    if (nextFrameData.HoveredGroups.Array[i].Order < currentOrder)
+                    {
+                        nextFrameData.HoveredGroups.RemoveAtFast(i);
+                    }
+                }
+                
                 nextFrameData.HoveredGroups.Add(new ControlData()
                 {
                     Id = controlId,
@@ -273,7 +286,10 @@ namespace Imui.Core
             }
             
             Canvas.Dispose();
+            TextDrawer.Dispose();
             Renderer.Dispose();
+            Storage.Dispose();
+            Input.Dispose();
             
             disposed = true;
         }

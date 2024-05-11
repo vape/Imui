@@ -1,6 +1,5 @@
 using System;
 using Imui.Core;
-using Imui.Core.Input;
 using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
@@ -59,15 +58,15 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputEventMouseType.Down:
+                case ImInputMouseEventType.Down:
                     if (!pressed && hovered)
                     {
                         gui.ActiveControl = id;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
                     break;
                 
-                case ImInputEventMouseType.Up:
+                case ImInputMouseEventType.Up:
                     if (pressed)
                     {
                         gui.ActiveControl = 0;
@@ -75,7 +74,7 @@ namespace Imui.Controls
                         
                         if (clicked)
                         {
-                            gui.Input.UseMouse();
+                            gui.Input.UseMouseEvent();
                         }
                     }
                     break;
@@ -102,15 +101,15 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputEventMouseType.Down:
+                case ImInputMouseEventType.Down:
                     if (!pressed && hovered)
                     {
                         gui.ActiveControl = id;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
                     break;
                 
-                case ImInputEventMouseType.Up:
+                case ImInputMouseEventType.Up:
                     if (pressed)
                     {
                         gui.ActiveControl = 0;
@@ -118,7 +117,7 @@ namespace Imui.Controls
                         
                         if (clicked)
                         {
-                            gui.Input.UseMouse();
+                            gui.Input.UseMouseEvent();
                         }
                     }
                     break;

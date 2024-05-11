@@ -56,12 +56,17 @@ namespace Imui.Core
         
         public void Push(ImRect rect, ImAxis axis)
         {
+            Push(rect, axis, ImLayoutFlag.None);
+        }
+        
+        public void Push(ImRect rect, ImAxis axis, ImLayoutFlag flags)
+        {
             var frame = new ImLayoutFrame
             {
                 Axis = axis,
                 Size = default,
                 Bounds = rect,
-                Flags = ImLayoutFlag.None
+                Flags = flags
             };
 
             frames.Push(in frame);

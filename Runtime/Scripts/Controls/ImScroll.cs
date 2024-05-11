@@ -1,6 +1,5 @@
 using System;
 using Imui.Core;
-using Imui.Core.Input;
 using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
@@ -33,6 +32,21 @@ namespace Imui.Controls
             
             Scroll(gui, in bounds, contentFrame.Size, ref gui.Storage.Get<State>(id));
         }
+
+        public static Vector2 GetScrollOffset(this ImGui gui)
+        {
+            var id = gui.GetScope();
+            
+            return gui.Storage.Get<State>(id).Offset;
+        }
+
+        public static void SetScrollOffset(this ImGui gui, Vector2 offset)
+        {
+            var id = gui.GetScope();
+            ref var state = ref gui.Storage.Get<State>(id);
+            
+            state.Offset = offset;
+        }
         
         public static void Scroll(ImGui gui, in ImRect view, Vector2 size, ref State state)
         {
@@ -41,6 +55,7 @@ namespace Imui.Controls
             var dx = 0f;
             var dy = 0f;
 
+            var groupId = gui.GetNextControlId();
             var horId = gui.GetNextControlId();
             var verId = gui.GetNextControlId();
 
@@ -67,8 +82,30 @@ namespace Imui.Controls
                 dx -= normalDelta * size.x;
             }
 
+            var shouldConsumeMouseEvent = false;
+            if (gui.IsGroupHovered(groupId))
+            {
+                ref readonly var mouseEvent = ref gui.Input.MouseEvent;
+                if (mouseEvent.Type == ImInputMouseEventType.Scroll)
+                {
+                    dx += mouseEvent.Delta.x;
+                    dy += mouseEvent.Delta.y;
+                    shouldConsumeMouseEvent = true;
+                }
+            }
+
+            var prevOffset = state.Offset;
+            
             state.Offset.x = Mathf.Clamp(state.Offset.x + dx, Mathf.Min(0, view.W - size.x), 0);
             state.Offset.y = Mathf.Clamp(state.Offset.y + dy, 0, Mathf.Max(size.y - view.H, 0));
+
+            // defer mouse event consumption so we can pass it to parent scroll rect in case offset hasn't changed
+            if (prevOffset != state.Offset && shouldConsumeMouseEvent)
+            {
+                gui.Input.UseMouseEvent();
+            }
+            
+            gui.HandleGroup(groupId, view);
         }
         
         public static float Bar(
@@ -101,27 +138,27 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputEventMouseType.Up:
+                case ImInputMouseEventType.Up:
                     if (pressed)
                     {
                         gui.ActiveControl = default;
                     }
 
                     break;
-                case ImInputEventMouseType.Down:
+                case ImInputMouseEventType.Down:
                     if (evt.Button == 0 && hovered)
                     {
                         gui.ActiveControl = id;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
                 
-                case ImInputEventMouseType.Drag:
+                case ImInputMouseEventType.Drag:
                     if (pressed)
                     {
                         delta = evt.Delta[axis] / absoluteSize;
-                        gui.Input.UseMouse();
+                        gui.Input.UseMouseEvent();
                     }
 
                     break;
