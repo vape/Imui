@@ -57,26 +57,10 @@ namespace Imui.Rendering
         }
         
         // TODO (artem-s): add proper texturing
-        // TODO (artem-s): slow as hell, needs optimizations
-        public void AddLine(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
+        public void AddLineMiter(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
             Profiler.BeginSample("MeshDrawer.AddLine");
             
-            Vector2 GetNormal2(Vector2 a, Vector2 b)
-            {
-                var normalized = (b - a).normalized;
-                return new Vector2(-normalized.y, normalized.x);
-            }
-
-            Vector2 GetNormal3(Vector2 a, Vector2 b, Vector2 c)
-            {
-                var ab = (b - a).normalized;
-                var bc = (c - b).normalized;
-                var tan = (ab + bc).normalized;
-                
-                return new Vector2(-tan.y, tan.x);
-            }
-
             if (path.Length < 2)
             {
                 return;
@@ -86,9 +70,53 @@ namespace Imui.Rendering
 
             var outerThickness = thickness * outerScale;
             var innerThickness = thickness * innerScale;
-            var prevNormal = closed ? GetNormal3(path[^1], path[0], path[1]) : GetNormal2(path[0], path[1]);
             var pointsCount = closed ? path.Length : path.Length - 1;
+            
+            float prevNormX;
+            float prevNormY;
+            
+            if (closed)
+            {
+                var a = path[^1];
+                var b = path[0];
+                var c = path[1];
+                
+                var abx = b.x - a.x;
+                var aby = b.y - a.y;
+                var abm = Mathf.Sqrt(abx * abx + aby * aby);
+                abx /= abm;
+                aby /= abm;
+                    
+                var bcx = c.x - b.x;
+                var bcy = c.y - b.y;
+                var bcm = Mathf.Sqrt(bcx * bcx + bcy * bcy);
+                bcx /= bcm;
+                bcy /= bcm;
 
+                var tx = abx + bcx;
+                var ty = aby + bcy;
+                var tm = Mathf.Sqrt(tx * tx + ty * ty);
+                tx /= tm;
+                ty /= tm;
+
+                prevNormX = -ty;
+                prevNormY = tx;
+            }
+            else
+            {
+                var a = path[0];
+                var b = path[1];
+                
+                var abx = b.x - a.x;
+                var aby = b.y - a.y;
+                var abm = Mathf.Sqrt(abx * abx + aby * aby);
+                abx /= abm;
+                aby /= abm;
+
+                prevNormX = -aby;
+                prevNormY = abx;
+            }
+            
             var ic = buffer.IndicesCount;
             var vc = buffer.VerticesCount;
 
@@ -99,8 +127,8 @@ namespace Imui.Rendering
             buffer.EnsureVerticesCapacity(vc + generatedVertices);
             
             ref var v0 = ref buffer.Vertices[vc + 0];
-            v0.Position.x = path[0].x + prevNormal.x * -1 * outerThickness;
-            v0.Position.y = path[0].y + prevNormal.y * -1 * outerThickness;
+            v0.Position.x = path[0].x + prevNormX * -1 * outerThickness;
+            v0.Position.y = path[0].y + prevNormY * -1 * outerThickness;
             v0.Position.z = Depth;
             v0.Color = Color;
             v0.UV.x = ScaleOffset.z;
@@ -108,8 +136,8 @@ namespace Imui.Rendering
             v0.Atlas = Atlas;
 
             ref var v1 = ref buffer.Vertices[vc + 1];
-            v1.Position.x = path[0].x + prevNormal.x * innerThickness;
-            v1.Position.y = path[0].y + prevNormal.y * innerThickness;
+            v1.Position.x = path[0].x + prevNormX * innerThickness;
+            v1.Position.y = path[0].y + prevNormY * innerThickness;
             v1.Position.z = Depth;
             v1.Color = Color;
             v1.UV = zero;
@@ -126,19 +154,38 @@ namespace Imui.Rendering
                 if (i < path.Length - 3 || closed)
                 {
                     var c = path[(i + 2) % path.Length];
-                    var ab = (b - a).normalized;
-                    var bc = (c - b).normalized;
-                    var tan = (ab + bc).normalized;
+                    
+                    var abx = b.x - a.x;
+                    var aby = b.y - a.y;
+                    var abm = Mathf.Sqrt(abx * abx + aby * aby);
+                    abx /= abm;
+                    aby /= abm;
+                    
+                    var bcx = c.x - b.x;
+                    var bcy = c.y - b.y;
+                    var bcm = Mathf.Sqrt(bcx * bcx + bcy * bcy);
+                    bcx /= bcm;
+                    bcy /= bcm;
 
-                    normalX = -tan.y;
-                    normalY = tan.x;
+                    var tx = abx + bcx;
+                    var ty = aby + bcy;
+                    var tm = Mathf.Sqrt(tx * tx + ty * ty);
+                    tx /= tm;
+                    ty /= tm;
+
+                    normalX = -ty;
+                    normalY = tx;
                 }
                 else
                 {
-                    var ab = (b - a).normalized;
+                    var abx = b.x - a.x;
+                    var aby = b.y - a.y;
+                    var abm = Mathf.Sqrt(abx * abx + aby * aby);
+                    abx /= abm;
+                    aby /= abm;
 
-                    normalX = -ab.y;
-                    normalY = ab.x;
+                    normalX = -aby;
+                    normalY = abx;
                 }
                 
                 ref var v2 = ref buffer.Vertices[vc + 2];

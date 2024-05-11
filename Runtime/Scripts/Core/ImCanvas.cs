@@ -296,7 +296,7 @@ namespace Imui.Core
             meshDrawer.ScaleOffset = defaultTexScaleOffset;
             meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
-            meshDrawer.AddLine(in path, closed, thickness, bias, 1.0f - bias);
+            meshDrawer.AddLineMiter(in path, closed, thickness, bias, 1.0f - bias);
         }
 
         public void ConvexFill(in ReadOnlySpan<Vector2> points, Color32 color)
