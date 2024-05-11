@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.TextCore;
 using UnityEngine.TextCore.LowLevel;
 using UnityEngine.TextCore.Text;
@@ -109,6 +110,8 @@ namespace Imui.Rendering
 
         public void AddText(ReadOnlySpan<char> text, float scale, float x, float y)
         {
+            Profiler.BeginSample("TextDrawer.AddText");
+            
             var ct = fontAsset.characterLookupTable;
             var lh = lineHeight * scale;
             
@@ -127,10 +130,14 @@ namespace Imui.Rendering
                 
                 x += AddGlyphQuad(info.glyph, x , y, scale);
             }
+            
+            Profiler.EndSample();
         }
         
         public void AddTextWithLayout(ReadOnlySpan<char> text, in Layout layout, float x, float y)
         {
+            Profiler.BeginSample("TextDrawer.AddTextWithLayout");
+            
             var ct = fontAsset.characterLookupTable;
             var lh = lineHeight * layout.Scale;
             var sx = x;
@@ -162,8 +169,9 @@ namespace Imui.Rendering
                 y -= lh;
                 x = sx;
             }
+            
+            Profiler.EndSample();
         }
-
         
 #if IMUI_DEBUG
         private void AddControlGlyphQuad(char c, float px, float py, float scale)

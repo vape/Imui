@@ -3,6 +3,7 @@ using Imui.Rendering;
 using Imui.Rendering.Atlas;
 using Imui.Utility;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 namespace Imui.Core
@@ -311,6 +312,8 @@ namespace Imui.Core
         {
             const float PI = Mathf.PI;
             const float HALF_PI = PI / 2;
+         
+            Profiler.BeginSample("ImCanvas.GenerateRectOutlinePath");
             
             var p = 0;
             var step = (1f / segments) * HALF_PI;
@@ -370,6 +373,8 @@ namespace Imui.Core
                 buffer[p].y = cy + Mathf.Sin(a) * blr;
                 p++;
             }
+            
+            Profiler.EndSample();
         }
 
         public void Dispose()

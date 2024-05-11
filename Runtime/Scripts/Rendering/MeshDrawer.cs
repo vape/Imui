@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Imui.Rendering
 {
@@ -59,6 +60,8 @@ namespace Imui.Rendering
         // TODO (artem-s): slow as hell, needs optimizations
         public void AddLine(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
+            Profiler.BeginSample("MeshDrawer.AddLine");
+            
             Vector2 GetNormal2(Vector2 a, Vector2 b)
             {
                 var normalized = (b - a).normalized;
@@ -169,6 +172,8 @@ namespace Imui.Rendering
 
             buffer.AddIndices(generatedIndices);
             buffer.AddVertices(generatedVertices);
+            
+            Profiler.EndSample();
         }
         
         // TODO (artem-s): calculate proper UV values
@@ -176,6 +181,8 @@ namespace Imui.Rendering
         {
             ImuiAssert.True(segments > 0, "segments > 0");
             ImuiAssert.True(to > from, "to > from");
+            
+            Profiler.BeginSample("MeshDrawer.AddTriangleFan");
             
             var vc = buffer.VerticesCount;
             var ic = buffer.IndicesCount;
@@ -223,11 +230,15 @@ namespace Imui.Rendering
             
             buffer.AddVertices(2 + segments);
             buffer.AddIndices(3 * segments);
+            
+            Profiler.EndSample();
         }
         
         // TODO (artem-s): implement texturing with proper UV values
         public void AddRoundCornersRect(Vector4 rect, float tlr, float trr, float brr, float blr, int segments)
         {
+            Profiler.BeginSample("MeshDrawer.AddRoundCornersRect");
+            
             var p0 = new Vector2(rect.x + blr, rect.y + blr);
             var p1 = new Vector2(rect.x + tlr, rect.y + rect.w - tlr);
             var p2 = new Vector2(rect.x + rect.z - trr, rect.y + rect.w - trr);
@@ -251,10 +262,14 @@ namespace Imui.Rendering
             SetQuad(ic + 12, v2, v2 + 1, v3 + segments + 1, v3);
             SetQuad(ic + 18, v3, v3 + 1, v0 + segments + 1, v0);
             SetQuad(ic + 24, v0, v1, v2, v3);
+            
+            Profiler.EndSample();
         }
         
         public void AddQuad(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3)
         {
+            Profiler.BeginSample("MeshDrawer.AddQuad");
+            
             var vc = buffer.VerticesCount;
             var ic = buffer.IndicesCount;
             
@@ -306,10 +321,14 @@ namespace Imui.Rendering
 
             buffer.AddIndices(6);
             buffer.AddVertices(4);
+            
+            Profiler.EndSample();
         }
 
         public void AddQuad(float x, float y, float w, float h)
         {
+            Profiler.BeginSample("MeshDrawer.AddQuad");
+            
             var vc = buffer.VerticesCount;
             var ic = buffer.IndicesCount;
             
@@ -361,11 +380,15 @@ namespace Imui.Rendering
 
             buffer.AddIndices(6);
             buffer.AddVertices(4);
+            
+            Profiler.EndSample();
         }
 
         public void AddFilledConvexMesh(in ReadOnlySpan<Vector2> points)
         {
             ImuiAssert.True(points.Length > 2, "points.Length > 2");
+            
+            Profiler.BeginSample("MeshDrawer.AddFilledConvexMesh");
             
             var vc = buffer.VerticesCount;
             var ic = buffer.IndicesCount;
@@ -414,6 +437,8 @@ namespace Imui.Rendering
 
             buffer.AddVertices(points.Length * 4);
             buffer.AddIndices((points.Length - 2) * 3);
+            
+            Profiler.EndSample();
         }
         
         private void SetQuad(int index, int i0, int i1, int i2, int i3)
