@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Imui.Core;
 using Imui.Rendering;
 using Imui.Styling;
@@ -7,38 +8,82 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): implement some filtering API for numeric only input fields
+    public abstract class ImTextEditFilter
+    {
+        public abstract bool IsValid(in ReadOnlySpan<char> buffer);
+    }
+
+    public sealed class ImTextEditIntegerFilter : ImTextEditFilter
+    {
+        public override bool IsValid(in ReadOnlySpan<char> buffer)
+        {
+            return long.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+        }
+    }
+    
+    public sealed class ImTextEditFloatFilter : ImTextEditFilter
+    {
+        public override bool IsValid(in ReadOnlySpan<char> buffer)
+        {
+            return double.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+        }
+    }
+    
     public static class ImTextEdit
     {
         private const float CARET_BLINKING_TIME = 0.3f;
-        
+
         public static ImTextEditStyle Style = ImTextEditStyle.Default;
 
-        public static void TextEdit(this ImGui gui, in Vector2 size, ref string text)
+        public static readonly ImTextEditIntegerFilter IntegerFilter = new();
+        public static readonly ImTextEditFloatFilter FloatFilter = new();
+
+        public static void TextEdit(this ImGui gui, ref string text, ImTextEditFilter filter = null)
         {
-            var rect = gui.Layout.AddRect(size);
-            TextEdit(gui, in rect, ref text);
+            var size = Style.TextSettings.Size;
+            var width = Mathf.Max(size, gui.Layout.GetFreeSpace().x);
+            TextEdit(gui, width, ref text, filter);
         }
         
-        public static void TextEdit(this ImGui gui, in ImRect rect, ref string text)
+        public static void TextEdit(this ImGui gui, float width, ref string text, ImTextEditFilter filter = null)
+        {
+            var height = gui.TextDrawer.GetLineHeight(Style.TextSettings.Size);
+            var size = new Vector2(width, height + (Style.FrameWidth + Style.Padding) * 2 + 0.1f);
+            TextEdit(gui, in size, ref text, filter, false);
+        }
+        
+        public static void TextEdit(this ImGui gui, in Vector2 size, ref string text, ImTextEditFilter filter = null, bool multiline = true)
+        {
+            var rect = gui.Layout.AddRect(size);
+            TextEdit(gui, in rect, ref text, filter, multiline);
+        }
+        
+        public static void TextEdit(this ImGui gui, in ImRect rect, ref string text, ImTextEditFilter filter = null, bool multiline = true)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            TextEdit(gui, id, in rect, ref text, ref state);
+            TextEdit(gui, id, in rect, ref text, ref state, filter, multiline);
         }
         
-        public static void TextEdit(this ImGui gui, uint id, in ImRect rect, ref string text, ref ImTextEditState state)
+        public static void TextEdit(this ImGui gui, uint id, in ImRect rect, ref string text, ref ImTextEditState state, ImTextEditFilter filter = null, bool multiline = true)
         {
             var buffer = new ImTextEditBuffer(text);
-            var changed = TextEdit(gui, id, in rect, ref buffer, ref state);
+            var changed = TextEdit(gui, id, in rect, ref buffer, ref state, filter, multiline);
             if (changed)
             {
                 text = buffer.GetString();
             }
         }
         
-        private static bool TextEdit(this ImGui gui, uint id, in ImRect rect, ref ImTextEditBuffer buffer, ref ImTextEditState state)
+        private static bool TextEdit(
+            ImGui gui, 
+            uint id, 
+            in ImRect rect, 
+            ref ImTextEditBuffer buffer, 
+            ref ImTextEditState state,
+            ImTextEditFilter filter,
+            bool multiline)
         {
             var selected = gui.ActiveControl == id;
             var hovered = gui.GetHoveredControl() == id;
@@ -57,6 +102,8 @@ namespace Imui.Controls
             gui.BeginScrollable();
             
             textRect = gui.Layout.AddRect(layout.Width, layout.Height);
+            gui.Canvas.Text(buffer, stateStyle.FrontColor, textRect.TopLeft, in layout);
+
             state.Caret = Mathf.Clamp(state.Caret, 0, buffer.Length);
             
             ref readonly var mouseEvent = ref gui.Input.MouseEvent;
@@ -98,9 +145,18 @@ namespace Imui.Controls
                 {
                     ref readonly var keyboardEvent = ref gui.Input.GetKeyboardEvent(i);
 
-                    if (HandleKeyboardEvent(gui, in keyboardEvent, ref state, ref buffer, in textRect, in layout, out var textChangedAfterKeyboardEvent))
+                    if (HandleKeyboardEvent(
+                            gui, 
+                            in keyboardEvent, 
+                            ref state, 
+                            ref buffer, 
+                            in textRect, 
+                            in layout, 
+                            filter, 
+                            multiline,
+                            out var isTextChanged))
                     {
-                        textChanged |= textChangedAfterKeyboardEvent;
+                        textChanged |= isTextChanged;
                         
                         gui.Input.UseKeyboardEvent(i);
                         ScrollToCaret(gui, in state, in textRect, in layout, in buffer);
@@ -121,11 +177,9 @@ namespace Imui.Controls
                 }
             }
             
-            gui.Canvas.Text(buffer, stateStyle.FrontColor, textRect.TopLeft, in layout);
-            
             gui.HandleControl(id, rect);
                         
-            gui.EndScrollable();
+            gui.EndScrollable(multiline ? ImScrollFlag.None : ImScrollFlag.NoHorizontalBar | ImScrollFlag.NoVerticalBar);
             gui.Layout.Pop();
             gui.Canvas.PopRectMask();
             
@@ -138,6 +192,8 @@ namespace Imui.Controls
             ref ImTextEditBuffer buffer, 
             in ImRect textRect, 
             in TextDrawer.Layout layout,
+            ImTextEditFilter filter,
+            bool multiline,
             out bool textChanged)
         {
             var stateChanged = false;
@@ -191,7 +247,7 @@ namespace Imui.Controls
                             break;
                         
                         case ImInputKeyboardCommandFlag.Paste:
-                            textChanged |= PasteFromClipboard(gui, ref state, ref buffer);
+                            textChanged |= PasteFromClipboard(gui, ref state, ref buffer, filter);
                             break;
 
                         default:
@@ -201,10 +257,14 @@ namespace Imui.Controls
                                 break;
                             }
 
-                            DeleteSelection(ref state, ref buffer);
-                            buffer.Insert(state.Caret, evt.Char);
-                            state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
-                            textChanged = true;
+                            // do not allow to add new lines while in single line mode
+                            if (!multiline && evt.Char == '\n')
+                            {
+                                break;
+                            }
+
+                            textChanged |= DeleteSelection(ref state, ref buffer);
+                            textChanged |= TryInsert(ref state, ref buffer, evt.Char, filter);
                             break;
                         }
                     }
@@ -216,7 +276,7 @@ namespace Imui.Controls
             return stateChanged || textChanged;
         }
 
-        private static bool PasteFromClipboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        private static bool PasteFromClipboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer, ImTextEditFilter filter)
         {
             var clipboardText = gui.Input.Clipboard;
             if (clipboardText.Length == 0)
@@ -224,11 +284,50 @@ namespace Imui.Controls
                 return false;
             }
 
-            DeleteSelection(ref state, ref buffer);
-            
-            buffer.Insert(state.Caret, clipboardText);
-            state.Caret += clipboardText.Length;
+            var textChanged = DeleteSelection(ref state, ref buffer);
+            if (TryInsert(ref state, ref buffer, clipboardText, filter))
+            {
+                textChanged = true;
+                state.Caret += clipboardText.Length;
+            }
 
+            return textChanged;
+        }
+
+        private static unsafe bool TryInsert(ref ImTextEditState state, ref ImTextEditBuffer buffer, char chr, ImTextEditFilter filter)
+        {
+            return TryInsert(ref state, ref buffer, new ReadOnlySpan<char>(&chr, 1), filter);
+        }
+
+        private static bool TryInsert(ref ImTextEditState state, ref ImTextEditBuffer buffer, ReadOnlySpan<char> text, ImTextEditFilter filter)
+        {
+            const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 2048;
+            
+            if (filter == null)
+            {
+                buffer.Insert(state.Caret, in text);
+                state.Caret += text.Length;
+                return true;
+            }
+
+            var length = buffer.Length + text.Length;
+            var tempBuffer = length > (MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)) ? new char[length] : stackalloc char[length];
+
+            ((ReadOnlySpan<char>)buffer).CopyTo(tempBuffer);
+            if (state.Caret < buffer.Length)
+            {
+                tempBuffer[state.Caret..].CopyTo(tempBuffer[(state.Caret + text.Length)..]);
+            }
+            
+            text.CopyTo((tempBuffer)[state.Caret..]);
+
+            if (!filter.IsValid(tempBuffer))
+            {
+                return false;
+            }
+            
+            buffer.Insert(state.Caret, text);
+            state.Caret += text.Length;
             return true;
         }
         

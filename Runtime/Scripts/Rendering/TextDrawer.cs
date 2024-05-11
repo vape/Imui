@@ -50,7 +50,7 @@ namespace Imui.Rendering
         public Color32 Color;
 
         public float FontRenderSize => renderSize;
-        public float LineHeight => lineHeight;
+        public float FontLineHeight => lineHeight;
         
         private FontAsset fontAsset;
         private float lineHeight;
@@ -89,6 +89,11 @@ namespace Imui.Rendering
             
             UnityEngine.Object.Destroy(fontAsset);
             fontAsset = null;
+        }
+
+        public float GetLineHeight(float size)
+        {
+            return FontLineHeight * (size / FontRenderSize);
         }
 
         public float GetCharacterWidth(char c, float size)

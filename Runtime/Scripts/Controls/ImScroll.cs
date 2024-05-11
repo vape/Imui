@@ -6,6 +6,14 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    [Flags]
+    public enum ImScrollFlag
+    {
+        None            = 0,
+        NoVerticalBar   = 1 << 0,
+        NoHorizontalBar = 1 << 1
+    }
+    
     public static class ImScroll
     {
         public static ImScrollStyle Style = ImScrollStyle.Default;
@@ -23,14 +31,14 @@ namespace Imui.Controls
             gui.BeginScope(id);
         }
         
-        public static void EndScrollable(this ImGui gui)
+        public static void EndScrollable(this ImGui gui, ImScrollFlag flags = ImScrollFlag.None)
         {
             gui.EndScope(out var id);
             gui.Layout.Pop(out var contentFrame);
 
             var bounds = gui.Layout.GetBoundsRect();
             
-            Scroll(gui, in bounds, contentFrame.Size, ref gui.Storage.Get<State>(id));
+            Scroll(gui, in bounds, contentFrame.Size, ref gui.Storage.Get<State>(id), flags);
         }
 
         public static Vector2 GetScrollOffset(this ImGui gui)
@@ -48,9 +56,9 @@ namespace Imui.Controls
             state.Offset = offset;
         }
         
-        public static void Scroll(ImGui gui, in ImRect view, Vector2 size, ref State state)
+        public static void Scroll(ImGui gui, in ImRect view, Vector2 size, ref State state, ImScrollFlag flags)
         {
-            Layout(ref state, in view, size, out var adjust);
+            Layout(ref state, in view, size, out var adjust, flags);
 
             var dx = 0f;
             var dy = 0f;
@@ -205,7 +213,7 @@ namespace Imui.Controls
             return view;
         }
         
-        private static void Layout(ref State state, in ImRect view, in Vector2 size, out Vector2 adjust)
+        private static void Layout(ref State state, in ImRect view, in Vector2 size, out Vector2 adjust, ImScrollFlag flags)
         {
             state.Layout = default;
 
@@ -213,12 +221,12 @@ namespace Imui.Controls
             for (int i = 0; i < 2; ++i)
             {
                 state.Layout =
-                    size.y > (view.H - ((state.Layout & LayoutFlag.HorBarVisible) != 0 ? Style.Width : 0f))
+                    (flags & ImScrollFlag.NoVerticalBar) == 0 && size.y > (view.H - ((state.Layout & LayoutFlag.HorBarVisible) != 0 ? Style.Width : 0f))
                         ? (state.Layout | LayoutFlag.VerBarVisible)
                         : (state.Layout & ~LayoutFlag.VerBarVisible);
 
                 state.Layout =
-                    size.x > (view.W - ((state.Layout & LayoutFlag.VerBarVisible) != 0 ? Style.Width : 0f))
+                    (flags & ImScrollFlag.NoHorizontalBar) == 0 && size.x > (view.W - ((state.Layout & LayoutFlag.VerBarVisible) != 0 ? Style.Width : 0f))
                         ? (state.Layout | LayoutFlag.HorBarVisible)
                         : (state.Layout & ~LayoutFlag.HorBarVisible);
             }
