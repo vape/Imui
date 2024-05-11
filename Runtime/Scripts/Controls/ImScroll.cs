@@ -56,6 +56,7 @@ namespace Imui.Controls
             var dx = 0f;
             var dy = 0f;
 
+            var groupId = gui.GetNextControlId();
             var horId = gui.GetNextControlId();
             var verId = gui.GetNextControlId();
 
@@ -82,8 +83,30 @@ namespace Imui.Controls
                 dx -= normalDelta * size.x;
             }
 
+            var shouldConsumeMouseEvent = false;
+            if (gui.IsGroupHovered(groupId))
+            {
+                ref readonly var mouseEvent = ref gui.Input.MouseEvent;
+                if (mouseEvent.Type == ImInputMouseEventType.Scroll)
+                {
+                    dx += mouseEvent.Delta.x;
+                    dy += mouseEvent.Delta.y;
+                    shouldConsumeMouseEvent = true;
+                }
+            }
+
+            var prevOffset = state.Offset;
+            
             state.Offset.x = Mathf.Clamp(state.Offset.x + dx, Mathf.Min(0, view.W - size.x), 0);
             state.Offset.y = Mathf.Clamp(state.Offset.y + dy, 0, Mathf.Max(size.y - view.H, 0));
+
+            // defer mouse event consumption so we can pass it to parent scroll rect in case offset hasn't changed
+            if (prevOffset != state.Offset && shouldConsumeMouseEvent)
+            {
+                gui.Input.UseMouseEvent();
+            }
+            
+            gui.HandleGroup(groupId, view);
         }
         
         public static float Bar(

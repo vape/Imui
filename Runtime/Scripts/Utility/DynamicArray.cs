@@ -13,7 +13,7 @@ namespace Imui.Utility
             Count = 0;
         }
         
-        public bool RemoveAtUnordered(int index)
+        public bool RemoveAtFast(int index)
         {
             if (index < 0 || index >= Count)
             {

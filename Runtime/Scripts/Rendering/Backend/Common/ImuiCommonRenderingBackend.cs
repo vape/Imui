@@ -159,7 +159,7 @@ namespace Imui.Rendering.Backend.Common
             {
                 if (ReferenceEquals(renderers.Array[i], renderer))
                 {
-                    renderers.RemoveAtUnordered(i);
+                    renderers.RemoveAtFast(i);
                     break;
                 }
             }

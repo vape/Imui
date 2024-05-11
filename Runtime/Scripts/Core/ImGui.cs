@@ -125,9 +125,8 @@ namespace Imui.Core
         public void BeginFrame()
         {
             idsStack.Clear(false);
-            
-            // ReSharper disable once SwapViaDeconstruction
-            frameData = nextFrameData;
+
+            (nextFrameData, frameData) = (frameData, nextFrameData);
             nextFrameData.Clear();
             
             Input.SetScale(uiScale);
@@ -244,6 +243,16 @@ namespace Imui.Core
 
             if (rect.Contains(Input.MousePosition))
             {
+                var currentOrder = meshProperties.Order;
+                
+                for (int i = nextFrameData.HoveredGroups.Count - 1; i >= 0; --i)
+                {
+                    if (nextFrameData.HoveredGroups.Array[i].Order < currentOrder)
+                    {
+                        nextFrameData.HoveredGroups.RemoveAtFast(i);
+                    }
+                }
+                
                 nextFrameData.HoveredGroups.Add(new ControlData()
                 {
                     Id = controlId,
