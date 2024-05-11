@@ -8,6 +8,8 @@ namespace Imui.Core
     {
         public float Top => Y + H;
         public float Bottom => Y;
+        public float Right => X + W;
+        public float Left => X;
         
         public Vector2 TopLeft => new Vector2(X, Y + H);
         public Vector2 TopRight => new Vector2(X + W, Y + H);

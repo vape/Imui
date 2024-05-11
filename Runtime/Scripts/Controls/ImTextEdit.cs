@@ -42,7 +42,7 @@ namespace Imui.Controls
             var selected = gui.ActiveControl == id;
             var hovered = gui.GetHoveredControl() == id;
             var stateStyle = selected ? Style.Selected : Style.Normal;
-            var changed = false;
+            var textChanged = false;
             
             DrawBack(gui, in stateStyle, in rect, out var textRect);
             
@@ -91,17 +91,19 @@ namespace Imui.Controls
             {
                 gui.Input.RequestTouchKeyboard(buffer);
                 
-                DrawCaret(gui, state.Caret, in textRect, in layout, in stateStyle, in buffer, out var caretViewRect);
+                DrawCaret(gui, state.Caret, in textRect, in layout, in stateStyle, in buffer);
                 DrawSelection(gui, state.Caret, state.Selection, in textRect, in layout, in stateStyle, in buffer);
                 
                 for (int i = 0; i < gui.Input.KeyboardEventsCount; ++i)
                 {
                     ref readonly var keyboardEvent = ref gui.Input.GetKeyboardEvent(i);
 
-                    if (HandleKeyboardEvent(gui, in keyboardEvent, ref state, ref buffer, in textRect, in layout, out var textChanged))
+                    if (HandleKeyboardEvent(gui, in keyboardEvent, ref state, ref buffer, in textRect, in layout, out var textChangedAfterKeyboardEvent))
                     {
-                        changed |= textChanged;
+                        textChanged |= textChangedAfterKeyboardEvent;
+                        
                         gui.Input.UseKeyboardEvent(i);
+                        ScrollToCaret(gui, in state, in textRect, in layout, in buffer);
                     }
                 }
                 
@@ -114,20 +116,8 @@ namespace Imui.Controls
                     case ImInputTextEventType.Submit:
                         gui.ActiveControl = 0;
                         buffer = new ImTextEditBuffer(textEvent.Text);
-                        changed = true;
+                        textChanged = true;
                         break;
-                }
-
-                ref readonly var frame = ref gui.Layout.GetFrame();
-                var scrollOffset = gui.GetScrollOffset();
-                
-                if (frame.Bounds.Top < caretViewRect.Top)
-                {
-                    gui.SetScrollOffset(scrollOffset + new Vector2(0, frame.Bounds.Top - caretViewRect.Top));
-                }
-                else if (frame.Bounds.Bottom > caretViewRect.Bottom)
-                {
-                    gui.SetScrollOffset(scrollOffset + new Vector2(0, frame.Bounds.Bottom - caretViewRect.Bottom));
                 }
             }
             
@@ -137,7 +127,7 @@ namespace Imui.Controls
             gui.Layout.Pop();
             gui.Canvas.PopRectMask();
             
-            return changed;
+            return textChanged;
         }
         
         private static bool HandleKeyboardEvent(ImGui gui, 
@@ -146,9 +136,11 @@ namespace Imui.Controls
             ref ImTextEditBuffer buffer, 
             in ImRect textRect, 
             in TextDrawer.Layout layout,
-            out bool changed)
+            out bool textChanged)
         {
-            changed = false;
+            var stateChanged = false;
+            
+            textChanged = false;
             
             if (evt.Type != ImInputKeyboardEventType.Down)
             {
@@ -158,27 +150,27 @@ namespace Imui.Controls
             switch (evt.Key)
             {
                 case KeyCode.LeftArrow:
-                    MoveCaretHorizontal(ref state, in buffer, -1, evt.Command);
+                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, -1, evt.Command);
                     break;
                 
                 case KeyCode.RightArrow:
-                    MoveCaretHorizontal(ref state, in buffer, +1, evt.Command);
+                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, +1, evt.Command);
                     break;
                 
                 case KeyCode.UpArrow:
-                    MoveCaretVertical(gui, in textRect, in layout, ref state, in buffer, +1, evt.Command);
+                    stateChanged |= MoveCaretVertical(gui, in textRect, in layout, ref state, in buffer, +1, evt.Command);
                     break;
                 
                 case KeyCode.DownArrow:
-                    MoveCaretVertical(gui, in textRect, in layout, ref state, in buffer, -1, evt.Command);
+                    stateChanged |= MoveCaretVertical(gui, in textRect, in layout, ref state, in buffer, -1, evt.Command);
                     break;
                 
                 case KeyCode.Delete:
-                    changed |= DeleteForward(ref state, ref buffer);
+                    textChanged |= DeleteForward(ref state, ref buffer);
                     break;
                 
                 case KeyCode.Backspace:
-                    changed |= DeleteBackward(ref state, ref buffer);
+                    textChanged |= DeleteBackward(ref state, ref buffer);
                     break;
 
                 default:
@@ -188,14 +180,16 @@ namespace Imui.Controls
                         case ImInputKeyboardCommandFlag.SelectAll:
                             state.Selection = -buffer.Length;
                             state.Caret = buffer.Length;
+                            stateChanged = true;
                             break;
                         
                         case ImInputKeyboardCommandFlag.Copy:
                             gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
+                            stateChanged = true;
                             break;
                         
                         case ImInputKeyboardCommandFlag.Paste:
-                            changed |= PasteFromClipboard(gui, ref state, ref buffer);
+                            textChanged |= PasteFromClipboard(gui, ref state, ref buffer);
                             break;
 
                         default:
@@ -208,7 +202,7 @@ namespace Imui.Controls
                             DeleteSelection(ref state, ref buffer);
                             buffer.Insert(state.Caret, evt.Char);
                             state.Caret = Mathf.Min(state.Caret + 1, buffer.Length);
-                            changed = true;
+                            textChanged = true;
                             break;
                         }
                     }
@@ -216,8 +210,8 @@ namespace Imui.Controls
                     break;
                 }
             }
-
-            return true;
+            
+            return stateChanged || textChanged;
         }
 
         private static bool PasteFromClipboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer)
@@ -331,7 +325,7 @@ namespace Imui.Controls
             return caret;
         }
 
-        private static void MoveCaretVertical(
+        private static bool MoveCaretVertical(
             ImGui gui, 
             in ImRect textRect,
             in TextDrawer.Layout layout,
@@ -342,10 +336,11 @@ namespace Imui.Controls
         {
             if (cmd.HasFlag(ImInputKeyboardCommandFlag.NextWord))
             {
-                return;
+                return false;
             }
 
             var prevCaret = state.Caret;
+            var prevSelection = state.Selection;
             var viewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in textRect, in layout, in buffer);
             viewPosition.y += (-layout.LineHeight * 0.5f) + (dir * layout.LineHeight);
             state.Caret = ViewToCaretPosition(viewPosition, gui.TextDrawer, in textRect, in layout, in buffer);
@@ -358,15 +353,18 @@ namespace Imui.Controls
             {
                 state.Selection = 0;
             }
+
+            return state.Caret != prevCaret || state.Selection != prevSelection;
         }
         
-        private static void MoveCaretHorizontal(
+        private static bool MoveCaretHorizontal(
             ref ImTextEditState state, 
             in ImTextEditBuffer buffer, 
             int dir, 
             ImInputKeyboardCommandFlag cmd)
         {
             var prevCaret = state.Caret;
+            var prevSelection = state.Selection;
             
             if (state.Selection != 0 && !cmd.HasFlag(ImInputKeyboardCommandFlag.Selection))
             {
@@ -393,6 +391,53 @@ namespace Imui.Controls
             else
             {
                 state.Selection = 0;
+            }
+
+            return state.Caret != prevCaret || state.Selection != prevSelection;
+        }
+
+        private static void ScrollToCaret(
+            ImGui gui, 
+            in ImTextEditState state, 
+            in ImRect textRect, 
+            in TextDrawer.Layout layout, 
+            in ImTextEditBuffer buffer)
+        {
+            var viewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in textRect, in layout, in buffer);
+            
+            ref readonly var frame = ref gui.Layout.GetFrame();
+            var scrollOffset = gui.GetScrollOffset();
+            var caretTop = viewPosition;
+            var caretBottom = viewPosition - new Vector2(0, layout.LineHeight);
+            var caretOffset = new Vector2();
+            
+            if (frame.Bounds.Top < caretTop.y)
+            {
+                caretOffset.y += frame.Bounds.Top - caretTop.y;
+            }
+            else if (frame.Bounds.Bottom > caretBottom.y)
+            {
+                caretOffset.y += frame.Bounds.Bottom - caretBottom.y;
+            }
+            
+            var charWidth = state.Caret >= buffer.Length
+                ? 0
+                : gui.TextDrawer.GetCharacterWidth(buffer.At(state.Caret), layout.Size);
+            var caretLeft = caretTop.x;
+            var caretRight = caretTop.x + charWidth;
+            
+            if (frame.Bounds.Left > caretLeft)
+            {
+                caretOffset.x += frame.Bounds.Left - caretLeft;
+            }
+            else if (frame.Bounds.Right < caretRight)
+            {
+                caretOffset.x += frame.Bounds.Right - caretRight;
+            }
+
+            if (caretOffset != default)
+            {
+                gui.SetScrollOffset(scrollOffset + caretOffset);
             }
         }
 
@@ -473,16 +518,23 @@ namespace Imui.Controls
         {
             var yOffset = line * -layout.LineHeight + layout.OffsetY;
             var xOffset = line >= layout.LinesCount ? layout.OffsetX : layout.Lines[line].OffsetX;
-
-            if (line < layout.LinesCount && offset <= layout.Lines[line].Count)
+            var totalLen = buffer.Length;
+            
+            if (line < layout.LinesCount && offset <= layout.Lines[line].Count && offset <= totalLen)
             {
                 ref readonly var lineLayout = ref layout.Lines[line];
-                var slice = buffer[lineLayout.Start..(lineLayout.Start + lineLayout.Count)];
                 
-                for (int i = 0; i < offset; ++i)
+                var count = Mathf.Min(totalLen, layout.Lines[line].Count);
+                var start = lineLayout.Start;
+                var end = start + count;
+                var slice = buffer[start..end];
+                
+                for (int i = 0; i < offset && i < slice.Length; ++i)
                 {
                     xOffset += drawer.GetCharacterWidth(slice[i], layout.Size);
                 }
+
+                totalLen -= count;
             }
 
             return rect.TopLeft + new Vector2(xOffset, yOffset);
@@ -506,11 +558,10 @@ namespace Imui.Controls
             in ImRect textRect, 
             in TextDrawer.Layout layout, 
             in ImTextEditStateStyle style, 
-            in ImTextEditBuffer buffer, 
-            out ImRect caretViewRect)
+            in ImTextEditBuffer buffer)
         {
             var viewPosition = CaretToViewPosition(position, gui.TextDrawer, in textRect, in layout, in buffer);
-            caretViewRect = new ImRect(
+            var caretViewRect = new ImRect(
                 viewPosition.x, 
                 viewPosition.y - layout.LineHeight, 
                 Style.CaretWidth,
@@ -635,6 +686,11 @@ namespace Imui.Controls
             Length = text.Length;
         }
 
+        public char At(int index)
+        {
+            return Buffer?[index] ?? InitText[index];
+        }
+        
         public string GetString()
         {
             if (Buffer != null)
