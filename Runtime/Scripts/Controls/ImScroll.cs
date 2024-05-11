@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): handle mouse wheel
     public static class ImScroll
     {
         public static ImScrollStyle Style = ImScrollStyle.Default;

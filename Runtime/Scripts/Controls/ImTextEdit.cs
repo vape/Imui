@@ -10,6 +10,8 @@ namespace Imui.Controls
     // TODO (artem-s): implement some filtering API for numeric only input fields
     public static class ImTextEdit
     {
+        private const float CARET_BLINKING_TIME = 0.3f;
+        
         public static ImTextEditStyle Style = ImTextEditStyle.Default;
 
         public static void TextEdit(this ImGui gui, in Vector2 size, ref string text)
@@ -38,7 +40,6 @@ namespace Imui.Controls
         
         private static bool TextEdit(this ImGui gui, uint id, in ImRect rect, ref ImTextEditBuffer buffer, ref ImTextEditState state)
         {
-            var drawer = gui.TextDrawer;
             var selected = gui.ActiveControl == id;
             var hovered = gui.GetHoveredControl() == id;
             var stateStyle = selected ? Style.Selected : Style.Normal;
@@ -56,8 +57,6 @@ namespace Imui.Controls
             gui.BeginScrollable();
             
             textRect = gui.Layout.AddRect(layout.Width, layout.Height);
-            gui.Canvas.Text(buffer, stateStyle.FrontColor, textRect.TopLeft, in layout);
-
             state.Caret = Mathf.Clamp(state.Caret, 0, buffer.Length);
             
             ref readonly var mouseEvent = ref gui.Input.MouseEvent;
@@ -81,8 +80,9 @@ namespace Imui.Controls
                     var newCaretPosition = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in textRect, in layout, in buffer);
                     state.Selection -= newCaretPosition - state.Caret;
                     state.Caret = newCaretPosition;
-                
+                    
                     gui.Input.UseMouseEvent();
+                    ScrollToCaret(gui, in state, in textRect, in layout, in buffer);
                     break;
                 }
             }
@@ -120,6 +120,8 @@ namespace Imui.Controls
                         break;
                 }
             }
+            
+            gui.Canvas.Text(buffer, stateStyle.FrontColor, textRect.TopLeft, in layout);
             
             gui.HandleControl(id, rect);
                         
@@ -533,8 +535,6 @@ namespace Imui.Controls
                 {
                     xOffset += drawer.GetCharacterWidth(slice[i], layout.Size);
                 }
-
-                totalLen -= count;
             }
 
             return rect.TopLeft + new Vector2(xOffset, yOffset);
@@ -566,8 +566,11 @@ namespace Imui.Controls
                 viewPosition.y - layout.LineHeight, 
                 Style.CaretWidth,
                 layout.LineHeight);
-            
-            gui.Canvas.Rect(caretViewRect, style.FrontColor);
+
+            if ((long)(Time.unscaledTime / CARET_BLINKING_TIME) % 2 == 0)
+            {
+                gui.Canvas.Rect(caretViewRect, style.FrontColor);
+            }
         }
 
         private static void DrawSelection(ImGui gui, 
