@@ -24,5 +24,16 @@ namespace Imui.Styling
             color.a = alpha;
             return color;
         }
+
+        public static Color32 Multiply(this Color32 color, float value)
+        {
+            value = Mathf.Clamp01(value);
+
+            color.r = (byte)(color.r * value);
+            color.g = (byte)(color.g * value);
+            color.b = (byte)(color.b * value);
+
+            return color;
+        }
     }
 }
