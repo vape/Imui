@@ -4,6 +4,7 @@ using UnityEngine.Profiling;
 
 namespace Imui.Rendering
 {
+    // TODO (artem-s); try burst for optimizations
     public class MeshDrawer
     {
         public const float MAIN_ATLAS_ID = 0.0f;
@@ -14,6 +15,20 @@ namespace Imui.Rendering
 
         private static readonly Vector2 zero = Vector2.zero;
 
+        public static int CalculateSegmentsCount(float radius, float maxError = 2)
+        {
+            const int MIN_SEGMENTS = 2;
+            const int MAX_SEGMENTS = 16;
+            
+            if (radius <= maxError)
+            {
+                return MIN_SEGMENTS;
+            }
+
+            var segments = Mathf.Clamp(Mathf.CeilToInt(Mathf.PI / Mathf.Acos(1 - Mathf.Min(maxError, radius) / radius)), MIN_SEGMENTS, MAX_SEGMENTS);
+            return ((segments + 1) / 2) * 2;
+        }
+        
         // ReSharper disable once InconsistentNaming
         public float Depth;
         public float Atlas;
@@ -42,24 +57,10 @@ namespace Imui.Rendering
             return ref buffer.Meshes[buffer.MeshesCount - 1];
         }
         
-        public int GetSegmentsCount(float radius, float maxError = 2)
-        {
-            const int MIN_SEGMENTS = 2;
-            const int MAX_SEGMENTS = 16;
-            
-            if (radius <= maxError)
-            {
-                return MIN_SEGMENTS;
-            }
-
-            var segments = Mathf.Clamp(Mathf.CeilToInt(Mathf.PI / Mathf.Acos(1 - Mathf.Min(maxError, radius) / radius)), MIN_SEGMENTS, MAX_SEGMENTS);
-            return ((segments + 1) / 2) * 2;
-        }
-        
         // TODO (artem-s): add proper texturing
         public void AddLineMiter(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
-            Profiler.BeginSample("MeshDrawer.AddLine");
+            Profiler.BeginSample("MeshDrawer.AddLineMiter");
             
             if (path.Length < 2)
             {
@@ -158,20 +159,29 @@ namespace Imui.Rendering
                     var abx = b.x - a.x;
                     var aby = b.y - a.y;
                     var abm = Mathf.Sqrt(abx * abx + aby * aby);
-                    abx /= abm;
-                    aby /= abm;
+                    if (abm > 0)
+                    {
+                        abx /= abm;
+                        aby /= abm;
+                    }
                     
                     var bcx = c.x - b.x;
                     var bcy = c.y - b.y;
                     var bcm = Mathf.Sqrt(bcx * bcx + bcy * bcy);
-                    bcx /= bcm;
-                    bcy /= bcm;
+                    if (bcm > 0)
+                    {
+                        bcx /= bcm;
+                        bcy /= bcm;
+                    }
 
                     var tx = abx + bcx;
                     var ty = aby + bcy;
                     var tm = Mathf.Sqrt(tx * tx + ty * ty);
-                    tx /= tm;
-                    ty /= tm;
+                    if (tm > 0)
+                    {
+                        tx /= tm;
+                        ty /= tm;
+                    }
 
                     normalX = -ty;
                     normalY = tx;

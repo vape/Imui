@@ -12,9 +12,8 @@ namespace Imui.Controls
         public static void Slider(this ImGui gui, ref float value, float min, float max, ImRect rect)
         {
             value = Mathf.InverseLerp(min, max, value);
-            
-            gui.Canvas.Rect(rect, Style.BackColor, Style.CornerRadius);
-            gui.Canvas.RectOutline(rect, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
+
+            gui.Canvas.RectWithOutline(rect, Style.BackColor, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
 
             var rectPadded = rect.WithPadding(Style.FrameWidth).WithPadding(Style.Padding);
 

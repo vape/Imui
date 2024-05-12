@@ -48,9 +48,8 @@ namespace Imui.Controls
             var pressed = gui.ActiveControl == id;
             state = pressed ? Style.Pressed : hovered ? Style.Hovered : Style.Normal;
             
-            gui.Canvas.Rect(rect, state.BackColor, Style.CornerRadius);
-            gui.Canvas.RectOutline(rect, state.FrameColor, Style.FrameWidth, Style.CornerRadius);
-
+            gui.Canvas.RectWithOutline(rect, state.BackColor, state.FrameColor, Style.FrameWidth, Style.CornerRadius);
+            
             content = rect.WithPadding(Style.FrameWidth).WithPadding(Style.Padding);
             
             var clicked = false;

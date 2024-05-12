@@ -1,5 +1,6 @@
 using System;
 using Imui.Core;
+using Imui.Rendering;
 using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
@@ -74,21 +75,14 @@ namespace Imui.Controls
         {
             gui.Canvas.RectOutline(rect, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
         }
-        
+
         public static bool TitleBar(ImGui gui, in ReadOnlySpan<char> text, ref ImRect rect)
         {
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var titleBarRect = GetTitleBarRect(in rect, out var radius);
 
-            var segments = gui.MeshDrawer.GetSegmentsCount(Style.CornerRadius);
-            
-            gui.Canvas.Rect(
-                titleBarRect, 
-                Style.TitleBar.BackColor, 
-                gui.Canvas.DefaultTexScaleOffset,
-                radius, segments);
-            
+            gui.Canvas.Rect(titleBarRect, Style.TitleBar.BackColor, radius);
             gui.Canvas.Text(text, Style.TitleBar.FrontColor, titleBarRect, in Style.TitleBar.Text);
 
             var clicked = false;
@@ -138,7 +132,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var handleRect = GetResizeHandleRect(in rect, out var radius);
             
-            var segments = gui.MeshDrawer.GetSegmentsCount(radius);
+            var segments = MeshDrawer.CalculateSegmentsCount(radius);
             var step = (1f / segments) * HALF_PI;
 
             Span<Vector2> buffer = stackalloc Vector2[segments + 1 + 2];
@@ -211,10 +205,10 @@ namespace Imui.Controls
             return handleRect;
         }
         
-        private static ImRect GetTitleBarRect(in ImRect rect, out Vector4 cornerRadius)
+        private static ImRect GetTitleBarRect(in ImRect rect, out ImRectRadius cornerRadius)
         {
-            cornerRadius = new Vector4(Style.CornerRadius - Style.FrameWidth, Style.CornerRadius - Style.FrameWidth, 0, 0);
-            return rect.WithPadding(Style.FrameWidth).SplitTop(Mathf.Max(cornerRadius[0], Style.TitleBar.Height), out _);
+            cornerRadius = new ImRectRadius(Style.CornerRadius - Style.FrameWidth, Style.CornerRadius - Style.FrameWidth);
+            return rect.WithPadding(Style.FrameWidth).SplitTop(Style.TitleBar.Height, out _);
         }
     }
     

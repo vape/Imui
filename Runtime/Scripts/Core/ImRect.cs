@@ -157,4 +157,50 @@ namespace Imui.Core
         public static bool operator ==(ImRect r0, ImRect r1) => r0.Equals(r1);
         public static bool operator !=(ImRect r0, ImRect r1) => !r0.Equals(r1);
     }
+
+    public struct ImRectRadius
+    {
+        public float TopLeft;
+        public float TopRight;
+        public float BottomRight;
+        public float BottomLeft;
+
+        public ImRectRadius(float topLeft = 0, float topRight = 0, float bottomRight = 0, float bottomLeft = 0)
+        {
+            TopLeft = topLeft;
+            TopRight = topRight;
+            BottomRight = bottomRight;
+            BottomLeft = bottomLeft;
+        }
+        
+        public ImRectRadius(float radius)
+        {
+            TopLeft = radius;
+            TopRight = radius;
+            BottomRight = radius;
+            BottomLeft = radius;
+        }
+
+        public void Clamp(float size)
+        {
+            TopLeft = Mathf.Min(size, TopLeft);
+            TopRight = Mathf.Min(size, TopRight);
+            BottomRight = Mathf.Min(size, BottomRight);
+            BottomLeft = Mathf.Min(size, BottomLeft);
+        }
+
+        public float GetMax()
+        {
+            var max = TopLeft;
+            max = TopRight > max ? TopRight : max;
+            max = BottomRight > max ? BottomRight : max;
+            max = BottomLeft > max ? BottomLeft : max;
+            return max;
+        }
+
+        public static implicit operator ImRectRadius(float radius)
+        {
+            return new ImRectRadius(radius);
+        }
+    }
 }

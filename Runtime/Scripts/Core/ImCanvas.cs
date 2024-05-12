@@ -22,6 +22,7 @@ namespace Imui.Core
         private const int MAIN_ATLAS_H = 1024;
         
         private const int MESH_SETTINGS_CAPACITY = 32;
+        private const int TEMP_POINTS_BUFFER_CAPACITY = 1024;
         
         private const string SHADER_NAME = "imui_default";
         
@@ -46,7 +47,7 @@ namespace Imui.Core
         private static readonly int FontTexId = Shader.PropertyToID("_FontTex");
         
         private static readonly Texture2D DefaultTexture;
-
+        
         static ImCanvas()
         {
             var pixels = new Color32[DEFAULT_TEX_W * DEFAULT_TEX_H];
@@ -68,6 +69,7 @@ namespace Imui.Core
         private DynamicArray<MeshSettings> meshSettingsStack;
         private Vector2 frameSize;
         private Vector2 screenSize;
+        private ResizeableBuffer<Vector2> tempPointsBuffer;
         private bool disposed;
         
         private readonly Vector4 defaultTexScaleOffset;
@@ -84,7 +86,8 @@ namespace Imui.Core
             atlas = new TextureAtlas(MAIN_ATLAS_W, MAIN_ATLAS_H);
             texturesInfo = new DynamicArray<TextureInfo>(capacity: 64);
             meshSettingsStack = new DynamicArray<MeshSettings>(MESH_SETTINGS_CAPACITY);
-
+            tempPointsBuffer = new ResizeableBuffer<Vector2>(TEMP_POINTS_BUFFER_CAPACITY);
+            
             defaultTexScaleOffset = AddToAtlas(DefaultTexture);
             defaultTexScaleOffset.x *= 0.5f;
             defaultTexScaleOffset.y *= 0.5f;
@@ -198,11 +201,6 @@ namespace Imui.Core
             mesh.MaskRect = settings.MaskRect;
         }
         
-        public void Rect(ImRect rect, Color32 color)
-        {
-            Rect(rect, color, defaultTexScaleOffset);
-        }
-
         public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset)
         {
             meshDrawer.Color = color;
@@ -211,48 +209,24 @@ namespace Imui.Core
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H);
         }
-
-        public void Rect(ImRect rect, Color32 color, float cornerRadius)
+        
+        public void Rect(ImRect rect, Color32 color, ImRectRadius radius = default)
         {
-            Rect(rect, color, defaultTexScaleOffset, cornerRadius);
+            var path = GenerateRectOutline(rect, radius);
+            ConvexFill(path, color);
         }
 
-        public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset, float cornerRadius)
+        public void RectOutline(ImRect rect, Color32 color, float thickness, ImRectRadius radius = default, float bias = 0.0f)
         {
-            cornerRadius = Mathf.Min(cornerRadius, Mathf.Min(rect.W, rect.H) / 2.0f);
-
-            var radius = new Vector4(cornerRadius, cornerRadius, cornerRadius, cornerRadius);
-            var segments = meshDrawer.GetSegmentsCount(cornerRadius);
-            
-            Rect(rect, color, texScaleOffset, radius, segments);
-        }
-
-        public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset, Vector4 cornerRadius, int segments)
-        {
-            meshDrawer.Color = color;
-            meshDrawer.ScaleOffset = texScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
-            meshDrawer.Depth = DEFAULT_DEPTH;
-            meshDrawer.AddRoundCornersRect(
-                (Vector4)rect, 
-                cornerRadius.x, cornerRadius.y, 
-                cornerRadius.z, cornerRadius.w, 
-                segments);
-        }
-
-        public void RectOutline(ImRect rect, Color32 color, float thickness, float cornerRadius, float bias = 0.0f)
-        {
-            const float EPSILON = 0.0001f;
-
-            cornerRadius = Mathf.Min(cornerRadius, (Mathf.Min(rect.W, rect.H) / 2.0f) - EPSILON);
-            
-            var segments = meshDrawer.GetSegmentsCount(cornerRadius);
-            Span<Vector2> path = stackalloc Vector2[(segments + 1) * 4];
-            GenerateRectOutlinePath(
-                in path, rect, cornerRadius, cornerRadius, cornerRadius, cornerRadius, 
-                meshDrawer.GetSegmentsCount(cornerRadius));
-            
+            var path = GenerateRectOutline(rect, radius);
             Line(path, color, true, thickness, bias);
+        }
+
+        public void RectWithOutline(ImRect rect, Color32 backColor, Color32 outlineColor, float thickness, ImRectRadius radius = default, float bias = 0.0f)
+        {
+            var path = GenerateRectOutline(rect, radius);
+            ConvexFill(path, backColor);
+            Line(path, outlineColor, true, thickness, bias);
         }
 
         public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
@@ -307,8 +281,20 @@ namespace Imui.Core
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddFilledConvexMesh(in points);
         }
+
+        public Span<Vector2> GenerateRectOutline(ImRect rect, ImRectRadius radius)
+        {
+            radius.Clamp(Mathf.Min(rect.W, rect.H) / 2.0f);
+
+            var segments = MeshDrawer.CalculateSegmentsCount(radius.GetMax());
+            var span = tempPointsBuffer.AsSpan((segments + 1) * 4);
+            
+            GenerateRectOutline(span, rect, radius, segments);
+            
+            return span;
+        }
         
-        private void GenerateRectOutlinePath(in Span<Vector2> buffer, ImRect rect, float tlr, float trr, float brr, float blr, int segments)
+        public void GenerateRectOutline(Span<Vector2> buffer, ImRect rect, ImRectRadius radius, int segments)
         {
             const float PI = Mathf.PI;
             const float HALF_PI = PI / 2;
@@ -318,59 +304,59 @@ namespace Imui.Core
             var p = 0;
             var step = (1f / segments) * HALF_PI;
             
-            var cx = rect.X + rect.W - brr;
-            var cy = rect.Y + brr;
-            buffer[p].x = cx + Mathf.Cos(PI + HALF_PI) * brr;
-            buffer[p].y = cy + Mathf.Sin(PI + HALF_PI) * brr;
+            var cx = rect.X + rect.W - radius.BottomRight;
+            var cy = rect.Y + radius.BottomRight;
+            buffer[p].x = cx + Mathf.Cos(PI + HALF_PI) * radius.BottomRight;
+            buffer[p].y = cy + Mathf.Sin(PI + HALF_PI) * radius.BottomRight;
             p++;
             
             for (int i = 0; i < segments; ++i)
             {
                 var a = PI + HALF_PI + step * (i + 1);
-                buffer[p].x = cx + Mathf.Cos(a) * brr;
-                buffer[p].y = cy + Mathf.Sin(a) * brr;
+                buffer[p].x = cx + Mathf.Cos(a) * radius.BottomRight;
+                buffer[p].y = cy + Mathf.Sin(a) * radius.BottomRight;
                 p++;
             }
             
-            cx = rect.X + rect.W - trr;
-            cy = rect.Y + rect.H - trr;
-            buffer[p].x = cx + Mathf.Cos(0) * trr;
-            buffer[p].y = cy + Mathf.Sin(0) * trr;
+            cx = rect.X + rect.W - radius.TopRight;
+            cy = rect.Y + rect.H - radius.TopRight;
+            buffer[p].x = cx + Mathf.Cos(0) * radius.TopRight;
+            buffer[p].y = cy + Mathf.Sin(0) * radius.TopRight;
             p++;
             
             for (int i = 0; i < segments; ++i)
             {
                 var a = 0 + step * (i + 1);
-                buffer[p].x = cx + Mathf.Cos(a) * trr;
-                buffer[p].y = cy + Mathf.Sin(a) * trr;
+                buffer[p].x = cx + Mathf.Cos(a) * radius.TopRight;
+                buffer[p].y = cy + Mathf.Sin(a) * radius.TopRight;
                 p++;
             }
             
-            cx = rect.X + tlr;
-            cy = rect.Y + rect.H - tlr;
-            buffer[p].x = cx + Mathf.Cos(HALF_PI) * tlr;
-            buffer[p].y = cy + Mathf.Sin(HALF_PI) * tlr;
+            cx = rect.X + radius.TopLeft;
+            cy = rect.Y + rect.H - radius.TopLeft;
+            buffer[p].x = cx + Mathf.Cos(HALF_PI) * radius.TopLeft;
+            buffer[p].y = cy + Mathf.Sin(HALF_PI) * radius.TopLeft;
             p++;
             
             for (int i = 0; i < segments; ++i)
             {
                 var a = HALF_PI + step * (i + 1);
-                buffer[p].x = cx + Mathf.Cos(a) * tlr;
-                buffer[p].y = cy + Mathf.Sin(a) * tlr;
+                buffer[p].x = cx + Mathf.Cos(a) * radius.TopLeft;
+                buffer[p].y = cy + Mathf.Sin(a) * radius.TopLeft;
                 p++;
             }
                         
-            cx = rect.X + blr;
-            cy = rect.Y + blr;
-            buffer[p].x = cx + Mathf.Cos(PI) * blr;
-            buffer[p].y = cy + Mathf.Sin(PI) * blr;
+            cx = rect.X + radius.BottomLeft;
+            cy = rect.Y + radius.BottomLeft;
+            buffer[p].x = cx + Mathf.Cos(PI) * radius.BottomLeft;
+            buffer[p].y = cy + Mathf.Sin(PI) * radius.BottomLeft;
             p++;
             
             for (int i = 0; i < segments; ++i)
             {
                 var a = PI + step * (i + 1);
-                buffer[p].x = cx + Mathf.Cos(a) * blr;
-                buffer[p].y = cy + Mathf.Sin(a) * blr;
+                buffer[p].x = cx + Mathf.Cos(a) * radius.BottomLeft;
+                buffer[p].y = cy + Mathf.Sin(a) * radius.BottomLeft;
                 p++;
             }
             

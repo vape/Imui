@@ -713,9 +713,7 @@ namespace Imui.Controls
         
         private static void DrawBack(ImGui gui, in ImTextEditStateStyle style, in ImRect rect, out ImRect content)
         {
-            gui.Canvas.Rect(rect, style.BackColor, Style.CornerRadius);
-            gui.Canvas.RectOutline(rect, style.FrameColor, Style.FrameWidth, Style.CornerRadius);
-            
+            gui.Canvas.RectWithOutline(rect, style.BackColor, style.FrameColor, Style.FrameWidth, Style.CornerRadius);
             content = rect.WithPadding(Style.FrameWidth + Style.Padding);
         }
     }

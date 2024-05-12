@@ -117,9 +117,9 @@ namespace Imui.Core
             scopes = new DynamicArray<uint>(SCOPES_STACK_CAPACITY);
         }
 
-        public void SetFont(Font font)
+        public void SetFont(Font font, float? size = default)
         {
-            TextDrawer.LoadFont(font);
+            TextDrawer.LoadFont(font, size);
         }
         
         public void BeginFrame()
