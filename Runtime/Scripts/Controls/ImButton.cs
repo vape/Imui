@@ -1,5 +1,6 @@
 using System;
 using Imui.Core;
+using Imui.IO.Events;
 using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
@@ -57,7 +58,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputMouseEventType.Down:
+                case ImMouseEventType.Down:
                     if (!pressed && hovered)
                     {
                         gui.ActiveControl = id;
@@ -65,7 +66,7 @@ namespace Imui.Controls
                     }
                     break;
                 
-                case ImInputMouseEventType.Up:
+                case ImMouseEventType.Up:
                     if (pressed)
                     {
                         gui.ActiveControl = 0;
@@ -100,7 +101,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputMouseEventType.Down:
+                case ImMouseEventType.Down:
                     if (!pressed && hovered)
                     {
                         gui.ActiveControl = id;
@@ -108,7 +109,7 @@ namespace Imui.Controls
                     }
                     break;
                 
-                case ImInputMouseEventType.Up:
+                case ImMouseEventType.Up:
                     if (pressed)
                     {
                         gui.ActiveControl = 0;

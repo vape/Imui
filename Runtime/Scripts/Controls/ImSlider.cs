@@ -1,4 +1,5 @@
 using Imui.Core;
+using Imui.IO.Events;
 using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
@@ -38,19 +39,19 @@ namespace Imui.Controls
             
             if (gui.ActiveControl == id)
             {
-                if (evt.Type == ImInputMouseEventType.Drag)
+                if (evt.Type == ImMouseEventType.Drag)
                 {
                     value = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, value) + evt.Delta.x);
                     gui.Input.UseMouseEvent();
                 }
-                else if (evt.Type == ImInputMouseEventType.Up)
+                else if (evt.Type == ImMouseEventType.Up)
                 {
                     gui.ActiveControl = default;
                 }
             }
             else
             {
-                if (evt.Type == ImInputMouseEventType.Down && gui.IsControlHovered(id))
+                if (evt.Type == ImMouseEventType.Down && gui.IsControlHovered(id))
                 {
                     gui.ActiveControl = id;
                     gui.Input.UseMouseEvent();

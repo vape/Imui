@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using Imui.Core;
+using Imui.IO.Events;
 using Imui.Rendering;
 using Imui.Styling;
 using Imui.Utility;
@@ -109,7 +110,7 @@ namespace Imui.Controls
             ref readonly var mouseEvent = ref gui.Input.MouseEvent;
             switch (mouseEvent.Type)
             {
-                case ImInputMouseEventType.Down when hovered:
+                case ImMouseEventType.Down when hovered:
                 {
                     if (!selected)
                     {
@@ -122,7 +123,7 @@ namespace Imui.Controls
                     gui.Input.UseMouseEvent();
                     break;
                 }
-                case ImInputMouseEventType.Drag when selected:
+                case ImMouseEventType.Drag when selected:
                 {
                     var newCaretPosition = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in textRect, in layout, in buffer);
                     state.Selection -= newCaretPosition - state.Caret;
@@ -166,10 +167,10 @@ namespace Imui.Controls
                 ref readonly var textEvent = ref gui.Input.TextEvent;
                 switch (textEvent.Type)
                 {
-                    case ImInputTextEventType.Cancel:
+                    case ImTextEventType.Cancel:
                         gui.ActiveControl = 0;
                         break;
-                    case ImInputTextEventType.Submit:
+                    case ImTextEventType.Submit:
                         gui.ActiveControl = 0;
                         buffer = new ImTextEditBuffer(textEvent.Text);
                         textChanged = true;
@@ -187,7 +188,7 @@ namespace Imui.Controls
         }
         
         private static bool HandleKeyboardEvent(ImGui gui, 
-            in ImInputKeyboardEvent evt, 
+            in ImKeyboardEvent evt, 
             ref ImTextEditState state, 
             ref ImTextEditBuffer buffer, 
             in ImRect textRect, 
@@ -200,7 +201,7 @@ namespace Imui.Controls
             
             textChanged = false;
             
-            if (evt.Type != ImInputKeyboardEventType.Down)
+            if (evt.Type != ImKeyboardEventType.Down)
             {
                 return false;
             }
@@ -235,18 +236,18 @@ namespace Imui.Controls
                 {
                     switch (evt.Command)
                     {
-                        case ImInputKeyboardCommandFlag.SelectAll:
+                        case ImKeyboardCommandFlag.SelectAll:
                             state.Selection = -buffer.Length;
                             state.Caret = buffer.Length;
                             stateChanged = true;
                             break;
                         
-                        case ImInputKeyboardCommandFlag.Copy:
+                        case ImKeyboardCommandFlag.Copy:
                             gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
                             stateChanged = true;
                             break;
                         
-                        case ImInputKeyboardCommandFlag.Paste:
+                        case ImKeyboardCommandFlag.Paste:
                             textChanged |= PasteFromClipboard(gui, ref state, ref buffer, filter);
                             break;
 
@@ -433,9 +434,9 @@ namespace Imui.Controls
             ref ImTextEditState state, 
             in ImTextEditBuffer buffer, 
             int dir, 
-            ImInputKeyboardCommandFlag cmd)
+            ImKeyboardCommandFlag cmd)
         {
-            if (cmd.HasFlag(ImInputKeyboardCommandFlag.NextWord))
+            if (cmd.HasFlag(ImKeyboardCommandFlag.NextWord))
             {
                 return false;
             }
@@ -446,7 +447,7 @@ namespace Imui.Controls
             viewPosition.y += (-layout.LineHeight * 0.5f) + (dir * layout.LineHeight);
             state.Caret = ViewToCaretPosition(viewPosition, gui.TextDrawer, in textRect, in layout, in buffer);
 
-            if (cmd.HasFlag(ImInputKeyboardCommandFlag.Selection))
+            if (cmd.HasFlag(ImKeyboardCommandFlag.Selection))
             {
                 state.Selection += prevCaret - state.Caret;
             }
@@ -462,12 +463,12 @@ namespace Imui.Controls
             ref ImTextEditState state, 
             in ImTextEditBuffer buffer, 
             int dir, 
-            ImInputKeyboardCommandFlag cmd)
+            ImKeyboardCommandFlag cmd)
         {
             var prevCaret = state.Caret;
             var prevSelection = state.Selection;
             
-            if (state.Selection != 0 && !cmd.HasFlag(ImInputKeyboardCommandFlag.Selection))
+            if (state.Selection != 0 && !cmd.HasFlag(ImKeyboardCommandFlag.Selection))
             {
                 state.Caret = dir < 0
                     ? Mathf.Min(state.Caret + state.Selection, state.Caret)
@@ -480,12 +481,12 @@ namespace Imui.Controls
 
             state.Caret = Mathf.Clamp(state.Caret, 0, buffer.Length);
 
-            if (cmd.HasFlag(ImInputKeyboardCommandFlag.NextWord))
+            if (cmd.HasFlag(ImKeyboardCommandFlag.NextWord))
             {
                 state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, dir, buffer);
             }
 
-            if (cmd.HasFlag(ImInputKeyboardCommandFlag.Selection))
+            if (cmd.HasFlag(ImKeyboardCommandFlag.Selection))
             {
                 state.Selection += prevCaret - state.Caret;
             }

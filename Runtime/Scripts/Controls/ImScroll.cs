@@ -1,5 +1,6 @@
 using System;
 using Imui.Core;
+using Imui.IO.Events;
 using Imui.Styling;
 using Imui.Utility;
 using UnityEngine;
@@ -94,7 +95,7 @@ namespace Imui.Controls
             if (gui.IsGroupHovered(groupId))
             {
                 ref readonly var mouseEvent = ref gui.Input.MouseEvent;
-                if (mouseEvent.Type == ImInputMouseEventType.Scroll)
+                if (mouseEvent.Type == ImMouseEventType.Scroll)
                 {
                     dx += mouseEvent.Delta.x;
                     dy += mouseEvent.Delta.y;
@@ -146,14 +147,14 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputMouseEventType.Up:
+                case ImMouseEventType.Up:
                     if (pressed)
                     {
                         gui.ActiveControl = default;
                     }
 
                     break;
-                case ImInputMouseEventType.Down:
+                case ImMouseEventType.Down:
                     if (evt.Button == 0 && hovered)
                     {
                         gui.ActiveControl = id;
@@ -162,7 +163,7 @@ namespace Imui.Controls
 
                     break;
                 
-                case ImInputMouseEventType.Drag:
+                case ImMouseEventType.Drag:
                     if (pressed)
                     {
                         delta = evt.Delta[axis] / absoluteSize;

@@ -1,5 +1,6 @@
 using System;
 using Imui.Core;
+using Imui.IO.Events;
 using Imui.Rendering;
 using Imui.Styling;
 using Imui.Utility;
@@ -89,7 +90,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputMouseEventType.Down:
+                case ImMouseEventType.Down:
                     if (hovered)
                     {
                         clicked = true;
@@ -99,7 +100,7 @@ namespace Imui.Controls
 
                     break;
                 
-                case ImInputMouseEventType.Drag:
+                case ImMouseEventType.Drag:
                     if (gui.ActiveControl == id)
                     {
                         rect.Position += evt.Delta;
@@ -108,7 +109,7 @@ namespace Imui.Controls
 
                     break;
                 
-                case ImInputMouseEventType.Up:
+                case ImMouseEventType.Up:
                     if (gui.ActiveControl == id)
                     {
                         gui.ActiveControl = 0;
@@ -156,7 +157,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImInputMouseEventType.Down:
+                case ImMouseEventType.Down:
                     if (hovered)
                     {
                         clicked = true;
@@ -166,7 +167,7 @@ namespace Imui.Controls
 
                     break;
                 
-                case ImInputMouseEventType.Drag:
+                case ImMouseEventType.Drag:
                     if (gui.ActiveControl == id)
                     {
                         rect.W += evt.Delta.x;
@@ -177,7 +178,7 @@ namespace Imui.Controls
 
                     break;
                 
-                case ImInputMouseEventType.Up:
+                case ImMouseEventType.Up:
                     if (gui.ActiveControl == id)
                     {
                         gui.ActiveControl = 0;

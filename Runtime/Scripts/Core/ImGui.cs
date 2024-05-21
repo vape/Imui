@@ -1,9 +1,8 @@
 using System;
+using Imui.IO;
 using Imui.Rendering;
-using Imui.Rendering.Backend;
 using Imui.Utility;
 using UnityEngine;
-using UnityEngine.Rendering;
 using MeshRenderer = Imui.Rendering.MeshRenderer;
 
 namespace Imui.Core
@@ -11,14 +10,14 @@ namespace Imui.Core
     // TODO (artem-s):
     // * Check for per-frame allocations and overall optimization
     
-    public class ImGui : IDisposable, IImuiRenderer
+    public class ImGui : IDisposable
     {
         private const int CONTROL_IDS_CAPACITY = 32;
         
         private const int INIT_MESHES_COUNT = 1024 / 2;
         private const int INIT_VERTICES_COUNT = 1024 * 16;
         private const int INIT_INDICES_COUNT = INIT_VERTICES_COUNT * 3;
-
+        
         private const float UI_SCALE_MIN = 0.05f;
         private const float UI_SCALE_MAX = 16.0f;
 
@@ -64,8 +63,8 @@ namespace Imui.Core
                 HoveredGroups.Clear(false);
             }
         }
-        
-        public float Scale
+
+        public float UiScale
         {
             get
             {
@@ -76,50 +75,46 @@ namespace Imui.Core
                 uiScale = Mathf.Clamp(value, UI_SCALE_MIN, UI_SCALE_MAX);
             }
         }
-
+        
         public uint ActiveControl;
 
         public readonly MeshBuffer MeshBuffer;
-        public readonly MeshRenderer Renderer;
+        public readonly MeshRenderer MeshRenderer;
         public readonly MeshDrawer MeshDrawer;
         public readonly TextDrawer TextDrawer;
         public readonly ImCanvas Canvas;
-        public readonly ImInput Input;
         public readonly ImLayout Layout;
         public readonly ImStorage Storage;
         public readonly ImWindowManager WindowManager;
+        public readonly IInputBackend Input;
+        public readonly IRenderingBackend Renderer;
         
         internal FrameData nextFrameData;
         internal FrameData frameData;
+
+        private float uiScale = 1.0f;
         private DynamicArray<ControlId> idsStack;
         private DynamicArray<uint> scopes;
         
-        private float uiScale = 1.0f;
-        private Vector2 fbSize = Vector2.zero;
-        
         private bool disposed;
         
-        public ImGui()
+        public ImGui(IRenderingBackend renderer, IInputBackend input)
         {
             MeshBuffer = new MeshBuffer(INIT_MESHES_COUNT, INIT_VERTICES_COUNT, INIT_INDICES_COUNT);
             MeshDrawer = new MeshDrawer(MeshBuffer);
             TextDrawer = new TextDrawer(MeshBuffer);
             Canvas = new ImCanvas(MeshDrawer, TextDrawer);
-            Renderer = new MeshRenderer();
-            Input = new ImInputLegacy();
+            MeshRenderer = new MeshRenderer();
             Layout = new ImLayout();
             Storage = new ImStorage(DEFAULT_STORAGE_CAPACITY);
             WindowManager = new ImWindowManager();
+            Input = input;
+            Renderer = renderer;
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY);
             idsStack = new DynamicArray<ControlId>(CONTROL_IDS_CAPACITY);
             scopes = new DynamicArray<uint>(SCOPES_STACK_CAPACITY);
-        }
-
-        public void SetFont(Font font, float? size = default)
-        {
-            TextDrawer.LoadFont(font, size);
         }
         
         public void BeginFrame()
@@ -128,17 +123,22 @@ namespace Imui.Core
 
             (nextFrameData, frameData) = (frameData, nextFrameData);
             nextFrameData.Clear();
-            
-            Input.SetScale(uiScale);
+
+            var screenRect = Renderer.GetScreenRect();
+            var scaledScreenSize = screenRect.size / uiScale;
+
+            Input.SetScale(UiScale);
             Input.Pull();
-            
-            Canvas.SetScreen(fbSize, uiScale);
+
+            Canvas.SetScreen(scaledScreenSize);
             Canvas.Clear();
             Canvas.PushMeshSettings(Canvas.CreateDefaultMeshSettings());
-
-            Layout.Push(new ImRect(Vector2.zero, fbSize / uiScale), ImAxis.Vertical);
+            
+            Layout.Push(new ImRect(Vector2.zero, scaledScreenSize), ImAxis.Vertical);
             Layout.SetFlags(ImLayoutFlag.Root);
-
+            
+            Renderer.SetIsRaycastTarget(frameData.HoveredControl.Id != default);
+            
             idsStack.Push(new ControlId(ImHash.Get("root", 0)));
         }
 
@@ -261,21 +261,20 @@ namespace Imui.Core
                 });
             }
         }
-
-        // TODO (artem-s): move to begin frame
-        void IImuiRenderer.OnFrameBufferSizeChanged(Vector2 size)
-        {
-            fbSize = size;
-        }
         
-        void IImuiRenderer.Setup(CommandBuffer cmd)
+        public void Render()
         {
-            Canvas.Setup(cmd);
-        }
+            var setupCmd = Renderer.CreateCommandBuffer();
+            Canvas.Setup(setupCmd);
+            Renderer.Execute(setupCmd);
+            Renderer.ReleaseCommandBuffer(setupCmd);
 
-        void IImuiRenderer.Render(CommandBuffer cmd)
-        {
-            Renderer.Render(cmd, MeshBuffer, fbSize, uiScale);
+            var renderCmd = Renderer.CreateCommandBuffer();
+            var screenSize = Renderer.GetScreenRect().size;
+            Renderer.SetupRenderTarget(renderCmd);
+            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale);
+            Renderer.Execute(renderCmd);
+            Renderer.ReleaseCommandBuffer(renderCmd);
         }
         
         public void Dispose()
@@ -287,9 +286,8 @@ namespace Imui.Core
             
             Canvas.Dispose();
             TextDrawer.Dispose();
-            Renderer.Dispose();
+            MeshRenderer.Dispose();
             Storage.Dispose();
-            Input.Dispose();
             
             disposed = true;
         }

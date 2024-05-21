@@ -67,7 +67,6 @@ namespace Imui.Core
         private TextureAtlas atlas;
         private DynamicArray<TextureInfo> texturesInfo;
         private DynamicArray<MeshSettings> meshSettingsStack;
-        private Vector2 frameSize;
         private Vector2 screenSize;
         private ResizeableBuffer<Vector2> tempPointsBuffer;
         private bool disposed;
@@ -95,10 +94,9 @@ namespace Imui.Core
             defaultTexScaleOffset.w += defaultTexScaleOffset.y / 2.0f;
         }
         
-        public void SetScreen(Vector2 size, float scale)
+        public void SetScreen(Vector2 screenSize)
         {
-            frameSize = size;
-            screenSize = size / scale;
+            this.screenSize = screenSize;
         }
 
         public void Clear()

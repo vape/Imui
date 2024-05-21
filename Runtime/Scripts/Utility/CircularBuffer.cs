@@ -1,6 +1,6 @@
 namespace Imui.Utility
 {
-    internal struct CircularBuffer<T>
+    public struct CircularBuffer<T>
     {
         public readonly int Capacity;
 
