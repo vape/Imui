@@ -84,7 +84,7 @@ namespace Imui.Core
             Assert.IsTrue(sizeof(T) <= byte.MaxValue);
             
             var size = (byte)sizeof(T);
-            if (((int)tail - (int)data + size) >= capacity)
+            if (((int)tail - (int)data + size + sizeof(Metadata)) >= capacity)
             {
                 Grow();
             }
