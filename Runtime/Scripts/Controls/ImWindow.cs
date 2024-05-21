@@ -229,21 +229,21 @@ namespace Imui.Controls
         {
             BackColor = ImColors.White,
             FrameColor = ImColors.Black,
-            ResizeHandleColor = ImColors.Gray2,
+            ResizeHandleColor = ImColors.Gray2.WithAlpha(196),
             FrameWidth = 1,
-            CornerRadius = 5,
-            ResizeHandleSize = 20,
+            CornerRadius = 8,
+            ResizeHandleSize = 24,
             Padding = 1,
             TitleBar = new ImWindowTitleBarStyle()
             {
                 BackColor = ImColors.Gray6,
                 FrontColor = ImColors.Gray1,
-                Height = 32,
+                Height = 42,
                 Text = new ImTextSettings()
                 {
                     AlignX = 0.5f,
                     AlignY = 0.5f,
-                    Size = 24
+                    Size = ImText.DEFAULT_TEXT_SIZE
                 }
             }
         };

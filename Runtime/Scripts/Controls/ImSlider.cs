@@ -1,3 +1,4 @@
+using System;
 using Imui.Core;
 using Imui.IO.Events;
 using Imui.Styling;
@@ -9,9 +10,22 @@ namespace Imui.Controls
     public static class ImSlider
     {
         public static ImSliderStyle Style = ImSliderStyle.Default;
-        
-        public static void Slider(this ImGui gui, ref float value, float min, float max, ImRect rect)
+
+        public static bool Slider(this ImGui gui, ref float value, float min, float max)
         {
+            var width = gui.Layout.GetFreeSpace().x;
+            return Slider(gui, ref value, min, max, width); 
+        }
+        
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, float width)
+        {
+            var rect = gui.Layout.AddRect(width, Style.Height);
+            return Slider(gui, ref value, min, max, rect);
+        }
+        
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImRect rect)
+        {
+            var prevValue = value;
             value = Mathf.InverseLerp(min, max, value);
 
             gui.Canvas.RectWithOutline(rect, Style.BackColor, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
@@ -61,6 +75,8 @@ namespace Imui.Controls
             gui.HandleControl(id, rect);
             
             value = Mathf.Lerp(min, max, value);
+            
+            return Mathf.Abs(value - prevValue) > 0.000001f;
         }
     }
 
@@ -72,6 +88,7 @@ namespace Imui.Controls
         {
             var style = new ImSliderStyle()
             {
+                Height = 24,
                 BackColor = ImColors.White,
                 FrameWidth = 1,
                 FrameColor = ImColors.Black,
@@ -88,7 +105,8 @@ namespace Imui.Controls
             
             return style;
         }
-        
+
+        public float Height;
         public ImButtonStyle Handle;
         public Color32 BackColor;
         public float FrameWidth;

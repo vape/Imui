@@ -12,7 +12,7 @@ namespace Imui.Controls
         
         public static void Toggle(this ImGui gui, ref bool value)
         {
-            var rect = gui.Layout.AddRect(new Vector2(Style.DefaultSize, Style.DefaultSize));
+            var rect = gui.Layout.AddRect(new Vector2(Style.CheckMarkSize, Style.CheckMarkSize));
             Toggle(gui, ref value, in rect, in rect);
         }
         
@@ -21,8 +21,8 @@ namespace Imui.Controls
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in label, 0, 0, 
                 Style.Button.Text.AlignX, Style.Button.Text.AlignY, Style.Button.Text.Size);
 
-            var size = new Vector2(textLayout.Width + Style.DefaultSize + Style.Space,
-                Mathf.Max(textLayout.Height, Style.DefaultSize));
+            var size = new Vector2(textLayout.Width + Style.CheckMarkSize + Style.Space,
+                Mathf.Max(textLayout.Height, Style.CheckMarkSize));
             
             Toggle(gui, ref value, in label, size);
         }
@@ -34,7 +34,7 @@ namespace Imui.Controls
                 
         public static void Toggle(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, ImRect rect)
         {
-            var toggleRect = rect.SplitLeft(Style.DefaultSize, out var textRect);
+            var toggleRect = rect.SplitLeft(Style.CheckMarkSize, out var textRect);
             Toggle(gui, ref value, toggleRect, in rect);
 
             textRect.X += Style.Space;
@@ -53,7 +53,7 @@ namespace Imui.Controls
 
             if (value)
             {
-                gui.Canvas.Rect(content.WithPadding(1), style.FrontColor, Style.Button.CornerRadius);
+                gui.Canvas.Rect(buttonRect.WithPadding(Style.CheckMarkPadding), style.FrontColor, Style.Button.CornerRadius);
             }
             
             if (clicked)
@@ -65,17 +65,19 @@ namespace Imui.Controls
 
     public struct ImToggleStyle
     {
-        public const float DEFAULT_SIZE = 24;
+        public const float DEFAULT_CHECKMARK_SIZE = 24;
 
         public static readonly ImToggleStyle Default = new ImToggleStyle()
         {
-            DefaultSize = DEFAULT_SIZE,
+            CheckMarkSize = DEFAULT_CHECKMARK_SIZE,
             Button = ImButtonStyle.Default,
             TextColor = ImColors.Black,
-            Space = 2
+            Space = 2,
+            CheckMarkPadding = 2
         };
-        
-        public float DefaultSize;
+
+        public float CheckMarkPadding;
+        public float CheckMarkSize;
         public ImButtonStyle Button;
         public Color32 TextColor;
         public float Space;
