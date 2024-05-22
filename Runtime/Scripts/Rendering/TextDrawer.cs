@@ -65,8 +65,14 @@ namespace Imui.Rendering
         public TextDrawer(MeshBuffer buffer)
         {
             this.buffer = buffer;
-        }
 
+            var defaultFont = new Font("LegacyRuntime");
+            if (defaultFont != null)
+            {
+                LoadFont(defaultFont, defaultFont.fontSize);
+            }
+        }
+        
         public void LoadFont(Font font, float? size = null)
         {
             UnloadFont();
