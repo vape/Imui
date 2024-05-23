@@ -1,25 +1,36 @@
+using System;
 using Imui.Utility;
 using UnityEngine;
 
 namespace Imui.Core
 {
+    [Flags]
+    public enum ImWindowFlag : ulong
+    {
+        None            = 0,
+        DisableResize   = 1 << 0,
+        DisableMoving   = 1 << 1,
+        DisableTitleBar = 1 << 2
+    }
+    
     public class ImWindowManager
     {
         private const int WINDOWS_CAPACITY = 32;
 
-        private const int DEFAULT_WIDTH = 500;
-        private const int DEFAULT_HEIGHT = 500;
-        private const int DEFAULT_X_OFFSET = 30;
-        private const int DEFAULT_Y_OFFSET = 30;
+        public const int DEFAULT_WIDTH = 500;
+        public const int DEFAULT_HEIGHT = 500;
 
         private DynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
+        private Rect screenRect;
         
-        public ref ImWindowState RegisterWindow(uint id, string title)
+        public ref ImWindowState RegisterWindow(uint id, string title, float width = DEFAULT_WIDTH, float height = DEFAULT_HEIGHT, ImWindowFlag flags = ImWindowFlag.None)
         {
             var index = TryFindWindow(id);
             if (index >= 0)
             {
-                return ref windows.Array[index];
+                ref var window = ref windows.Array[index];
+                window.Flags = flags;
+                return ref window;
             }
 
             windows.Add(new ImWindowState
@@ -27,10 +38,16 @@ namespace Imui.Core
                 Id = id,
                 Order = windows.Count,
                 Title = title,
-                Rect = GetWindowRect()
+                Rect = GetWindowRect(width, height),
+                Flags = flags
             });
             
             return ref windows.Array[windows.Count - 1];
+        }
+
+        public void SetScreenRect(Rect screenRect)
+        {
+            this.screenRect = screenRect;
         }
         
         public ref ImWindowState GetWindowState(uint id)
@@ -74,16 +91,10 @@ namespace Imui.Core
             return -1;
         }
 
-        private ImRect GetWindowRect()
+        private ImRect GetWindowRect(float width, float height)
         {
-            var size = new Vector2(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-
-            var position = default(Vector2);
-            if (windows.Count > 0)
-            {
-                ref var last = ref windows.Array[windows.Count - 1];
-                position = new Vector2(last.Rect.X + DEFAULT_X_OFFSET, last.Rect.Y + DEFAULT_Y_OFFSET);
-            }
+            var size = new Vector2(width, height);
+            var position = new Vector2((screenRect.width - width) / 2f, (screenRect.height - height) / 2f);
 
             return new ImRect(position, size);
         }
@@ -95,5 +106,6 @@ namespace Imui.Core
         public int Order;
         public string Title;
         public ImRect Rect;
+        public ImWindowFlag Flags;
     }
 }

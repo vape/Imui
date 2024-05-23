@@ -13,7 +13,7 @@ namespace Imui.Controls
 
         public static bool Slider(this ImGui gui, ref float value, float min, float max)
         {
-            var width = gui.Layout.GetFreeSpace().x;
+            var width = gui.Layout.GetAvailableSize().x;
             return Slider(gui, ref value, min, max, width); 
         }
         

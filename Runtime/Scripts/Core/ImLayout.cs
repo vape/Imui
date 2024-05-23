@@ -7,9 +7,11 @@ namespace Imui.Core
     [Flags]
     public enum ImLayoutFlag
     {
-        None = 0,
-        Root = 1 << 0,
-        IncludeBounds = 1 << 1
+        None              = 0,
+        Root              = 1 << 0,
+        FixedBoundsWidth  = 1 << 1,
+        FixedBoundsHeight = 1 << 2,
+        FixedBounds       = FixedBoundsWidth | FixedBoundsHeight
     }
     
     public struct ImLayoutFrame
@@ -38,6 +40,8 @@ namespace Imui.Core
         }
     }
 
+    // TODO (artem-s): all APIs must accept axis as first argument
+    // TODO (artem-s): check for all unnecessary SetFlags calls
     public class ImLayout
     {
         private const int FRAME_STACK_CAPACITY = 32;
@@ -46,17 +50,36 @@ namespace Imui.Core
         
         public void Push(ImAxis axis)
         {
-            Push(Vector2.zero, axis);
+            Push(GetRect(GetAvailableSize()), axis, ImLayoutFlag.None);
+        }
+
+        public void Push(ImAxis axis, float width = 0, float height = 0)
+        {
+            Push(new Vector2(width, height), axis);
         }
         
-        public void Push(Vector2 size, ImAxis type)
+        public void Push(Vector2 size, ImAxis axis)
         {
-            Push(GetRect(size), type);
+            var flags = ImLayoutFlag.FixedBounds;
+            
+            if (size.x == 0)
+            {
+                size.x = GetAvailableSize().x;
+                flags &= ~ImLayoutFlag.FixedBoundsWidth;
+            }
+
+            if (size.y == 0)
+            {
+                size.y = GetAvailableSize().y;
+                flags &= ~ImLayoutFlag.FixedBoundsHeight;
+            }
+            
+            Push(GetRect(size), axis, flags);
         }
         
         public void Push(ImRect rect, ImAxis axis)
         {
-            Push(rect, axis, ImLayoutFlag.None);
+            Push(rect, axis, ImLayoutFlag.Root | ImLayoutFlag.FixedBounds);
         }
         
         public void Push(ImRect rect, ImAxis axis, ImLayoutFlag flags)
@@ -82,10 +105,14 @@ namespace Imui.Core
                 ref var active = ref frames.Peek();
                 
                 var size = frame.Size;
-                if ((frame.Flags & ImLayoutFlag.IncludeBounds) != 0)
+                if ((frame.Flags & ImLayoutFlag.FixedBoundsWidth) != 0)
                 {
-                    size.x = Mathf.Max(frame.Bounds.W, size.x);
-                    size.y = Mathf.Max(frame.Bounds.H, size.y);
+                    size.x = frame.Bounds.W;
+                }
+                
+                if ((frame.Flags & ImLayoutFlag.FixedBoundsHeight) != 0)
+                {
+                    size.y = frame.Bounds.H;
                 }
                 
                 active.AddSize(size);
@@ -108,8 +135,20 @@ namespace Imui.Core
         {
             return ref frames.Peek();
         }
+
+        public float GetAvailableWidth()
+        {
+            ref readonly var frame = ref GetFrame();
+            return frame.Axis == ImAxis.Horizontal ? frame.Bounds.W - frame.Size.x : frame.Bounds.W;
+        }
         
-        public Vector2 GetFreeSpace()
+        public float GetAvailableHeight()
+        {
+            ref readonly var frame = ref GetFrame();
+            return frame.Axis == ImAxis.Vertical ? frame.Bounds.H - frame.Size.y : frame.Bounds.H;
+        }
+        
+        public Vector2 GetAvailableSize()
         {
             ref readonly var frame = ref GetFrame();
             var w = frame.Bounds.W;

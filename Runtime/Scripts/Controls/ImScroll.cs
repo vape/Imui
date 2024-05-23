@@ -27,7 +27,7 @@ namespace Imui.Controls
             ref readonly var frame = ref gui.Layout.GetFrame();
             var visible = GetVisibleRect(frame.Bounds, in state);
             
-            gui.Layout.Push(visible, frame.Axis);
+            gui.Layout.Push(visible, frame.Axis, ImLayoutFlag.None);
             gui.Layout.SetOffset(state.Offset);
             gui.BeginScope(id);
         }

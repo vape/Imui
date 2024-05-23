@@ -14,16 +14,20 @@ namespace Imui.Controls
         
         public static ImWindowStyle Style = ImWindowStyle.Default;
         
-        public static void BeginWindow(this ImGui gui, string title)
+        public static void BeginWindow(this ImGui gui, 
+            string title, 
+            float width = ImWindowManager.DEFAULT_WIDTH, 
+            float height = ImWindowManager.DEFAULT_HEIGHT,
+            ImWindowFlag flags = ImWindowFlag.None)
         {
             var id = gui.PushId(title);
             
-            ref var state = ref gui.WindowManager.RegisterWindow(id, title);
+            ref var state = ref gui.WindowManager.RegisterWindow(id, title, width, height, flags);
             
             gui.Canvas.PushOrder(state.Order * ORDER_OFFSET);
             gui.Canvas.PushRectMask(state.Rect, Style.CornerRadius);
             gui.Canvas.PushClipRect(state.Rect);
-            Back(gui, in state.Rect, out var contentRect);
+            Back(gui, in state, out var contentRect);
             
             gui.HandleControl(id, state.Rect);
             
@@ -46,8 +50,16 @@ namespace Imui.Controls
             Front(gui, state.Rect);
             
             var clicked = false;
-            clicked |= TitleBar(gui, state.Title, ref state.Rect);
-            clicked |= ResizeHandle(gui, ref state.Rect);
+            
+            if ((state.Flags & ImWindowFlag.DisableResize) == 0)
+            {
+                clicked |= ResizeHandle(gui, ref state.Rect);
+            }
+            
+            if ((state.Flags & ImWindowFlag.DisableTitleBar) == 0)
+            {
+                clicked |= TitleBar(gui, state.Title, ref state);
+            }
             
             if (clicked)
             {
@@ -63,12 +75,18 @@ namespace Imui.Controls
             gui.PopId();
         }
         
-        public static void Back(ImGui gui, in ImRect rect, out ImRect content)
+        public static void Back(ImGui gui, in ImWindowState state, out ImRect content)
         {
-            gui.Canvas.Rect(rect, Style.BackColor, Style.CornerRadius);
+            gui.Canvas.Rect(state.Rect, Style.BackColor, Style.CornerRadius);
+
+            if ((state.Flags & ImWindowFlag.DisableTitleBar) != 0)
+            {
+                content = state.Rect;
+                return;
+            }
             
-            var titleBarRect = GetTitleBarRect(in rect, out _);
-            rect.WithPadding(Style.FrameWidth).SplitTop(titleBarRect.H, out content);
+            var titleBarRect = GetTitleBarRect(in state.Rect, out _);
+            state.Rect.WithPadding(Style.FrameWidth).SplitTop(titleBarRect.H, out content);
             content.AddPadding(Style.Padding);
         }
 
@@ -77,11 +95,11 @@ namespace Imui.Controls
             gui.Canvas.RectOutline(rect, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
         }
 
-        public static bool TitleBar(ImGui gui, in ReadOnlySpan<char> text, ref ImRect rect)
+        public static bool TitleBar(ImGui gui, in ReadOnlySpan<char> text, ref ImWindowState state)
         {
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
-            var titleBarRect = GetTitleBarRect(in rect, out var radius);
+            var titleBarRect = GetTitleBarRect(in state.Rect, out var radius);
 
             gui.Canvas.Rect(titleBarRect, Style.TitleBar.BackColor, radius);
             gui.Canvas.Text(text, Style.TitleBar.FrontColor, titleBarRect, in Style.TitleBar.Text);
@@ -101,9 +119,9 @@ namespace Imui.Controls
                     break;
                 
                 case ImMouseEventType.Drag:
-                    if (gui.ActiveControl == id)
+                    if (gui.ActiveControl == id && (state.Flags & ImWindowFlag.DisableMoving) == 0)
                     {
-                        rect.Position += evt.Delta;
+                        state.Rect.Position += evt.Delta;
                         gui.Input.UseMouseEvent();
                     }
 

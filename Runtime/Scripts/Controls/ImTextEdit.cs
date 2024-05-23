@@ -42,7 +42,7 @@ namespace Imui.Controls
         public static void TextEdit(this ImGui gui, ref string text, ImTextEditFilter filter = null)
         {
             var size = Style.TextSettings.Size;
-            var width = Mathf.Max(size, gui.Layout.GetFreeSpace().x);
+            var width = Mathf.Max(size, gui.Layout.GetAvailableSize().x);
             TextEdit(gui, width, ref text, filter);
         }
         
