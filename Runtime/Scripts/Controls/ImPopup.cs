@@ -11,7 +11,7 @@ namespace Imui.Controls
         public static void BeginPopup(this ImGui gui, Vector2 size = default)
         {
             gui.Canvas.PushOrder(ORDER_CONTENT);
-            gui.Layout.Push(size, ImAxis.Vertical);
+            gui.Layout.Push(ImAxis.Vertical, size);
             gui.Layout.SetFlags(ImLayoutFlag.Root);
         }
 

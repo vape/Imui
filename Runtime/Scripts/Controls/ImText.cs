@@ -34,7 +34,7 @@ namespace Imui.Controls
             gui.Layout.AddRect(textRect);
         }
         
-        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, ImRect rect, in ImTextSettings settings)
+        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings settings, ImRect rect)
         {
             gui.Canvas.Text(in text, Style.Color, rect, in settings);
         }

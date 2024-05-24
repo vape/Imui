@@ -39,26 +39,19 @@ namespace Imui.Core
             }
         }
     }
-
-    // TODO (artem-s): all APIs must accept axis as first argument
-    // TODO (artem-s): check for all unnecessary SetFlags calls
+    
     public class ImLayout
     {
         private const int FRAME_STACK_CAPACITY = 32;
         
         private DynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
         
-        public void Push(ImAxis axis)
-        {
-            Push(GetRect(GetAvailableSize()), axis, ImLayoutFlag.None);
-        }
-
         public void Push(ImAxis axis, float width = 0, float height = 0)
         {
-            Push(new Vector2(width, height), axis);
+            Push(axis, new Vector2(width, height));
         }
         
-        public void Push(Vector2 size, ImAxis axis)
+        public void Push(ImAxis axis, Vector2 size)
         {
             var flags = ImLayoutFlag.FixedBounds;
             
@@ -74,15 +67,15 @@ namespace Imui.Core
                 flags &= ~ImLayoutFlag.FixedBoundsHeight;
             }
             
-            Push(GetRect(size), axis, flags);
+            Push(axis, GetRect(size), flags);
         }
         
-        public void Push(ImRect rect, ImAxis axis)
+        public void Push(ImAxis axis, ImRect rect)
         {
-            Push(rect, axis, ImLayoutFlag.Root | ImLayoutFlag.FixedBounds);
+            Push(axis, rect, ImLayoutFlag.Root | ImLayoutFlag.FixedBounds);
         }
         
-        public void Push(ImRect rect, ImAxis axis, ImLayoutFlag flags)
+        public void Push(ImAxis axis, ImRect rect, ImLayoutFlag flags)
         {
             var frame = new ImLayoutFrame
             {

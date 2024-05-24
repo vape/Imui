@@ -16,15 +16,15 @@ namespace Imui.Controls
             var size = MeasureSize(gui, in label);
             var rect = gui.Layout.AddRect(size);
 
-            return Button(gui, in rect, label);
+            return Button(gui, label, in rect);
         }
         
-        public static bool Button(this ImGui gui, Vector2 size, in ReadOnlySpan<char> label)
+        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
         {
-            return Button(gui, gui.Layout.AddRect(size), label);
+            return Button(gui, label, gui.Layout.AddRect(size));
         }
         
-        public static bool Button(this ImGui gui, in ImRect rect, in ReadOnlySpan<char> label)
+        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)
         {
             var clicked = Button(gui, in rect, out var content, out var state);
             gui.Canvas.Text(in label, state.FrontColor, content, in Style.Text);

@@ -25,9 +25,9 @@ namespace Imui.Controls
             var state = gui.Storage.Get<State>(id);
             
             ref readonly var frame = ref gui.Layout.GetFrame();
-            var visible = GetVisibleRect(frame.Bounds, in state);
+            var visibleRect = GetVisibleRect(frame.Bounds, in state);
             
-            gui.Layout.Push(visible, frame.Axis, ImLayoutFlag.None);
+            gui.Layout.Push(frame.Axis, visibleRect, ImLayoutFlag.None);
             gui.Layout.SetOffset(state.Offset);
             gui.BeginScope(id);
         }

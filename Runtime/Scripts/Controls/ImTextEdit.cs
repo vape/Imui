@@ -43,23 +43,23 @@ namespace Imui.Controls
         {
             var size = Style.TextSettings.Size;
             var width = Mathf.Max(size, gui.Layout.GetAvailableSize().x);
-            TextEdit(gui, width, ref text, filter);
+            TextEdit(gui, ref text, width, filter);
         }
         
-        public static void TextEdit(this ImGui gui, float width, ref string text, ImTextEditFilter filter = null)
+        public static void TextEdit(this ImGui gui, ref string text, float width, ImTextEditFilter filter = null)
         {
             var height = gui.TextDrawer.GetLineHeight(Style.TextSettings.Size);
             var size = new Vector2(width, height + (Style.FrameWidth + Style.Padding) * 2 + 0.1f);
-            TextEdit(gui, in size, ref text, filter, false);
+            TextEdit(gui, ref text, in size, filter, false);
         }
         
-        public static void TextEdit(this ImGui gui, in Vector2 size, ref string text, ImTextEditFilter filter = null, bool multiline = true)
+        public static void TextEdit(this ImGui gui, ref string text, in Vector2 size, ImTextEditFilter filter = null, bool multiline = true)
         {
             var rect = gui.Layout.AddRect(size);
-            TextEdit(gui, in rect, ref text, filter, multiline);
+            TextEdit(gui, ref text, in rect, filter, multiline);
         }
         
-        public static void TextEdit(this ImGui gui, in ImRect rect, ref string text, ImTextEditFilter filter = null, bool multiline = true)
+        public static void TextEdit(this ImGui gui, ref string text, in ImRect rect, ImTextEditFilter filter = null, bool multiline = true)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
@@ -99,7 +99,7 @@ namespace Imui.Controls
                 Style.TextSettings.AlignX, Style.TextSettings.AlignY, Style.TextSettings.Size);
             
             gui.Canvas.PushRectMask(rect, Style.CornerRadius);
-            gui.Layout.Push(textRect, ImAxis.Vertical, ImLayoutFlag.Root);
+            gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);
             gui.BeginScrollable();
             
             textRect = gui.Layout.AddRect(layout.Width, layout.Height);

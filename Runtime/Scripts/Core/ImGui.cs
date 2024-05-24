@@ -134,8 +134,7 @@ namespace Imui.Core
             Canvas.Clear();
             Canvas.PushMeshSettings(Canvas.CreateDefaultMeshSettings());
             
-            Layout.Push(new ImRect(Vector2.zero, scaledScreenSize), ImAxis.Vertical);
-            Layout.SetFlags(ImLayoutFlag.Root);
+            Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledScreenSize));
             
             Renderer.SetIsRaycastTarget(frameData.HoveredControl.Id != default);
             
