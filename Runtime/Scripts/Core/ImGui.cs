@@ -139,7 +139,7 @@ namespace Imui.Core
             
             Renderer.SetIsRaycastTarget(frameData.HoveredControl.Id != default);
             
-            WindowManager.SetScreenRect(screenRect);
+            WindowManager.SetScreenSize(scaledScreenSize);
             
             idsStack.Push(new ControlId(ImHash.Get("root", 0)));
         }

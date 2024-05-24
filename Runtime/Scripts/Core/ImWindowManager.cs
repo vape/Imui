@@ -21,7 +21,7 @@ namespace Imui.Core
         public const int DEFAULT_HEIGHT = 500;
 
         private DynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
-        private Rect screenRect;
+        private Vector2 screenSize;
         
         public ref ImWindowState RegisterWindow(uint id, string title, float width = DEFAULT_WIDTH, float height = DEFAULT_HEIGHT, ImWindowFlag flags = ImWindowFlag.None)
         {
@@ -45,9 +45,9 @@ namespace Imui.Core
             return ref windows.Array[windows.Count - 1];
         }
 
-        public void SetScreenRect(Rect screenRect)
+        public void SetScreenSize(Vector2 screenSize)
         {
-            this.screenRect = screenRect;
+            this.screenSize = screenSize;
         }
         
         public ref ImWindowState GetWindowState(uint id)
@@ -94,7 +94,7 @@ namespace Imui.Core
         private ImRect GetWindowRect(float width, float height)
         {
             var size = new Vector2(width, height);
-            var position = new Vector2((screenRect.width - width) / 2f, (screenRect.height - height) / 2f);
+            var position = new Vector2((screenSize.x - width) / 2f, (screenSize.y - height) / 2f);
 
             return new ImRect(position, size);
         }
