@@ -53,13 +53,26 @@ namespace Imui.Controls
 
             if (value)
             {
-                gui.Canvas.Rect(buttonRect.WithPadding(Style.CheckMarkPadding), style.FrontColor, Style.Button.CornerRadius);
+                var checkMarkRect = buttonRect.WithPadding(Style.CheckMarkPadding);
+                DrawCheckMark(gui.Canvas, checkMarkRect, style.FrontColor, checkMarkRect.W * 0.2f);
             }
             
             if (clicked)
             {
                 value = !value;
             }
+        }
+
+        public static void DrawCheckMark(ImCanvas canvas, ImRect rect, Color32 color, float thickness)
+        {
+            ReadOnlySpan<Vector2> path = stackalloc Vector2[3]
+            {
+                rect.GetPointAtNormalPosition(0.00f, 0.60f), 
+                rect.GetPointAtNormalPosition(0.35f, 0.15f), 
+                rect.GetPointAtNormalPosition(1.00f, 0.80f)
+            };
+
+            canvas.Line(path, color, false, thickness);
         }
     }
 
@@ -73,7 +86,7 @@ namespace Imui.Controls
             Button = ImButtonStyle.Default,
             TextColor = ImColors.Black,
             Space = 2,
-            CheckMarkPadding = 2
+            CheckMarkPadding = 4
         };
 
         public float CheckMarkPadding;
