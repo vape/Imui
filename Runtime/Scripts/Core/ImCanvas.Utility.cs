@@ -58,5 +58,12 @@ namespace Imui.Core
             prop.MaskRect.Radius = radius;
             PushMeshSettings(in prop);
         }
+
+        public void PushNoRectMask()
+        {
+            var prop = GetActiveMeshSettings();
+            prop.MaskRect.Enabled = false;
+            PushMeshSettings(prop);
+        }
     }
 }

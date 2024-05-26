@@ -14,18 +14,29 @@ namespace Imui.Controls
         
         public static bool Select(this ImGui gui, in ReadOnlySpan<char> label)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style);
-            ImButton.Style.Padding.Right += Style.ArrowWidth;
+            var contentSize = gui.MeasureTextSize(label, in ImButton.Style.Text);
+            contentSize.x += Style.ArrowWidth;
+            var finalSize = ImButton.ButtonSizeFromContentSize(contentSize);
+            return Select(gui, label, finalSize);
+        }
 
-            var id = gui.GetNextControlId();
-            var size = ImButton.MeasureSize(gui, in label);
+        public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
+        {
             var rect = gui.Layout.AddRect(size);
+            return Select(gui, label, rect);
+        }
+
+        public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, ImRect rect)
+        {
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.ButtonStyle);
+            
+            var id = gui.GetNextControlId();
             var clicked = gui.Button(id, rect, out var content, out var style);
             
             gui.Canvas.Text(in label, style.FrontColor, content, in ImButton.Style.Text);
             
             var arrowRect = content;
-            arrowRect.X += arrowRect.W;
+            arrowRect.X += arrowRect.W - Style.ArrowWidth;
             arrowRect.W = Style.ArrowWidth;
             arrowRect = arrowRect.WithAspect(1f).WithAspect(ARROW_ASPECT_RATIO).WithPadding(Style.ArrowPadding);
             
@@ -40,9 +51,6 @@ namespace Imui.Controls
 
             return clicked;
         }
-        
-        // TODO (artem-s): Select(this ImGui gui, ImRect rect,  ...)
-        // TODO (artem-s): Select(this ImGui gui, Vector2 size, ...)
     }
 
     public struct ImSelectStyle
@@ -50,10 +58,19 @@ namespace Imui.Controls
         public static readonly ImSelectStyle Default = new()
         {
             ArrowWidth = 24,
-            ArrowPadding = 6
+            ArrowPadding = 6,
+            ButtonStyle = CreateDefaultButtonStyle()
         };
+
+        private static ImButtonStyle CreateDefaultButtonStyle()
+        {
+            var style = ImButtonStyle.Default;
+            style.Text.AlignX = 0;
+            return style;
+        }
         
         public float ArrowWidth;
         public ImPadding ArrowPadding;
+        public ImButtonStyle ButtonStyle;
     }
 }

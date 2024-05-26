@@ -24,6 +24,8 @@ namespace Imui.Core
         private const int MESH_SETTINGS_CAPACITY = 32;
         private const int TEMP_POINTS_BUFFER_CAPACITY = 1024;
 
+        private const float LINE_THICKNESS_THRESHOLD = 0.01f;
+        
         private const string SHADER_NAME = "imui_default";
         
         private struct TextureInfo
@@ -244,7 +246,7 @@ namespace Imui.Core
 
         public void RectOutline(ImRect rect, Color32 color, float thickness, ImRectRadius radius = default, float bias = 0.0f)
         {
-            if (!ShouldCull(rect))
+            if (!ShouldCull(rect) || thickness < LINE_THICKNESS_THRESHOLD)
             {
                 return;
             }
@@ -262,7 +264,11 @@ namespace Imui.Core
 
             var path = GenerateRectOutline(rect, radius);
             ConvexFill(path, backColor);
-            Line(path, outlineColor, true, thickness, bias);
+            
+            if (thickness >= LINE_THICKNESS_THRESHOLD)
+            {
+                Line(path, outlineColor, true, thickness, bias);
+            }
         }
 
         public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
@@ -306,6 +312,11 @@ namespace Imui.Core
 
         public void Line(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
+            if (thickness <= 0)
+            {
+                return;
+            }
+            
             bias = Mathf.Clamp01(bias);
             
             meshDrawer.Color = color;

@@ -38,6 +38,18 @@ namespace Imui.Controls
         {
             gui.Canvas.Text(in text, Style.Color, rect, in settings);
         }
+        
+        public static Vector2 MeasureTextSize(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings textSettings, Vector2 bounds = default)
+        {
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 
+                bounds.x, 
+                bounds.y,
+                textSettings.AlignX,
+                textSettings.AlignY, 
+                textSettings.Size);
+
+            return new Vector2(textLayout.Width, textLayout.Height);
+        }
     }
     
     [Serializable]

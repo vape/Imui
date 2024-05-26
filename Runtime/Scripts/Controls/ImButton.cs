@@ -13,10 +13,16 @@ namespace Imui.Controls
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label)
         {
-            var size = MeasureSize(gui, in label);
-            var rect = gui.Layout.AddRect(size);
+            var textSize = gui.MeasureTextSize(label, in Style.Text);
+            var buttonSize = ButtonSizeFromContentSize(textSize);
+            var rect = gui.Layout.AddRect(buttonSize);
 
             return Button(gui, label, in rect);
+        }
+
+        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, float width, float height)
+        {
+            return Button(gui, label, new Vector2(width, height));
         }
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
@@ -128,14 +134,11 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static Vector2 MeasureSize(ImGui gui, in ReadOnlySpan<char> text)
+        public static Vector2 ButtonSizeFromContentSize(Vector2 contentSize)
         {
-            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 0, 0, Style.Text.AlignX,
-                Style.Text.AlignY, Style.Text.Size);
-
             return new Vector2(
-                textLayout.Width + Style.Padding.Left + Style.Padding.Right + (Style.FrameWidth * 2) + 0.1f,
-                textLayout.Height + Style.Padding.Top + Style.Padding.Bottom + (Style.FrameWidth * 2) + 0.1f);
+                contentSize.x + Style.Padding.Left + Style.Padding.Right + (Style.FrameWidth * 2) + 0.1f,
+                contentSize.y + Style.Padding.Top + Style.Padding.Bottom + (Style.FrameWidth * 2) + 0.1f);
         }
     }
     

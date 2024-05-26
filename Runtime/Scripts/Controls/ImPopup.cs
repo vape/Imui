@@ -1,5 +1,5 @@
 using Imui.Core;
-using UnityEngine;
+using Imui.IO.Events;
 
 namespace Imui.Controls
 {
@@ -8,16 +8,13 @@ namespace Imui.Controls
         public const int ORDER_CONTENT = 1024 * 1024 * 16;
         public const int ORDER_CLOSE_BUTTON = ORDER_CONTENT - 16;
         
-        public static void BeginPopup(this ImGui gui, Vector2 size = default)
+        public static void BeginPopup(this ImGui gui)
         {
             gui.Canvas.PushOrder(ORDER_CONTENT);
-            gui.Layout.Push(ImAxis.Vertical, size);
-            gui.Layout.SetFlags(ImLayoutFlag.Root);
         }
 
         public static void EndPopup(this ImGui gui, out bool close)
         {
-            gui.Layout.Pop();
             gui.Canvas.PopOrder();
 
             close = CloseButton(gui);
@@ -25,18 +22,25 @@ namespace Imui.Controls
 
         private static bool CloseButton(ImGui gui)
         {
-            var result = false;
-            
             gui.Canvas.PushNoClipRect();
             gui.Canvas.PushOrder(ORDER_CLOSE_BUTTON);
-            if (gui.InvisibleButton(gui.Canvas.ScreenRect))
+
+            var id = gui.GetNextControlId();
+            if (gui.IsControlHovered(id))
             {
-                result = true;
+                ref readonly var mouseEvent = ref gui.Input.MouseEvent;
+                if (mouseEvent.Type == ImMouseEventType.Scroll)
+                {
+                    gui.Input.UseMouseEvent();
+                }
             }
+            
+            var clicked = gui.InvisibleButton(id, gui.Canvas.ScreenRect);
+            
             gui.Canvas.PopOrder();
             gui.Canvas.PopClipRect();
 
-            return result;
+            return clicked;
         }
     }
 }

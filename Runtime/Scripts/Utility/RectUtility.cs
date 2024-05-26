@@ -88,6 +88,22 @@ namespace Imui.Utility
             return rect;
         }
 
+        public static void ApplyPadding(this ref ImRect rect, float padding)
+        {
+            rect.X += padding;
+            rect.Y += padding;
+            rect.W -= padding * 2;
+            rect.H -= padding * 2;
+        }
+        
+        public static void ApplyPadding(this ref ImRect rect, ImPadding padding)
+        {
+            rect.X += padding.Left;
+            rect.Y += padding.Bottom;
+            rect.W -= padding.Left + padding.Right;
+            rect.H -= padding.Top + padding.Bottom;
+        }
+
         public static ImRect WithMargin(this ImRect rect, ImPadding margin)
         {
             rect.X -= margin.Left;

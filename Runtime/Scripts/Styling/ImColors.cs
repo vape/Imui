@@ -19,6 +19,10 @@ namespace Imui.Styling
         public static readonly Color32 Gray7 = new Color32(224, 224, 224, 255);
         public static readonly Color32 Gray8 = White;
 
+        public static readonly Color32 DarkBlue = new Color32(26, 66, 153, 255);
+        public static readonly Color32 Blue = new Color32(40, 87, 189, 255);
+        public static readonly Color32 LightBlue = new Color32(70, 123, 240, 255);
+
         public static Color32 WithAlpha(this Color32 color, byte alpha)
         {
             color.a = alpha;
