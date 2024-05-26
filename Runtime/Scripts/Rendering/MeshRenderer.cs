@@ -19,6 +19,10 @@ namespace Imui.Rendering
         private static readonly int MaskRectId = Shader.PropertyToID("_MaskRect");
         private static readonly int MaskCornerRadiusId = Shader.PropertyToID("_MaskCornerRadius");
         
+        #if IMUI_DEBUG
+        public bool Wireframe;
+        #endif
+        
         private readonly MaterialPropertyBlock properties;
         
         private Mesh mesh;
@@ -57,7 +61,11 @@ namespace Imui.Rendering
 
                 var desc = new SubMeshDescriptor()
                 {
+                    #if IMUI_DEBUG
+                    topology = Wireframe ? MeshTopology.Lines : info.Topology,
+                    #else
                     topology = info.Topology,
+                    #endif
                     indexStart = info.IndicesOffset,
                     indexCount = info.IndicesCount,
                     baseVertex = 0,

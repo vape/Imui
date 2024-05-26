@@ -39,6 +39,10 @@ namespace Imui.Debug
                 debugOverlay = !debugOverlay;
             }
             
+            #if IMUI_DEBUG
+            gui.Toggle(ref gui.MeshRenderer.Wireframe, "Wireframe");
+            #endif
+            
             gui.EndWindow();
             
             if (debugOverlay)
