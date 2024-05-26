@@ -40,7 +40,7 @@ namespace Imui.Debug
             }
             
             #if IMUI_DEBUG
-            gui.Toggle(ref gui.MeshRenderer.Wireframe, "Wireframe");
+            gui.Checkmark(ref gui.MeshRenderer.Wireframe, "Wireframe");
             #endif
             
             gui.EndWindow();

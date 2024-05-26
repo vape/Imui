@@ -6,44 +6,43 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    public static class ImToggle
+    public static class ImCheckmark
     {
-        public static ImToggleStyle Style = ImToggleStyle.Default;
+        public static ImCheckmarkStyle Style = ImCheckmarkStyle.Default;
         
-        public static void Toggle(this ImGui gui, ref bool value)
+        public static void Checkmark(this ImGui gui, ref bool value)
         {
-            var rect = gui.Layout.AddRect(new Vector2(Style.CheckMarkSize, Style.CheckMarkSize));
-            Toggle(gui, ref value, in rect, in rect);
+            var rect = gui.Layout.AddRect(new Vector2(Style.CheckmarkBoxSize, Style.CheckmarkBoxSize));
+            Checkmark(gui, ref value, in rect, in rect);
         }
         
-        public static void Toggle(this ImGui gui, ref bool value, in ReadOnlySpan<char> label)
+        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label)
         {
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in label, 0, 0, 
                 Style.Button.Text.AlignX, Style.Button.Text.AlignY, Style.Button.Text.Size);
 
-            var size = new Vector2(textLayout.Width + Style.CheckMarkSize + Style.Space,
-                Mathf.Max(textLayout.Height, Style.CheckMarkSize));
+            var size = new Vector2(textLayout.Width + Style.CheckmarkBoxSize + Style.Space,
+                Mathf.Max(textLayout.Height, Style.CheckmarkBoxSize));
             
-            Toggle(gui, ref value, in label, size);
+            Checkmark(gui, ref value, in label, size);
         }
         
-        public static void Toggle(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, Vector2 size)
+        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, Vector2 size)
         {
-            Toggle(gui, ref value, in label, gui.Layout.AddRect(size));
+            Checkmark(gui, ref value, in label, gui.Layout.AddRect(size));
         }
                 
-        public static void Toggle(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, ImRect rect)
+        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, ImRect rect)
         {
-            var toggleRect = rect.SplitLeft(Style.CheckMarkSize, out var textRect);
-            Toggle(gui, ref value, toggleRect, in rect);
+            var checkmarkBox = rect.SplitLeft(Style.CheckmarkBoxSize, out var textRect);
+            Checkmark(gui, ref value, checkmarkBox, in rect);
 
             textRect.X += Style.Space;
-            textRect.W -= Style.Space;
-            
+
             gui.Canvas.Text(in label, Style.TextColor, textRect, in Style.Button.Text);
         }
         
-        public static void Toggle(this ImGui gui, ref bool value, in ImRect rect, in ImRect clickable)
+        public static void Checkmark(this ImGui gui, ref bool value, in ImRect rect, in ImRect clickable)
         {
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
             
@@ -53,7 +52,7 @@ namespace Imui.Controls
 
             if (value)
             {
-                var checkMarkRect = buttonRect.WithPadding(Style.CheckMarkPadding);
+                var checkMarkRect = buttonRect.WithPadding(Style.CheckmarkPadding);
                 DrawCheckMark(gui.Canvas, checkMarkRect, style.FrontColor, checkMarkRect.W * 0.2f);
             }
             
@@ -76,21 +75,19 @@ namespace Imui.Controls
         }
     }
 
-    public struct ImToggleStyle
+    public struct ImCheckmarkStyle
     {
-        public const float DEFAULT_CHECKMARK_SIZE = 24;
-
-        public static readonly ImToggleStyle Default = new ImToggleStyle()
+        public static readonly ImCheckmarkStyle Default = new ImCheckmarkStyle()
         {
-            CheckMarkSize = DEFAULT_CHECKMARK_SIZE,
+            CheckmarkBoxSize = ImControlsUtility.DEFAULT_CONTROL_SIZE,
             Button = ImButtonStyle.Default,
             TextColor = ImColors.Black,
             Space = 2,
-            CheckMarkPadding = 4
+            CheckmarkPadding = 4
         };
 
-        public float CheckMarkPadding;
-        public float CheckMarkSize;
+        public float CheckmarkPadding;
+        public float CheckmarkBoxSize;
         public ImButtonStyle Button;
         public Color32 TextColor;
         public float Space;
