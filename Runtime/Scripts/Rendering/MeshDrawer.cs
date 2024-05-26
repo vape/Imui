@@ -151,8 +151,9 @@ namespace Imui.Rendering
 
                 float normalX;
                 float normalY;
+                float scale;
 
-                if (i < path.Length - 3 || closed)
+                if (i <= path.Length - 3 || closed)
                 {
                     var c = path[(i + 2) % path.Length];
                     
@@ -185,6 +186,7 @@ namespace Imui.Rendering
 
                     normalX = -ty;
                     normalY = tx;
+                    scale = normalX * -aby + normalY * abx;
                 }
                 else
                 {
@@ -196,11 +198,12 @@ namespace Imui.Rendering
 
                     normalX = -aby;
                     normalY = abx;
+                    scale = 1.0f;
                 }
                 
                 ref var v2 = ref buffer.Vertices[vc + 2];
-                v2.Position.x = b.x + normalX * -1 * outerThickness;
-                v2.Position.y = b.y + normalY * -1 * outerThickness;
+                v2.Position.x = b.x + normalX * -1 * outerThickness / scale;
+                v2.Position.y = b.y + normalY * -1 * outerThickness / scale;
                 v2.Position.z = Depth;
                 v2.Color = Color;
                 v2.UV.x = ScaleOffset.z;
@@ -208,8 +211,8 @@ namespace Imui.Rendering
                 v2.Atlas = Atlas;
 
                 ref var v3 = ref buffer.Vertices[vc + 3];
-                v3.Position.x = b.x + normalX * innerThickness;
-                v3.Position.y = b.y + normalY * innerThickness;
+                v3.Position.x = b.x + normalX * innerThickness / scale;
+                v3.Position.y = b.y + normalY * innerThickness / scale;
                 v3.Position.z = Depth;
                 v3.Color = Color;
                 v3.UV.x = ScaleOffset.z;
