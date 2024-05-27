@@ -23,11 +23,13 @@ namespace Imui.Controls
 
         public static void Text(this ImGui gui, in ReadOnlySpan<char> text)
         {
-            Text(gui, in text, Settings);
+            Text(gui, in text, in Settings);
         }
         
         public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings settings)
         {
+            gui.TryAddControlSpacing();
+            
             var space = gui.Layout.GetAvailableSize().Max(MIN_WIDTH, MIN_HEIGHT);
             var rect = gui.Layout.GetRect(space);
             gui.Canvas.Text(in text, Style.Color, rect, in settings, out var textRect);

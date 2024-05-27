@@ -85,20 +85,30 @@ namespace Imui.Rendering
                 var abx = b.x - a.x;
                 var aby = b.y - a.y;
                 var abm = Mathf.Sqrt(abx * abx + aby * aby);
-                abx /= abm;
-                aby /= abm;
-                    
+                if (abm > 0)
+                {
+                    abx /= abm;
+                    aby /= abm;
+                }
+                
                 var bcx = c.x - b.x;
                 var bcy = c.y - b.y;
                 var bcm = Mathf.Sqrt(bcx * bcx + bcy * bcy);
-                bcx /= bcm;
-                bcy /= bcm;
+                if (bcm > 0)
+                {
+                    bcx /= bcm;
+                    bcy /= bcm;
+                }
 
                 var tx = abx + bcx;
                 var ty = aby + bcy;
                 var tm = Mathf.Sqrt(tx * tx + ty * ty);
-                tx /= tm;
-                ty /= tm;
+                if (tm > 0)
+                {
+                    tx /= tm;
+                    ty /= tm;
+                }
+
 
                 prevNormX = -ty;
                 prevNormY = tx;
@@ -187,6 +197,13 @@ namespace Imui.Rendering
                     normalX = -ty;
                     normalY = tx;
                     scale = normalX * -aby + normalY * abx;
+
+                    if (Mathf.Abs(scale) < 0.01f)
+                    {
+                        normalX = -bcy;
+                        normalY = bcx;
+                        scale = 1.0f;
+                    }
                 }
                 else
                 {

@@ -41,20 +41,27 @@ namespace Imui.Controls
 
         public static void TextEdit(this ImGui gui, ref string text, ImTextEditFilter filter = null)
         {
+            gui.TryAddControlSpacing();
+            
             var size = Style.TextSettings.Size;
             var width = Mathf.Max(size, gui.Layout.GetAvailableSize().x);
-            TextEdit(gui, ref text, width, filter);
+            var height = GetHeight(gui);
+            var rect = gui.Layout.AddRect(width, height);
+            TextEdit(gui, ref text, in rect, filter, false);
+        }
+
+        public static void TextEdit(this ImGui gui, ref string text, float width, float height, ImTextEditFilter filter = null, bool multiline = true)
+        {
+            gui.TryAddControlSpacing();
+            
+            var rect = gui.Layout.AddRect(width, height);
+            TextEdit(gui, ref text, in rect, filter, multiline);
         }
         
-        public static void TextEdit(this ImGui gui, ref string text, float width, ImTextEditFilter filter = null)
+        public static void TextEdit(this ImGui gui, ref string text, Vector2 size, ImTextEditFilter filter = null, bool multiline = true)
         {
-            var height = gui.TextDrawer.GetLineHeight(Style.TextSettings.Size);
-            var size = new Vector2(width, height + (Style.FrameWidth + Style.Padding) * 2 + 0.1f);
-            TextEdit(gui, ref text, in size, filter, false);
-        }
-        
-        public static void TextEdit(this ImGui gui, ref string text, in Vector2 size, ImTextEditFilter filter = null, bool multiline = true)
-        {
+            gui.TryAddControlSpacing();
+            
             var rect = gui.Layout.AddRect(size);
             TextEdit(gui, ref text, in rect, filter, multiline);
         }
@@ -75,6 +82,12 @@ namespace Imui.Controls
             {
                 text = buffer.GetString();
             }
+        }
+
+        public static float GetHeight(ImGui gui)
+        {
+            var textHeight = gui.TextDrawer.GetLineHeight(Style.TextSettings.Size);
+            return textHeight + (Style.FrameWidth + Style.Padding) * 2 + 0.1f;
         }
         
         private static bool TextEdit(

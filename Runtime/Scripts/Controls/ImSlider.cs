@@ -13,17 +13,29 @@ namespace Imui.Controls
 
         public static bool Slider(this ImGui gui, ref float value, float min, float max)
         {
-            var width = gui.Layout.GetAvailableSize().x;
-            return Slider(gui, ref value, min, max, width); 
+            gui.TryAddControlSpacing();
+
+            var rect = gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), Style.Height);
+            return Slider(gui, ref value, min, max, in rect); 
         }
         
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, float width)
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, float width, float height)
         {
-            var rect = gui.Layout.AddRect(width, Style.Height);
-            return Slider(gui, ref value, min, max, rect);
+            gui.TryAddControlSpacing();
+
+            var rect = gui.Layout.AddRect(width, height);
+            return Slider(gui, ref value, min, max, in rect);
         }
         
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImRect rect)
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, Vector2 size)
+        {
+            gui.TryAddControlSpacing();
+
+            var rect = gui.Layout.AddRect(size);
+            return Slider(gui, ref value, min, max, in rect);
+        }
+        
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, in ImRect rect)
         {
             var prevValue = value;
             value = Mathf.InverseLerp(min, max, value);

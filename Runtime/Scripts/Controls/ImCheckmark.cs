@@ -12,27 +12,42 @@ namespace Imui.Controls
         
         public static void Checkmark(this ImGui gui, ref bool value)
         {
+            gui.TryAddControlSpacing();
+            
             var rect = gui.Layout.AddRect(new Vector2(Style.CheckmarkBoxSize, Style.CheckmarkBoxSize));
             Checkmark(gui, ref value, in rect, in rect);
         }
         
         public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label)
         {
+            gui.TryAddControlSpacing();
+            
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in label, 0, 0, 
                 Style.Button.Text.AlignX, Style.Button.Text.AlignY, Style.Button.Text.Size);
-
-            var size = new Vector2(textLayout.Width + Style.CheckmarkBoxSize + Style.Space,
-                Mathf.Max(textLayout.Height, Style.CheckmarkBoxSize));
             
-            Checkmark(gui, ref value, in label, size);
+            var rect = gui.Layout.AddRect(
+                textLayout.Width + Style.CheckmarkBoxSize + Style.Space, 
+                Mathf.Max(textLayout.Height, Style.CheckmarkBoxSize));
+            Checkmark(gui, ref value, in label, in rect);
+        }
+
+        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, float width, float height)
+        {
+            gui.TryAddControlSpacing();
+            
+            var rect = gui.Layout.AddRect(width, height);
+            Checkmark(gui, ref value, in label, in rect);
         }
         
         public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, Vector2 size)
         {
-            Checkmark(gui, ref value, in label, gui.Layout.AddRect(size));
+            gui.TryAddControlSpacing();
+            
+            var rect = gui.Layout.AddRect(size);
+            Checkmark(gui, ref value, in label, in rect);
         }
                 
-        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, ImRect rect)
+        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, in ImRect rect)
         {
             var checkmarkBox = rect.SplitLeft(Style.CheckmarkBoxSize, out var textRect);
             Checkmark(gui, ref value, checkmarkBox, in rect);
@@ -79,7 +94,7 @@ namespace Imui.Controls
     {
         public static readonly ImCheckmarkStyle Default = new ImCheckmarkStyle()
         {
-            CheckmarkBoxSize = ImControlsUtility.DEFAULT_CONTROL_SIZE,
+            CheckmarkBoxSize = ImControlsLayout.DEFAULT_CONTROL_SIZE,
             Button = ImButtonStyle.Default,
             TextColor = ImColors.Black,
             Space = 2,

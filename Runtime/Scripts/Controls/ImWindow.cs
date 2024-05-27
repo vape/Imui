@@ -250,7 +250,7 @@ namespace Imui.Controls
             FrameWidth = 1,
             CornerRadius = 8,
             ResizeHandleSize = 24,
-            Padding = 1,
+            Padding = 4,
             TitleBar = new ImWindowTitleBarStyle()
             {
                 BackColor = ImColors.Gray6,

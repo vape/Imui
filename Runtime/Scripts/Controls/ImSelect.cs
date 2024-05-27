@@ -14,19 +14,31 @@ namespace Imui.Controls
         
         public static bool Select(this ImGui gui, in ReadOnlySpan<char> label)
         {
+            gui.TryAddControlSpacing();
+            
             var contentSize = gui.MeasureTextSize(label, in ImButton.Style.Text);
             contentSize.x += Style.ArrowWidth;
-            var finalSize = ImButton.ButtonSizeFromContentSize(contentSize);
-            return Select(gui, label, finalSize);
+            var rect = gui.Layout.AddRect(ImButton.ButtonSizeFromContentSize(contentSize));
+            return Select(gui, label, in rect);
         }
 
+        public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, float width, float height)
+        {
+            gui.TryAddControlSpacing();
+
+            var rect = gui.Layout.AddRect(width, height);
+            return Select(gui, label, in rect);
+        }
+        
         public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
         {
+            gui.TryAddControlSpacing();
+
             var rect = gui.Layout.AddRect(size);
-            return Select(gui, label, rect);
+            return Select(gui, label, in rect);
         }
 
-        public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, ImRect rect)
+        public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)
         {
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.ButtonStyle);
             

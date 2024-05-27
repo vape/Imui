@@ -13,21 +13,28 @@ namespace Imui.Controls
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label)
         {
+            gui.TryAddControlSpacing();
+            
             var textSize = gui.MeasureTextSize(label, in Style.Text);
             var buttonSize = ButtonSizeFromContentSize(textSize);
             var rect = gui.Layout.AddRect(buttonSize);
-
             return Button(gui, label, in rect);
         }
 
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, float width, float height)
         {
-            return Button(gui, label, new Vector2(width, height));
+            gui.TryAddControlSpacing();
+            
+            var rect = gui.Layout.AddRect(width, height);
+            return Button(gui, label, in rect);
         }
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
         {
-            return Button(gui, label, gui.Layout.AddRect(size));
+            gui.TryAddControlSpacing();
+            
+            var rect = gui.Layout.AddRect(size);
+            return Button(gui, label, in rect);
         }
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)

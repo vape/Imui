@@ -11,17 +11,29 @@ namespace Imui.Controls
         
         public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options)
         {
-            var size = new Vector2(gui.Layout.GetAvailableWidth(), Style.SelectButtonHeight);
-            return Dropdown(gui, ref selected, in options, size);
+            gui.TryAddControlSpacing();
+            
+            var rect = gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), Style.SelectButtonHeight);
+            return Dropdown(gui, ref selected, in options, in rect);
+        }
+        
+        public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, float width, float height)
+        {
+            gui.TryAddControlSpacing();
+            
+            var rect = gui.Layout.AddRect(width, height);
+            return Dropdown(gui, ref selected, in options, in rect);
         }
         
         public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, Vector2 size)
         {
+            gui.TryAddControlSpacing();
+            
             var rect = gui.Layout.AddRect(size);
-            return Dropdown(gui, ref selected, in options, rect);
+            return Dropdown(gui, ref selected, in options, in rect);
         }
         
-        public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, ImRect rect)
+        public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, in ImRect rect)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<State>(id);
@@ -92,8 +104,8 @@ namespace Imui.Controls
             var style = new ImDropdownStyle()
             {
                 MaxPopupHeight = DEFAULT_MAX_POPUP_HEIGHT,
-                SelectButtonHeight = ImControlsUtility.DEFAULT_CONTROL_SIZE,
-                OptionButtonHeight = ImControlsUtility.DEFAULT_CONTROL_SIZE
+                SelectButtonHeight = ImControlsLayout.DEFAULT_CONTROL_SIZE,
+                OptionButtonHeight = ImControlsLayout.DEFAULT_CONTROL_SIZE
             };
             
             style.OptionButton = ImButtonStyle.Default;

@@ -22,20 +22,38 @@ namespace Imui.Core
         public Vector2 Offset;
         public ImLayoutFlag Flags;
 
-        public void AddSize(Vector2 size)
+        public void Append(Vector2 size)
+        {
+            Append(size.x, size.y);
+        }
+        
+        public void Append(float width, float height)
         {
             switch (Axis)
             {
                 case ImAxis.Vertical:
-                    Size.x = Mathf.Max(Size.x, size.x);
-                    Size.y += size.y;
+                    Size.x = Mathf.Max(Size.x, width);
+                    Size.y += height;
                     break;
                 case ImAxis.Horizontal:
-                    Size.x += size.x;
-                    Size.y = Mathf.Max(Size.y, size.y);
+                    Size.x += width;
+                    Size.y = Mathf.Max(Size.y, height);
                     break;
                 default:
                     throw new NotImplementedException();
+            }
+        }
+
+        public void Append(float size)
+        {
+            switch (Axis)
+            {
+                case ImAxis.Vertical:
+                    Size.y += size;
+                    break;
+                case ImAxis.Horizontal:
+                    Size.x += size;
+                    break;
             }
         }
     }
@@ -108,7 +126,7 @@ namespace Imui.Core
                     size.y = frame.Bounds.H;
                 }
                 
-                active.AddSize(size);
+                active.Append(size);
             }
         }
 
@@ -185,47 +203,53 @@ namespace Imui.Core
             var h = frame.Size.y;
             return new ImRect(x, y, w, h);
         }
-
-        public ImRect GetRect(float width, float height)
-        {
-            return GetRect(new Vector2(width, height));
-        }
         
         public ImRect GetRect(Vector2 size)
         {
-            ref readonly var frame = ref frames.Peek();
-            var position = GetNextPosition(in frame, size);
-            return new ImRect(position, size);
+            return GetRect(size.x, size.y);
         }
-
-        public ImRect AddRect(float width, float height)
+        
+        public ImRect GetRect(float width, float height)
         {
-            return AddRect(new Vector2(width, height));
+            ref readonly var frame = ref frames.Peek();
+            var position = GetNextPosition(in frame, height);
+            return new ImRect(position.x, position.y, width, height);
         }
 
         public ImRect AddRect(Vector2 size)
         {
+            return AddRect(size.x, size.y);
+        }
+        
+        public ImRect AddRect(float width, float height)
+        {
             ref var frame = ref frames.Peek();
-            var position = GetNextPosition(in frame, size);
-            frame.AddSize(size);
-            return new ImRect(position, size);
+            var position = GetNextPosition(in frame, height);
+            frame.Append(width, height);
+            return new ImRect(position.x, position.y, width, height);
         }
 
         public ImRect AddRect(ImRect rect)
         {
             ref var frame = ref frames.Peek();
-            rect.Encapsulate(GetNextPosition(in frame, Vector2.zero));
-            frame.AddSize(rect.Size);
+            rect.Encapsulate(GetNextPosition(in frame, 0));
+            frame.Append(rect.Size);
             return rect;
         }
 
-        private static Vector2 GetNextPosition(in ImLayoutFrame frame, Vector2 size)
+        public void AddSpace(float space)
+        {
+            ref var frame = ref frames.Peek();
+            frame.Append(space);
+        }
+
+        private static Vector2 GetNextPosition(in ImLayoutFrame frame, float height)
         {
             var hm = frame.Axis == ImAxis.Horizontal ? 1 : 0;
             var vm = frame.Axis == ImAxis.Vertical ? 1 : 0;
             
             var x = frame.Bounds.X + frame.Offset.x + (frame.Size.x * hm);
-            var y = frame.Bounds.Y + frame.Offset.y + frame.Bounds.H + - (frame.Size.y * vm) - size.y;
+            var y = frame.Bounds.Y + frame.Offset.y + frame.Bounds.H + - (frame.Size.y * vm) - height;
             
             return new Vector2(x, y);
         }
