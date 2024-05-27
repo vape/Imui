@@ -782,9 +782,9 @@ namespace Imui.Controls
 
         public ImTextEditBuffer(string text)
         {
-            InitText = text;
+            InitText = text ?? string.Empty;
             Buffer = null;
-            Length = text.Length;
+            Length = InitText.Length;
         }
 
         public char At(int index)
