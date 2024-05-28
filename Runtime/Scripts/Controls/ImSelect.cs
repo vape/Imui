@@ -14,9 +14,10 @@ namespace Imui.Controls
         
         public static bool Select(this ImGui gui, in ReadOnlySpan<char> label)
         {
-            gui.TryAddControlSpacing();
-            
-            var contentSize = gui.MeasureTextSize(label, in ImButton.Style.Text);
+            gui.AddControlSpacing();
+
+            var textSettings = GetTextSettings(gui);
+            var contentSize = gui.MeasureTextSize(label, in textSettings);
             contentSize.x += Style.ArrowWidth;
             var rect = gui.Layout.AddRect(ImButton.ButtonSizeFromContentSize(contentSize));
             return Select(gui, label, in rect);
@@ -24,7 +25,7 @@ namespace Imui.Controls
 
         public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, float width, float height)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
 
             var rect = gui.Layout.AddRect(width, height);
             return Select(gui, label, in rect);
@@ -32,7 +33,7 @@ namespace Imui.Controls
         
         public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
 
             var rect = gui.Layout.AddRect(size);
             return Select(gui, label, in rect);
@@ -40,12 +41,13 @@ namespace Imui.Controls
 
         public static bool Select(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.ButtonStyle);
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
             
             var id = gui.GetNextControlId();
             var clicked = gui.Button(id, rect, out var content, out var style);
+            var textSettings = GetTextSettings(gui);
             
-            gui.Canvas.Text(in label, style.FrontColor, content, in ImButton.Style.Text);
+            gui.Canvas.Text(in label, style.FrontColor, content, in textSettings);
             
             var arrowRect = content;
             arrowRect.X += arrowRect.W - Style.ArrowWidth;
@@ -63,6 +65,11 @@ namespace Imui.Controls
 
             return clicked;
         }
+
+        private static ImTextSettings GetTextSettings(ImGui gui)
+        {
+            return new ImTextSettings(gui.GetTextSize(), Style.Button.Alignment);
+        }
     }
 
     public struct ImSelectStyle
@@ -71,18 +78,18 @@ namespace Imui.Controls
         {
             ArrowWidth = 24,
             ArrowPadding = 6,
-            ButtonStyle = CreateDefaultButtonStyle()
+            Button = CreateDefaultButtonStyle()
         };
 
         private static ImButtonStyle CreateDefaultButtonStyle()
         {
             var style = ImButtonStyle.Default;
-            style.Text.AlignX = 0;
+            style.Alignment.Hor = 0;
             return style;
         }
         
         public float ArrowWidth;
         public ImPadding ArrowPadding;
-        public ImButtonStyle ButtonStyle;
+        public ImButtonStyle Button;
     }
 }

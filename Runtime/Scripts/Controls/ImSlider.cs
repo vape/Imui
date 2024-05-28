@@ -13,15 +13,15 @@ namespace Imui.Controls
 
         public static bool Slider(this ImGui gui, ref float value, float min, float max)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
 
-            var rect = gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), Style.Height);
+            var rect = gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight());
             return Slider(gui, ref value, min, max, in rect); 
         }
         
         public static bool Slider(this ImGui gui, ref float value, float min, float max, float width, float height)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
 
             var rect = gui.Layout.AddRect(width, height);
             return Slider(gui, ref value, min, max, in rect);
@@ -29,7 +29,7 @@ namespace Imui.Controls
         
         public static bool Slider(this ImGui gui, ref float value, float min, float max, Vector2 size)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
 
             var rect = gui.Layout.AddRect(size);
             return Slider(gui, ref value, min, max, in rect);
@@ -100,7 +100,6 @@ namespace Imui.Controls
         {
             var style = new ImSliderStyle()
             {
-                Height = 24,
                 BackColor = ImColors.White,
                 FrameWidth = 1,
                 FrameColor = ImColors.Black,
@@ -118,7 +117,6 @@ namespace Imui.Controls
             return style;
         }
 
-        public float Height;
         public ImButtonStyle Handle;
         public Color32 BackColor;
         public float FrameWidth;

@@ -10,25 +10,18 @@ namespace Imui.Controls
     {
         private const float MIN_WIDTH = 1;
         private const float MIN_HEIGHT = 1;
-
-        public const int DEFAULT_TEXT_SIZE = 24;
         
         public static ImTextStyle Style = ImTextStyle.Default;
-        public static ImTextSettings Settings = new ImTextSettings()
-        {
-            AlignX = 0,
-            AlignY = 0,
-            Size = DEFAULT_TEXT_SIZE
-        };
 
         public static void Text(this ImGui gui, in ReadOnlySpan<char> text)
         {
-            Text(gui, in text, in Settings);
+            var settings = new ImTextSettings(gui.GetTextSize(), Style.Alignment);
+            Text(gui, in text, in settings);
         }
         
         public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings settings)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
             
             var space = gui.Layout.GetAvailableSize().Max(MIN_WIDTH, MIN_HEIGHT);
             var rect = gui.Layout.GetRect(space);
@@ -46,8 +39,8 @@ namespace Imui.Controls
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 
                 bounds.x, 
                 bounds.y,
-                textSettings.AlignX,
-                textSettings.AlignY, 
+                textSettings.Align.Hor,
+                textSettings.Align.Ver, 
                 textSettings.Size);
 
             return new Vector2(textLayout.Width, textLayout.Height);
@@ -63,5 +56,6 @@ namespace Imui.Controls
         };
         
         public Color32 Color;
+        public ImTextAlignment Alignment;
     }
 }

@@ -41,9 +41,9 @@ namespace Imui.Controls
 
         public static void TextEdit(this ImGui gui, ref string text, ImTextEditFilter filter = null)
         {
-            gui.TryAddControlSpacing();
-            
-            var size = Style.TextSettings.Size;
+            gui.AddControlSpacing();
+
+            var size = gui.GetTextSize();
             var width = Mathf.Max(size, gui.Layout.GetAvailableSize().x);
             var height = GetHeight(gui);
             var rect = gui.Layout.AddRect(width, height);
@@ -52,7 +52,7 @@ namespace Imui.Controls
 
         public static void TextEdit(this ImGui gui, ref string text, float width, float height, ImTextEditFilter filter = null, bool multiline = true)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
             
             var rect = gui.Layout.AddRect(width, height);
             TextEdit(gui, ref text, in rect, filter, multiline);
@@ -60,7 +60,7 @@ namespace Imui.Controls
         
         public static void TextEdit(this ImGui gui, ref string text, Vector2 size, ImTextEditFilter filter = null, bool multiline = true)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
             
             var rect = gui.Layout.AddRect(size);
             TextEdit(gui, ref text, in rect, filter, multiline);
@@ -86,7 +86,7 @@ namespace Imui.Controls
 
         public static float GetHeight(ImGui gui)
         {
-            var textHeight = gui.TextDrawer.GetLineHeight(Style.TextSettings.Size);
+            var textHeight = gui.GetRowHeight();
             return textHeight + (Style.FrameWidth + Style.Padding) * 2 + 0.1f;
         }
         
@@ -105,11 +105,12 @@ namespace Imui.Controls
             var textChanged = false;
             
             DrawBack(gui, in stateStyle, in rect, out var textRect);
-            
+
+            var textSize = gui.GetTextSize();
             var layout = gui.TextDrawer.BuildTempLayout(
                 buffer, 
                 textRect.W, textRect.H, 
-                Style.TextSettings.AlignX, Style.TextSettings.AlignY, Style.TextSettings.Size);
+                Style.Alignment.Hor, Style.Alignment.Ver, textSize);
             
             gui.Canvas.PushRectMask(rect, Style.CornerRadius);
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);
@@ -760,12 +761,7 @@ namespace Imui.Controls
             FrameWidth = 1.0f,
             CaretWidth = 2.0f,
             Padding = 1.0f,
-            TextSettings = new ImTextSettings()
-            {
-                AlignX = 0,
-                AlignY = 0,
-                Size = ImText.DEFAULT_TEXT_SIZE
-            }
+            Alignment = new ImTextAlignment(0.0f, 0.0f)
         };
         
         public ImTextEditStateStyle Normal;
@@ -774,7 +770,7 @@ namespace Imui.Controls
         public float CornerRadius;
         public float CaretWidth;
         public float Padding;
-        public ImTextSettings TextSettings;
+        public ImTextAlignment Alignment;
     }
 
     public class ImTextEditStateStyle

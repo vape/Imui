@@ -84,7 +84,7 @@ namespace Imui.Controls
                 return;
             }
             
-            var titleBarRect = GetTitleBarRect(in state.Rect, out _);
+            var titleBarRect = GetTitleBarRect(gui, in state.Rect, out _);
             state.Rect.WithPadding(Style.FrameWidth).SplitTop(titleBarRect.H, out content);
             content.AddPadding(Style.Padding);
         }
@@ -98,10 +98,11 @@ namespace Imui.Controls
         {
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
-            var titleBarRect = GetTitleBarRect(in state.Rect, out var radius);
-
-            gui.Canvas.Rect(titleBarRect, Style.TitleBar.BackColor, radius);
-            gui.Canvas.Text(text, Style.TitleBar.FrontColor, titleBarRect, in Style.TitleBar.Text);
+            var rect = GetTitleBarRect(gui, in state.Rect, out var radius);
+            var textSettings = new ImTextSettings(gui.GetTextSize(), Style.TitleBar.Alignment);
+            
+            gui.Canvas.Rect(rect, Style.TitleBar.BackColor, radius);
+            gui.Canvas.Text(text, Style.TitleBar.FrontColor, rect, in textSettings);
 
             var clicked = false;
             ref readonly var evt = ref gui.Input.MouseEvent;
@@ -136,7 +137,7 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, titleBarRect);
+            gui.HandleControl(id, rect);
             
             return clicked;
         }
@@ -223,20 +224,21 @@ namespace Imui.Controls
             return handleRect;
         }
         
-        private static ImRect GetTitleBarRect(in ImRect rect, out ImRectRadius cornerRadius)
+        private static ImRect GetTitleBarRect(ImGui gui, in ImRect rect, out ImRectRadius cornerRadius)
         {
             cornerRadius = new ImRectRadius(Style.CornerRadius - Style.FrameWidth, Style.CornerRadius - Style.FrameWidth);
-            return rect.WithPadding(Style.FrameWidth).SplitTop(Style.TitleBar.Height, out _);
+            var height = gui.GetRowHeight() + Style.TitleBar.Padding.Vertical;
+            return rect.WithPadding(Style.FrameWidth).SplitTop(height, out _);
         }
     }
     
     [Serializable]
     public struct ImWindowTitleBarStyle
     {
-        public float Height;
         public Color32 BackColor;
         public Color32 FrontColor;
-        public ImTextSettings Text;
+        public ImTextAlignment Alignment;
+        public ImPadding Padding;
     }
         
     [Serializable]
@@ -255,13 +257,8 @@ namespace Imui.Controls
             {
                 BackColor = ImColors.Gray6,
                 FrontColor = ImColors.Gray1,
-                Height = 42,
-                Text = new ImTextSettings()
-                {
-                    AlignX = 0.5f,
-                    AlignY = 0.5f,
-                    Size = ImText.DEFAULT_TEXT_SIZE
-                }
+                Padding = 8,
+                Alignment = new ImTextAlignment(0.5f, 0.5f)
             }
         };
         

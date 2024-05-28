@@ -13,9 +13,10 @@ namespace Imui.Controls
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label)
         {
-            gui.TryAddControlSpacing();
-            
-            var textSize = gui.MeasureTextSize(label, in Style.Text);
+            gui.AddControlSpacing();
+
+            var textSettings = new ImTextSettings(gui.GetTextSize(), Style.Alignment);
+            var textSize = gui.MeasureTextSize(label, in textSettings);
             var buttonSize = ButtonSizeFromContentSize(textSize);
             var rect = gui.Layout.AddRect(buttonSize);
             return Button(gui, label, in rect);
@@ -23,7 +24,7 @@ namespace Imui.Controls
 
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, float width, float height)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
             
             var rect = gui.Layout.AddRect(width, height);
             return Button(gui, label, in rect);
@@ -31,7 +32,7 @@ namespace Imui.Controls
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
         {
-            gui.TryAddControlSpacing();
+            gui.AddControlSpacing();
             
             var rect = gui.Layout.AddRect(size);
             return Button(gui, label, in rect);
@@ -40,7 +41,8 @@ namespace Imui.Controls
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)
         {
             var clicked = Button(gui, in rect, out var content, out var state);
-            gui.Canvas.Text(in label, state.FrontColor, content, in Style.Text);
+            var textSettings = new ImTextSettings(gui.GetTextSize(), Style.Alignment);
+            gui.Canvas.Text(in label, state.FrontColor, content, in textSettings);
             return clicked;
         }
 
@@ -165,12 +167,7 @@ namespace Imui.Controls
             Padding = 1.0f,
             FrameWidth = 1,
             CornerRadius = 3,
-            Text = new ImTextSettings()
-            {
-                AlignX = 0.5f,
-                AlignY = 0.5f,
-                Size = ImText.DEFAULT_TEXT_SIZE
-            },
+            Alignment = new ImTextAlignment(0.5f, 0.5f),
             Normal = new ImButtonStateStyle()
             {
                 BackColor = ImColors.Gray7,
@@ -194,7 +191,7 @@ namespace Imui.Controls
         public ImButtonStateStyle Normal;
         public ImButtonStateStyle Hovered;
         public ImButtonStateStyle Pressed;
-        public ImTextSettings Text;
+        public ImTextAlignment Alignment;
         public ImPadding Padding;
         public float FrameWidth;
         public float CornerRadius;
