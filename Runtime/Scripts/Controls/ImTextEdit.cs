@@ -87,7 +87,7 @@ namespace Imui.Controls
         public static float GetHeight(ImGui gui)
         {
             var textHeight = gui.GetRowHeight();
-            return textHeight + (Style.FrameWidth + Style.Padding) * 2 + 0.1f;
+            return textHeight + Style.Padding.Vertical + 0.1f;
         }
         
         private static bool TextEdit(
@@ -729,7 +729,7 @@ namespace Imui.Controls
         private static void DrawBack(ImGui gui, in ImTextEditStateStyle style, in ImRect rect, out ImRect content)
         {
             gui.Canvas.RectWithOutline(rect, style.BackColor, style.FrameColor, Style.FrameWidth, Style.CornerRadius);
-            content = rect.WithPadding(Style.FrameWidth + Style.Padding);
+            content = rect.WithPadding(Style.Padding);
         }
     }
 
@@ -769,7 +769,7 @@ namespace Imui.Controls
         public float FrameWidth;
         public float CornerRadius;
         public float CaretWidth;
-        public float Padding;
+        public ImPadding Padding;
         public ImTextAlignment Alignment;
     }
 

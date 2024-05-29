@@ -66,7 +66,7 @@ namespace Imui.Controls
             
             gui.Canvas.RectWithOutline(rect, state.BackColor, state.FrameColor, Style.FrameWidth, Style.CornerRadius);
             
-            content = rect.WithPadding(Style.FrameWidth).WithPadding(Style.Padding);
+            content = rect.WithPadding(Style.Padding);
             
             var clicked = false;
 
@@ -146,8 +146,8 @@ namespace Imui.Controls
         public static Vector2 ButtonSizeFromContentSize(Vector2 contentSize)
         {
             return new Vector2(
-                contentSize.x + Style.Padding.Left + Style.Padding.Right + (Style.FrameWidth * 2) + 0.1f,
-                contentSize.y + Style.Padding.Top + Style.Padding.Bottom + (Style.FrameWidth * 2) + 0.1f);
+                contentSize.x + Style.Padding.Horizontal + 0.1f,
+                contentSize.y + Style.Padding.Vertical + 0.1f);
         }
     }
     

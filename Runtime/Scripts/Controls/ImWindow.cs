@@ -85,7 +85,7 @@ namespace Imui.Controls
             }
             
             var titleBarRect = GetTitleBarRect(gui, in state.Rect, out _);
-            state.Rect.WithPadding(Style.FrameWidth).SplitTop(titleBarRect.H, out content);
+            state.Rect.SplitTop(titleBarRect.H, out content);
             content.AddPadding(Style.Padding);
         }
 
@@ -212,11 +212,10 @@ namespace Imui.Controls
 
         private static ImRect GetResizeHandleRect(in ImRect rect, out float cornerRadius)
         {
-            cornerRadius = Mathf.Max(Style.CornerRadius - Style.FrameWidth, 0);
+            cornerRadius = Mathf.Max(Style.CornerRadius, 0);
             
             var handleSize = Mathf.Max(Style.ResizeHandleSize, cornerRadius);
             var handleRect = rect;
-            handleRect.AddPadding(Style.FrameWidth);
             handleRect.X += handleRect.W - handleSize;
             handleRect.W = handleSize;
             handleRect.H = handleSize;

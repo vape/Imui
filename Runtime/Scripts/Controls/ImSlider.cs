@@ -42,7 +42,7 @@ namespace Imui.Controls
 
             gui.Canvas.RectWithOutline(rect, Style.BackColor, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
 
-            var rectPadded = rect.WithPadding(Style.FrameWidth).WithPadding(Style.Padding);
+            var rectPadded = rect.WithPadding(Style.Padding);
 
             var handleW = rectPadded.H * 1.5f;
             var handleH = rectPadded.H;
@@ -108,7 +108,7 @@ namespace Imui.Controls
                 Padding = 1
             };
 
-            style.Handle.CornerRadius = style.CornerRadius - style.FrameWidth;
+            style.Handle.CornerRadius = style.CornerRadius;
             style.Handle.FrameWidth = 0;
             style.Handle.Normal.BackColor = ImColors.Black;
             style.Handle.Hovered.BackColor = ImColors.Gray1;

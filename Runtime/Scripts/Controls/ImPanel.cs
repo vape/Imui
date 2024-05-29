@@ -13,8 +13,6 @@ namespace Imui.Controls
         {
             gui.Canvas.RectWithOutline(rect, Style.BackColor, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
 
-            rect.ApplyPadding(Style.FrameWidth);
-            
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(Style.Padding));
             gui.Canvas.PushRectMask(rect, Style.CornerRadius.GetMax());
             gui.BeginScrollable();
@@ -30,8 +28,8 @@ namespace Imui.Controls
         public static Vector2 PanelSizeFromContentSize(Vector2 size)
         {
             return new Vector2(
-                size.x + Style.Padding.Left + Style.Padding.Right + Style.FrameWidth * 2,
-                size.y + Style.Padding.Bottom + Style.Padding.Top + Style.FrameWidth * 2);
+                size.x + Style.Padding.Horizontal,
+                size.y + Style.Padding.Vertical);
         }
     }
 
