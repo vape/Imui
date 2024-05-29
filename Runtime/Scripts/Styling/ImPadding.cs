@@ -34,12 +34,14 @@ namespace Imui.Styling
 
         public static implicit operator ImPadding(float padding) => new(padding);
         
-        public static ImPadding operator +(ImPadding padding, float value) {
+        public static ImPadding operator +(ImPadding padding, float value) 
+        {
             padding.Add(value);
             return padding;
         }
         
-        public static ImPadding operator -(ImPadding padding, float value) {
+        public static ImPadding operator -(ImPadding padding, float value) 
+        {
             padding.Add(-value);
             return padding;
         }

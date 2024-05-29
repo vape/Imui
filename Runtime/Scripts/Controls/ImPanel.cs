@@ -1,7 +1,6 @@
 using Imui.Core;
 using Imui.Styling;
 using Imui.Utility;
-using UnityEngine;
 
 namespace Imui.Controls
 {
@@ -9,12 +8,12 @@ namespace Imui.Controls
     {
         public static ImPanelStyle Style = ImPanelStyle.Default;
         
-        public static void BeginPanel(this ImGui gui, ImRect rect)
+        public static void BeginPanel(this ImGui gui, in ImRect rect)
         {
-            gui.Canvas.RectWithOutline(rect, Style.BackColor, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
+            gui.DrawBox(in rect, Style.Box);
 
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(Style.Padding));
-            gui.Canvas.PushRectMask(rect.WithPadding(Style.FrameWidth), Style.CornerRadius.GetMax());
+            gui.Canvas.PushRectMask(rect.WithPadding(Style.Box.BorderWidth), Style.Box.BorderRadius.GetMax());
             gui.BeginScrollable();
         }
 
@@ -30,17 +29,17 @@ namespace Imui.Controls
     {
         public static readonly ImPanelStyle Default = new ImPanelStyle()
         {
-            BackColor = ImColors.White,
-            FrameColor = ImColors.Black,
-            FrameWidth = 1,
-            CornerRadius = 8,
+            Box = new ImBoxStyle
+            {
+                BackColor = ImColors.White,
+                BorderColor = ImColors.Black,
+                BorderWidth = 1,
+                BorderRadius = 3
+            },
             Padding = 4f
         };
 
-        public Color32 BackColor;
-        public Color32 FrameColor;
-        public int FrameWidth;
-        public ImRectRadius CornerRadius;
+        public ImBoxStyle Box;
         public ImPadding Padding;
 
         public float GetHeight(float contentHeight)

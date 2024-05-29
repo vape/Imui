@@ -26,13 +26,11 @@ namespace Imui.Controls
             gui.Canvas.PushOrder(ORDER_CLOSE_BUTTON);
 
             var id = gui.GetNextControlId();
-            if (gui.IsControlHovered(id))
+            
+            ref readonly var mouseEvent = ref gui.Input.MouseEvent;
+            if (mouseEvent.Type == ImMouseEventType.Scroll)
             {
-                ref readonly var mouseEvent = ref gui.Input.MouseEvent;
-                if (mouseEvent.Type == ImMouseEventType.Scroll)
-                {
-                    gui.Input.UseMouseEvent();
-                }
+                gui.Input.UseMouseEvent();
             }
             
             var clicked = gui.InvisibleButton(id, gui.Canvas.ScreenRect);

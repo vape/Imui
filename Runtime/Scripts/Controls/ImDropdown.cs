@@ -60,7 +60,7 @@ namespace Imui.Controls
                 gui.Canvas.PushNoRectMask();
                 
                 gui.BeginPopup();
-                gui.BeginPanel(panelRect);
+                gui.BeginPanel(in panelRect);
 
                 var optionButtonWidth = gui.Layout.GetAvailableWidth();
 

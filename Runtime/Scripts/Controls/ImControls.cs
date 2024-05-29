@@ -43,19 +43,21 @@ namespace Imui.Controls
             gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderWidth, style.BorderRadius);
         }
     }
-
+    
     public struct ImControlsStyle
     {
         public static readonly ImControlsStyle Default = new ImControlsStyle()
         {
             TextSize = 26,
             Spacing = 4,
-            ControlsSpacing = 2
+            ControlsSpacing = 2,
+            ScrollSpeedScale = 6
         };
         
         public float TextSize;
         public float Spacing;
         public float ControlsSpacing;
+        public float ScrollSpeedScale;
     }
     
     [Serializable]
