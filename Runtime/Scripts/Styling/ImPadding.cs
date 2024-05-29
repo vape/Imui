@@ -24,6 +24,24 @@ namespace Imui.Styling
             Bottom = bottom;
         }
 
+        public void Add(float value)
+        {
+            Left += value;
+            Right += value;
+            Top += value;
+            Bottom += value;
+        }
+
         public static implicit operator ImPadding(float padding) => new(padding);
+        
+        public static ImPadding operator +(ImPadding padding, float value) {
+            padding.Add(value);
+            return padding;
+        }
+        
+        public static ImPadding operator -(ImPadding padding, float value) {
+            padding.Add(-value);
+            return padding;
+        }
     }
 }

@@ -5,6 +5,11 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    public struct ImDropdownState
+    {
+        public bool Open;
+    }
+    
     public static class ImDropdown
     {
         public static ImDropdownStyle Style = ImDropdownStyle.Default;
@@ -13,8 +18,7 @@ namespace Imui.Controls
         {
             gui.AddControlSpacing();
 
-            var height = gui.GetRowHeight() + ImSelect.Style.Button.Padding.Vertical;
-            var rect = gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), height);
+            var rect = gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), GetControlHeight(gui));
             return Dropdown(gui, ref selected, in options, in rect);
         }
         
@@ -37,41 +41,46 @@ namespace Imui.Controls
         public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, in ImRect rect)
         {
             var id = gui.GetNextControlId();
-            ref var state = ref gui.Storage.Get<State>(id);
+            ref var state = ref gui.Storage.Get<ImDropdownState>(id);
 
-            var selectedLabel = selected < 0 || selected >= options.Length ? string.Empty : options[selected];
-            var clicked = gui.Select(selectedLabel, rect);
+            var text = selected < 0 || selected >= options.Length ? string.Empty : options[selected];
+            var clicked = gui.Select(text, rect);
             var changed = false;
             var closeClicked = false;
             
             if (state.Open)
             {
-                var buttonHeight = gui.GetRowHeight() + Style.OptionButton.Padding.Vertical;
-                var totalSpacingHeight = ImControls.Style.Spacing * (options.Length - 1);
-                var popupHeight = Mathf.Min(Style.MaxPopupHeight, options.Length * buttonHeight + totalSpacingHeight);
-                var popupRectSize = ImPanel.PanelSizeFromContentSize(new Vector2(rect.W, popupHeight));
-                var popupRect = new ImRect(rect.X, rect.Y - popupRectSize.y, rect.W, popupRectSize.y);
-                
+                var contentHeight = gui.GetRowHeight();
+                var optionButtonHeight = Style.OptionButton.GetButtonHeight(contentHeight);
+                var totalSpacingHeight = Style.OptionsButtonsSpacing * (options.Length - 1);
+                var panelHeight = ImPanel.Style.GetHeight(Mathf.Min(Style.MaxPanelHeight, options.Length * optionButtonHeight + totalSpacingHeight));
+                var panelRect = new ImRect(rect.X, rect.Y - panelHeight, rect.W, panelHeight);
+
                 gui.Canvas.PushNoClipRect();
                 gui.Canvas.PushNoRectMask();
                 
                 gui.BeginPopup();
-                gui.BeginPanel(popupRect);
+                gui.BeginPanel(panelRect);
 
-                var buttonWidth = gui.Layout.GetAvailableWidth();
-                var currentlySelected = selected;
-                
-                for (int i = 0; i < options.Length; ++i)
+                var optionButtonWidth = gui.Layout.GetAvailableWidth();
+
+                using (new ImStyleScope<ImControlsStyle>(ref ImControls.Style))
                 {
-                    var isSelected = currentlySelected == i;
-                    var style = isSelected ? Style.OptionButtonSelected : Style.OptionButton;
+                    ImControls.Style.Spacing = Style.OptionsButtonsSpacing;
                     
-                    using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, style);
-                    
-                    if (gui.Button(options[i], buttonWidth, buttonHeight))
+                    for (int i = 0; i < options.Length; ++i)
                     {
-                        selected = i;
-                        changed = true;
+                        var isSelected = selected == i;
+                        var style = isSelected ? Style.OptionButtonSelected : Style.OptionButton;
+
+                        using (new ImStyleScope<ImButtonStyle>(ref ImButton.Style, style))
+                        {
+                            if (gui.Button(options[i], optionButtonWidth, optionButtonHeight))
+                            {
+                                selected = i;
+                                changed = true;
+                            }
+                        }
                     }
                 }
                 
@@ -90,15 +99,15 @@ namespace Imui.Controls
             return changed;
         }
 
-        public struct State
+        public static float GetControlHeight(ImGui gui)
         {
-            public bool Open;
+            return ImSelect.Style.Button.GetButtonHeight(gui.GetRowHeight());
         }
     }
 
     public struct ImDropdownStyle
     {
-        public const float DEFAULT_MAX_POPUP_HEIGHT = 300;
+        public const float DEFAULT_MAX_PANEL_HEIGHT = 300;
 
         public static readonly ImDropdownStyle Default = CreateDefaultStyle();
         
@@ -106,14 +115,16 @@ namespace Imui.Controls
         {
             var style = new ImDropdownStyle()
             {
-                MaxPopupHeight = DEFAULT_MAX_POPUP_HEIGHT
+                MaxPanelHeight = DEFAULT_MAX_PANEL_HEIGHT,
+                OptionsButtonsSpacing = 0
             };
             
             style.OptionButton = ImButtonStyle.Default;
             style.OptionButton.Normal.BackColor = ImColors.Blue.WithAlpha(0);
             style.OptionButton.Hovered.BackColor = ImColors.Blue.WithAlpha(32);
             style.OptionButton.Pressed.BackColor = ImColors.Blue.WithAlpha(48);
-            style.OptionButton.Alignment.Hor = 0;
+            style.OptionButton.Padding += 4;
+            style.OptionButton.Alignment.X = 0;
             style.OptionButton.SetBorderWidth(0);
             
             style.OptionButtonSelected = ImButtonStyle.Default;
@@ -123,14 +134,16 @@ namespace Imui.Controls
             style.OptionButtonSelected.Hovered.FrontColor = ImColors.White;
             style.OptionButtonSelected.Pressed.BackColor = ImColors.DarkBlue;
             style.OptionButtonSelected.Pressed.FrontColor = ImColors.White;
-            style.OptionButtonSelected.Alignment.Hor = 0;
+            style.OptionButtonSelected.Padding += 4;
+            style.OptionButtonSelected.Alignment.X = 0;
             style.OptionButtonSelected.SetBorderWidth(0);
 
             return style;
         }
         
-        public float MaxPopupHeight;
+        public float MaxPanelHeight;
         public ImButtonStyle OptionButton;
         public ImButtonStyle OptionButtonSelected;
+        public float OptionsButtonsSpacing;
     }
 }

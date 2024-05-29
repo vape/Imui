@@ -14,7 +14,7 @@ namespace Imui.Controls
             gui.Canvas.RectWithOutline(rect, Style.BackColor, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
 
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(Style.Padding));
-            gui.Canvas.PushRectMask(rect, Style.CornerRadius.GetMax());
+            gui.Canvas.PushRectMask(rect.WithPadding(Style.FrameWidth), Style.CornerRadius.GetMax());
             gui.BeginScrollable();
         }
 
@@ -23,13 +23,6 @@ namespace Imui.Controls
             gui.EndScrollable();
             gui.Canvas.PopRectMask();
             gui.Layout.Pop();
-        }
-        
-        public static Vector2 PanelSizeFromContentSize(Vector2 size)
-        {
-            return new Vector2(
-                size.x + Style.Padding.Horizontal,
-                size.y + Style.Padding.Vertical);
         }
     }
 
@@ -49,5 +42,15 @@ namespace Imui.Controls
         public int FrameWidth;
         public ImRectRadius CornerRadius;
         public ImPadding Padding;
+
+        public float GetHeight(float contentHeight)
+        {
+            return contentHeight + Padding.Vertical;
+        }
+        
+        public ImRect GetContentRect(ImRect popupRect)
+        {
+            return popupRect.WithPadding(Padding);
+        }
     }
 }

@@ -293,13 +293,13 @@ namespace Imui.Core
 
         public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
-            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.Hor, settings.Align.Ver, settings.Size);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size);
             Text(text, color, rect.TopLeft, in layout);
         }
         
         public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings, out ImRect textRect)
         {
-            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.Hor, settings.Align.Ver, settings.Size);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size);
             
             textRect = new ImRect(
                 rect.X + layout.OffsetX, 

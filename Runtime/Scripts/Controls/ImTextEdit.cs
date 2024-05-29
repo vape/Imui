@@ -110,7 +110,7 @@ namespace Imui.Controls
             var layout = gui.TextDrawer.BuildTempLayout(
                 buffer, 
                 textRect.W, textRect.H, 
-                Style.Alignment.Hor, Style.Alignment.Ver, textSize);
+                Style.Alignment.X, Style.Alignment.Y, textSize);
             
             gui.Canvas.PushRectMask(rect, Style.CornerRadius);
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);

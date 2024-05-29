@@ -86,7 +86,7 @@ namespace Imui.Controls
         private static ImButtonStyle CreateDefaultButtonStyle()
         {
             var style = ImButtonStyle.Default;
-            style.Alignment.Hor = 0;
+            style.Alignment.X = 0;
             return style;
         }
         

@@ -6,13 +6,13 @@ namespace Imui.Core
     [Serializable]
     public struct ImTextAlignment
     {
-        [Range(0, 1)] public float Hor;
-        [Range(0, 1)] public float Ver;
+        [Range(0, 1)] public float X;
+        [Range(0, 1)] public float Y;
 
-        public ImTextAlignment(float horizontal, float vertical)
+        public ImTextAlignment(float x, float y)
         {
-            Hor = horizontal;
-            Ver = vertical;
+            X = x;
+            Y = y;
         }
     }
     
@@ -22,11 +22,11 @@ namespace Imui.Core
         public float Size;
         public ImTextAlignment Align;
 
-        public ImTextSettings(float size, float alignHor = 0.0f, float alignVer = 0.0f)
+        public ImTextSettings(float size, float alignX = 0.0f, float alignY = 0.0f)
         {
             Size = size;
-            Align.Hor = alignHor;
-            Align.Ver = alignVer;
+            Align.X = alignX;
+            Align.Y = alignY;
         }
 
         public ImTextSettings(float size, ImTextAlignment alignment)

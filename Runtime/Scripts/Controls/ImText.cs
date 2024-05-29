@@ -39,8 +39,8 @@ namespace Imui.Controls
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 
                 bounds.x, 
                 bounds.y,
-                textSettings.Align.Hor,
-                textSettings.Align.Ver, 
+                textSettings.Align.X,
+                textSettings.Align.Y, 
                 textSettings.Size);
 
             return new Vector2(textLayout.Width, textLayout.Height);

@@ -194,6 +194,11 @@ namespace Imui.Controls
                 contentSize.y + Padding.Vertical);
         }
 
+        public float GetButtonHeight(float contentHeight)
+        {
+            return contentHeight + Padding.Vertical;
+        }
+
         public ImRect GetContentRect(ImRect buttonRect)
         {
             return buttonRect.WithPadding(Padding);
@@ -222,7 +227,7 @@ namespace Imui.Controls
         public void SetBorderWidth(float width)
         {
             Normal.BorderWidth = width;
-            Hovered.BorderRadius = width;
+            Hovered.BorderWidth = width;
             Pressed.BorderWidth = width;
         }
     }
