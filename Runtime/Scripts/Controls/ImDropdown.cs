@@ -10,6 +10,8 @@ namespace Imui.Controls
         public bool Open;
     }
     
+    // TODO (artem-s): add optional search field
+    // TODO (artem-s): maybe move panel drawing into separate control for reusing
     public static class ImDropdown
     {
         public static ImDropdownStyle Style = ImDropdownStyle.Default;

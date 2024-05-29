@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    // TODO (artem-s): implement table layout helper
     public static class ImControls
     {
         public static ImControlsStyle Style = ImControlsStyle.Default;

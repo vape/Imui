@@ -30,6 +30,7 @@ namespace Imui.Controls
         }
     }
     
+    // TODO (artem-s): text input with dropdown selection
     public static class ImTextEdit
     {
         private const float CARET_BLINKING_TIME = 0.3f;

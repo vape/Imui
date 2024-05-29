@@ -4,6 +4,7 @@ using Imui.Utility;
 
 namespace Imui.Controls
 {
+    // TODO (artem-s): allow to add title bar to panel
     public static class ImPanel
     {
         public static ImPanelStyle Style = ImPanelStyle.Default;
