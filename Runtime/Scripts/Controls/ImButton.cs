@@ -137,7 +137,7 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImControls.GetTextSize(), Style.Alignment);
+            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment);
         }
     }
 
@@ -151,8 +151,6 @@ namespace Imui.Controls
     [Serializable]
     public struct ImButtonStyle
     {
-        public const float EXTRA_PADDING = 0.1f;
-
         public static readonly ImButtonStyle Default = new ImButtonStyle()
         {
             Padding = 2.0f,
@@ -192,8 +190,8 @@ namespace Imui.Controls
         public Vector2 GetButtonSize(Vector2 contentSize)
         {
             return new Vector2(
-                contentSize.x + Padding.Horizontal + EXTRA_PADDING, 
-                contentSize.y + Padding.Vertical + EXTRA_PADDING);
+                contentSize.x + Padding.Horizontal, 
+                contentSize.y + Padding.Vertical);
         }
 
         public ImRect GetContentRect(ImRect buttonRect)

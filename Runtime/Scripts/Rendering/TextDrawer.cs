@@ -274,6 +274,8 @@ namespace Imui.Rendering
         
         public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, ref Layout layout)
         {
+            const float NEXT_LINE_WIDTH_THRESHOLD = 0.00001f;
+            
             layout.LinesCount = 0;
             layout.Scale = size / FontRenderSize;
             layout.OffsetX = width * alignX;
@@ -314,7 +316,7 @@ namespace Imui.Rendering
                 var advance = charInfo.glyph.metrics.horizontalAdvance * layout.Scale;
                 var newLine = c == NEW_LINE;
                 
-                if (newLine || (width > 0 && lineWidth > 0 && (lineWidth + advance) > width))
+                if (newLine || (width > 0 && lineWidth > 0 && (lineWidth + advance) > (width + NEXT_LINE_WIDTH_THRESHOLD)))
                 {
                     ref var line = ref layout.Lines[layout.LinesCount];
                     

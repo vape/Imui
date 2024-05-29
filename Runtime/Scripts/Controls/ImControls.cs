@@ -7,11 +7,6 @@ namespace Imui.Controls
     public static class ImControls
     {
         public static ImControlsStyle Style = ImControlsStyle.Default;
-
-        public static float GetTextSize()
-        {
-            return Style.TextSize;
-        }
         
         [Obsolete]
         public static float GetTextSize(this ImGui gui)
@@ -54,11 +49,13 @@ namespace Imui.Controls
         public static readonly ImControlsStyle Default = new ImControlsStyle()
         {
             TextSize = 26,
-            Spacing = 4
+            Spacing = 4,
+            ControlsSpacing = 2
         };
         
         public float TextSize;
         public float Spacing;
+        public float ControlsSpacing;
     }
     
     [Serializable]

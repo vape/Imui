@@ -26,10 +26,9 @@ namespace Imui.Controls
 
             var textSettings = GetTextSettings();
             var textSize = gui.MeasureTextSize(in label, in textSettings);
-
             var checkmarkBoxSize = GetCheckmarkBoxSize(gui);
             var rect = gui.Layout.AddRect(
-                textSize.x + checkmarkBoxSize + Style.Space, 
+                checkmarkBoxSize + ImControls.Style.ControlsSpacing + textSize.x, 
                 Mathf.Max(textSize.y, checkmarkBoxSize));
             Checkmark(gui, ref value, in label, in rect);
         }
@@ -53,11 +52,11 @@ namespace Imui.Controls
         public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, in ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var checkmarkBox = rect.SplitLeft(GetCheckmarkBoxSize(gui), out var textRect);
+            var checkmarkBox = rect.SplitLeft(GetCheckmarkBoxSize(gui), out var textRect).WithAspect(1.0f);
             Checkmark(gui, id, ref value, in checkmarkBox);
 
-            textRect.X += Style.Space;
-
+            textRect.X += ImControls.Style.ControlsSpacing;
+            textRect.W -= ImControls.Style.ControlsSpacing;
             gui.Canvas.Text(in label, Style.TextColor, textRect, GetTextSettings());
             
             if (gui.InvisibleButton(id, textRect))
@@ -70,14 +69,15 @@ namespace Imui.Controls
         {
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
             
-            var buttonRect = rect.WithAspect(1.0f);
-            var clicked = gui.Button(id, in buttonRect, out var state);
+            var clicked = gui.Button(id, in rect, out var state);
             var style = Style.Button.GetStyle(state);
 
             if (value)
             {
-                var checkMarkRect = buttonRect.WithPadding(Style.CheckmarkPadding);
-                DrawCheckMark(gui.Canvas, checkMarkRect, style.FrontColor, checkMarkRect.W * 0.2f);
+                var checkmarkRect = Style.Button.GetContentRect(rect);
+                var checkmarkStrokeWidth = checkmarkRect.W * 0.2f;
+                
+                DrawCheckMark(gui.Canvas, checkmarkRect, style.FrontColor, checkmarkStrokeWidth);
             }
             
             if (clicked)
@@ -100,7 +100,7 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImControls.GetTextSize(), Style.Button.Alignment);
+            return new ImTextSettings(ImControls.Style.TextSize, Style.Button.Alignment);
         }
 
         public static float GetCheckmarkBoxSize(ImGui gui)
@@ -111,17 +111,21 @@ namespace Imui.Controls
 
     public struct ImCheckmarkStyle
     {
-        public static readonly ImCheckmarkStyle Default = new ImCheckmarkStyle()
-        {
-            Button = ImButtonStyle.Default,
-            TextColor = ImColors.Black,
-            Space = 2,
-            CheckmarkPadding = 4
-        };
+        public static readonly ImCheckmarkStyle Default = CreateDefaultStyle();
 
-        public float CheckmarkPadding;
+        public static ImCheckmarkStyle CreateDefaultStyle()
+        {
+            var style = new ImCheckmarkStyle()
+            {
+                Button = ImButtonStyle.Default,
+                TextColor = ImColors.Black
+            };
+
+            style.Button.Padding = 4.0f;
+            return style;
+        }
+
         public ImButtonStyle Button;
         public Color32 TextColor;
-        public float Space;
     }
 }
