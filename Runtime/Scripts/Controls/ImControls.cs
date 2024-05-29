@@ -1,11 +1,19 @@
+using System;
 using Imui.Core;
+using UnityEngine;
 
 namespace Imui.Controls
 {
-    public static class ImControlsLayout
+    public static class ImControls
     {
-        public static ImControlsLayoutStyle Style = ImControlsLayoutStyle.Default;
+        public static ImControlsStyle Style = ImControlsStyle.Default;
 
+        public static float GetTextSize()
+        {
+            return Style.TextSize;
+        }
+        
+        [Obsolete]
         public static float GetTextSize(this ImGui gui)
         {
             return Style.TextSize;
@@ -34,11 +42,16 @@ namespace Imui.Controls
         {
             gui.Layout.AddSpace(space);
         }
+        
+        public static void DrawBox(this ImGui gui, in ImRect rect, in ImBoxStyle style)
+        {
+            gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderWidth, style.BorderRadius);
+        }
     }
 
-    public struct ImControlsLayoutStyle
+    public struct ImControlsStyle
     {
-        public static readonly ImControlsLayoutStyle Default = new ImControlsLayoutStyle()
+        public static readonly ImControlsStyle Default = new ImControlsStyle()
         {
             TextSize = 26,
             Spacing = 4
@@ -46,5 +59,15 @@ namespace Imui.Controls
         
         public float TextSize;
         public float Spacing;
+    }
+    
+    [Serializable]
+    public struct ImBoxStyle
+    {
+        public Color32 BackColor;
+        public Color32 FrontColor;
+        public Color32 BorderColor;
+        public float BorderWidth;
+        public ImRectRadius BorderRadius;
     }
 }

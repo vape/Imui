@@ -19,7 +19,7 @@ namespace Imui.Controls
             var textSettings = GetTextSettings(gui);
             var contentSize = gui.MeasureTextSize(label, in textSettings);
             contentSize.x += Style.ArrowWidth;
-            var rect = gui.Layout.AddRect(ImButton.ButtonSizeFromContentSize(contentSize));
+            var rect = gui.Layout.AddRect(Style.Button.GetButtonSize(contentSize));
             return Select(gui, label, in rect);
         }
 
@@ -44,7 +44,9 @@ namespace Imui.Controls
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
             
             var id = gui.GetNextControlId();
-            var clicked = gui.Button(id, rect, out var content, out var style);
+            var clicked = gui.Button(id, rect, out var state);
+            var style = Style.Button.GetStyle(state);
+            var content = Style.Button.GetContentRect(rect);
             var textSettings = GetTextSettings(gui);
             
             gui.Canvas.Text(in label, style.FrontColor, content, in textSettings);

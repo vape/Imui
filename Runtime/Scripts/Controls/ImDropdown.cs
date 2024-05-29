@@ -47,7 +47,7 @@ namespace Imui.Controls
             if (state.Open)
             {
                 var buttonHeight = gui.GetRowHeight() + Style.OptionButton.Padding.Vertical;
-                var totalSpacingHeight = ImControlsLayout.Style.Spacing * (options.Length - 1);
+                var totalSpacingHeight = ImControls.Style.Spacing * (options.Length - 1);
                 var popupHeight = Mathf.Min(Style.MaxPopupHeight, options.Length * buttonHeight + totalSpacingHeight);
                 var popupRectSize = ImPanel.PanelSizeFromContentSize(new Vector2(rect.W, popupHeight));
                 var popupRect = new ImRect(rect.X, rect.Y - popupRectSize.y, rect.W, popupRectSize.y);
@@ -110,14 +110,13 @@ namespace Imui.Controls
             };
             
             style.OptionButton = ImButtonStyle.Default;
-            style.OptionButton.FrameWidth = 0;
             style.OptionButton.Normal.BackColor = ImColors.Blue.WithAlpha(0);
             style.OptionButton.Hovered.BackColor = ImColors.Blue.WithAlpha(32);
             style.OptionButton.Pressed.BackColor = ImColors.Blue.WithAlpha(48);
             style.OptionButton.Alignment.Hor = 0;
+            style.OptionButton.SetBorderWidth(0);
             
             style.OptionButtonSelected = ImButtonStyle.Default;
-            style.OptionButtonSelected.FrameWidth = 0;
             style.OptionButtonSelected.Normal.BackColor = ImColors.Blue;
             style.OptionButtonSelected.Normal.FrontColor = ImColors.White;
             style.OptionButtonSelected.Hovered.BackColor = ImColors.LightBlue;
@@ -125,6 +124,7 @@ namespace Imui.Controls
             style.OptionButtonSelected.Pressed.BackColor = ImColors.DarkBlue;
             style.OptionButtonSelected.Pressed.FrontColor = ImColors.White;
             style.OptionButtonSelected.Alignment.Hor = 0;
+            style.OptionButtonSelected.SetBorderWidth(0);
 
             return style;
         }

@@ -58,7 +58,7 @@ namespace Imui.Controls
 
             using (new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Handle))
             {
-                gui.Button(id, in handleRect, out _, out _);
+                gui.Button(id, in handleRect, out _);
             }
             
             ref readonly var evt = ref gui.Input.MouseEvent;
@@ -107,12 +107,12 @@ namespace Imui.Controls
                 Handle = ImButtonStyle.Default,
                 Padding = 1
             };
-
-            style.Handle.CornerRadius = style.CornerRadius;
-            style.Handle.FrameWidth = 0;
+            
             style.Handle.Normal.BackColor = ImColors.Black;
             style.Handle.Hovered.BackColor = ImColors.Gray1;
             style.Handle.Pressed.BackColor = ImColors.Black;
+            style.Handle.SetBorderRadius(style.CornerRadius);
+            style.Handle.SetBorderWidth(0);
             
             return style;
         }

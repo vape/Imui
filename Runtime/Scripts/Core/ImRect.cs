@@ -168,6 +168,7 @@ namespace Imui.Core
         public static bool operator !=(ImRect r0, ImRect r1) => !r0.Equals(r1);
     }
 
+    [Serializable]
     public struct ImRectRadius
     {
         public float TopLeft;

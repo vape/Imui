@@ -1,5 +1,8 @@
+using System;
+
 namespace Imui.Styling
 {
+    [Serializable]
     public struct ImPadding
     {
         public float Vertical => Top + Bottom;
