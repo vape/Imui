@@ -274,7 +274,7 @@ namespace Imui.Rendering
         
         public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, ref Layout layout)
         {
-            const float NEXT_LINE_WIDTH_THRESHOLD = 0.00001f;
+            const float NEXT_LINE_WIDTH_THRESHOLD = 0.0001f;
             
             layout.LinesCount = 0;
             layout.Scale = size / FontRenderSize;
