@@ -8,15 +8,14 @@ namespace Imui.Controls
 {
     public static class ImText
     {
-        private const float MIN_WIDTH = 1;
-        private const float MIN_HEIGHT = 1;
+        public const float MIN_WIDTH = 1;
+        public const float MIN_HEIGHT = 1;
         
         public static ImTextStyle Style = ImTextStyle.Default;
 
         public static void Text(this ImGui gui, in ReadOnlySpan<char> text)
         {
-            var settings = new ImTextSettings(gui.GetTextSize(), Style.Alignment);
-            Text(gui, in text, in settings);
+            Text(gui, in text, GetTextSettings());
         }
         
         public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings settings)
@@ -32,6 +31,11 @@ namespace Imui.Controls
         public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings settings, ImRect rect)
         {
             gui.Canvas.Text(in text, Style.Color, rect, in settings);
+        }
+
+        public static ImTextSettings GetTextSettings()
+        {
+            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment);
         }
         
         public static Vector2 MeasureTextSize(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings textSettings, Vector2 bounds = default)
@@ -52,7 +56,8 @@ namespace Imui.Controls
     {
         public static readonly ImTextStyle Default = new ImTextStyle()
         {
-            Color = ImColors.Black
+            Color = ImColors.Black,
+            Alignment = new ImTextAlignment(0.0f, 0.0f)
         };
         
         public Color32 Color;

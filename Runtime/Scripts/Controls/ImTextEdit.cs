@@ -9,31 +9,18 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    public abstract class ImTextEditFilter
+    public struct ImTextEditState
     {
-        public abstract bool IsValid(in ReadOnlySpan<char> buffer);
-    }
-
-    public sealed class ImTextEditIntegerFilter : ImTextEditFilter
-    {
-        public override bool IsValid(in ReadOnlySpan<char> buffer)
-        {
-            return long.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
-        }
-    }
-    
-    public sealed class ImTextEditFloatFilter : ImTextEditFilter
-    {
-        public override bool IsValid(in ReadOnlySpan<char> buffer)
-        {
-            return double.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
-        }
+        public int Caret;
+        public int Selection;
     }
     
     // TODO (artem-s): text input with dropdown selection
     public static class ImTextEdit
     {
-        private const float CARET_BLINKING_TIME = 0.3f;
+        public const float CARET_BLINKING_TIME = 0.3f;
+        public const float MIN_WIDTH = 1;
+        public const float MIN_HEIGHT = 1;
 
         public static ImTextEditStyle Style = ImTextEditStyle.Default;
 
@@ -44,9 +31,8 @@ namespace Imui.Controls
         {
             gui.AddControlSpacing();
 
-            var size = gui.GetTextSize();
-            var width = Mathf.Max(size, gui.Layout.GetAvailableSize().x);
-            var height = GetHeight(gui);
+            var width = Mathf.Max(MIN_WIDTH, gui.Layout.GetAvailableWidth());
+            var height = Mathf.Max(MIN_HEIGHT, Style.GetControlHeight(gui.GetRowHeight()));
             var rect = gui.Layout.AddRect(width, height);
             TextEdit(gui, ref text, in rect, filter, false);
         }
@@ -84,14 +70,8 @@ namespace Imui.Controls
                 text = buffer.GetString();
             }
         }
-
-        public static float GetHeight(ImGui gui)
-        {
-            var textHeight = gui.GetRowHeight();
-            return textHeight + Style.Padding.Vertical + 0.1f;
-        }
         
-        private static bool TextEdit(
+        public static bool TextEdit(
             ImGui gui, 
             uint id, 
             in ImRect rect, 
@@ -105,20 +85,21 @@ namespace Imui.Controls
             var stateStyle = selected ? Style.Selected : Style.Normal;
             var textChanged = false;
             
-            DrawBack(gui, in stateStyle, in rect, out var textRect);
+            gui.DrawBox(in rect, in stateStyle.Box);
+            var textRect = Style.GetContentRect(rect);
 
-            var textSize = gui.GetTextSize();
+            var textSize = ImControls.Style.TextSize;
             var layout = gui.TextDrawer.BuildTempLayout(
                 buffer, 
                 textRect.W, textRect.H, 
                 Style.Alignment.X, Style.Alignment.Y, textSize);
             
-            gui.Canvas.PushRectMask(rect, Style.CornerRadius);
+            gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius.GetMax());
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);
             gui.BeginScrollable();
             
             textRect = gui.Layout.AddRect(layout.Width, layout.Height);
-            gui.Canvas.Text(buffer, stateStyle.FrontColor, textRect.TopLeft, in layout);
+            gui.Canvas.Text(buffer, stateStyle.Box.FrontColor, textRect.TopLeft, in layout);
 
             state.Caret = Mathf.Clamp(state.Caret, 0, buffer.Length);
             
@@ -202,7 +183,7 @@ namespace Imui.Controls
             return textChanged;
         }
         
-        private static bool HandleKeyboardEvent(ImGui gui, 
+        public static bool HandleKeyboardEvent(ImGui gui, 
             in ImKeyboardEvent evt, 
             ref ImTextEditState state, 
             ref ImTextEditBuffer buffer, 
@@ -292,7 +273,7 @@ namespace Imui.Controls
             return stateChanged || textChanged;
         }
 
-        private static bool PasteFromClipboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer, ImTextEditFilter filter)
+        public static bool PasteFromClipboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer, ImTextEditFilter filter)
         {
             var clipboardText = gui.Input.Clipboard;
             if (clipboardText.Length == 0)
@@ -310,12 +291,12 @@ namespace Imui.Controls
             return textChanged;
         }
 
-        private static unsafe bool TryInsert(ref ImTextEditState state, ref ImTextEditBuffer buffer, char chr, ImTextEditFilter filter)
+        public static unsafe bool TryInsert(ref ImTextEditState state, ref ImTextEditBuffer buffer, char chr, ImTextEditFilter filter)
         {
             return TryInsert(ref state, ref buffer, new ReadOnlySpan<char>(&chr, 1), filter);
         }
 
-        private static bool TryInsert(ref ImTextEditState state, ref ImTextEditBuffer buffer, ReadOnlySpan<char> text, ImTextEditFilter filter)
+        public static bool TryInsert(ref ImTextEditState state, ref ImTextEditBuffer buffer, ReadOnlySpan<char> text, ImTextEditFilter filter)
         {
             const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 2048;
             
@@ -347,7 +328,7 @@ namespace Imui.Controls
             return true;
         }
         
-        private static bool DeleteSelection(ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        public static bool DeleteSelection(ref ImTextEditState state, ref ImTextEditBuffer buffer)
         {
             if (state.Selection == 0)
             {
@@ -364,7 +345,7 @@ namespace Imui.Controls
             return true;
         }
 
-        private static bool DeleteBackward(ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        public static bool DeleteBackward(ref ImTextEditState state, ref ImTextEditBuffer buffer)
         {
             if (DeleteSelection(ref state, ref buffer))
             {
@@ -380,7 +361,7 @@ namespace Imui.Controls
             return false;
         }
 
-        private static bool DeleteForward(ref ImTextEditState state, ref ImTextEditBuffer buffer)
+        public static bool DeleteForward(ref ImTextEditState state, ref ImTextEditBuffer buffer)
         {
             if (DeleteSelection(ref state, ref buffer))
             {
@@ -396,7 +377,7 @@ namespace Imui.Controls
             return false;
         }
         
-        private static int FindEndOfWordOrSpacesSequence(int caret, int dir, ReadOnlySpan<char> buffer)
+        public static int FindEndOfWordOrSpacesSequence(int caret, int dir, ReadOnlySpan<char> buffer)
         {
             caret = Mathf.Clamp(caret + dir, 0, buffer.Length);
 
@@ -442,7 +423,7 @@ namespace Imui.Controls
             return caret;
         }
 
-        private static bool MoveCaretVertical(
+        public static bool MoveCaretVertical(
             ImGui gui, 
             in ImRect textRect,
             in TextDrawer.Layout layout,
@@ -474,7 +455,7 @@ namespace Imui.Controls
             return state.Caret != prevCaret || state.Selection != prevSelection;
         }
         
-        private static bool MoveCaretHorizontal(
+        public static bool MoveCaretHorizontal(
             ref ImTextEditState state, 
             in ImTextEditBuffer buffer, 
             int dir, 
@@ -513,7 +494,7 @@ namespace Imui.Controls
             return state.Caret != prevCaret || state.Selection != prevSelection;
         }
 
-        private static void ScrollToCaret(
+        public static void ScrollToCaret(
             ImGui gui, 
             in ImTextEditState state, 
             in ImRect textRect, 
@@ -558,7 +539,7 @@ namespace Imui.Controls
             }
         }
 
-        private static ReadOnlySpan<char> GetSelectedText(in ImTextEditState state, in ImTextEditBuffer buffer)
+        public static ReadOnlySpan<char> GetSelectedText(in ImTextEditState state, in ImTextEditBuffer buffer)
         {
             if (state.Selection == 0)
             {
@@ -571,7 +552,7 @@ namespace Imui.Controls
             return ((ReadOnlySpan<char>)buffer).Slice(begin, end - begin);
         }
 
-        private static int ViewToCaretPosition(Vector2 position, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
+        public static int ViewToCaretPosition(Vector2 position, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
         {
             var origin = rect.TopLeft;
             var py = origin.y + layout.OffsetY;
@@ -626,12 +607,12 @@ namespace Imui.Controls
             return caret;
         }
         
-        private static Vector2 CaretToViewPosition(int caret, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
+        public static Vector2 CaretToViewPosition(int caret, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
         {
             return LineOffsetToViewPosition(FindLineAtCaretPosition(caret, in layout, out var linePosition), linePosition, buffer, in rect, drawer, in layout);
         }
 
-        private static Vector2 LineOffsetToViewPosition(int line, int offset, ReadOnlySpan<char> buffer, in ImRect rect, TextDrawer drawer, in TextDrawer.Layout layout)
+        public static Vector2 LineOffsetToViewPosition(int line, int offset, ReadOnlySpan<char> buffer, in ImRect rect, TextDrawer drawer, in TextDrawer.Layout layout)
         {
             var yOffset = line * -layout.LineHeight + layout.OffsetY;
             var xOffset = line >= layout.LinesCount ? layout.OffsetX : layout.Lines[line].OffsetX;
@@ -655,7 +636,7 @@ namespace Imui.Controls
             return rect.TopLeft + new Vector2(xOffset, yOffset);
         }
 
-        private static int FindLineAtCaretPosition(int caret, in TextDrawer.Layout layout, out int linePosition)
+        public static int FindLineAtCaretPosition(int caret, in TextDrawer.Layout layout, out int linePosition)
         {
             var line = 0;
             while (layout.LinesCount - 1 > line && layout.Lines[line].Count <= caret)
@@ -668,7 +649,7 @@ namespace Imui.Controls
             return line;
         }
         
-        private static void DrawCaret(ImGui gui, 
+        public static void DrawCaret(ImGui gui, 
             int position,
             in ImRect textRect, 
             in TextDrawer.Layout layout, 
@@ -684,11 +665,11 @@ namespace Imui.Controls
 
             if ((long)(Time.unscaledTime / CARET_BLINKING_TIME) % 2 == 0)
             {
-                gui.Canvas.Rect(caretViewRect, style.FrontColor);
+                gui.Canvas.Rect(caretViewRect, style.Box.FrontColor);
             }
         }
 
-        private static void DrawSelection(ImGui gui, 
+        public static void DrawSelection(ImGui gui, 
             int position,
             int size,
             in ImRect textRect, 
@@ -726,62 +707,8 @@ namespace Imui.Controls
                 gui.Canvas.Rect(lineSelectionRect, style.SelectionColor);
             }
         }
-        
-        private static void DrawBack(ImGui gui, in ImTextEditStateStyle style, in ImRect rect, out ImRect content)
-        {
-            gui.Canvas.RectWithOutline(rect, style.BackColor, style.FrameColor, Style.FrameWidth, Style.CornerRadius);
-            content = rect.WithPadding(Style.Padding);
-        }
     }
-
-    public struct ImTextEditState
-    {
-        public int Caret;
-        public int Selection;
-    }
-
-    public class ImTextEditStyle
-    {
-        public static readonly ImTextEditStyle Default = new ImTextEditStyle()
-        {
-            Normal = new ImTextEditStateStyle()
-            {
-                BackColor = ImColors.Gray7,
-                FrontColor = ImColors.Black,
-                FrameColor = ImColors.Gray1,
-                SelectionColor = ImColors.Black.WithAlpha(32)
-            },
-            Selected = new ImTextEditStateStyle()
-            {
-                BackColor = ImColors.White,
-                FrontColor = ImColors.Black,
-                FrameColor = ImColors.Black,
-                SelectionColor = ImColors.Black.WithAlpha(64)
-            },
-            CornerRadius = 3.0f,
-            FrameWidth = 1.0f,
-            CaretWidth = 2.0f,
-            Padding = 1.0f,
-            Alignment = new ImTextAlignment(0.0f, 0.0f)
-        };
-        
-        public ImTextEditStateStyle Normal;
-        public ImTextEditStateStyle Selected;
-        public float FrameWidth;
-        public float CornerRadius;
-        public float CaretWidth;
-        public ImPadding Padding;
-        public ImTextAlignment Alignment;
-    }
-
-    public class ImTextEditStateStyle
-    {
-        public Color32 BackColor;
-        public Color32 FrontColor;
-        public Color32 FrameColor;
-        public Color32 SelectionColor;
-    }
-
+    
     public ref struct ImTextEditBuffer
     {
         private static char[] StaticBuffer = new char[1024];
@@ -876,5 +803,87 @@ namespace Imui.Controls
         
         public static implicit operator ReadOnlySpan<char>(ImTextEditBuffer buffer) =>
             buffer.InitText ?? new ReadOnlySpan<char>(buffer.Buffer, 0, buffer.Length);
+    }
+        
+    public abstract class ImTextEditFilter
+    {
+        public abstract bool IsValid(in ReadOnlySpan<char> buffer);
+    }
+
+    public sealed class ImTextEditIntegerFilter : ImTextEditFilter
+    {
+        public override bool IsValid(in ReadOnlySpan<char> buffer)
+        {
+            return long.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+        }
+    }
+    
+    public sealed class ImTextEditFloatFilter : ImTextEditFilter
+    {
+        public override bool IsValid(in ReadOnlySpan<char> buffer)
+        {
+            return double.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+        }
+    }
+
+    public class ImTextEditStyle
+    {
+        public static readonly ImTextEditStyle Default = new ImTextEditStyle()
+        {
+            Normal = new ImTextEditStateStyle()
+            {
+                Box = new ImBoxStyle()
+                {
+                    BackColor = ImColors.Gray7,
+                    FrontColor = ImColors.Black,
+                    BorderColor = ImColors.Gray1,
+                    BorderRadius = 3.0f,
+                    BorderWidth = 1.0f
+                },
+                SelectionColor = ImColors.Black.WithAlpha(32)
+            },
+            Selected = new ImTextEditStateStyle()
+            {
+                Box = new ImBoxStyle()
+                {
+                    BackColor = ImColors.White,
+                    FrontColor = ImColors.Black,
+                    BorderColor = ImColors.Black,
+                    BorderRadius = 3.0f,
+                    BorderWidth = 1.0f
+                },
+                SelectionColor = ImColors.Black.WithAlpha(64)
+            },
+            CaretWidth = 2.0f,
+            Padding = 1.0f,
+            Alignment = new ImTextAlignment(0.0f, 0.0f)
+        };
+        
+        public ImTextEditStateStyle Normal;
+        public ImTextEditStateStyle Selected;
+        public float CaretWidth;
+        public ImPadding Padding;
+        public ImTextAlignment Alignment;
+
+        public ImRect GetContentRect(ImRect rect)
+        {
+            return rect.WithPadding(Padding);
+        }
+
+        public float GetControlHeight(float contentHeight)
+        {
+            return contentHeight + Padding.Vertical;
+        }
+
+        public ImTextSettings GetTextSettings()
+        {
+            return new ImTextSettings(ImControls.Style.TextSize, Alignment);
+        }
+    }
+
+    public class ImTextEditStateStyle
+    {
+        public ImBoxStyle Box;
+        public Color32 SelectionColor;
     }
 }
