@@ -616,18 +616,16 @@ namespace Imui.Controls
         {
             var yOffset = line * -layout.LineHeight + layout.OffsetY;
             var xOffset = line >= layout.LinesCount ? layout.OffsetX : layout.Lines[line].OffsetX;
-            var totalLen = buffer.Length;
-            
-            if (line < layout.LinesCount && offset <= layout.Lines[line].Count && offset <= totalLen)
+
+            if (line < layout.LinesCount && offset <= layout.Lines[line].Count)
             {
                 ref readonly var lineLayout = ref layout.Lines[line];
                 
-                var count = Mathf.Min(totalLen, layout.Lines[line].Count);
                 var start = lineLayout.Start;
-                var end = start + count;
+                var end = start + offset;
                 var slice = buffer[start..end];
                 
-                for (int i = 0; i < offset && i < slice.Length; ++i)
+                for (int i = 0; i < slice.Length; ++i)
                 {
                     xOffset += drawer.GetCharacterWidth(slice[i], layout.Size);
                 }
