@@ -20,7 +20,7 @@ namespace Imui.Controls
             close = CloseButton(gui);
         }
 
-        private static bool CloseButton(ImGui gui)
+        public static bool CloseButton(ImGui gui)
         {
             gui.Canvas.PushNoClipRect();
             gui.Canvas.PushOrder(ORDER_CLOSE_BUTTON);

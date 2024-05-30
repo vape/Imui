@@ -113,5 +113,15 @@ namespace Imui.Utility
 
             return rect;
         }
+        
+        public static ImRect ScaleFromCenter(this ImRect rect, float scale)
+        {
+            rect.W *= scale;
+            rect.H *= scale;
+            rect.X += rect.W * 0.5f;
+            rect.Y += rect.H * 0.5f;
+
+            return rect;
+        }
     }
 }

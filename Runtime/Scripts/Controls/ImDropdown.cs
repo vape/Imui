@@ -39,10 +39,15 @@ namespace Imui.Controls
             var rect = gui.Layout.AddRect(size);
             return Dropdown(gui, ref selected, in options, in rect);
         }
-        
+
         public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, in ImRect rect)
         {
             var id = gui.GetNextControlId();
+            return Dropdown(gui, id, ref selected, in options, in rect);
+        }
+        
+        public static bool Dropdown(this ImGui gui, uint id, ref int selected, in ReadOnlySpan<string> options, in ImRect rect)
+        {
             ref var state = ref gui.Storage.Get<ImDropdownState>(id);
 
             var text = selected < 0 || selected >= options.Length ? string.Empty : options[selected];

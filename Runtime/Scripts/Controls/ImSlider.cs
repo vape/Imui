@@ -1,4 +1,3 @@
-using System;
 using Imui.Core;
 using Imui.IO.Events;
 using Imui.Styling;
@@ -37,14 +36,16 @@ namespace Imui.Controls
         
         public static bool Slider(this ImGui gui, ref float value, float min, float max, in ImRect rect)
         {
+            const float EPSILON = 0.000001f;
+            
             var prevValue = value;
             value = Mathf.InverseLerp(min, max, value);
 
-            gui.Canvas.RectWithOutline(rect, Style.BackColor, Style.FrameColor, Style.FrameWidth, Style.CornerRadius);
+            gui.DrawBox(in rect, in Style.Box);
 
             var rectPadded = rect.WithPadding(Style.Padding);
 
-            var handleW = rectPadded.H * 1.5f;
+            var handleW = rectPadded.H * Style.HandleAspectRatio;
             var handleH = rectPadded.H;
             
             var xmin = rectPadded.X + handleW / 2.0f;
@@ -88,7 +89,7 @@ namespace Imui.Controls
             
             value = Mathf.Lerp(min, max, value);
             
-            return Mathf.Abs(value - prevValue) > 0.000001f;
+            return Mathf.Abs(value - prevValue) > EPSILON;
         }
     }
 
@@ -100,28 +101,30 @@ namespace Imui.Controls
         {
             var style = new ImSliderStyle()
             {
-                BackColor = ImColors.White,
-                FrameWidth = 1,
-                FrameColor = ImColors.Black,
-                CornerRadius = 4,
+                Box = new ImBoxStyle()
+                {
+                    BackColor = ImColors.White,
+                    BorderWidth = 1,
+                    BorderColor = ImColors.Black,
+                    BorderRadius = 4
+                },
                 Handle = ImButtonStyle.Default,
-                Padding = 1
+                Padding = 1,
+                HandleAspectRatio = 1.5f
             };
             
             style.Handle.Normal.BackColor = ImColors.Black;
             style.Handle.Hovered.BackColor = ImColors.Gray1;
             style.Handle.Pressed.BackColor = ImColors.Black;
-            style.Handle.SetBorderRadius(style.CornerRadius);
+            style.Handle.SetBorderRadius(style.Box.BorderRadius);
             style.Handle.SetBorderWidth(0);
             
             return style;
         }
 
+        public ImBoxStyle Box;
         public ImButtonStyle Handle;
-        public Color32 BackColor;
-        public float FrameWidth;
-        public Color32 FrameColor;
-        public float CornerRadius;
         public ImPadding Padding;
+        public float HandleAspectRatio;
     }
 }

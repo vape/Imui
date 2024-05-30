@@ -64,6 +64,12 @@ namespace Imui.Controls
                 value = !value;
             }
         }
+
+        public static void Checkmark(this ImGui gui, ref bool value, in ImRect rect)
+        {
+            var id = gui.GetNextControlId();
+            Checkmark(gui, id, ref value, in rect);
+        }
         
         public static void Checkmark(this ImGui gui, uint id, ref bool value, in ImRect rect)
         {
