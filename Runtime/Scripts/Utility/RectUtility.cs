@@ -20,6 +20,14 @@ namespace Imui.Utility
 
             return new Rect(x1, y1, x2 - x1, y2 - y1);
         }
+
+        public static ImRect SplitTop(this ImRect rect, float height)
+        {
+            rect.Y += rect.H - height;
+            rect.H = height;
+            return rect;
+        }
+
         
         public static ImRect SplitTop(this ImRect rect, float height, out ImRect next)
         {
@@ -45,6 +53,14 @@ namespace Imui.Utility
             rect.Y += size;
             rect.W -= size * 2;
             rect.H -= size * 2;
+        }
+        
+        public static void AddPadding(this ref ImRect rect, ImPadding padding)
+        {
+            rect.X += padding.Left;
+            rect.Y += padding.Bottom;
+            rect.W -= padding.Left + padding.Right;
+            rect.H -= padding.Top + padding.Bottom;
         }
         
         public static ImRect WithAspect(this ImRect rect, float aspect)
