@@ -555,28 +555,33 @@ namespace Imui.Controls
         public static int ViewToCaretPosition(Vector2 position, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
         {
             var origin = rect.TopLeft;
-            var py = origin.y + layout.OffsetY;
             var line = 0;
 
             if (position.y > origin.y)
             {
+                line = 0;
+            }
+            else if (position.y < rect.Y)
+            {
+                line = layout.LinesCount - 1;
+            }
+            else
+            {
+                line = (int)(((rect.Y + rect.H - position.y) / layout.Height) * layout.LinesCount);
+            }
+
+            if (line < 0)
+            {
                 return 0;
             }
-
-            // TODO (artem-s): can't we just do something like 'position / layout.Height * layout.LinesCount'
-            while (line <= layout.LinesCount + 1 && (py < position.y || (py - layout.LineHeight) > position.y))
-            {
-                py -= layout.LineHeight;
-                line++;
-            }
-
-            if (line >= layout.LinesCount)
-            {
-                return buffer.Length;
-            }
-
+            
             var caret = layout.Lines[line].Start;
             var px = origin.x + layout.Lines[line].OffsetX;
+            if (position.x < px)
+            {
+                return caret;
+            }
+            
             var span = ((ReadOnlySpan<char>)buffer);
             
             var start = caret;
@@ -588,15 +593,16 @@ namespace Imui.Controls
             
             for (int i = start; i < end; ++i)
             {
-                var width = drawer.GetCharacterWidth(span[i], layout.Size);
-                if (px > position.x || (px + width) < position.x)
+                var characterWidth = drawer.GetCharacterWidth(span[i], layout.Size);
+                
+                if (px > position.x || (px + characterWidth) < position.x)
                 {
-                    px += width;
+                    px += characterWidth;
                     caret++;
                     continue;
                 }
 
-                if ((position.x - px) > (width / 2.0f))
+                if ((position.x - px) > (characterWidth / 2.0f))
                 {
                     caret++;
                 }
