@@ -30,7 +30,6 @@ namespace Imui.Controls
         public ImScrollLayoutFlag Layout;
     }
     
-    // TODO (artem-s): implement touch scrolling
     public static class ImScroll
     {
         public static ImScrollStyle Style = ImScrollStyle.Default;
@@ -55,7 +54,7 @@ namespace Imui.Controls
 
             var bounds = gui.Layout.GetBoundsRect();
             
-            Scroll(gui, in bounds, contentFrame.Size, ref gui.Storage.Get<ImScrollState>(id), flags);
+            Scroll(gui, id, in bounds, contentFrame.Size, flags);
         }
 
         public static Vector2 GetScrollOffset(this ImGui gui)
@@ -73,14 +72,15 @@ namespace Imui.Controls
             state.Offset = offset;
         }
         
-        public static void Scroll(ImGui gui, in ImRect view, Vector2 size, ref ImScrollState state, ImScrollFlag flags)
+        public static void Scroll(ImGui gui, uint id, in ImRect view, Vector2 size, ImScrollFlag flags)
         {
+            ref var state = ref gui.Storage.Get<ImScrollState>(id);
+            
             Layout(ref state, in view, size, out var adjust, flags);
 
             var dx = 0f;
             var dy = 0f;
 
-            var groupId = gui.GetNextControlId();
             var horId = gui.GetNextControlId();
             var verId = gui.GetNextControlId();
 
@@ -107,31 +107,48 @@ namespace Imui.Controls
                 dx -= normalDelta * size.x;
             }
 
-            var shouldConsumeMouseEvent = false;
-            if (gui.IsGroupHovered(groupId))
+            var deferredUseMouseEvent = false;
+            var groupHovered = gui.IsGroupHovered(id);
+            var active = gui.IsControlActive(id);
+
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            switch (evt.Type)
             {
-                ref readonly var mouseEvent = ref gui.Input.MouseEvent;
-                if (mouseEvent.Type == ImMouseEventType.Scroll)
-                {
+                case ImMouseEventType.Scroll when groupHovered:
                     var scale = ImControls.Style.ScrollSpeedScale;
-                    dx += mouseEvent.Delta.x * scale;
-                    dy += mouseEvent.Delta.y * scale;
-                    shouldConsumeMouseEvent = true;
-                }
+                    dx += evt.Delta.x * scale;
+                    dy += evt.Delta.y * scale;
+                    deferredUseMouseEvent = true;
+                    break;
+                
+                case ImMouseEventType.BeginDrag when groupHovered && !active && !gui.ActiveControlIs(ImControlFlag.Draggable):
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    break;
+                
+                case ImMouseEventType.Drag when active:
+                    dx += evt.Delta.x;
+                    dy += evt.Delta.y;
+                    gui.Input.UseMouseEvent();
+                    break;
+                
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
+                    break;
             }
 
+            var groupRect = GetVisibleRect(view, in state);
             var prevOffset = state.Offset;
             
             state.Offset.x = Mathf.Clamp(state.Offset.x + dx, Mathf.Min(0, view.W - size.x), 0);
             state.Offset.y = Mathf.Clamp(state.Offset.y + dy, 0, Mathf.Max(size.y - view.H, 0));
 
             // defer mouse event consumption so we can pass it to parent scroll rect in case offset hasn't changed
-            if (prevOffset != state.Offset && shouldConsumeMouseEvent)
+            if (prevOffset != state.Offset && deferredUseMouseEvent)
             {
                 gui.Input.UseMouseEvent();
             }
             
-            gui.HandleGroup(groupId, view);
+            gui.HandleGroup(id, groupRect);
         }
         
         public static float Bar(
@@ -155,7 +172,7 @@ namespace Imui.Controls
             handleRect = handleRect.WithPadding(Style.Padding);
 
             var hovered = gui.IsControlHovered(id);
-            var pressed = gui.ActiveControl == id;
+            var pressed = gui.IsControlActive(id);
             
             var barStyle = pressed ? Style.PressedState : hovered ? Style.HoveredState : Style.NormalState;
             gui.Canvas.Rect(rect, barStyle.BackColor, Style.BorderRadius);
@@ -164,29 +181,18 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Up:
-                    if (pressed)
-                    {
-                        gui.ActiveControl = default;
-                    }
-
-                    break;
-                case ImMouseEventType.Down:
-                    if (evt.Button == 0 && hovered)
-                    {
-                        gui.ActiveControl = id;
-                        gui.Input.UseMouseEvent();
-                    }
-
+                case ImMouseEventType.Up when pressed:
+                    gui.ResetActiveControl();
                     break;
                 
-                case ImMouseEventType.Drag:
-                    if (pressed)
-                    {
-                        delta = evt.Delta[axis] / absoluteSize;
-                        gui.Input.UseMouseEvent();
-                    }
-
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    gui.Input.UseMouseEvent();
+                    break;
+                
+                case ImMouseEventType.Drag when pressed:
+                    delta = evt.Delta[axis] / absoluteSize;
+                    gui.Input.UseMouseEvent();
                     break;
             }
             

@@ -56,6 +56,8 @@ namespace Imui.Controls
             var handleRect = new ImRect(handleX, handleY, handleW, handleH);
 
             var id = gui.GetNextControlId();
+            var hovered = gui.IsControlHovered(id);
+            var active = gui.IsControlActive(id);
 
             using (new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Handle))
             {
@@ -63,26 +65,21 @@ namespace Imui.Controls
             }
             
             ref readonly var evt = ref gui.Input.MouseEvent;
-            
-            if (gui.ActiveControl == id)
+            switch (evt.Type)
             {
-                if (evt.Type == ImMouseEventType.Drag)
-                {
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    gui.Input.UseMouseEvent();
+                    break;
+                
+                case ImMouseEventType.Drag when active:
                     value = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, value) + evt.Delta.x);
                     gui.Input.UseMouseEvent();
-                }
-                else if (evt.Type == ImMouseEventType.Up)
-                {
-                    gui.ActiveControl = default;
-                }
-            }
-            else
-            {
-                if (evt.Type == ImMouseEventType.Down && gui.IsControlHovered(id))
-                {
-                    gui.ActiveControl = id;
-                    gui.Input.UseMouseEvent();
-                }
+                    break;
+                
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
+                    break;
             }
             
             gui.HandleControl(id, rect);

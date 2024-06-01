@@ -25,7 +25,7 @@ namespace Imui.Debug
             Flush(gui, buffer, ref length);
             
             Append(buffer, "Hot Control: ", ref length);
-            Append(buffer, gui.ActiveControl, ref length);
+            Append(buffer, gui.GetActiveControl(), ref length);
             Flush(gui, buffer, ref length);
 
             Append(buffer, "Storage: ", ref length);

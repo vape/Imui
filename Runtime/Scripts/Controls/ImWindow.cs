@@ -98,8 +98,10 @@ namespace Imui.Controls
         {
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
+            var active = gui.IsControlActive(id);
             var rect = GetTitleBarRect(gui, in state.Rect, out var radius);
             var textSettings = GetTitleBarTextSettings();
+            var movable = (state.Flags & ImWindowFlag.DisableMoving) == 0;
             
             gui.Canvas.Rect(rect, Style.TitleBar.BackColor, radius);
             gui.Canvas.Text(text, Style.TitleBar.FrontColor, rect, in textSettings);
@@ -108,32 +110,19 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down:
-                    if (hovered)
-                    {
-                        clicked = true;
-                        gui.ActiveControl = id;
-                        gui.Input.UseMouseEvent();
-                    }
-
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                    clicked = true;
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    gui.Input.UseMouseEvent();
                     break;
                 
-                case ImMouseEventType.Drag:
-                    if (gui.ActiveControl == id && (state.Flags & ImWindowFlag.DisableMoving) == 0)
-                    {
-                        state.Rect.Position += evt.Delta;
-                        gui.Input.UseMouseEvent();
-                    }
-
+                case ImMouseEventType.Drag when active && movable:
+                    state.Rect.Position += evt.Delta;
+                    gui.Input.UseMouseEvent();
                     break;
                 
-                case ImMouseEventType.Up:
-                    if (gui.ActiveControl == id)
-                    {
-                        gui.ActiveControl = 0;
-                        gui.Input.UseMouseEvent();
-                    }
-
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
                     break;
             }
             
@@ -150,6 +139,7 @@ namespace Imui.Controls
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var handleRect = GetResizeHandleRect(in rect, out var radius);
+            var active = gui.IsControlActive(id);
             
             var segments = MeshDrawer.CalculateSegmentsCount(radius);
             var step = (1f / segments) * HALF_PI;
@@ -175,34 +165,21 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down:
-                    if (hovered)
-                    {
-                        clicked = true;
-                        gui.ActiveControl = id;
-                        gui.Input.UseMouseEvent();
-                    }
-
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                    clicked = true;
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    gui.Input.UseMouseEvent();
                     break;
                 
-                case ImMouseEventType.Drag:
-                    if (gui.ActiveControl == id)
-                    {
-                        rect.W += evt.Delta.x;
-                        rect.H -= evt.Delta.y;
-                        rect.Y += evt.Delta.y;
-                        gui.Input.UseMouseEvent();
-                    }
-
+                case ImMouseEventType.Drag when active:
+                    rect.W += evt.Delta.x;
+                    rect.H -= evt.Delta.y;
+                    rect.Y += evt.Delta.y;
+                    gui.Input.UseMouseEvent();
                     break;
                 
-                case ImMouseEventType.Up:
-                    if (gui.ActiveControl == id)
-                    {
-                        gui.ActiveControl = 0;
-                        gui.Input.UseMouseEvent();
-                    }
-
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
                     break;
             }
             

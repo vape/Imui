@@ -207,7 +207,7 @@ namespace Imui.IO.UGUI
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnScroll(PointerEventData eventData)

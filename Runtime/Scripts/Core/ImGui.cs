@@ -76,8 +76,6 @@ namespace Imui.Core
             }
         }
         
-        public uint ActiveControl;
-
         public readonly MeshBuffer MeshBuffer;
         public readonly MeshRenderer MeshRenderer;
         public readonly MeshDrawer MeshDrawer;
@@ -95,6 +93,8 @@ namespace Imui.Core
         private float uiScale = 1.0f;
         private DynamicArray<ControlId> idsStack;
         private DynamicArray<uint> scopes;
+        private uint activeControl;
+        private ImControlFlag activeControlFlag;
         
         private bool disposed;
         
@@ -198,11 +198,43 @@ namespace Imui.Core
             return frameData.HoveredControl.Id;
         }
 
+        public uint GetActiveControl()
+        {
+            return activeControl;
+        }
+
+        public ImControlFlag GetActiveControlFlag()
+        {
+            return activeControlFlag;
+        }
+
+        public bool ActiveControlIs(ImControlFlag flag)
+        {
+            return (activeControlFlag & flag) == flag;
+        }
+
+        public void SetActiveControl(uint controlId, ImControlFlag flag = ImControlFlag.None)
+        {
+            activeControl = controlId;
+            activeControlFlag = flag;
+        }
+
+        public void ResetActiveControl()
+        {
+            activeControl = default;
+            activeControlFlag = default;
+        }
+
+        public bool IsControlActive(uint controlId)
+        {
+            return activeControl == controlId;
+        }
+
         public bool IsControlHovered(uint controlId)
         {
             return frameData.HoveredControl.Id == controlId;
         }
-
+        
         public bool IsGroupHovered(uint controlId)
         {
             for (int i = 0; i < frameData.HoveredGroups.Count; ++i)

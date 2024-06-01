@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Imui.Controls
 {
     // TODO (artem-s): implement table layout helper
+    // TODO (artem-s): add foldout control
     public static class ImControls
     {
         public static ImControlsStyle Style = ImControlsStyle.Default;

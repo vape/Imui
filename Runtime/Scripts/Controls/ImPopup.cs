@@ -28,12 +28,12 @@ namespace Imui.Controls
             var id = gui.GetNextControlId();
             
             ref readonly var mouseEvent = ref gui.Input.MouseEvent;
-            if (mouseEvent.Type == ImMouseEventType.Scroll)
+            if (mouseEvent.Type == ImMouseEventType.Scroll || mouseEvent.Type == ImMouseEventType.Drag)
             {
                 gui.Input.UseMouseEvent();
             }
             
-            var clicked = gui.InvisibleButton(id, gui.Canvas.ScreenRect);
+            var clicked = gui.InvisibleButton(id, gui.Canvas.ScreenRect, actOnPress: true);
             
             gui.Canvas.PopOrder();
             gui.Canvas.PopClipRect();

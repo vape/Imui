@@ -80,8 +80,8 @@ namespace Imui.Controls
             ImTextEditFilter filter,
             bool multiline)
         {
-            var selected = gui.ActiveControl == id;
-            var hovered = gui.GetHoveredControl() == id;
+            var selected = gui.IsControlActive(id);
+            var hovered = gui.IsControlHovered(id);
             var stateStyle = selected ? Style.Selected : Style.Normal;
             var textChanged = false;
             
@@ -103,14 +103,13 @@ namespace Imui.Controls
 
             state.Caret = Mathf.Clamp(state.Caret, 0, buffer.Length);
             
-            ref readonly var mouseEvent = ref gui.Input.MouseEvent;
-            switch (mouseEvent.Type)
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            switch (evt.Type)
             {
-                case ImMouseEventType.Down when hovered:
-                {
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
                     if (!selected)
                     {
-                        gui.ActiveControl = id;
+                        gui.SetActiveControl(id, ImControlFlag.Draggable);
                     }
                 
                     state.Selection = 0;
@@ -118,9 +117,8 @@ namespace Imui.Controls
                     
                     gui.Input.UseMouseEvent();
                     break;
-                }
+                
                 case ImMouseEventType.Drag when selected:
-                {
                     var newCaretPosition = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in textRect, in layout, in buffer);
                     state.Selection -= newCaretPosition - state.Caret;
                     state.Caret = newCaretPosition;
@@ -128,7 +126,10 @@ namespace Imui.Controls
                     gui.Input.UseMouseEvent();
                     ScrollToCaret(gui, in state, in textRect, in layout, in buffer);
                     break;
-                }
+                
+                case ImMouseEventType.Down when selected && !hovered:
+                    gui.ResetActiveControl();
+                    break;
             }
             
             if (selected)
@@ -164,10 +165,10 @@ namespace Imui.Controls
                 switch (textEvent.Type)
                 {
                     case ImTextEventType.Cancel:
-                        gui.ActiveControl = 0;
+                        gui.ResetActiveControl();
                         break;
                     case ImTextEventType.Submit:
-                        gui.ActiveControl = 0;
+                        gui.ResetActiveControl();
                         buffer = new ImTextEditBuffer(textEvent.Text);
                         textChanged = true;
                         break;

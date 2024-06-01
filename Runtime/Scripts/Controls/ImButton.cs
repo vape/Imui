@@ -56,7 +56,7 @@ namespace Imui.Controls
         public static bool Button(this ImGui gui, uint id, in ImRect rect, out ImButtonState state)
         {
             var hovered = gui.IsControlHovered(id);
-            var pressed = gui.ActiveControl == id;
+            var pressed = gui.IsControlActive(id);
             var clicked = false;
             
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
@@ -68,7 +68,7 @@ namespace Imui.Controls
                 case ImMouseEventType.Down:
                     if (!pressed && hovered)
                     {
-                        gui.ActiveControl = id;
+                        gui.SetActiveControl(id);
                         gui.Input.UseMouseEvent();
                     }
                     break;
@@ -76,7 +76,7 @@ namespace Imui.Controls
                 case ImMouseEventType.Up:
                     if (pressed)
                     {
-                        gui.ActiveControl = 0;
+                        gui.ResetActiveControl();
                         clicked = hovered;
                         
                         if (clicked)
@@ -92,40 +92,39 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static bool InvisibleButton(this ImGui gui, ImRect rect)
+        public static bool InvisibleButton(this ImGui gui, ImRect rect, bool actOnPress = false)
         {
             var id = gui.GetNextControlId();
 
             return InvisibleButton(gui, id, rect);
         }
         
-        public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect)
+        public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, bool actOnPress = false)
         {
             var hovered = gui.IsControlHovered(id);
-            var pressed = gui.ActiveControl == id;
+            var pressed = gui.IsControlActive(id);
             var clicked = false;
             
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down:
-                    if (!pressed && hovered)
-                    {
-                        gui.ActiveControl = id;
-                        gui.Input.UseMouseEvent();
-                    }
+                case ImMouseEventType.Down when !pressed && hovered && actOnPress:
+                    clicked = true;
+                    gui.Input.UseMouseEvent();
                     break;
                 
-                case ImMouseEventType.Up:
-                    if (pressed)
-                    {
-                        gui.ActiveControl = 0;
-                        clicked = hovered;
+                case ImMouseEventType.Down when !pressed && hovered:
+                    gui.SetActiveControl(id);
+                    gui.Input.UseMouseEvent();
+                    break;
+                
+                case ImMouseEventType.Up when pressed:
+                    gui.ResetActiveControl();
+                    clicked = hovered;
                         
-                        if (clicked)
-                        {
-                            gui.Input.UseMouseEvent();
-                        }
+                    if (clicked)
+                    {
+                        gui.Input.UseMouseEvent();
                     }
                     break;
             }
