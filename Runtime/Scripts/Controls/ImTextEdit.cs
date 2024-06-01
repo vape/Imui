@@ -583,6 +583,10 @@ namespace Imui.Controls
             }
             
             var span = ((ReadOnlySpan<char>)buffer);
+            if (span.Length < 1)
+            {
+                return 0;
+            }
             
             var start = caret;
             var end = start + layout.Lines[line].Count;
