@@ -44,10 +44,7 @@ namespace Imui.Core
             public Texture MainTex;
             public Texture FontTex;
         }
-        
-        private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
-        private static readonly int FontTexId = Shader.PropertyToID("_FontTex");
-        
+
         private static readonly Texture2D DefaultTexture;
         
         static ImCanvas()
