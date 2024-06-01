@@ -152,6 +152,10 @@ namespace Imui.IO.UGUI
             {
                 mouseEvent = queuedMouseEvent;
             }
+            else
+            {
+                mouseEvent = default;
+            }
 
             (nextKeyboardEvents, keyboardEvents) = (keyboardEvents, nextKeyboardEvents);
             nextKeyboardEvents.Clear();
@@ -183,6 +187,11 @@ namespace Imui.IO.UGUI
         
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (IsTouchSupported() && IsTouchBegan())
+            {
+                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
+            }
+            
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
@@ -226,6 +235,27 @@ namespace Imui.IO.UGUI
         void IRenderingBackend.SetIsRaycastTarget(bool value)
         {
             isRaycastTarget = value;
+        }
+        
+        private bool IsTouchSupported()
+        {
+            return PlatformUtility.IsEditorSimulator() || Input.touchSupported;
+        }
+
+        private bool IsTouchBegan()
+        {
+            var touches = Input.touches;
+            var count = Input.touchCount;
+            
+            for (int i = 0; i < count; ++i)
+            {
+                if (touches[i].phase == TouchPhase.Began)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
         
         CommandBuffer IRenderingBackend.CreateCommandBuffer()
