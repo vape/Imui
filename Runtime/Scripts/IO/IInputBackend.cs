@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace Imui.IO
 {
+    public delegate bool InputRaycaster(float x, float y);
+    
     public interface IInputBackend
     {
         string Clipboard
@@ -28,7 +30,8 @@ namespace Imui.IO
         void UseKeyboardEvent(int index);
         void UseMouseEvent();
         void UseTextEvent();
-        
+
+        void SetRaycaster(InputRaycaster raycaster);
         void SetScale(float scale);
         void Pull();
         void RequestTouchKeyboard(ReadOnlySpan<char> text);

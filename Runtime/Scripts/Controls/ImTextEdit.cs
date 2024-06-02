@@ -175,7 +175,7 @@ namespace Imui.Controls
                 }
             }
             
-            gui.HandleControl(id, rect);
+            gui.RegisterControl(id, rect);
                         
             gui.EndScrollable(multiline ? ImScrollFlag.None : ImScrollFlag.NoHorizontalBar | ImScrollFlag.NoVerticalBar);
             gui.Layout.Pop();

@@ -148,7 +148,7 @@ namespace Imui.Controls
                 gui.Input.UseMouseEvent();
             }
             
-            gui.HandleGroup(id, groupRect);
+            gui.RegisterGroup(id, groupRect);
         }
         
         public static float Bar(
@@ -196,7 +196,7 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, rect);
+            gui.RegisterControl(id, rect);
 
             return delta;
         }

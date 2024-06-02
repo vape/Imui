@@ -15,16 +15,20 @@ namespace Imui.Core
     
     public class ImWindowManager
     {
+        private const int DRAWING_STACK_CAPACITY = 8;
         private const int WINDOWS_CAPACITY = 32;
 
         public const int DEFAULT_WIDTH = 500;
         public const int DEFAULT_HEIGHT = 500;
-
+        
+        private DynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
         private DynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
         private Vector2 screenSize;
         
-        public ref ImWindowState RegisterWindow(uint id, string title, float width = DEFAULT_WIDTH, float height = DEFAULT_HEIGHT, ImWindowFlag flags = ImWindowFlag.None)
+        public ref ImWindowState BeginWindow(uint id, string title, float width = DEFAULT_WIDTH, float height = DEFAULT_HEIGHT, ImWindowFlag flags = ImWindowFlag.None)
         {
+            drawingStack.Push(id);
+
             var index = TryFindWindow(id);
             if (index >= 0)
             {
@@ -43,6 +47,29 @@ namespace Imui.Core
             });
             
             return ref windows.Array[windows.Count - 1];
+        }
+
+        public uint EndWindow()
+        {
+            return drawingStack.Pop();
+        }
+
+        public bool IsDrawingWindow()
+        {
+            return drawingStack.Count > 0;
+        }
+
+        public bool Raycast(float x, float y)
+        {
+            for (int i = 0; i < windows.Count; ++i)
+            {
+                if (windows.Array[i].Rect.Contains(x, y))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void SetScreenSize(Vector2 screenSize)

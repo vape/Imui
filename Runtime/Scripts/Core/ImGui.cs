@@ -21,6 +21,7 @@ namespace Imui.Core
         private const float UI_SCALE_MIN = 0.05f;
         private const float UI_SCALE_MAX = 16.0f;
 
+        private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
         private const int SCOPES_STACK_CAPACITY = 32;
 
@@ -49,11 +50,13 @@ namespace Imui.Core
         {
             public ControlData HoveredControl;
             public DynamicArray<ControlData> HoveredGroups;
+            public DynamicArray<ImRect> FloatingControls;
 
-            public FrameData(int hoveredGroupsCapacity)
+            public FrameData(int hoveredGroupsCapacity, int floatingControlsCapacity)
             {
                 HoveredControl = default;
                 HoveredGroups = new DynamicArray<ControlData>(hoveredGroupsCapacity);
+                FloatingControls = new DynamicArray<ImRect>(floatingControlsCapacity);
             }
             
             public void Clear()
@@ -61,6 +64,7 @@ namespace Imui.Core
                 HoveredControl = default;
                 HoveredControl.Order = ImCanvas.DEFAULT_ORDER;
                 HoveredGroups.Clear(false);
+                FloatingControls.Clear(false);
             }
         }
 
@@ -111,10 +115,12 @@ namespace Imui.Core
             Input = input;
             Renderer = renderer;
 
-            frameData = new FrameData(HOVERED_GROUPS_CAPACITY);
-            nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY);
+            frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
+            nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             idsStack = new DynamicArray<ControlId>(CONTROL_IDS_CAPACITY);
             scopes = new DynamicArray<uint>(SCOPES_STACK_CAPACITY);
+            
+            Input.SetRaycaster(Raycast);
         }
         
         public void BeginFrame()
@@ -134,11 +140,9 @@ namespace Imui.Core
             Canvas.Clear();
             Canvas.PushMeshSettings(Canvas.CreateDefaultMeshSettings());
             
-            Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledScreenSize));
-            
-            Renderer.SetIsRaycastTarget(frameData.HoveredControl.Id != default);
-            
             WindowManager.SetScreenSize(scaledScreenSize);
+            
+            Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledScreenSize));
             
             idsStack.Push(new ControlId(ImHash.Get("root", 0)));
         }
@@ -248,7 +252,7 @@ namespace Imui.Core
             return false;
         }
         
-        public void HandleControl(uint controlId, ImRect rect)
+        public void RegisterControl(uint controlId, ImRect rect)
         {
             ref readonly var meshProperties = ref Canvas.GetActiveMeshSettingsRef();
             
@@ -257,6 +261,11 @@ namespace Imui.Core
                 return;
             }
 
+            if (!WindowManager.IsDrawingWindow())
+            {
+                nextFrameData.FloatingControls.Add(rect);
+            }
+            
             if (meshProperties.Order >= nextFrameData.HoveredControl.Order && rect.Contains(Input.MousePosition))
             {
                 nextFrameData.HoveredControl.Id = controlId;
@@ -265,7 +274,7 @@ namespace Imui.Core
             }
         }
 
-        public void HandleGroup(uint controlId, ImRect rect)
+        public void RegisterGroup(uint controlId, ImRect rect)
         {
             ref readonly var meshProperties = ref Canvas.GetActiveMeshSettingsRef();
             
@@ -310,13 +319,36 @@ namespace Imui.Core
             Renderer.ReleaseCommandBuffer(renderCmd);
         }
         
+        public bool Raycast(float x, float y)
+        {
+            // (artem-s): I don't really like this approach of checking whether we should capture input,
+            // but for now I can't come up with something better given that raycast is happening before we render frame
+            // with actual cursor position
+            
+            var result = WindowManager.Raycast(x, y);
+            if (!result)
+            {
+                for (int i = 0; i < frameData.FloatingControls.Count; ++i)
+                {
+                    if (frameData.FloatingControls.Array[i].Contains(x, y))
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+        
         public void Dispose()
         {
             if (disposed)
             {
                 return;
             }
-            
+
+            Input.SetRaycaster(null);
             Canvas.Dispose();
             TextDrawer.Dispose();
             MeshRenderer.Dispose();

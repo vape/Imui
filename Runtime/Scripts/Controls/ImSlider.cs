@@ -82,7 +82,7 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, rect);
+            gui.RegisterControl(id, rect);
             
             value = Mathf.Lerp(min, max, value);
             

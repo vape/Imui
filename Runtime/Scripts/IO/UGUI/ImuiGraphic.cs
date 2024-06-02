@@ -33,7 +33,7 @@ namespace Imui.IO.UGUI
         
         public override Texture mainTexture => textureRenderer?.Texture == null ? ClearTexture : textureRenderer.Texture;
 
-        private bool isRaycastTarget;
+        private InputRaycaster raycaster;
         private TextureRenderer textureRenderer;
         private DynamicArray<CommandBuffer> commandBufferPool;
         private float scale;
@@ -104,9 +104,23 @@ namespace Imui.IO.UGUI
             }
         }
 
+        public void SetRaycaster(InputRaycaster raycaster)
+        {
+            this.raycaster = raycaster;
+            SetRaycastDirty();
+        }
+
         public override bool Raycast(Vector2 sp, Camera eventCamera)
         {
-            return isRaycastTarget;
+            if (raycaster == null)
+            {
+                return false;
+            }
+
+            var screenRect = GetScreenRect();
+            sp -= screenRect.position;
+
+            return raycaster(sp.x / scale, sp.y / scale);
         }
         
         public ref readonly ImKeyboardEvent GetKeyboardEvent(int index)
@@ -187,6 +201,9 @@ namespace Imui.IO.UGUI
         
         public void OnPointerDown(PointerEventData eventData)
         {
+            // (artem-s): with touch input, defer down event one frame so controls first could understand they are hovered
+            // before processing actual click
+            
             if (IsTouchSupported() && IsTouchBegan())
             {
                 mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
@@ -230,11 +247,6 @@ namespace Imui.IO.UGUI
                 screenBottomLeft.y, 
                 screenTopRight.x - screenBottomLeft.x, 
                 screenTopRight.y - screenBottomLeft.y);
-        }
-        
-        void IRenderingBackend.SetIsRaycastTarget(bool value)
-        {
-            isRaycastTarget = value;
         }
         
         private bool IsTouchSupported()

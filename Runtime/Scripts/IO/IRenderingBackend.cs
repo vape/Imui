@@ -8,7 +8,6 @@ namespace Imui.IO
         CommandBuffer CreateCommandBuffer();
         void ReleaseCommandBuffer(CommandBuffer cmd);
         
-        void SetIsRaycastTarget(bool value);
         Rect GetScreenRect();
         
         void SetupRenderTarget(CommandBuffer cmd);

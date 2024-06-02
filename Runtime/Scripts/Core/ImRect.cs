@@ -69,6 +69,11 @@ namespace Imui.Core
             return point.x >= X && point.x <= (X + W) && point.y >= Y && point.y <= (Y + H);
         }
 
+        public bool Contains(float x, float y)
+        {
+            return x >= X && x <= (X + W) && y >= Y && y <= (Y + H);
+        }
+
         public bool Overlaps(ImRect other)
         {
             var xMax = X + W;

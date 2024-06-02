@@ -22,28 +22,25 @@ namespace Imui.Controls
         {
             var id = gui.PushId(title);
             
-            ref var state = ref gui.WindowManager.RegisterWindow(id, title, width, height, flags);
+            ref var state = ref gui.WindowManager.BeginWindow(id, title, width, height, flags);
             
             gui.Canvas.PushOrder(state.Order * ORDER_OFFSET);
             gui.Canvas.PushRectMask(state.Rect, Style.Box.BorderRadius.GetMax());
             gui.Canvas.PushClipRect(state.Rect);
             Back(gui, in state, out var contentRect);
             
-            gui.HandleControl(id, state.Rect);
+            gui.RegisterControl(id, state.Rect);
             
-            gui.BeginScope(id);
             gui.Layout.Push(ImAxis.Vertical, contentRect);
-            
             gui.BeginScrollable();
         }
 
         public static void EndWindow(this ImGui gui)
         {
             gui.EndScrollable();
-            
             gui.Layout.Pop();
-            gui.EndScope(out var id);
-            
+
+            var id = gui.WindowManager.EndWindow();
             ref var state = ref gui.WindowManager.GetWindowState(id);
             
             Front(gui, state.Rect);
@@ -65,7 +62,7 @@ namespace Imui.Controls
                 gui.WindowManager.RequestFocus(id);
             }
             
-            gui.HandleGroup(id, state.Rect);
+            gui.RegisterGroup(id, state.Rect);
             
             gui.Canvas.PopRectMask();
             gui.Canvas.PopClipRect();
@@ -126,7 +123,7 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, rect);
+            gui.RegisterControl(id, rect);
             
             return clicked;
         }
@@ -183,7 +180,7 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, handleRect);
+            gui.RegisterControl(id, handleRect);
             return clicked;
         }
 

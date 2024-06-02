@@ -87,7 +87,7 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, rect);
+            gui.RegisterControl(id, rect);
 
             return clicked;
         }
@@ -129,7 +129,7 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.HandleControl(id, rect);
+            gui.RegisterControl(id, rect);
 
             return clicked;
         }
