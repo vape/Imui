@@ -218,5 +218,15 @@ namespace Imui.Core
         {
             return new ImRectRadius(radius);
         }
+
+        public static ImRectRadius operator -(ImRectRadius radius, float delta)
+        {
+            radius.BottomLeft -= delta;
+            radius.BottomRight -= delta;
+            radius.TopLeft -= delta;
+            radius.TopRight -= delta;
+            
+            return radius;
+        }
     }
 }

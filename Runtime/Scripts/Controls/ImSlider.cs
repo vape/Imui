@@ -113,7 +113,7 @@ namespace Imui.Controls
             style.Handle.Normal.BackColor = ImColors.Black;
             style.Handle.Hovered.BackColor = ImColors.Gray1;
             style.Handle.Pressed.BackColor = ImColors.Black;
-            style.Handle.SetBorderRadius(style.Box.BorderRadius);
+            style.Handle.SetBorderRadius(style.Box.BorderRadius - style.Box.BorderWidth);
             style.Handle.SetBorderWidth(0);
             
             return style;
