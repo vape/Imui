@@ -198,27 +198,27 @@ namespace Imui.Core
             mesh.MaskRect = settings.MaskRect;
         }
 
-        public bool ShouldCull(ImRect rect)
+        public bool Cull(ImRect rect)
         {
             var r = (Rect)rect;
             
             ref var settings = ref meshSettingsStack.Peek();
             if (settings.ClipRect.Enabled && !settings.ClipRect.Rect.Overlaps(r))
             {
-                return false;
+                return true;
             }
 
             if (settings.MaskRect.Enabled && !settings.MaskRect.Rect.Overlaps(r))
             {
-                return false;
+                return true;
             }
 
-            return ScreenRect.Overlaps(rect);
+            return !ScreenRect.Overlaps(rect);
         }
         
         public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset)
         {
-            if (!ShouldCull(rect))
+            if (Cull(rect))
             {
                 return;
             }
@@ -232,7 +232,7 @@ namespace Imui.Core
         
         public void Rect(ImRect rect, Color32 color, ImRectRadius radius = default)
         {
-            if (!ShouldCull(rect))
+            if (Cull(rect))
             {
                 return;
             }
@@ -243,7 +243,7 @@ namespace Imui.Core
 
         public void RectOutline(ImRect rect, Color32 color, float thickness, ImRectRadius radius = default, float bias = 0.0f)
         {
-            if (!ShouldCull(rect) || thickness < LINE_THICKNESS_THRESHOLD)
+            if (Cull(rect) || thickness < LINE_THICKNESS_THRESHOLD)
             {
                 return;
             }
@@ -254,7 +254,7 @@ namespace Imui.Core
 
         public void RectWithOutline(ImRect rect, Color32 backColor, Color32 outlineColor, float thickness, ImRectRadius radius = default, float bias = 0.0f)
         {
-            if (!ShouldCull(rect))
+            if (Cull(rect))
             {
                 return;
             }
@@ -277,8 +277,8 @@ namespace Imui.Core
 
         public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
         {
-            var rect = new ImRect(position.x, position.y - layout.Height, layout.Width, layout.Height);
-            if (!ShouldCull(rect))
+            var rect = new ImRect(position.x + layout.OffsetX, position.y - layout.Height + layout.OffsetY, layout.Width, layout.Height);
+            if (Cull(rect))
             {
                 return;
             }
