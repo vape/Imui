@@ -28,7 +28,7 @@ namespace Imui.Controls
             var textSize = gui.MeasureTextSize(in label, in textSettings);
             var checkmarkBoxSize = GetCheckmarkBoxSize(gui);
             var rect = gui.Layout.AddRect(
-                checkmarkBoxSize + ImControls.Style.ControlsSpacing + textSize.x, 
+                checkmarkBoxSize + ImControls.Style.InnerSpacing + textSize.x, 
                 Mathf.Max(textSize.y, checkmarkBoxSize));
             Checkmark(gui, ref value, in label, in rect);
         }
@@ -55,8 +55,8 @@ namespace Imui.Controls
             var checkmarkBox = rect.SplitLeft(GetCheckmarkBoxSize(gui), out var textRect).WithAspect(1.0f);
             Checkmark(gui, id, ref value, in checkmarkBox);
 
-            textRect.X += ImControls.Style.ControlsSpacing;
-            textRect.W -= ImControls.Style.ControlsSpacing;
+            textRect.X += ImControls.Style.InnerSpacing;
+            textRect.W -= ImControls.Style.InnerSpacing;
             gui.Canvas.Text(in label, Style.TextColor, textRect, GetTextSettings());
             
             if (gui.InvisibleButton(id, textRect))

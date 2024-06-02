@@ -18,7 +18,7 @@ namespace Imui.Controls
 
             var textSettings = GetTextSettings();
             var contentSize = gui.MeasureTextSize(label, in textSettings);
-            contentSize.x += ImControls.Style.ControlsSpacing + GetArrowSize(gui);
+            contentSize.x += ImControls.Style.InnerSpacing + GetArrowSize(gui);
             var rect = gui.Layout.AddRect(Style.Button.GetButtonSize(contentSize));
             return Select(gui, label, in rect);
         }
@@ -53,13 +53,13 @@ namespace Imui.Controls
             var clicked = gui.Button(id, rect, out var state);
             var style = Style.Button.GetStyle(state);
             var content = Style.Button.GetContentRect(rect);
-            content = content.SplitLeft(content.W - arrowSize - ImControls.Style.ControlsSpacing, out var arrowRect);
+            content = content.SplitLeft(content.W - arrowSize - ImControls.Style.InnerSpacing, out var arrowRect);
             var textSettings = GetTextSettings();
             
             gui.Canvas.Text(in label, style.FrontColor, content, in textSettings);
 
-            arrowRect.X += ImControls.Style.ControlsSpacing;
-            arrowRect.W -= ImControls.Style.ControlsSpacing;
+            arrowRect.X += ImControls.Style.InnerSpacing;
+            arrowRect.W -= ImControls.Style.InnerSpacing;
             arrowRect = arrowRect.WithAspect(1f).ScaleFromCenter(Style.ArrowScale).WithAspect(ARROW_ASPECT_RATIO);
 
             Span<Vector2> points = stackalloc Vector2[3]

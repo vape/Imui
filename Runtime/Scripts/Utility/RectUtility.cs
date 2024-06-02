@@ -46,6 +46,15 @@ namespace Imui.Utility
             rect.W = width;
             return rect;
         }
+        
+        public static ImRect SplitLeft(this ImRect rect, float width, float space, out ImRect next)
+        {
+            next = rect;
+            next.X += width + space;
+            next.W = rect.W - width - space;
+            rect.W = width;
+            return rect;
+        }
 
         public static void AddPadding(this ref ImRect rect, float size)
         {

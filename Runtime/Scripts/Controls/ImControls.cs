@@ -5,7 +5,6 @@ using UnityEngine;
 namespace Imui.Controls
 {
     // TODO (artem-s): implement table layout helper
-    // TODO (artem-s): add foldout control
     public static class ImControls
     {
         public static ImControlsStyle Style = ImControlsStyle.Default;
@@ -44,6 +43,16 @@ namespace Imui.Controls
         {
             gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderWidth, style.BorderRadius);
         }
+
+        public static void BeginIdent(this ImGui gui)
+        {
+            gui.Layout.AddIdent(Style.Ident);
+        }
+
+        public static void EndIdent(this ImGui gui)
+        {
+            gui.Layout.AddIdent(-Style.Ident);
+        }
     }
     
     public struct ImControlsStyle
@@ -52,14 +61,16 @@ namespace Imui.Controls
         {
             TextSize = 26,
             Spacing = 4,
-            ControlsSpacing = 2,
-            ScrollSpeedScale = 6
+            InnerSpacing = 2,
+            ScrollSpeedScale = 6,
+            Ident = 20
         };
         
         public float TextSize;
         public float Spacing;
-        public float ControlsSpacing;
+        public float InnerSpacing;
         public float ScrollSpeedScale;
+        public float Ident;
     }
     
     [Serializable]

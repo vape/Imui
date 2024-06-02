@@ -244,8 +244,8 @@ namespace Imui.Controls
             Padding = 4,
             TitleBar = new ImWindowTitleBarStyle()
             {
-                BackColor = ImColors.Gray7,
-                FrontColor = ImColors.Black,
+                BackColor = ImColors.Gray3,
+                FrontColor = ImColors.White,
                 Padding = 8,
                 Alignment = new ImTextAlignment(0.5f, 0.5f)
             }

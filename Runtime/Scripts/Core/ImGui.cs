@@ -172,6 +172,13 @@ namespace Imui.Core
         {
             id = scopes.Pop();
         }
+
+        public uint PushId()
+        {
+            var id = GetNextControlId();
+            idsStack.Push(new ControlId(id));
+            return id;
+        }
         
         public uint PushId(ReadOnlySpan<char> name)
         {
