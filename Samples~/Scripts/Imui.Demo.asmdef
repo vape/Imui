@@ -1,0 +1,16 @@
+{
+    "name": "Imui.Demo",
+    "rootNamespace": "Imui.Demo",
+    "references": [
+        "GUID:7cb6614c359f14459a58a452946721b8"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
