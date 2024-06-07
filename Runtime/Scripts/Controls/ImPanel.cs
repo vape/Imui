@@ -12,7 +12,8 @@ namespace Imui.Controls
         public static void BeginPanel(this ImGui gui, in ImRect rect)
         {
             gui.DrawBox(in rect, Style.Box);
-
+            gui.RegisterRaycastTarget(rect);
+            
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(Style.Padding));
             gui.Canvas.PushRectMask(rect.WithPadding(Style.Box.BorderWidth), Style.Box.BorderRadius.GetMax());
             gui.BeginScrollable();

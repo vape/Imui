@@ -258,6 +258,11 @@ namespace Imui.Core
 
             return false;
         }
+
+        public void RegisterRaycastTarget(ImRect rect)
+        {
+            nextFrameData.FloatingControls.Add(rect);
+        }
         
         public void RegisterControl(uint controlId, ImRect rect)
         {

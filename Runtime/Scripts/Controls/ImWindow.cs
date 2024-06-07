@@ -66,8 +66,6 @@ namespace Imui.Controls
                 gui.WindowManager.RequestFocus(id);
             }
             
-            gui.RegisterGroup(id, state.Rect);
-            
             gui.Canvas.PopOrder();
             
             gui.Canvas.PopRectMask();
