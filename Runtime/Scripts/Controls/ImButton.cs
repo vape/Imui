@@ -11,13 +11,23 @@ namespace Imui.Controls
     {
         public static ImButtonStyle Style = ImButtonStyle.Default;
         
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label)
+        public static bool ButtonFitted(this ImGui gui, in ReadOnlySpan<char> label)
         {
             gui.AddControlSpacing();
 
             var textSettings = GetTextSettings();
             var textSize = gui.MeasureTextSize(label, in textSettings);
             var rect = gui.Layout.AddRect(Style.GetButtonSize(textSize));
+            return Button(gui, label, in rect);
+        }
+
+        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label)
+        {
+            gui.AddControlSpacing();
+
+            var width = gui.Layout.GetAvailableWidth();
+            var height = Style.GetButtonHeight(gui.GetRowHeight());
+            var rect = gui.Layout.AddRect(width, height);
             return Button(gui, label, in rect);
         }
 
@@ -228,6 +238,20 @@ namespace Imui.Controls
             Normal.BorderWidth = width;
             Hovered.BorderWidth = width;
             Pressed.BorderWidth = width;
+        }
+
+        public void SetTint(Color32 backColor, Color32 frontColor)
+        {
+            Color.RGBToHSV(backColor, out var h, out var s, out var v);
+            
+            Normal.BackColor = backColor;
+            Normal.FrontColor = frontColor;
+
+            Hovered.BackColor = Color.HSVToRGB(h, s, v * 1.1f);
+            Hovered.FrontColor = frontColor;
+
+            Pressed.BackColor = Color.HSVToRGB(h, s, v * 0.9f);
+            Pressed.FrontColor = frontColor;
         }
     }
 }

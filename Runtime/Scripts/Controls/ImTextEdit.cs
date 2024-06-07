@@ -864,7 +864,7 @@ namespace Imui.Controls
                 SelectionColor = ImColors.Black.WithAlpha(64)
             },
             CaretWidth = 2.0f,
-            Padding = 1.0f,
+            Padding = 2.0f,
             Alignment = new ImTextAlignment(0.0f, 0.0f)
         };
         

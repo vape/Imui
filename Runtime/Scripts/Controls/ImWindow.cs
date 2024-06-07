@@ -10,7 +10,8 @@ namespace Imui.Controls
 {
     public static class ImWindow
     {
-        private const short ORDER_OFFSET = 64;
+        private const int WINDOW_ORDER_OFFSET = 128;
+        private const int WINDOW_FRONT_ORDER_OFFSET = 64;
         
         public static ImWindowStyle Style = ImWindowStyle.Default;
         
@@ -24,7 +25,7 @@ namespace Imui.Controls
             
             ref var state = ref gui.WindowManager.BeginWindow(id, title, width, height, flags);
             
-            gui.Canvas.PushOrder(state.Order * ORDER_OFFSET);
+            gui.Canvas.PushOrder(state.Order * WINDOW_ORDER_OFFSET);
             gui.Canvas.PushRectMask(state.Rect, Style.Box.BorderRadius.GetMax());
             gui.Canvas.PushClipRect(state.Rect);
             Back(gui, in state, out var contentRect);
@@ -39,13 +40,16 @@ namespace Imui.Controls
         {
             gui.EndScrollable();
             gui.Layout.Pop();
-
+            
             var id = gui.WindowManager.EndWindow();
             ref var state = ref gui.WindowManager.GetWindowState(id);
+            
+            gui.Canvas.PushOrder(gui.Canvas.GetCurrentOrder() + WINDOW_FRONT_ORDER_OFFSET);
             
             Front(gui, state.Rect);
             
             var clicked = false;
+            var activeRect = state.Rect;
             
             if ((state.Flags & ImWindowFlag.DisableResize) == 0)
             {
@@ -54,7 +58,7 @@ namespace Imui.Controls
             
             if ((state.Flags & ImWindowFlag.DisableTitleBar) == 0)
             {
-                clicked |= TitleBar(gui, state.Title, ref state);
+                clicked |= TitleBar(gui, state.Title, ref state, in activeRect);
             }
             
             if (clicked)
@@ -63,6 +67,8 @@ namespace Imui.Controls
             }
             
             gui.RegisterGroup(id, state.Rect);
+            
+            gui.Canvas.PopOrder();
             
             gui.Canvas.PopRectMask();
             gui.Canvas.PopClipRect();
@@ -91,12 +97,12 @@ namespace Imui.Controls
             gui.Canvas.RectOutline(rect, Style.Box.BorderColor, Style.Box.BorderWidth, Style.Box.BorderRadius);
         }
 
-        public static bool TitleBar(ImGui gui, in ReadOnlySpan<char> text, ref ImWindowState state)
+        public static bool TitleBar(ImGui gui, in ReadOnlySpan<char> text, ref ImWindowState state, in ImRect windowRect)
         {
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
-            var rect = GetTitleBarRect(gui, in state.Rect, out var radius);
+            var rect = GetTitleBarRect(gui, in windowRect, out var radius);
             var textSettings = GetTitleBarTextSettings();
             var movable = (state.Flags & ImWindowFlag.DisableMoving) == 0;
             

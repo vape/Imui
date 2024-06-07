@@ -5,6 +5,8 @@ namespace Imui.Core
 {
     public partial class ImCanvas
     {
+        public int GetCurrentOrder() => GetActiveMeshSettings().Order;
+        
         public void PopTexture() => PopMeshSettings();
         public void PushTexture(Texture texture)
         {

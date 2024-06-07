@@ -34,7 +34,7 @@ namespace Imui.Debug
             Append(buffer, gui.Storage.Capacity, ref length);
             Flush(gui, buffer, ref length);
 
-            if (gui.Button(debugOverlay ? "Disable Overlay" : "Enable Overlay"))
+            if (gui.ButtonFitted(debugOverlay ? "Disable Overlay" : "Enable Overlay"))
             {
                 debugOverlay = !debugOverlay;
             }
