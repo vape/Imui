@@ -76,13 +76,13 @@ namespace Imui.Core
             
             if (size.x == 0)
             {
-                size.x = GetAvailableSize().x;
+                size.x = GetAvailableWidth();
                 flags &= ~ImLayoutFlag.FixedBoundsWidth;
             }
 
             if (size.y == 0)
             {
-                size.y = GetAvailableSize().y;
+                size.y = GetAvailableHeight();
                 flags &= ~ImLayoutFlag.FixedBoundsHeight;
             }
             
@@ -199,7 +199,7 @@ namespace Imui.Core
         public ImRect GetContentRect()
         {
             ref readonly var frame = ref frames.Peek();
-            var x = frame.Bounds.X;
+            var x = frame.Bounds.X + frame.Ident;
             var y = frame.Bounds.Y + frame.Bounds.H - frame.Size.y;
             var w = frame.Size.x;
             var h = frame.Size.y;
@@ -251,7 +251,7 @@ namespace Imui.Core
             frame.Ident += space;
         }
 
-        private static Vector2 GetNextPosition(in ImLayoutFrame frame, float height)
+        public static Vector2 GetNextPosition(in ImLayoutFrame frame, float height)
         {
             var hm = frame.Axis == ImAxis.Horizontal ? 1 : 0;
             var vm = frame.Axis == ImAxis.Vertical ? 1 : 0;
