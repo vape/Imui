@@ -11,10 +11,11 @@ namespace Imui.IO.Utility
         public TouchScreenKeyboard TouchKeyboard;
         
         private int touchKeyboardRequestFrame;
+        private bool touchKeyboardUnsupported;
         
         public void RequestTouchKeyboard(ReadOnlySpan<char> text)
         {
-            if (!TouchScreenKeyboard.isSupported)
+            if (!TouchScreenKeyboard.isSupported || touchKeyboardUnsupported)
             {
                 return;
             }
@@ -22,6 +23,14 @@ namespace Imui.IO.Utility
             if (TouchKeyboard == null)
             {
                 TouchKeyboard = TouchScreenKeyboard.Open(new string(text), TouchScreenKeyboardType.Default);
+                
+                if (TouchKeyboard.status == TouchScreenKeyboard.Status.Done)
+                {
+                    touchKeyboardUnsupported = true;
+                    TouchKeyboard.active = false;
+                    TouchKeyboard = null;
+                    return;
+                }
             }
 
             if (!TouchKeyboard.active)

@@ -1,7 +1,3 @@
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_IOS
-#define MACOS_INPUT_SCHEME
-#endif
-
 using Imui.IO.Events;
 using Imui.Utility;
 using UnityEngine;
@@ -37,13 +33,16 @@ namespace Imui.IO.Utility
             var jump = false;
             var control = false;
 
-#if MACOS_INPUT_SCHEME
-            jump = evt.modifiers.HasFlag(EventModifiers.Alt); // option key
-            control = evt.modifiers.HasFlag(EventModifiers.Command);
-#else
-            jump = evt.modifiers.HasFlag(EventModifiers.Control);
-            control = evt.modifiers.HasFlag(EventModifiers.Control);
-#endif
+            if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
+            {
+                jump = evt.modifiers.HasFlag(EventModifiers.Alt); // option key
+                control = evt.modifiers.HasFlag(EventModifiers.Command);
+            }
+            else
+            {
+                jump = evt.modifiers.HasFlag(EventModifiers.Control);
+                control = evt.modifiers.HasFlag(EventModifiers.Control);
+            }
             
             if (arrow && evt.modifiers.HasFlag(EventModifiers.Shift))
             {
