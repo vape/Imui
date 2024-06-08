@@ -318,11 +318,6 @@ namespace Imui.Core
         
         public void Render()
         {
-            var setupCmd = Renderer.CreateCommandBuffer();
-            Canvas.Setup(setupCmd);
-            Renderer.Execute(setupCmd);
-            Renderer.ReleaseCommandBuffer(setupCmd);
-
             var renderCmd = Renderer.CreateCommandBuffer();
             var screenSize = Renderer.GetScreenRect().size;
             Renderer.SetupRenderTarget(renderCmd);

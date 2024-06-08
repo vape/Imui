@@ -1,10 +1,8 @@
 using System;
 using Imui.Rendering;
-using Imui.Rendering.Atlas;
 using Imui.Utility;
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering;
 
 namespace Imui.Core
 {
@@ -17,9 +15,6 @@ namespace Imui.Core
         
         private const int DEFAULT_TEX_W = 4;
         private const int DEFAULT_TEX_H = 4;
-                
-        private const int MAIN_ATLAS_W = 1024;
-        private const int MAIN_ATLAS_H = 1024;
         
         private const int MESH_SETTINGS_CAPACITY = 32;
         private const int TEMP_POINTS_BUFFER_CAPACITY = 1024;
@@ -44,17 +39,17 @@ namespace Imui.Core
             public Texture MainTex;
             public Texture FontTex;
         }
-
-        private static readonly Texture2D DefaultTexture;
         
-        static ImCanvas()
+        private static Texture2D CreateDefaultTexture()
         {
             var pixels = new Color32[DEFAULT_TEX_W * DEFAULT_TEX_H];
             Array.Fill(pixels, Color.white);
             
-            DefaultTexture = new Texture2D(DEFAULT_TEX_W, DEFAULT_TEX_H, TextureFormat.RGBA32, false);
-            DefaultTexture.SetPixels32(pixels);
-            DefaultTexture.Apply();
+            var texture = new Texture2D(DEFAULT_TEX_W, DEFAULT_TEX_H, TextureFormat.RGBA32, false);
+            texture.SetPixels32(pixels);
+            texture.Apply();
+
+            return texture;
         }
 
         public ImRect ScreenRect => new ImRect(Vector2.zero, ScreenSize);
@@ -63,7 +58,7 @@ namespace Imui.Core
         
         private Shader shader;
         private Material material;
-        private TextureAtlas atlas;
+        private Texture2D defaultTexture;
         private DynamicArray<TextureInfo> texturesInfo;
         private DynamicArray<MeshSettings> meshSettingsStack;
         private Vector2 screenSize;
@@ -81,16 +76,11 @@ namespace Imui.Core
             
             shader = Resources.Load<Shader>(SHADER_NAME);
             material = new Material(shader);
-            atlas = new TextureAtlas(MAIN_ATLAS_W, MAIN_ATLAS_H);
+            defaultTexture = CreateDefaultTexture();
+            defaultTexScaleOffset = new Vector4(1, 1, 0, 0);
             texturesInfo = new DynamicArray<TextureInfo>(capacity: 64);
             meshSettingsStack = new DynamicArray<MeshSettings>(MESH_SETTINGS_CAPACITY);
             tempPointsBuffer = new ResizeableBuffer<Vector2>(TEMP_POINTS_BUFFER_CAPACITY);
-            
-            defaultTexScaleOffset = AddToAtlas(DefaultTexture);
-            defaultTexScaleOffset.x *= 0.5f;
-            defaultTexScaleOffset.y *= 0.5f;
-            defaultTexScaleOffset.z += defaultTexScaleOffset.x / 2.0f;
-            defaultTexScaleOffset.w += defaultTexScaleOffset.y / 2.0f;
         }
         
         public void SetScreen(Vector2 screenSize)
@@ -102,44 +92,7 @@ namespace Imui.Core
         {
             meshDrawer.Clear();
         }
-        
-        public void Setup(CommandBuffer cmd)
-        {
-            ImuiAssert.True(meshSettingsStack.Count == 0, "Mesh properties stack is not empty!");
-            
-            for (int i = 0; i < texturesInfo.Count; ++i)
-            {
-                ref var tex = ref texturesInfo.Array[i];
-                atlas.Blit(cmd, tex.Texture, ref tex.ScaleOffset);
-            }
-        }
 
-        // TODO (artem-s): maybe separate all atlas maintenance into different class?
-        public Vector4 AddToAtlas(Texture2D tex)
-        {
-            var id = tex.GetInstanceID();
-            
-            for (int i = 0; i < texturesInfo.Count; ++i)
-            {
-                ref var info = ref texturesInfo.Array[i];
-                if (info.Id == id)
-                {
-                    return info.ScaleOffset;
-                }
-            }
-            
-            var scaleOffset = new Vector4();
-            atlas.Allocate(tex, ref scaleOffset);
-            texturesInfo.Add(new TextureInfo()
-            {
-                Id = tex.GetInstanceID(),
-                ScaleOffset = scaleOffset,
-                Texture = tex
-            });
-            
-            return scaleOffset;
-        }
-        
         public void PushMeshSettings(in MeshSettings settings)
         {
             meshSettingsStack.Push(in settings);
@@ -180,7 +133,7 @@ namespace Imui.Core
                     Rect = new Rect(Vector2.zero, screenSize)
                 },
                 Material = material,
-                MainTex = atlas.AtlasTexture,
+                MainTex = defaultTexture,
                 FontTex = textDrawer.FontAtlas
             };
         }
@@ -422,7 +375,7 @@ namespace Imui.Core
             
             Resources.UnloadAsset(shader);
             UnityEngine.Object.Destroy(material);
-            atlas.Release();
+            UnityEngine.Object.Destroy(defaultTexture);
             
             disposed = true;
         }

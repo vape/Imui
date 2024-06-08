@@ -3,7 +3,7 @@ using Imui.Controls;
 using Imui.Core;
 using UnityEngine;
 
-namespace Imui.Debug
+namespace Imui.Debugging
 {
     public static class ImDebug
     {
