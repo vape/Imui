@@ -178,7 +178,7 @@ namespace Imui.Core
             
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = texScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
+            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H);
         }
@@ -202,7 +202,7 @@ namespace Imui.Core
             }
             
             var path = GenerateRectOutline(rect, radius);
-            Line(path, color, true, thickness, bias);
+            LineMiter(path, color, true, thickness, bias);
         }
 
         public void RectWithOutline(ImRect rect, Color32 backColor, Color32 outlineColor, float thickness, ImRectRadius radius = default, float bias = 0.0f)
@@ -217,7 +217,7 @@ namespace Imui.Core
             
             if (thickness >= LINE_THICKNESS_THRESHOLD)
             {
-                Line(path, outlineColor, true, thickness, bias);
+                LineMiter(path, outlineColor, true, thickness, bias);
             }
         }
 
@@ -260,7 +260,7 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
 
-        public void Line(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        public void LineSimple(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)
             {
@@ -271,7 +271,23 @@ namespace Imui.Core
             
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
+            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Depth = DEFAULT_DEPTH;
+            meshDrawer.AddLine(in path, closed, thickness, bias, 1.0f - bias);
+        }
+
+        public void LineMiter(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        {
+            if (thickness <= 0)
+            {
+                return;
+            }
+            
+            bias = Mathf.Clamp01(bias);
+            
+            meshDrawer.Color = color;
+            meshDrawer.ScaleOffset = defaultTexScaleOffset;
+            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddLineMiter(in path, closed, thickness, bias, 1.0f - bias);
         }
@@ -280,7 +296,7 @@ namespace Imui.Core
         {
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_ATLAS_ID;
+            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddFilledConvexMesh(in points);
         }

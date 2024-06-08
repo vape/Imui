@@ -7,8 +7,8 @@ namespace Imui.Rendering
     // TODO (artem-s); try burst for optimizations
     public class MeshDrawer
     {
-        public const float MAIN_ATLAS_ID = 0.0f;
-        public const float FONT_ATLAS_ID = 1.0f;
+        public const float MAIN_TEX_ID = 0.0f;
+        public const float FONT_TEX_ID = 1.0f;
         
         private const float PI = Mathf.PI;
         private const float HALF_PI = PI / 2;
@@ -55,6 +55,88 @@ namespace Imui.Rendering
         public ref MeshData GetMesh()
         {
             return ref buffer.Meshes[buffer.MeshesCount - 1];
+        }
+
+        public void AddLine(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
+        {
+            Profiler.BeginSample("MeshDrawer.AddLine");
+            
+            var outerThickness = thickness * outerScale;
+            var innerThickness = thickness * innerScale;
+            
+            var ic = buffer.IndicesCount;
+            var vc = buffer.VerticesCount;
+
+            var generatedIndices = (path.Length - 1) * 6;
+            var generatedVertices = ((path.Length - 1) * 4);
+            
+            buffer.EnsureIndicesCapacity(ic + generatedIndices);
+            buffer.EnsureVerticesCapacity(vc + generatedVertices);
+            
+            for (int i = 0; i < path.Length - 1; ++i)
+            {
+                var a = path[i];
+                var b = path[i + 1];
+                
+                var abx = b.x - a.x;
+                var aby = b.y - a.y;
+                var abm = Mathf.Sqrt(abx * abx + aby * aby);
+                abx /= abm;
+                aby /= abm;
+
+                var normalX = -aby;
+                var normalY = abx;
+                
+                ref var v0 = ref buffer.Vertices[vc + 0];
+                v0.Position.x = a.x + normalX * -1 * outerThickness;
+                v0.Position.y = a.y + normalY * -1 * outerThickness;
+                v0.Position.z = Depth;
+                v0.Color = Color;
+                v0.UV.x = ScaleOffset.z;
+                v0.UV.y = ScaleOffset.w;
+                v0.Atlas = Atlas;
+
+                ref var v1 = ref buffer.Vertices[vc + 1];
+                v1.Position.x = a.x + normalX * innerThickness;
+                v1.Position.y = a.y + normalY * innerThickness;
+                v1.Position.z = Depth;
+                v1.Color = Color;
+                v1.UV = zero;
+                v1.Atlas = Atlas;
+                
+                ref var v2 = ref buffer.Vertices[vc + 2];
+                v2.Position.x = b.x + normalX * -1 * outerThickness;
+                v2.Position.y = b.y + normalY * -1 * outerThickness;
+                v2.Position.z = Depth;
+                v2.Color = Color;
+                v2.UV.x = ScaleOffset.z;
+                v2.UV.y = ScaleOffset.w;
+                v2.Atlas = Atlas;
+
+                ref var v3 = ref buffer.Vertices[vc + 3];
+                v3.Position.x = b.x + normalX * innerThickness;
+                v3.Position.y = b.y + normalY * innerThickness;
+                v3.Position.z = Depth;
+                v3.Color = Color;
+                v3.UV.x = ScaleOffset.z;
+                v3.UV.y = ScaleOffset.w;
+                v3.Atlas = Atlas;
+
+                buffer.Indices[ic + 0] = vc + 0;
+                buffer.Indices[ic + 1] = vc + 1;
+                buffer.Indices[ic + 2] = vc + 3;
+                buffer.Indices[ic + 3] = vc + 3;
+                buffer.Indices[ic + 4] = vc + 2;
+                buffer.Indices[ic + 5] = vc + 0;
+
+                ic += 6;
+                vc += 4;
+            }
+
+            buffer.AddIndices(generatedIndices);
+            buffer.AddVertices(generatedVertices);
+            
+            Profiler.EndSample();
         }
         
         // TODO (artem-s): add proper texturing

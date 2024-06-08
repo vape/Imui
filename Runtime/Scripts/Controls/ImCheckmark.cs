@@ -101,7 +101,7 @@ namespace Imui.Controls
                 rect.GetPointAtNormalPosition(1.00f, 0.80f)
             };
 
-            canvas.Line(path, color, false, thickness);
+            canvas.LineMiter(path, color, false, thickness);
         }
 
         public static ImTextSettings GetTextSettings()

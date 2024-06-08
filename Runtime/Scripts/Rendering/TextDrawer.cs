@@ -218,7 +218,7 @@ namespace Imui.Rendering
             v0.Color = Color;
             v0.UV.x = x / FONT_ATLAS_W;
             v0.UV.y = y / FONT_ATLAS_H;
-            v0.Atlas = MeshDrawer.FONT_ATLAS_ID;
+            v0.Atlas = MeshDrawer.FONT_TEX_ID;
 
             ref var v1 = ref buffer.Vertices[vc + 1];
             v1.Position.x = px + horizontalOffset;
@@ -227,7 +227,7 @@ namespace Imui.Rendering
             v1.Color = Color;
             v1.UV.x = x / FONT_ATLAS_W;
             v1.UV.y = (y + h) / FONT_ATLAS_H;
-            v1.Atlas = MeshDrawer.FONT_ATLAS_ID;
+            v1.Atlas = MeshDrawer.FONT_TEX_ID;
             
             ref var v2 = ref buffer.Vertices[vc + 2];
             v2.Position.x = px + glyphWidth + horizontalOffset;
@@ -236,7 +236,7 @@ namespace Imui.Rendering
             v2.Color = Color;
             v2.UV.x = (x + w) / FONT_ATLAS_W;
             v2.UV.y = (y + h) / FONT_ATLAS_H;
-            v2.Atlas = MeshDrawer.FONT_ATLAS_ID;
+            v2.Atlas = MeshDrawer.FONT_TEX_ID;
 
             ref var v3 = ref buffer.Vertices[vc + 3];
             v3.Position.x = px + glyphWidth + horizontalOffset;
@@ -245,7 +245,7 @@ namespace Imui.Rendering
             v3.Color = Color;
             v3.UV.x = (x + w) / FONT_ATLAS_W;
             v3.UV.y = (y) / FONT_ATLAS_H;
-            v3.Atlas = MeshDrawer.FONT_ATLAS_ID;
+            v3.Atlas = MeshDrawer.FONT_TEX_ID;
             
             buffer.Indices[ic + 0] = vc + 0;
             buffer.Indices[ic + 1] = vc + 1;
