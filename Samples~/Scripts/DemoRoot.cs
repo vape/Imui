@@ -9,6 +9,7 @@ namespace Imui.Demo
         [SerializeField] private Canvas canvas;
         [SerializeField] private ImuiGraphic graphic;
         [SerializeField] private Font font;
+        [SerializeField] private float fontSize;
         [SerializeField] private DemoWindowConfig config;
 
         private ImGui gui;
@@ -18,7 +19,7 @@ namespace Imui.Demo
         {
             gui = new ImGui(graphic, graphic);
             window = new DemoWindow(config);
-            gui.TextDrawer.LoadFont(font);
+            gui.TextDrawer.LoadFont(font, fontSize);
         }
 
         private void Update()

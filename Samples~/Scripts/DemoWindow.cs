@@ -2,6 +2,7 @@ using System;
 using Imui.Controls;
 using Imui.Controls.Layout;
 using Imui.Core;
+using Imui.Debugging;
 using UnityEngine;
 
 namespace Imui.Demo
@@ -27,6 +28,7 @@ namespace Imui.Demo
         };
         private string singleLineText = "Single line text edit";
         private string multiLineText = "Multiline text\nedit";
+        private bool showDebugWindow;
 
         public DemoWindow(DemoWindowConfig config)
         {
@@ -36,6 +38,7 @@ namespace Imui.Demo
         public void Draw(ImGui gui)
         {
             gui.BeginWindow("Demo");
+            gui.Checkmark(ref showDebugWindow, "Show debug window");
             
             gui.BeginFoldout("Widgets", out var widgetsOpen);
             if (widgetsOpen)
@@ -59,6 +62,11 @@ namespace Imui.Demo
             gui.EndFoldout();
             
             gui.EndWindow();
+
+            if (showDebugWindow)
+            {
+                ImDebug.Window(gui);
+            }
         }
 
         private void DrawWidgetsPage(ImGui gui)
