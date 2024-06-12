@@ -6,6 +6,16 @@ using UnityEngine.Profiling;
 
 namespace Imui.Core
 {
+    public struct ImCanvasSettings
+    {
+        public Material Material;
+        public ImMeshClipRect ClipRect;
+        public ImMeshMaskRect MaskRect;
+        public int Order;
+        public Texture MainTex;
+        public Texture FontTex;
+    }
+    
     public partial class ImCanvas : IDisposable
     {
         public const int DEFAULT_ORDER = 0;
@@ -22,23 +32,6 @@ namespace Imui.Core
         private const float LINE_THICKNESS_THRESHOLD = 0.01f;
         
         private const string SHADER_NAME = "imui_default";
-        
-        private struct TextureInfo
-        {
-            public int Id;
-            public Texture2D Texture;
-            public Vector4 ScaleOffset;
-        }
-
-        public struct MeshSettings
-        {
-            public Material Material;
-            public MeshClipRect ClipRect;
-            public MeshMaskRect MaskRect;
-            public int Order;
-            public Texture MainTex;
-            public Texture FontTex;
-        }
         
         private static Texture2D CreateDefaultTexture()
         {
@@ -59,17 +52,16 @@ namespace Imui.Core
         private Shader shader;
         private Material material;
         private Texture2D defaultTexture;
-        private DynamicArray<TextureInfo> texturesInfo;
-        private DynamicArray<MeshSettings> meshSettingsStack;
+        private ImDynamicArray<ImCanvasSettings> settingsStack;
         private Vector2 screenSize;
-        private ResizeableBuffer<Vector2> tempPointsBuffer;
+        private ImResizeableBuffer<Vector2> tempPointsBuffer;
         private bool disposed;
         
         private readonly Vector4 defaultTexScaleOffset;
-        private readonly MeshDrawer meshDrawer;
-        private readonly TextDrawer textDrawer;
+        private readonly ImMeshDrawer meshDrawer;
+        private readonly ImTextDrawer textDrawer;
         
-        public ImCanvas(MeshDrawer meshDrawer, TextDrawer textDrawer)
+        public ImCanvas(ImMeshDrawer meshDrawer, ImTextDrawer textDrawer)
         {
             this.meshDrawer = meshDrawer;
             this.textDrawer = textDrawer;
@@ -78,9 +70,8 @@ namespace Imui.Core
             material = new Material(shader);
             defaultTexture = CreateDefaultTexture();
             defaultTexScaleOffset = new Vector4(1, 1, 0, 0);
-            texturesInfo = new DynamicArray<TextureInfo>(capacity: 64);
-            meshSettingsStack = new DynamicArray<MeshSettings>(MESH_SETTINGS_CAPACITY);
-            tempPointsBuffer = new ResizeableBuffer<Vector2>(TEMP_POINTS_BUFFER_CAPACITY);
+            settingsStack = new ImDynamicArray<ImCanvasSettings>(MESH_SETTINGS_CAPACITY);
+            tempPointsBuffer = new ImResizeableBuffer<Vector2>(TEMP_POINTS_BUFFER_CAPACITY);
         }
         
         public void SetScreen(Vector2 screenSize)
@@ -93,41 +84,41 @@ namespace Imui.Core
             meshDrawer.Clear();
         }
 
-        public void PushMeshSettings(in MeshSettings settings)
+        public void PushSettings(in ImCanvasSettings settings)
         {
-            meshSettingsStack.Push(in settings);
+            settingsStack.Push(in settings);
             meshDrawer.NextMesh();
             
-            ApplyMeshSettings();
+            ApplySettings();
         }
         
-        public void PopMeshSettings()
+        public void PopSettings()
         {
-            meshSettingsStack.Pop();
+            settingsStack.Pop();
 
-            if (meshSettingsStack.Count > 0)
+            if (settingsStack.Count > 0)
             {
                 meshDrawer.NextMesh();
-                ApplyMeshSettings();
+                ApplySettings();
             }
         }
 
-        internal ref readonly MeshSettings GetActiveMeshSettingsRef()
+        internal ref readonly ImCanvasSettings GetActiveSettings()
         {
-            return ref meshSettingsStack.Peek();
+            return ref settingsStack.Peek();
         }
         
-        public MeshSettings GetActiveMeshSettings()
+        public ImCanvasSettings GetActiveSettingsCopy()
         {
-            return meshSettingsStack.Peek();
+            return settingsStack.Peek();
         }
         
-        public MeshSettings CreateDefaultMeshSettings()
+        public ImCanvasSettings CreateDefaultSettings()
         {
-            return new MeshSettings()
+            return new ImCanvasSettings()
             {
                 Order = DEFAULT_ORDER,
-                ClipRect = new MeshClipRect()
+                ClipRect = new ImMeshClipRect()
                 {
                     Enabled = true,
                     Rect = new Rect(Vector2.zero, screenSize)
@@ -138,10 +129,10 @@ namespace Imui.Core
             };
         }
 
-        private void ApplyMeshSettings()
+        private void ApplySettings()
         {
             ref var mesh = ref meshDrawer.GetMesh();
-            ref var settings = ref meshSettingsStack.Peek();
+            ref var settings = ref settingsStack.Peek();
 
             mesh.FontTex = settings.FontTex;
             mesh.MainTex = settings.MainTex;
@@ -155,7 +146,7 @@ namespace Imui.Core
         {
             var r = (Rect)rect;
             
-            ref var settings = ref meshSettingsStack.Peek();
+            ref var settings = ref settingsStack.Peek();
             if (settings.ClipRect.Enabled && !settings.ClipRect.Rect.Overlaps(r))
             {
                 return true;
@@ -178,7 +169,7 @@ namespace Imui.Core
             
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = texScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H);
         }
@@ -228,7 +219,7 @@ namespace Imui.Core
             textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
         }
 
-        public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
+        public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, in ImTextLayout layout)
         {
             var rect = new ImRect(position.x + layout.OffsetX, position.y - layout.Height + layout.OffsetY, layout.Width, layout.Height);
             if (Cull(rect))
@@ -271,7 +262,7 @@ namespace Imui.Core
             
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddLine(in path, closed, thickness, bias, 1.0f - bias);
         }
@@ -287,7 +278,7 @@ namespace Imui.Core
             
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddLineMiter(in path, closed, thickness, bias, 1.0f - bias);
         }
@@ -296,7 +287,7 @@ namespace Imui.Core
         {
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DEFAULT_DEPTH;
             meshDrawer.AddFilledConvexMesh(in points);
         }
@@ -305,7 +296,7 @@ namespace Imui.Core
         {
             radius.Clamp(Mathf.Min(rect.W, rect.H) / 2.0f);
 
-            var segments = MeshDrawer.CalculateSegmentsCount(radius.GetMax());
+            var segments = ImMeshDrawer.CalculateSegmentsCount(radius.GetMax());
             var span = tempPointsBuffer.AsSpan((segments + 1) * 4);
             
             GenerateRectOutline(span, rect, radius, segments);

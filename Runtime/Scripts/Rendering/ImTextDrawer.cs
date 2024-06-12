@@ -8,7 +8,28 @@ using UnityEngine.TextCore.Text;
 
 namespace Imui.Rendering
 {
-    public class TextDrawer : IDisposable
+    public struct ImTextLine
+    {
+        public int Start;
+        public int Count;
+        public float OffsetX;
+        public float Width;
+    }
+    
+    public struct ImTextLayout
+    {
+        public float Size;
+        public float Scale;
+        public float OffsetX;
+        public float OffsetY;
+        public float Width;
+        public float Height;
+        public ImTextLine[] Lines;
+        public int LinesCount;
+        public float LineHeight;
+    }
+    
+    public class ImTextDrawer : IDisposable
     {
         private const string ASCII = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
         private const char NEW_LINE = '\n';
@@ -17,31 +38,10 @@ namespace Imui.Rendering
         private const float FONT_ATLAS_H = 1024;
         
         private const int FONT_ATLAS_PADDING = 2;
-        
-        public struct Line
-        {
-            public int Start;
-            public int Count;
-            public float OffsetX;
-            public float Width;
-        }
-    
-        public struct Layout
-        {
-            public float Size;
-            public float Scale;
-            public float OffsetX;
-            public float OffsetY;
-            public float Width;
-            public float Height;
-            public Line[] Lines;
-            public int LinesCount;
-            public float LineHeight;
-        }
 
-        private static Layout SharedLayout = new()
+        private static ImTextLayout SharedLayout = new()
         {
-            Lines = new Line[128]
+            Lines = new ImTextLine[128]
         };
 
         public Texture2D FontAtlas => fontAsset.atlasTexture;
@@ -58,11 +58,11 @@ namespace Imui.Rendering
         private float renderSize;
         private float descentLine;
         
-        private readonly MeshBuffer buffer;
+        private readonly ImMeshBuffer buffer;
         
         private bool disposed;
 
-        public TextDrawer(MeshBuffer buffer)
+        public ImTextDrawer(ImMeshBuffer buffer)
         {
             this.buffer = buffer;
         }
@@ -134,7 +134,7 @@ namespace Imui.Rendering
             Profiler.EndSample();
         }
         
-        public void AddTextWithLayout(ReadOnlySpan<char> text, in Layout layout, float x, float y)
+        public void AddTextWithLayout(ReadOnlySpan<char> text, in ImTextLayout layout, float x, float y)
         {
             Profiler.BeginSample("TextDrawer.AddTextWithLayout");
             
@@ -218,7 +218,7 @@ namespace Imui.Rendering
             v0.Color = Color;
             v0.UV.x = x / FONT_ATLAS_W;
             v0.UV.y = y / FONT_ATLAS_H;
-            v0.Atlas = MeshDrawer.FONT_TEX_ID;
+            v0.Atlas = ImMeshDrawer.FONT_TEX_ID;
 
             ref var v1 = ref buffer.Vertices[vc + 1];
             v1.Position.x = px + horizontalOffset;
@@ -227,7 +227,7 @@ namespace Imui.Rendering
             v1.Color = Color;
             v1.UV.x = x / FONT_ATLAS_W;
             v1.UV.y = (y + h) / FONT_ATLAS_H;
-            v1.Atlas = MeshDrawer.FONT_TEX_ID;
+            v1.Atlas = ImMeshDrawer.FONT_TEX_ID;
             
             ref var v2 = ref buffer.Vertices[vc + 2];
             v2.Position.x = px + glyphWidth + horizontalOffset;
@@ -236,7 +236,7 @@ namespace Imui.Rendering
             v2.Color = Color;
             v2.UV.x = (x + w) / FONT_ATLAS_W;
             v2.UV.y = (y + h) / FONT_ATLAS_H;
-            v2.Atlas = MeshDrawer.FONT_TEX_ID;
+            v2.Atlas = ImMeshDrawer.FONT_TEX_ID;
 
             ref var v3 = ref buffer.Vertices[vc + 3];
             v3.Position.x = px + glyphWidth + horizontalOffset;
@@ -245,7 +245,7 @@ namespace Imui.Rendering
             v3.Color = Color;
             v3.UV.x = (x + w) / FONT_ATLAS_W;
             v3.UV.y = (y) / FONT_ATLAS_H;
-            v3.Atlas = MeshDrawer.FONT_TEX_ID;
+            v3.Atlas = ImMeshDrawer.FONT_TEX_ID;
             
             buffer.Indices[ic + 0] = vc + 0;
             buffer.Indices[ic + 1] = vc + 1;
@@ -260,13 +260,13 @@ namespace Imui.Rendering
             return metrics.horizontalAdvance * scale;
         }
         
-        public ref readonly Layout BuildTempLayout(in ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size)
+        public ref readonly ImTextLayout BuildTempLayout(in ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size)
         {
             FillLayout(text, width, height, alignX, alignY, size, ref SharedLayout);
             return ref SharedLayout;
         }
         
-        public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, ref Layout layout)
+        public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, ref ImTextLayout layout)
         {
             const float NEXT_LINE_WIDTH_THRESHOLD = 0.0001f;
             

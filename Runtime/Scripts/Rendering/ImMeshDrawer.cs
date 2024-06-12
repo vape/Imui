@@ -5,16 +5,14 @@ using UnityEngine.Profiling;
 namespace Imui.Rendering
 {
     // TODO (artem-s); try burst for optimizations
-    public class MeshDrawer
+    public class ImMeshDrawer
     {
         public const float MAIN_TEX_ID = 0.0f;
         public const float FONT_TEX_ID = 1.0f;
         
         private const float PI = Mathf.PI;
         private const float HALF_PI = PI / 2;
-
-        private static readonly Vector2 zero = Vector2.zero;
-
+        
         public static int CalculateSegmentsCount(float radius, float maxError = 2)
         {
             const int MIN_SEGMENTS = 2;
@@ -29,15 +27,14 @@ namespace Imui.Rendering
             return ((segments + 1) / 2) * 2;
         }
         
-        // ReSharper disable once InconsistentNaming
         public float Depth;
         public float Atlas;
         public Color32 Color;
         public Vector4 ScaleOffset;
 
-        private readonly MeshBuffer buffer;
+        private readonly ImMeshBuffer buffer;
         
-        public MeshDrawer(MeshBuffer buffer)
+        public ImMeshDrawer(ImMeshBuffer buffer)
         {
             this.buffer = buffer;
         }
@@ -52,7 +49,7 @@ namespace Imui.Rendering
             buffer.NextMesh();
         }
 
-        public ref MeshData GetMesh()
+        public ref ImMeshData GetMesh()
         {
             return ref buffer.Meshes[buffer.MeshesCount - 1];
         }
@@ -101,7 +98,7 @@ namespace Imui.Rendering
                 v1.Position.y = a.y + normalY * innerThickness;
                 v1.Position.z = Depth;
                 v1.Color = Color;
-                v1.UV = zero;
+                v1.UV = default;
                 v1.Atlas = Atlas;
                 
                 ref var v2 = ref buffer.Vertices[vc + 2];
@@ -233,7 +230,7 @@ namespace Imui.Rendering
             v1.Position.y = path[0].y + prevNormY * innerThickness;
             v1.Position.z = Depth;
             v1.Color = Color;
-            v1.UV = zero;
+            v1.UV = default;
             v1.Atlas = Atlas;
 
             for (int i = 0; i < pointsCount; ++i)
@@ -338,8 +335,8 @@ namespace Imui.Rendering
         // TODO (artem-s): calculate proper UV values
         public void AddTriangleFan(Vector2 center, float from, float to, float radius, int segments)
         {
-            ImuiAssert.True(segments > 0, "segments > 0");
-            ImuiAssert.True(to > from, "to > from");
+            ImAssert.True(segments > 0, "segments > 0");
+            ImAssert.True(to > from, "to > from");
             
             Profiler.BeginSample("MeshDrawer.AddTriangleFan");
             
@@ -545,7 +542,7 @@ namespace Imui.Rendering
 
         public void AddFilledConvexMesh(in ReadOnlySpan<Vector2> points)
         {
-            ImuiAssert.True(points.Length > 2, "points.Length > 2");
+            ImAssert.True(points.Length > 2, "points.Length > 2");
             
             Profiler.BeginSample("MeshDrawer.AddFilledConvexMesh");
             

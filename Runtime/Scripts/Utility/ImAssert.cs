@@ -8,7 +8,7 @@ internal class ImuiAssertException : Exception
     public ImuiAssertException(string message) : base(message) { }
 }
 
-internal static class ImuiAssert
+internal static class ImAssert
 {
     [Conditional("IMUI_DEBUG")]
     [Conditional("IMUI_VALIDATION")]

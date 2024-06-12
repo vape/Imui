@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace Imui.Rendering
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct Vertex
+    public struct ImVertex
     {
         public static readonly VertexAttributeDescriptor[] VertexAttributes = new VertexAttributeDescriptor[]
         {
@@ -20,7 +20,7 @@ namespace Imui.Rendering
         public Vector2 UV;
         public float Atlas;
 
-        public Vertex(Vector3 position, Color32 color, Vector2 uv, float atlas)
+        public ImVertex(Vector3 position, Color32 color, Vector2 uv, float atlas)
         {
             Position = position;
             Color = color;
@@ -28,7 +28,7 @@ namespace Imui.Rendering
             Atlas = atlas;
         }
         
-        public Vertex(Vertex vertex)
+        public ImVertex(ImVertex vertex)
         {
             Position = vertex.Position;
             Color = vertex.Color;

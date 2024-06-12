@@ -1,6 +1,6 @@
 namespace Imui.Utility
 {
-    public struct CircularBuffer<T>
+    public struct ImCircularBuffer<T>
     {
         public readonly int Capacity;
 
@@ -8,7 +8,7 @@ namespace Imui.Utility
         public int Count;
         public T[] Array;
 
-        public CircularBuffer(int capacity)
+        public ImCircularBuffer(int capacity)
         {
             Capacity = capacity;
 

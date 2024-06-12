@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace Imui.Rendering
 {
-    public class MeshRenderer : IDisposable
+    public class ImMeshRenderer : IDisposable
     {
         private const MeshUpdateFlags MESH_UPDATE_FLAGS =
             MeshUpdateFlags.DontNotifyMeshUsers |
@@ -28,7 +28,7 @@ namespace Imui.Rendering
         private Mesh mesh;
         private bool disposed;
         
-        public MeshRenderer()
+        public ImMeshRenderer()
         {
             properties = new MaterialPropertyBlock();
             
@@ -36,14 +36,14 @@ namespace Imui.Rendering
             mesh.MarkDynamic();
         }
 
-        public void Render(CommandBuffer cmd, MeshBuffer buffer, Vector2 size, float scale)
+        public void Render(CommandBuffer cmd, ImMeshBuffer buffer, Vector2 size, float scale)
         {
             mesh.Clear(true);
             
             buffer.Trim();
             
             mesh.SetIndexBufferParams(buffer.IndicesCount, IndexFormat.UInt32);
-            mesh.SetVertexBufferParams(buffer.VerticesCount, Vertex.VertexAttributes);
+            mesh.SetVertexBufferParams(buffer.VerticesCount, ImVertex.VertexAttributes);
 
             mesh.SetVertexBufferData(buffer.Vertices, 0, 0, buffer.VerticesCount, 0, MESH_UPDATE_FLAGS);
             mesh.SetIndexBufferData(buffer.Indices, 0, 0, buffer.IndicesCount, MESH_UPDATE_FLAGS);

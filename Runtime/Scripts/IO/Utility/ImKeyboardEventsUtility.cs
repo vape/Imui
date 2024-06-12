@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Imui.IO.Utility
 {
-    public static class KeyboardEventsUtility
+    public static class ImKeyboardEventsUtility
     {
-        public static bool TryParse(Event evt, ref CircularBuffer<ImKeyboardEvent> eventsQueue)
+        public static bool TryParse(Event evt, ref ImCircularBuffer<ImKeyboardEvent> eventsQueue)
         {
             if (evt == null)
             {

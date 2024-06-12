@@ -21,8 +21,8 @@ namespace Imui.Core
         public const int DEFAULT_WIDTH = 500;
         public const int DEFAULT_HEIGHT = 500;
         
-        private DynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
-        private DynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
+        private ImDynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
+        private ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
         private Vector2 screenSize;
         
         public ref ImWindowState BeginWindow(uint id, string title, float width = DEFAULT_WIDTH, float height = DEFAULT_HEIGHT, ImWindowFlag flags = ImWindowFlag.None)

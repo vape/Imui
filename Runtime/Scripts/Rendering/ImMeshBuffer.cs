@@ -4,20 +4,20 @@ using UnityEngine;
 
 namespace Imui.Rendering
 {
-    public class MeshBuffer
+    public class ImMeshBuffer
     {
         public int VerticesCount;
         public int IndicesCount;
-        public Vertex[] Vertices;
+        public ImVertex[] Vertices;
         public int[] Indices;
-        public MeshData[] Meshes;
+        public ImMeshData[] Meshes;
         public int MeshesCount;
 
-        public MeshBuffer(int meshesCapacity, int verticesCapacity, int indicesCapacity)
+        public ImMeshBuffer(int meshesCapacity, int verticesCapacity, int indicesCapacity)
         {
-            Vertices = new Vertex[verticesCapacity];
+            Vertices = new ImVertex[verticesCapacity];
             Indices = new int[indicesCapacity];
-            Meshes = new MeshData[meshesCapacity];
+            Meshes = new ImMeshData[meshesCapacity];
             
             Clear();
         }
@@ -38,7 +38,7 @@ namespace Imui.Rendering
         
         public void Sort()
         {
-            var meshes = new Span<MeshData>(Meshes, 0, MeshesCount);
+            var meshes = new Span<ImMeshData>(Meshes, 0, MeshesCount);
             var i = 1;
             while (i < meshes.Length)
             {

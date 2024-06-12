@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Imui.IO.Utility
 {
-    public class TouchKeyboardHandler : IDisposable
+    public class ImTouchKeyboard : IDisposable
     {
         private const int TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD = 3;
 

@@ -10,9 +10,9 @@ using UnityEngine.UI;
 namespace Imui.IO.UGUI
 {
     [RequireComponent(typeof(CanvasRenderer))]
-    public class ImuiGraphic : Graphic, 
-        IRenderingBackend, 
-        IInputBackend, 
+    public class ImCanvasBackend : Graphic, 
+        IImRenderingBackend, 
+        IImInputBackend, 
         IPointerDownHandler, 
         IPointerUpHandler, 
         IDragHandler, 
@@ -33,17 +33,17 @@ namespace Imui.IO.UGUI
         
         public override Texture mainTexture => textureRenderer?.Texture == null ? ClearTexture : textureRenderer.Texture;
 
-        private InputRaycaster raycaster;
-        private TextureRenderer textureRenderer;
-        private DynamicArray<CommandBuffer> commandBufferPool;
+        private ImInputRaycaster raycaster;
+        private ImTextureRenderer textureRenderer;
+        private ImDynamicArray<CommandBuffer> commandBufferPool;
         private float scale;
-        private CircularBuffer<ImMouseEvent> mouseEventsQueue;
-        private CircularBuffer<ImKeyboardEvent> nextKeyboardEvents;
-        private CircularBuffer<ImKeyboardEvent> keyboardEvents;
+        private ImCircularBuffer<ImMouseEvent> mouseEventsQueue;
+        private ImCircularBuffer<ImKeyboardEvent> nextKeyboardEvents;
+        private ImCircularBuffer<ImKeyboardEvent> keyboardEvents;
         private Vector2 mousePosition;
         private ImMouseEvent mouseEvent;
         private ImTextEvent textEvent;
-        private TouchKeyboardHandler touchKeyboardHandler;
+        private ImTouchKeyboard touchKeyboardHandler;
         private bool elementHovered;
         
         protected override void Awake()
@@ -56,12 +56,12 @@ namespace Imui.IO.UGUI
             }
             
             useGUILayout = false;
-            mouseEventsQueue = new CircularBuffer<ImMouseEvent>(MOUSE_EVENTS_QUEUE_SIZE);
-            keyboardEvents = new CircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
-            nextKeyboardEvents = new CircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
-            touchKeyboardHandler = new TouchKeyboardHandler();
-            commandBufferPool = new DynamicArray<CommandBuffer>(COMMAND_BUFFER_POOL_INITIAL_SIZE);
-            textureRenderer = new TextureRenderer();
+            mouseEventsQueue = new ImCircularBuffer<ImMouseEvent>(MOUSE_EVENTS_QUEUE_SIZE);
+            keyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
+            nextKeyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
+            touchKeyboardHandler = new ImTouchKeyboard();
+            commandBufferPool = new ImDynamicArray<CommandBuffer>(COMMAND_BUFFER_POOL_INITIAL_SIZE);
+            textureRenderer = new ImTextureRenderer();
         }
         
         protected override void OnDestroy()
@@ -104,7 +104,7 @@ namespace Imui.IO.UGUI
             }
         }
 
-        public void SetRaycaster(InputRaycaster raycaster)
+        public void SetRaycaster(ImInputRaycaster raycaster)
         {
             this.raycaster = raycaster;
             SetRaycastDirty();
@@ -195,7 +195,7 @@ namespace Imui.IO.UGUI
                 return;
             }
 
-            KeyboardEventsUtility.TryParse(evt, ref nextKeyboardEvents);
+            ImKeyboardEventsUtility.TryParse(evt, ref nextKeyboardEvents);
         }
 
         
@@ -276,7 +276,7 @@ namespace Imui.IO.UGUI
             return false;
         }
         
-        CommandBuffer IRenderingBackend.CreateCommandBuffer()
+        CommandBuffer IImRenderingBackend.CreateCommandBuffer()
         {
             if (commandBufferPool.Count == 0)
             {
@@ -287,13 +287,13 @@ namespace Imui.IO.UGUI
             return commandBufferPool.Pop();
         }
 
-        void IRenderingBackend.ReleaseCommandBuffer(CommandBuffer cmd)
+        void IImRenderingBackend.ReleaseCommandBuffer(CommandBuffer cmd)
         {
             cmd.Clear();
             commandBufferPool.Add(cmd);
         }
         
-        void IRenderingBackend.SetupRenderTarget(CommandBuffer cmd)
+        void IImRenderingBackend.SetupRenderTarget(CommandBuffer cmd)
         {
             var rect = GetScreenRect();
             var size = new Vector2Int((int)rect.width, (int)rect.height);
@@ -306,7 +306,7 @@ namespace Imui.IO.UGUI
             }
         }
 
-        void IRenderingBackend.Execute(CommandBuffer cmd)
+        void IImRenderingBackend.Execute(CommandBuffer cmd)
         {
             Graphics.ExecuteCommandBuffer(cmd);
         }

@@ -15,7 +15,7 @@ namespace Imui.Debugging
         
         private static bool debugOverlay = false;
         private static char[] formatBuffer = new char[256];
-        private static CircularBuffer<float> frameTimes = new CircularBuffer<float>(128);
+        private static ImCircularBuffer<float> frameTimes = new ImCircularBuffer<float>(128);
         
         public static void Window(ImGui gui)
         {

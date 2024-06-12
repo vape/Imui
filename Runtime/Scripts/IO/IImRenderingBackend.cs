@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace Imui.IO
 {
-    public interface IRenderingBackend
+    public interface IImRenderingBackend
     {
         CommandBuffer CreateCommandBuffer();
         void ReleaseCommandBuffer(CommandBuffer cmd);

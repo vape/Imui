@@ -2,20 +2,20 @@ using UnityEngine;
 
 namespace Imui.Rendering
 {
-    public struct MeshClipRect
+    public struct ImMeshClipRect
     {
         public bool Enabled;
         public Rect Rect;
     }
     
-    public struct MeshMaskRect
+    public struct ImMeshMaskRect
     {
         public bool Enabled;
         public Rect Rect;
         public float Radius;
     }
     
-    public struct MeshData
+    public struct ImMeshData
     {
         public Texture MainTex;
         public Texture FontTex;
@@ -26,8 +26,8 @@ namespace Imui.Rendering
         public int IndicesCount;
         public MeshTopology Topology;
         public int Order;
-        public MeshClipRect ClipRect;
-        public MeshMaskRect MaskRect;
+        public ImMeshClipRect ClipRect;
+        public ImMeshMaskRect MaskRect;
         
         public void ClearOptions()
         {

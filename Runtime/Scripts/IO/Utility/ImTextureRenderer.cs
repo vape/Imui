@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace Imui.IO.Utility
 {
-    public class TextureRenderer : IDisposable
+    public class ImTextureRenderer : IDisposable
     {
         private const float RES_SCALE_MIN = 0.2f;
         private const float RES_SCALE_MAX = 4.0f;
@@ -29,7 +29,7 @@ namespace Imui.IO.Utility
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(TextureRenderer));
+                throw new ObjectDisposedException(nameof(ImTextureRenderer));
             }
             
             scale = Mathf.Clamp(scale, RES_SCALE_MIN, RES_SCALE_MAX);
@@ -66,7 +66,7 @@ namespace Imui.IO.Utility
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(TextureRenderer));
+                throw new ObjectDisposedException(nameof(ImTextureRenderer));
             }
         }
 

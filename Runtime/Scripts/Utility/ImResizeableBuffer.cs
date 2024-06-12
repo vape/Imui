@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace Imui.Utility
 {
-    public struct ResizeableBuffer<T>
+    public struct ImResizeableBuffer<T>
     {
         public T[] Array;
 
-        public ResizeableBuffer(int capacity)
+        public ImResizeableBuffer(int capacity)
         {
             Array = new T[capacity];
         }
@@ -32,7 +32,7 @@ namespace Imui.Utility
             return new Span<T>(Array, 0, length);
         }
         
-        public static implicit operator Span<T>(ResizeableBuffer<T> buffer)
+        public static implicit operator Span<T>(ImResizeableBuffer<T> buffer)
         {
             return buffer.Array;
         }

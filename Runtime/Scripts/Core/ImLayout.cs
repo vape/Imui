@@ -63,7 +63,7 @@ namespace Imui.Core
     {
         private const int FRAME_STACK_CAPACITY = 32;
         
-        private DynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
+        private ImDynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
         
         public void Push(ImAxis axis, float width = 0, float height = 0)
         {

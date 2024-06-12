@@ -189,7 +189,7 @@ namespace Imui.Controls
             ref ImTextEditState state, 
             ref ImTextEditBuffer buffer, 
             in ImRect textRect, 
-            in TextDrawer.Layout layout,
+            in ImTextLayout layout,
             ImTextEditFilter filter,
             bool multiline,
             out bool textChanged)
@@ -427,7 +427,7 @@ namespace Imui.Controls
         public static bool MoveCaretVertical(
             ImGui gui, 
             in ImRect textRect,
-            in TextDrawer.Layout layout,
+            in ImTextLayout layout,
             ref ImTextEditState state, 
             in ImTextEditBuffer buffer, 
             int dir, 
@@ -499,7 +499,7 @@ namespace Imui.Controls
             ImGui gui, 
             in ImTextEditState state, 
             in ImRect textRect, 
-            in TextDrawer.Layout layout, 
+            in ImTextLayout layout, 
             in ImTextEditBuffer buffer)
         {
             var viewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in textRect, in layout, in buffer);
@@ -553,7 +553,7 @@ namespace Imui.Controls
             return ((ReadOnlySpan<char>)buffer).Slice(begin, end - begin);
         }
 
-        public static int ViewToCaretPosition(Vector2 position, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
+        public static int ViewToCaretPosition(Vector2 position, ImTextDrawer drawer, in ImRect rect, in ImTextLayout layout, in ImTextEditBuffer buffer)
         {
             var origin = rect.TopLeft;
             var line = 0;
@@ -618,12 +618,12 @@ namespace Imui.Controls
             return caret;
         }
         
-        public static Vector2 CaretToViewPosition(int caret, TextDrawer drawer, in ImRect rect, in TextDrawer.Layout layout, in ImTextEditBuffer buffer)
+        public static Vector2 CaretToViewPosition(int caret, ImTextDrawer drawer, in ImRect rect, in ImTextLayout layout, in ImTextEditBuffer buffer)
         {
             return LineOffsetToViewPosition(FindLineAtCaretPosition(caret, in layout, out var linePosition), linePosition, buffer, in rect, drawer, in layout);
         }
 
-        public static Vector2 LineOffsetToViewPosition(int line, int offset, ReadOnlySpan<char> buffer, in ImRect rect, TextDrawer drawer, in TextDrawer.Layout layout)
+        public static Vector2 LineOffsetToViewPosition(int line, int offset, ReadOnlySpan<char> buffer, in ImRect rect, ImTextDrawer drawer, in ImTextLayout layout)
         {
             var yOffset = line * -layout.LineHeight + layout.OffsetY;
             var xOffset = line >= layout.LinesCount ? layout.OffsetX : layout.Lines[line].OffsetX;
@@ -645,7 +645,7 @@ namespace Imui.Controls
             return rect.TopLeft + new Vector2(xOffset, yOffset);
         }
 
-        public static int FindLineAtCaretPosition(int caret, in TextDrawer.Layout layout, out int linePosition)
+        public static int FindLineAtCaretPosition(int caret, in ImTextLayout layout, out int linePosition)
         {
             var line = 0;
             while (layout.LinesCount - 1 > line && layout.Lines[line].Count <= caret)
@@ -661,7 +661,7 @@ namespace Imui.Controls
         public static void DrawCaret(ImGui gui, 
             int position,
             in ImRect textRect, 
-            in TextDrawer.Layout layout, 
+            in ImTextLayout layout, 
             in ImTextEditStateStyle style, 
             in ImTextEditBuffer buffer)
         {
@@ -682,7 +682,7 @@ namespace Imui.Controls
             int position,
             int size,
             in ImRect textRect, 
-            in TextDrawer.Layout layout, 
+            in ImTextLayout layout, 
             in ImTextEditStateStyle style,
             in ImTextEditBuffer buffer)
         {

@@ -2,12 +2,12 @@ using System;
 
 namespace Imui.Utility
 {
-    internal struct DynamicArray<T>
+    internal struct ImDynamicArray<T>
     {
         public int Count;
         public T[] Array;
         
-        public DynamicArray(int capacity)
+        public ImDynamicArray(int capacity)
         {
             Array = new T[capacity];
             Count = 0;
@@ -61,7 +61,7 @@ namespace Imui.Utility
         
         public T Pop()
         {
-            ImuiAssert.True(Count >= 0, "Popping empty array");
+            ImAssert.True(Count >= 0, "Popping empty array");
             
             return Array[--Count];
         }
@@ -78,7 +78,7 @@ namespace Imui.Utility
         
         public ref T Peek()
         {
-            ImuiAssert.True(Count >= 0, "Peeking empty array");
+            ImAssert.True(Count >= 0, "Peeking empty array");
             
             return ref Array[Count - 1];
         }

@@ -142,7 +142,7 @@ namespace Imui.Controls
             var handleRect = GetResizeHandleRect(in rect, out var radius);
             var active = gui.IsControlActive(id);
             
-            var segments = MeshDrawer.CalculateSegmentsCount(radius);
+            var segments = ImMeshDrawer.CalculateSegmentsCount(radius);
             var step = (1f / segments) * HALF_PI;
 
             Span<Vector2> buffer = stackalloc Vector2[segments + 1 + 2];
