@@ -251,7 +251,13 @@ namespace Imui.IO.UGUI
         
         private bool IsTouchSupported()
         {
-            return PlatformUtility.IsEditorSimulator() || Input.touchSupported;
+#if UNITY_EDITOR
+            var isRunningInDeviceSimulator = UnityEngine.Device.SystemInfo.deviceType != DeviceType.Desktop;
+#else
+            var isRunningInDeviceSimulator = false;
+#endif
+            
+            return isRunningInDeviceSimulator || Input.touchSupported;
         }
 
         private bool IsTouchBegan()
