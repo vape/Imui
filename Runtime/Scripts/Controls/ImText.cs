@@ -81,7 +81,8 @@ namespace Imui.Controls
                 bounds.y,
                 textSettings.Align.X,
                 textSettings.Align.Y, 
-                textSettings.Size);
+                textSettings.Size,
+                textSettings.Wrap);
 
             return new Vector2(textLayout.Width, textLayout.Height);
         }

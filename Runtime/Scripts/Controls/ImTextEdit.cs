@@ -17,6 +17,8 @@ namespace Imui.Controls
     // TODO (artem-s): text input with dropdown selection
     public static class ImTextEdit
     {
+        private const bool WRAP = true;
+        
         public const float CARET_BLINKING_TIME = 0.3f;
         public const float MIN_WIDTH = 1;
         public const float MIN_HEIGHT = 1;
@@ -91,7 +93,7 @@ namespace Imui.Controls
             var layout = gui.TextDrawer.BuildTempLayout(
                 buffer, 
                 textRect.W, textRect.H, 
-                Style.Alignment.X, Style.Alignment.Y, textSize);
+                Style.Alignment.X, Style.Alignment.Y, textSize, WRAP);
             
             gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius.GetMax());
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);

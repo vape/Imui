@@ -260,13 +260,13 @@ namespace Imui.Rendering
             return metrics.horizontalAdvance * scale;
         }
         
-        public ref readonly ImTextLayout BuildTempLayout(in ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size)
+        public ref readonly ImTextLayout BuildTempLayout(in ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, bool wrap)
         {
-            FillLayout(text, width, height, alignX, alignY, size, ref SharedLayout);
+            FillLayout(text, width, height, alignX, alignY, size, wrap, ref SharedLayout);
             return ref SharedLayout;
         }
         
-        public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, ref ImTextLayout layout)
+        public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, bool wrap, ref ImTextLayout layout)
         {
             const float NEXT_LINE_WIDTH_THRESHOLD = 0.0001f;
             
@@ -310,7 +310,7 @@ namespace Imui.Rendering
                 var advance = charInfo.glyph.metrics.horizontalAdvance * layout.Scale;
                 var newLine = c == NEW_LINE;
                 
-                if (newLine || (width > 0 && lineWidth > 0 && (lineWidth + advance) > (width + NEXT_LINE_WIDTH_THRESHOLD)))
+                if (newLine || (wrap && width > 0 && lineWidth > 0 && (lineWidth + advance) > (width + NEXT_LINE_WIDTH_THRESHOLD)))
                 {
                     ref var line = ref layout.Lines[layout.LinesCount];
                     
