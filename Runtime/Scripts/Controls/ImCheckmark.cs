@@ -1,11 +1,11 @@
 using System;
 using Imui.Core;
-using Imui.Styling;
-using Imui.Utility;
+using Imui.Controls.Styling;
 using UnityEngine;
 
 namespace Imui.Controls
 {
+    // TODO (artem-s): rename to checkbox
     public static class ImCheckmark
     {
         public static ImCheckmarkStyle Style = ImCheckmarkStyle.Default;

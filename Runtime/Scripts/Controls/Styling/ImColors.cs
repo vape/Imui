@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Imui.Styling
+namespace Imui.Controls.Styling
 {
     public static class ImColors
     {

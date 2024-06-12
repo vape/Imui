@@ -1,8 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Styling;
-using Imui.Utility;
+using Imui.Controls.Styling;
 using UnityEngine;
 
 namespace Imui.Controls

@@ -1,9 +1,9 @@
 using Imui.Core;
 using UnityEngine;
 
-namespace Imui.Controls.Layout
+namespace Imui.Controls
 {
-    public static class ImLayoutGroup
+    public static class ImLayoutExtensions
     {
         public static Vector2 GetAvailableSize(this ImGui gui)
         {

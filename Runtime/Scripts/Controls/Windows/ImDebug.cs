@@ -1,14 +1,12 @@
 using System;
-using Imui.Controls;
-using Imui.Controls.Layout;
 using Imui.Core;
-using Imui.Styling;
+using Imui.Controls.Styling;
 using Imui.Utility;
 using UnityEngine;
 
-namespace Imui.Debugging
+namespace Imui.Controls.Windows
 {
-    public static class ImDebug
+    public static class ImDebugWindow
     {
         private static readonly Color32 groupColor = new Color32(255, 0, 0, 32);
         private static readonly Color32 controlColor = new Color32(0, 255, 0, 64);
@@ -17,7 +15,7 @@ namespace Imui.Debugging
         private static char[] formatBuffer = new char[256];
         private static ImCircularBuffer<float> frameTimes = new ImCircularBuffer<float>(128);
         
-        public static void Window(ImGui gui)
+        public static void Draw(ImGui gui)
         {
             gui.BeginWindow("Imui Debug");
 

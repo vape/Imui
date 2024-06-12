@@ -1,6 +1,5 @@
 using Imui.Core;
-using Imui.Styling;
-using Imui.Utility;
+using Imui.Controls.Styling;
 
 namespace Imui.Controls
 {

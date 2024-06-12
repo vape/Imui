@@ -1,10 +1,10 @@
 using Imui.Core;
-using Imui.Styling;
+using Imui.Controls.Styling;
 using UnityEngine;
 
-namespace Imui.Utility
+namespace Imui.Controls
 {
-    public static class ImRectUtility
+    public static class ImRectExtensions
     {
         public static Vector2 Max(this Vector2 vec, float x, float y)
         {

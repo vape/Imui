@@ -1,8 +1,8 @@
 using Imui.Core;
 
-namespace Imui.Controls.Utilities
+namespace Imui.Controls
 {
-    public static class ImMask
+    public static class ImMaskExtensions
     {
         public static void BeginMaskedLayout(this ImGui gui)
         {

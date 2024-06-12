@@ -1,7 +1,7 @@
 using Imui.Core;
 using UnityEngine;
 
-namespace Imui.Controls.Layout
+namespace Imui.Controls
 {
     public struct ImGridState
     {
