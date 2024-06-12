@@ -25,20 +25,46 @@ namespace Imui.Core
             var segments = Mathf.Clamp(Mathf.CeilToInt(Mathf.PI / Mathf.Acos(1 - Mathf.Min(maxError, radius) / radius)), MIN_SEGMENTS, MAX_SEGMENTS);
             return ((segments + 1) / 2) * 2;
         }
-        
-        public static Span<Vector2> RectOutline(ImRect rect, ImRectRadius radius)
+
+        public static Span<Vector2> Ellipse(ImRect rect)
+        {
+            var segments = SegmentCountForRadius(rect.W / 2f) * 4;
+            var span = TempBuffer.AsSpan(segments);
+
+            Ellipse(rect, span, segments);
+
+            return span;
+        }
+
+        public static void Ellipse(ImRect rect, Span<Vector2> buffer, int segments)
+        {
+            var step = (1f / segments) * PI * 2;
+            var rx = rect.W / 2.0f;
+            var ry = rect.H / 2.0f;
+            var cx = rect.X + rx;
+            var cy = rect.Y + ry;
+            
+            for (int i = 0; i < segments; ++i)
+            {
+                var a = step * (i + 1);
+                buffer[i].x = cx + Mathf.Cos(a) * rx;
+                buffer[i].y = cy + Mathf.Sin(a) * ry;
+            }
+        }
+
+        public static Span<Vector2> Rect(ImRect rect, ImRectRadius radius)
         {
             radius.Clamp(Mathf.Min(rect.W, rect.H) / 2.0f);
 
             var segments = SegmentCountForRadius(radius.GetMax());
             var span = TempBuffer.AsSpan((segments + 1) * 4);
             
-            RectOutline(rect, radius, span, segments);
+            Rect(rect, radius, span, segments);
             
             return span;
         }
         
-        public static void RectOutline(ImRect rect, ImRectRadius radius, Span<Vector2> buffer, int segments)
+        public static int Rect(ImRect rect, ImRectRadius radius, Span<Vector2> buffer, int segments)
         {
             Profiler.BeginSample("ImShapes.RectOutline");
             
@@ -102,6 +128,8 @@ namespace Imui.Core
             }
             
             Profiler.EndSample();
+
+            return p;
         }
     }
 }

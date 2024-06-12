@@ -25,7 +25,6 @@ namespace Imui.Core
         private const int MESH_SETTINGS_CAPACITY = 32;
 
         private const float LINE_THICKNESS_THRESHOLD = 0.01f;
-        private const float LINE_MITER_THRESHOLD = 1.0001f;
         
         private const string SHADER_NAME = "imui_default";
         
@@ -153,6 +152,23 @@ namespace Imui.Core
 
             return !ScreenRect.Overlaps(rect);
         }
+
+        public void Circle(Vector2 position, float radius, Color32 color)
+        {
+            var rect = new ImRect(position.x - radius, position.y - radius, radius * 2, radius * 2);
+            Ellipse(rect, color);
+        }
+
+        public void Ellipse(ImRect rect, Color32 color)
+        {
+            if (Cull(rect))
+            {
+                return;
+            }
+
+            var path = ImShapes.Ellipse(rect);
+            ConvexFill(path, color);
+        }
         
         public void Rect(ImRect rect, Color32 color)
         {
@@ -175,7 +191,7 @@ namespace Imui.Core
                 return;
             }
             
-            var path = ImShapes.RectOutline(rect, radius);
+            var path = ImShapes.Rect(rect, radius);
             ConvexFill(path, color);
         }
 
@@ -186,7 +202,7 @@ namespace Imui.Core
                 return;
             }
             
-            var path = ImShapes.RectOutline(rect, radius);
+            var path = ImShapes.Rect(rect, radius);
             LineMiter(path, color, true, thickness, bias);
         }
 
@@ -197,7 +213,7 @@ namespace Imui.Core
                 return;
             }
 
-            var path = ImShapes.RectOutline(rect, radius);
+            var path = ImShapes.Rect(rect, radius);
             ConvexFill(path, color);
             
             if (thickness >= LINE_THICKNESS_THRESHOLD)
