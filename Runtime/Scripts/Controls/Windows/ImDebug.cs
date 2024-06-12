@@ -106,7 +106,7 @@ namespace Imui.Controls.Windows
             }
             
             gui.Canvas.RectWithOutline(rect, ImColors.Gray6, ImColors.Black, 1.0f);
-            gui.Canvas.LineSimple(points, ImColors.Black, false, 1);
+            gui.Canvas.Line(points, ImColors.Black, false, 1);
         }
 
         private static void Flush(ImGui gui, Span<char> buffer, ref int length)

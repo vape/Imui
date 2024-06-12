@@ -6,8 +6,6 @@ namespace Imui.Controls
 {
     public static class ImImage
     {
-        private static Vector4 ScaleOffset = new Vector4(1, 1, 0, 0);
-        
         public static void Image(this ImGui gui, ImRect rect, Texture texture, bool preserveAspect = false)
         {
             if (gui.Canvas.Cull(rect))
@@ -21,7 +19,7 @@ namespace Imui.Controls
             }
             
             gui.Canvas.PushTexture(texture);
-            gui.Canvas.Rect(rect, ImColors.White, ScaleOffset);
+            gui.Canvas.Rect(rect, ImColors.White);
             gui.Canvas.PopTexture();
         }
     }

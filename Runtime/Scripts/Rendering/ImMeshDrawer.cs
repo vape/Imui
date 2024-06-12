@@ -13,20 +13,6 @@ namespace Imui.Rendering
         private const float PI = Mathf.PI;
         private const float HALF_PI = PI / 2;
         
-        public static int CalculateSegmentsCount(float radius, float maxError = 2)
-        {
-            const int MIN_SEGMENTS = 2;
-            const int MAX_SEGMENTS = 16;
-            
-            if (radius <= maxError)
-            {
-                return MIN_SEGMENTS;
-            }
-
-            var segments = Mathf.Clamp(Mathf.CeilToInt(Mathf.PI / Mathf.Acos(1 - Mathf.Min(maxError, radius) / radius)), MIN_SEGMENTS, MAX_SEGMENTS);
-            return ((segments + 1) / 2) * 2;
-        }
-        
         public float Depth;
         public float Atlas;
         public Color32 Color;

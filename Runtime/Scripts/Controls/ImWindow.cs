@@ -43,7 +43,7 @@ namespace Imui.Controls
             var id = gui.WindowManager.EndWindow();
             ref var state = ref gui.WindowManager.GetWindowState(id);
             
-            gui.Canvas.PushOrder(gui.Canvas.GetCurrentOrder() + WINDOW_FRONT_ORDER_OFFSET);
+            gui.Canvas.PushOrder(gui.Canvas.GetOrder() + WINDOW_FRONT_ORDER_OFFSET);
             
             Front(gui, state.Rect);
             
@@ -141,7 +141,7 @@ namespace Imui.Controls
             var handleRect = GetResizeHandleRect(in rect, out var radius);
             var active = gui.IsControlActive(id);
             
-            var segments = ImMeshDrawer.CalculateSegmentsCount(radius);
+            var segments = ImShapes.SegmentCountForRadius(radius);
             var step = (1f / segments) * HALF_PI;
 
             Span<Vector2> buffer = stackalloc Vector2[segments + 1 + 2];

@@ -4,14 +4,18 @@ namespace Imui.Core
 {
     public partial class ImCanvas
     {
-        public int GetCurrentOrder() => GetActiveSettingsCopy().Order;
-        
         public void PopTexture() => PopSettings();
         public void PushTexture(Texture texture)
         {
             var prop = GetActiveSettingsCopy();
             prop.MainTex = texture;
             PushSettings(in prop);
+        }
+
+        public int GetOrder()
+        {
+            ref readonly var settings = ref GetActiveSettings();
+            return settings.Order;
         }
         
         public void PopOrder() => PopSettings();
