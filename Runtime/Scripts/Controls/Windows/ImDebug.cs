@@ -54,7 +54,7 @@ namespace Imui.Controls.Windows
             }
             
             #if IMUI_DEBUG
-            gui.Checkmark(ref gui.MeshRenderer.Wireframe, "Wireframe");
+            gui.Checkbox(ref gui.MeshRenderer.Wireframe, "Wireframe");
             #endif
             
             gui.EndWindow();

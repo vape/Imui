@@ -5,22 +5,21 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    // TODO (artem-s): rename to checkbox
-    public static class ImCheckmark
+    public static class ImCheckbox
     {
-        public static ImCheckmarkStyle Style = ImCheckmarkStyle.Default;
+        public static ImCheckboxStyle Style = ImCheckboxStyle.Default;
         
-        public static void Checkmark(this ImGui gui, ref bool value)
+        public static void Checkbox(this ImGui gui, ref bool value)
         {
             gui.AddControlSpacing();
 
             var id = gui.GetNextControlId();
             var size = GetCheckmarkBoxSize(gui);
             var rect = gui.Layout.AddRect(size, size);
-            Checkmark(gui, id, ref value, in rect);
+            Checkbox(gui, id, ref value, in rect);
         }
         
-        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label)
+        public static void Checkbox(this ImGui gui, ref bool value, in ReadOnlySpan<char> label)
         {
             gui.AddControlSpacing();
 
@@ -30,30 +29,30 @@ namespace Imui.Controls
             var rect = gui.Layout.AddRect(
                 checkmarkBoxSize + ImControls.Style.InnerSpacing + textSize.x, 
                 Mathf.Max(textSize.y, checkmarkBoxSize));
-            Checkmark(gui, ref value, in label, in rect);
+            Checkbox(gui, ref value, in label, in rect);
         }
 
-        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, float width, float height)
+        public static void Checkbox(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, float width, float height)
         {
             gui.AddControlSpacing();
             
             var rect = gui.Layout.AddRect(width, height);
-            Checkmark(gui, ref value, in label, in rect);
+            Checkbox(gui, ref value, in label, in rect);
         }
         
-        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, Vector2 size)
+        public static void Checkbox(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, Vector2 size)
         {
             gui.AddControlSpacing();
             
             var rect = gui.Layout.AddRect(size);
-            Checkmark(gui, ref value, in label, in rect);
+            Checkbox(gui, ref value, in label, in rect);
         }
                 
-        public static void Checkmark(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, in ImRect rect)
+        public static void Checkbox(this ImGui gui, ref bool value, in ReadOnlySpan<char> label, in ImRect rect)
         {
             var id = gui.GetNextControlId();
             var checkmarkBox = rect.SplitLeft(GetCheckmarkBoxSize(gui), out var textRect).WithAspect(1.0f);
-            Checkmark(gui, id, ref value, in checkmarkBox);
+            Checkbox(gui, id, ref value, in checkmarkBox);
 
             textRect.X += ImControls.Style.InnerSpacing;
             textRect.W -= ImControls.Style.InnerSpacing;
@@ -65,13 +64,13 @@ namespace Imui.Controls
             }
         }
 
-        public static void Checkmark(this ImGui gui, ref bool value, in ImRect rect)
+        public static void Checkbox(this ImGui gui, ref bool value, in ImRect rect)
         {
             var id = gui.GetNextControlId();
-            Checkmark(gui, id, ref value, in rect);
+            Checkbox(gui, id, ref value, in rect);
         }
         
-        public static void Checkmark(this ImGui gui, uint id, ref bool value, in ImRect rect)
+        public static void Checkbox(this ImGui gui, uint id, ref bool value, in ImRect rect)
         {
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
             
@@ -115,13 +114,13 @@ namespace Imui.Controls
         }
     }
 
-    public struct ImCheckmarkStyle
+    public struct ImCheckboxStyle
     {
-        public static readonly ImCheckmarkStyle Default = CreateDefaultStyle();
+        public static readonly ImCheckboxStyle Default = CreateDefaultStyle();
 
-        public static ImCheckmarkStyle CreateDefaultStyle()
+        public static ImCheckboxStyle CreateDefaultStyle()
         {
-            var style = new ImCheckmarkStyle()
+            var style = new ImCheckboxStyle()
             {
                 Button = ImButtonStyle.Default,
                 TextColor = ImColors.Black
