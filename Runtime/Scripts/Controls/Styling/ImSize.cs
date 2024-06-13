@@ -1,42 +1,39 @@
-using System;
-using Imui.Core;
 using UnityEngine;
 
 namespace Imui.Controls.Styling
 {
-    [Flags]
-    public enum ImSizeFlag
+    public enum ImSizeType
     {
         Default   = 0,
-        FixedSize = 1 << 0,
-        AutoFit   = 1 << 1
+        FixedSize = 1,
+        AutoFit   = 2
     }
     
     public struct ImSize
     {
         public float Width;
         public float Height;
-        public ImSizeFlag Flag;
+        public ImSizeType Type;
 
-        public ImSize(float width, float height, ImSizeFlag flag)
+        public ImSize(float width, float height, ImSizeType type)
         {
             Width = width;
             Height = height;
-            Flag = flag;
+            Type = type;
         }
 
         public ImSize(float width, float height)
         {
             Width = width;
             Height = height;
-            Flag = ImSizeFlag.FixedSize;
+            Type = ImSizeType.FixedSize;
         }
 
-        public ImSize(ImSizeFlag flag)
+        public ImSize(ImSizeType type)
         {
             Width = 0;
             Height = 0;
-            Flag = flag;
+            Type = type;
         }
 
         public static implicit operator ImSize(Vector2 size)
@@ -49,9 +46,9 @@ namespace Imui.Controls.Styling
             return new ImSize(size.width, size.height);
         }
 
-        public static implicit operator ImSize(ImSizeFlag flag)
+        public static implicit operator ImSize(ImSizeType type)
         {
-            return new ImSize(flag);
+            return new ImSize(type);
         }
     }
 }

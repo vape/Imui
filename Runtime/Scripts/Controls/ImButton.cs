@@ -14,27 +14,13 @@ namespace Imui.Controls
         {
             gui.AddControlSpacing();
 
-            ImRect rect;
-            
-            if ((size.Flag & ImSizeFlag.FixedSize) == ImSizeFlag.FixedSize)
+            var rect = size.Type switch
             {
-                rect = gui.Layout.AddRect(size.Width, size.Height);
-            }
-            else if ((size.Flag & ImSizeFlag.AutoFit) == ImSizeFlag.AutoFit)
-            {
-                var textSettings = GetTextSettings();
-                var textSize = gui.MeasureTextSize(label, in textSettings);
-                
-                rect = gui.Layout.AddRect(Style.GetButtonSize(textSize));
-            }
-            else
-            {
-                var width = gui.Layout.GetAvailableWidth();
-                var height = Style.GetButtonHeight(gui.GetRowHeight());
-                
-                rect = gui.Layout.AddRect(width, height);
-            }
-            
+                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeType.AutoFit => gui.Layout.AddRect(Style.GetButtonSize(gui.MeasureTextSize(label, GetTextSettings()))),
+                _ => gui.Layout.AddRect(gui.GetAvailableWidth(), Style.GetButtonHeight(gui.GetRowHeight()))
+            };
+
             return Button(gui, label, in rect);
         }
 

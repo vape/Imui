@@ -278,7 +278,7 @@ namespace Imui.Rendering
             layout.Size = size;
             layout.LineHeight = this.lineHeight * layout.Scale;
             
-            if (text.Length == 0)
+            if (text.IsEmpty)
             {
                 return;
             }

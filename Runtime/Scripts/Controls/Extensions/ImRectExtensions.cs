@@ -131,10 +131,13 @@ namespace Imui.Controls
         
         public static ImRect ScaleFromCenter(this ImRect rect, float scale)
         {
+            var w = rect.W;
+            var h = rect.H;
+            
             rect.W *= scale;
             rect.H *= scale;
-            rect.X += rect.W * 0.5f;
-            rect.Y += rect.H * 0.5f;
+            rect.X += (w - rect.W) * 0.5f;
+            rect.Y += (h - rect.H) * 0.5f;
 
             return rect;
         }
