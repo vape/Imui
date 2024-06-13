@@ -14,7 +14,7 @@ namespace Imui.Controls
             gui.RegisterRaycastTarget(rect);
             
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(Style.Padding));
-            gui.Canvas.PushRectMask(rect.WithPadding(Style.Box.BorderWidth), Style.Box.BorderRadius.GetMax());
+            gui.Canvas.PushRectMask(rect.WithPadding(Style.Box.BorderWidth), Style.Box.BorderRadius);
             gui.BeginScrollable();
         }
 

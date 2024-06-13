@@ -1,3 +1,4 @@
+using Imui.Utility;
 using UnityEngine;
 
 namespace Imui.Core
@@ -55,6 +56,8 @@ namespace Imui.Core
         }
 
         public void PopRectMask() => PopSettings();
+        // TODO (artem-s): probably should implement masking with different radii, if I'm making this API...
+        public void PushRectMask(ImRect rect, ImRectRadius radius) => PushRectMask(rect, radius.RadiusForMask());
         public void PushRectMask(ImRect rect, float radius)
         {
             var prop = GetActiveSettingsCopy();

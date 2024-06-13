@@ -205,7 +205,7 @@ namespace Imui.Core
             BottomLeft = Mathf.Min(size, BottomLeft);
         }
 
-        public float GetMax()
+        public float RadiusForMask()
         {
             var max = TopLeft;
             max = TopRight > max ? TopRight : max;

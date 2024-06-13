@@ -10,42 +10,34 @@ namespace Imui.Controls
     {
         public static ImButtonStyle Style = ImButtonStyle.Default;
         
-        public static bool ButtonFitted(this ImGui gui, in ReadOnlySpan<char> label)
+        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, ImSize size = default)
         {
             gui.AddControlSpacing();
 
-            var textSettings = GetTextSettings();
-            var textSize = gui.MeasureTextSize(label, in textSettings);
-            var rect = gui.Layout.AddRect(Style.GetButtonSize(textSize));
-            return Button(gui, label, in rect);
-        }
-
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label)
-        {
-            gui.AddControlSpacing();
-
-            var width = gui.Layout.GetAvailableWidth();
-            var height = Style.GetButtonHeight(gui.GetRowHeight());
-            var rect = gui.Layout.AddRect(width, height);
-            return Button(gui, label, in rect);
-        }
-
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, float width, float height)
-        {
-            gui.AddControlSpacing();
+            ImRect rect;
             
-            var rect = gui.Layout.AddRect(width, height);
-            return Button(gui, label, in rect);
-        }
-        
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
-        {
-            gui.AddControlSpacing();
+            if ((size.Flag & ImSizeFlag.FixedSize) == ImSizeFlag.FixedSize)
+            {
+                rect = gui.Layout.AddRect(size.Width, size.Height);
+            }
+            else if ((size.Flag & ImSizeFlag.AutoFit) == ImSizeFlag.AutoFit)
+            {
+                var textSettings = GetTextSettings();
+                var textSize = gui.MeasureTextSize(label, in textSettings);
+                
+                rect = gui.Layout.AddRect(Style.GetButtonSize(textSize));
+            }
+            else
+            {
+                var width = gui.Layout.GetAvailableWidth();
+                var height = Style.GetButtonHeight(gui.GetRowHeight());
+                
+                rect = gui.Layout.AddRect(width, height);
+            }
             
-            var rect = gui.Layout.AddRect(size);
             return Button(gui, label, in rect);
         }
-        
+
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)
         {
             var clicked = Button(gui, in rect, out var state);
@@ -145,7 +137,7 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment);
+            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment, Style.TextWrap);
         }
     }
 
@@ -163,6 +155,7 @@ namespace Imui.Controls
         {
             Padding = 2.0f,
             Alignment = new ImTextAlignment(0.5f, 0.5f),
+            TextWrap = false,
             Normal = new ImBoxStyle()
             {
                 BackColor = ImColors.Gray7,
@@ -194,6 +187,7 @@ namespace Imui.Controls
         public ImBoxStyle Pressed;
         public ImPadding Padding;
         public ImTextAlignment Alignment;
+        public bool TextWrap;
 
         public Vector2 GetButtonSize(Vector2 contentSize)
         {

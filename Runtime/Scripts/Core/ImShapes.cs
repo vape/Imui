@@ -56,7 +56,7 @@ namespace Imui.Core
         {
             radius.Clamp(Mathf.Min(rect.W, rect.H) / 2.0f);
 
-            var segments = SegmentCountForRadius(radius.GetMax());
+            var segments = SegmentCountForRadius(radius.RadiusForMask());
             var span = TempBuffer.AsSpan((segments + 1) * 4);
             
             Rect(rect, radius, span, segments);

@@ -25,7 +25,7 @@ namespace Imui.Controls
             ref var state = ref gui.WindowManager.BeginWindow(id, title, width, height, flags);
             
             gui.Canvas.PushOrder(state.Order * WINDOW_ORDER_OFFSET);
-            gui.Canvas.PushRectMask(state.Rect, Style.Box.BorderRadius.GetMax());
+            gui.Canvas.PushRectMask(state.Rect, Style.Box.BorderRadius);
             gui.Canvas.PushClipRect(state.Rect);
             Back(gui, in state, out var contentRect);
             

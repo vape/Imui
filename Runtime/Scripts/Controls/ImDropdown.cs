@@ -82,7 +82,7 @@ namespace Imui.Controls
 
                         using (new ImStyleScope<ImButtonStyle>(ref ImButton.Style, style))
                         {
-                            if (gui.Button(options[i], optionButtonWidth, optionButtonHeight))
+                            if (gui.Button(options[i], (optionButtonWidth, optionButtonHeight)))
                             {
                                 selected = i;
                                 changed = true;

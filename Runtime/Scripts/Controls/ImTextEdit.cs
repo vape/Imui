@@ -95,7 +95,7 @@ namespace Imui.Controls
                 textRect.W, textRect.H, 
                 Style.Alignment.X, Style.Alignment.Y, textSize, WRAP);
             
-            gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius.GetMax());
+            gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);
             gui.BeginScrollable();
             
