@@ -23,20 +23,23 @@ namespace Imui.Controls
 
             return Button(gui, label, in rect);
         }
-
+        
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)
         {
-            var clicked = Button(gui, in rect, out var state);
-            var textSettings = GetTextSettings();
-            var textColor = Style.GetStyle(state).FrontColor;
-            gui.Canvas.Text(in label, textColor, Style.GetContentRect(rect), in textSettings);
-            return clicked;
+            return Button(gui, gui.GetNextControlId(), label, in rect, out _);
         }
 
         public static bool Button(this ImGui gui, in ImRect rect, out ImButtonState state)
         {
-            var id = gui.GetNextControlId();
+            return Button(gui, gui.GetNextControlId(), in rect, out state);
+        }
+
+        public static bool Button(this ImGui gui, uint id, in ReadOnlySpan<char> label, in ImRect rect, out ImButtonState state)
+        {
             var clicked = Button(gui, id, in rect, out state);
+            var textSettings = GetTextSettings();
+            var textColor = Style.GetStyle(state).FrontColor;
+            gui.Canvas.Text(in label, textColor, Style.GetContentRect(rect), in textSettings);
             return clicked;
         }
         
@@ -47,7 +50,7 @@ namespace Imui.Controls
             var clicked = false;
             
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
-            gui.DrawBox(in rect, Style.GetStyle(state));
+            gui.Box(in rect, Style.GetStyle(state));
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)

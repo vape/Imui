@@ -86,7 +86,7 @@ namespace Imui.Controls
             var stateStyle = selected ? Style.Selected : Style.Normal;
             var textChanged = false;
             
-            gui.DrawBox(in rect, in stateStyle.Box);
+            gui.Box(in rect, in stateStyle.Box);
             var textRect = Style.GetContentRect(rect);
 
             var textSize = ImControls.Style.TextSize;

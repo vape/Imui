@@ -113,16 +113,16 @@ namespace Imui.Rendering
         public void AddIndices(int count)
         {
 #if IMUI_VALIDATION
-            ImuiAssert.False(MeshesCount == 0, "Empty meshes array");
+            ImAssert.False(MeshesCount == 0, "Empty meshes array");
             
             var from = Meshes[MeshesCount - 1].IndicesOffset + Meshes[MeshesCount - 1].IndicesCount;
             var to = from + count;
             
-            ImuiAssert.False(to > Indices.Length, "Indices array is too small");
+            ImAssert.False(to > Indices.Length, "Indices array is too small");
 
             for (int i = from; i < to; ++i)
             {
-                ImuiAssert.True(Indices[i] >= 0 && Indices[i] < Vertices.Length, $"Invalid index {Indices[i]} at {i}");
+                ImAssert.True(Indices[i] >= 0 && Indices[i] < Vertices.Length, $"Invalid index {Indices[i]} at {i}");
             }
 #endif
             
@@ -134,12 +134,12 @@ namespace Imui.Rendering
         public void AddVertices(int count)
         {
 #if IMUI_VALIDATION
-            ImuiAssert.False(MeshesCount == 0, "Empty meshes array");
+            ImAssert.False(MeshesCount == 0, "Empty meshes array");
             
             var from = Meshes[MeshesCount - 1].VerticesOffset + Meshes[MeshesCount - 1].VerticesCount;
             var to = from + count;
             
-            ImuiAssert.False(to > Vertices.Length, "Vertices array is too small");
+            ImAssert.False(to > Vertices.Length, "Vertices array is too small");
 
             for (int i = from; i < to; ++i)
             {
@@ -148,7 +148,7 @@ namespace Imui.Rendering
                     float.IsNaN(v.Position.y) || float.IsInfinity(v.Position.y) ||
                     float.IsNaN(v.Position.z) || float.IsInfinity(v.Position.z))
                 {
-                    ImuiAssert.True(false, "Invalid vertex position, some of the components is either NaN of Infinity");
+                    ImAssert.True(false, "Invalid vertex position, some of the components is either NaN of Infinity");
                 }
             }
 #endif

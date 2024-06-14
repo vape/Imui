@@ -178,6 +178,13 @@ namespace Imui.Core
             idsStack.Push(new ControlId(id));
             return id;
         }
+
+        public uint PushId(uint id)
+        {
+            var newId = GetControlId(id);
+            idsStack.Push(new ControlId(newId));
+            return newId;
+        }
         
         public uint PushId(ReadOnlySpan<char> name)
         {
@@ -201,6 +208,12 @@ namespace Imui.Core
         {
             ref var parent = ref idsStack.Peek();
             return ImHash.Get(name, parent.Id);
+        }
+
+        public uint GetControlId(uint id)
+        {
+            ref var parent = ref idsStack.Peek();
+            return ImHash.Get(id, parent.Id);
         }
 
         public uint GetHoveredControl()

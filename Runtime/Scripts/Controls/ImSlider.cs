@@ -40,7 +40,7 @@ namespace Imui.Controls
             var prevValue = value;
             value = Mathf.InverseLerp(min, max, value);
 
-            gui.DrawBox(in rect, in Style.Box);
+            gui.Box(in rect, in Style.Box);
 
             var rectPadded = rect.WithPadding(Style.Padding);
 

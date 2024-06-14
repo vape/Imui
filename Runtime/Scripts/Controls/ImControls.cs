@@ -1,6 +1,5 @@
 using System;
 using Imui.Core;
-using UnityEngine;
 
 namespace Imui.Controls
 {
@@ -38,11 +37,6 @@ namespace Imui.Controls
         {
             gui.Layout.AddSpace(space);
         }
-        
-        public static void DrawBox(this ImGui gui, in ImRect rect, in ImBoxStyle style)
-        {
-            gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderWidth, style.BorderRadius);
-        }
 
         public static void BeginIdent(this ImGui gui)
         {
@@ -71,15 +65,5 @@ namespace Imui.Controls
         public float InnerSpacing;
         public float ScrollSpeedScale;
         public float Ident;
-    }
-    
-    [Serializable]
-    public struct ImBoxStyle
-    {
-        public Color32 BackColor;
-        public Color32 FrontColor;
-        public Color32 BorderColor;
-        public float BorderWidth;
-        public ImRectRadius BorderRadius;
     }
 }

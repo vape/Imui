@@ -10,7 +10,7 @@ namespace Imui.Controls
         
         public static void BeginPanel(this ImGui gui, in ImRect rect)
         {
-            gui.DrawBox(in rect, Style.Box);
+            gui.Box(in rect, Style.Box);
             gui.RegisterRaycastTarget(rect);
             
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(Style.Padding));
