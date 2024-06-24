@@ -91,7 +91,7 @@ namespace Imui.Controls
         {
             var id = gui.GetNextControlId();
 
-            return InvisibleButton(gui, id, rect);
+            return InvisibleButton(gui, id, rect, actOnPress);
         }
         
         public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, bool actOnPress = false)
