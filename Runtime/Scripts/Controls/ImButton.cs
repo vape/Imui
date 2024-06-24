@@ -152,7 +152,7 @@ namespace Imui.Controls
             TextWrap = false,
             Normal = new ImBoxStyle()
             {
-                BackColor = ImColors.Gray7,
+                BackColor = new Color32(230, 230, 230, 255),
                 BorderColor = ImColors.Black,
                 FrontColor = ImColors.Black,
                 BorderRadius = 3,
@@ -160,7 +160,7 @@ namespace Imui.Controls
             },
             Hovered = new ImBoxStyle()
             {
-                BackColor = ImColors.Gray8,
+                BackColor = new Color32(235, 235, 235, 255),
                 BorderColor = ImColors.Gray1,
                 FrontColor = ImColors.Gray1,
                 BorderRadius = 3,
@@ -168,7 +168,7 @@ namespace Imui.Controls
             },
             Pressed = new ImBoxStyle()
             {
-                BackColor = ImColors.Gray6,
+                BackColor = new Color32(220, 220, 220, 255),
                 BorderColor = ImColors.Black,
                 FrontColor = ImColors.Black,
                 BorderRadius = 3,
