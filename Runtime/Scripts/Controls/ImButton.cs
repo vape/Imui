@@ -9,18 +9,23 @@ namespace Imui.Controls
     public static class ImButton
     {
         public static ImButtonStyle Style = ImButtonStyle.Default;
-        
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, ImSize size = default)
-        {
-            gui.AddControlSpacing();
 
-            var rect = size.Type switch
+        public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
+        {
+            return size.Type switch
             {
                 ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
                 ImSizeType.AutoFit => gui.Layout.AddRect(Style.GetButtonSize(gui.MeasureTextSize(label, GetTextSettings()))),
                 _ => gui.Layout.AddRect(gui.GetAvailableWidth(), Style.GetButtonHeight(gui.GetRowHeight()))
             };
 
+        }
+        
+        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, ImSize size = default)
+        {
+            gui.AddControlSpacing();
+
+            var rect = GetRect(gui, size, label);
             return Button(gui, label, in rect);
         }
         

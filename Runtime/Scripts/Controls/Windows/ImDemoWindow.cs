@@ -93,7 +93,7 @@ namespace Imui.Controls.Windows
             for (int i = 0; i < 12; ++i)
             {
                 var cell = gui.GridNextCell(ref grid);
-                gui.TextFittedSlow(Format("Grid cell ", i, "0"), in cell);
+                gui.TextAutoSize(Format("Grid cell ", i, "0"), in cell);
             }
             gui.EndGrid(in grid);
         }

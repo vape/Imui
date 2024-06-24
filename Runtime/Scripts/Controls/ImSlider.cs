@@ -9,28 +9,21 @@ namespace Imui.Controls
     {
         public static ImSliderStyle Style = ImSliderStyle.Default;
 
-        public static bool Slider(this ImGui gui, ref float value, float min, float max)
+        public static ImRect GetRect(ImGui gui, ImSize size)
+        {
+            return size.Type switch
+            {
+                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
+                _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
+            };
+        }
+        
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImSize size = default)
         {
             gui.AddControlSpacing();
 
-            var rect = gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight());
+            var rect = GetRect(gui, size);
             return Slider(gui, ref value, min, max, in rect); 
-        }
-        
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, float width, float height)
-        {
-            gui.AddControlSpacing();
-
-            var rect = gui.Layout.AddRect(width, height);
-            return Slider(gui, ref value, min, max, in rect);
-        }
-        
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, Vector2 size)
-        {
-            gui.AddControlSpacing();
-
-            var rect = gui.Layout.AddRect(size);
-            return Slider(gui, ref value, min, max, in rect);
         }
         
         public static bool Slider(this ImGui gui, ref float value, float min, float max, in ImRect rect)

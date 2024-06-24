@@ -8,17 +8,21 @@ namespace Imui.Controls
     public static class ImCheckbox
     {
         public static ImCheckboxStyle Style = ImCheckboxStyle.Default;
+
+        public static ImRect GetRect(ImGui gui, ImSize size = default)
+        {
+            return size.Type switch
+            {
+                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
+                _ => gui.Layout.AddRect(GetCheckmarkBoxRectSize(gui))
+            };
+        }
         
         public static void Checkbox(this ImGui gui, ref bool value, ImSize size = default)
         {
             gui.AddControlSpacing();
 
-            var rect = size.Type switch
-            {
-                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
-                _ => gui.Layout.AddRect(GetCheckmarkBoxRectSize(gui))
-            };
-            
+            var rect = GetRect(gui, size);
             Checkbox(gui, ref value, in rect);
         }
         

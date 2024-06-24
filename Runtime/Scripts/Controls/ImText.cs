@@ -12,17 +12,17 @@ namespace Imui.Controls
         
         public static ImTextStyle Style = ImTextStyle.Default;
 
-        public static void Text(this ImGui gui, in ReadOnlySpan<char> text)
+        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, bool wrap = false)
         {
-            Text(gui, in text, GetTextSettings());
+            Text(gui, in text, GetTextSettings(wrap));
         }
         
-        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImRect rect)
+        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImRect rect, bool wrap = false)
         {
-            Text(gui, in text, GetTextSettings(), rect);
+            Text(gui, in text, GetTextSettings(wrap), rect);
         }
 
-        public static void TextFittedSlow(this ImGui gui, in ReadOnlySpan<char> text, in ImRect rect)
+        public static void TextAutoSize(this ImGui gui, in ReadOnlySpan<char> text, in ImRect rect, bool wrap = false)
         {
             // (artem-s): at least try to skip costly auto-sizing
             if (gui.Canvas.Cull(rect))
@@ -30,7 +30,7 @@ namespace Imui.Controls
                 return;
             }
             
-            var settings = GetTextSettings();
+            var settings = GetTextSettings(wrap);
             settings.Size = AutoSizeTextSlow(gui, in text, settings, rect.Size);
             Text(gui, in text, settings, rect);
         }
@@ -50,9 +50,9 @@ namespace Imui.Controls
             gui.Canvas.Text(in text, Style.Color, rect, in settings);
         }
 
-        public static ImTextSettings GetTextSettings()
+        public static ImTextSettings GetTextSettings(bool wrap)
         {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment);
+            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment, wrap);
         }
 
         // TODO (artem-s): Got to come up with better solution instead of just brute forcing the fuck of it every time

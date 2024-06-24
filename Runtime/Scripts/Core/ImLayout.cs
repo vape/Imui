@@ -14,6 +14,7 @@ namespace Imui.Core
         FixedBounds       = FixedBoundsWidth | FixedBoundsHeight
     }
     
+    // TODO (artem-s): indentation does not plays good with scroll rects
     public struct ImLayoutFrame
     {
         public ImAxis Axis;

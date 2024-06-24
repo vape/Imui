@@ -1,4 +1,5 @@
 using System;
+using Imui.Controls.Styling;
 using Imui.Core;
 using UnityEngine;
 
@@ -9,53 +10,33 @@ namespace Imui.Controls
         private const float ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
 
         public static ImFoldoutStyle Style = ImFoldoutStyle.Default;
+
+        private static ImRect GetRect(ImGui gui, ImSize size)
+        {
+            return size.Type switch
+            {
+                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
+                _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), Style.Button.GetButtonHeight(gui.GetRowHeight()))
+            };
+        }
         
-        public static void BeginFoldout(this ImGui gui, in ReadOnlySpan<char> label, out bool open)
+        public static void BeginFoldout(this ImGui gui, in ReadOnlySpan<char> label, out bool open, ImSize size = default)
         {
             gui.AddControlSpacing();
             
             var id =  gui.PushId(label);
-            var width = gui.Layout.GetAvailableWidth();
-            var height = Style.GetHeight(gui.GetRowHeight());
-            var rect = gui.Layout.AddRect(width, height);
+            var rect = GetRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
             Foldout(gui, id, ref state, in rect, in label);
             open = state;
         }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ReadOnlySpan<char> label)
+
+        public static void BeginFoldout(this ImGui gui, in ReadOnlySpan<char> label, ref bool open, in ImRect rect)
         {
             gui.AddControlSpacing();
             
-            var width = gui.Layout.GetAvailableWidth();
-            var height = Style.GetHeight(gui.GetRowHeight());
-            BeginFoldout(gui, ref open, in label, gui.Layout.AddRect(width, height));
-        }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ReadOnlySpan<char> label, Vector2 size)
-        {
-            BeginFoldout(gui, ref open, in label, gui.Layout.AddRect(size));
-        }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ReadOnlySpan<char> label, float width, float height)
-        {
-            BeginFoldout(gui, ref open, in label, gui.Layout.AddRect(width, height));
-        }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ReadOnlySpan<char> label, in ImRect rect)
-        {
-            gui.AddControlSpacing();
-            
-            var id =  gui.PushId(label);
+            var id = gui.PushId(label);
             Foldout(gui, id, ref open, in rect, in label);
-        }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ImRect rect, out ImRect contentRect)
-        {
-            gui.AddControlSpacing();
-            
-            var id = gui.PushId();
-            Foldout(gui, id, ref open, in rect, out contentRect);
         }
         
         public static void EndFoldout(this ImGui gui)
@@ -65,15 +46,18 @@ namespace Imui.Controls
 
         public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect, in ReadOnlySpan<char> label)
         {
-            Foldout(gui, id, ref open, in rect, out var contentRect);
-            gui.Text(in label, GetTextSettings(), contentRect);
+            Foldout(gui, id, ref open, in rect);
+
+            Style.Button.GetContentRect(rect).SplitLeft(GetArrowSize(gui), ImControls.Style.InnerSpacing, out var textRect);
+            gui.Text(in label, GetTextSettings(), textRect);
         }
         
-        public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect, out ImRect contentRect)
+        public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect)
         {
+            using var __ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
+            
             var clicked = gui.Button(id, in rect, out var state);
-            var content = ImButton.Style.GetContentRect(rect);
-            var left = content.SplitLeft(GetArrowSize(gui), ImControls.Style.InnerSpacing, out contentRect);
+            var left = Style.Button.GetContentRect(rect).SplitLeft(GetArrowSize(gui), ImControls.Style.InnerSpacing, out _);
             var style = ImButton.Style.GetStyle(state);
             
             if (open)
@@ -121,7 +105,7 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.Button.Alignment);
+            return new ImTextSettings(ImControls.Style.TextSize, Style.Button.Alignment, Style.Button.TextWrap);
         }
 
         public static float GetArrowSize(ImGui gui)
@@ -149,10 +133,5 @@ namespace Imui.Controls
 
         public float ArrowScale;
         public ImButtonStyle Button;
-
-        public float GetHeight(float contentHeight)
-        {
-            return contentHeight + Button.Padding.Vertical;
-        }
     }
 }

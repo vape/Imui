@@ -24,6 +24,7 @@ namespace Imui.Controls
         {
             gui.Canvas.PushNoClipRect();
             gui.Canvas.PushOrder(ORDER_CLOSE_BUTTON);
+            gui.RegisterRaycastTarget(gui.Canvas.ScreenRect);
 
             var id = gui.GetNextControlId();
             

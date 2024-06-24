@@ -15,10 +15,9 @@ namespace Imui.Controls
     }
     
     // TODO (artem-s): text input with dropdown selection
+    // TODO (artem-s): better filtering accepting intermediate input
     public static class ImTextEdit
     {
-        private const bool WRAP = true;
-        
         public const float CARET_BLINKING_TIME = 0.3f;
         public const float MIN_WIDTH = 1;
         public const float MIN_HEIGHT = 1;
@@ -93,7 +92,7 @@ namespace Imui.Controls
             var layout = gui.TextDrawer.BuildTempLayout(
                 buffer, 
                 textRect.W, textRect.H, 
-                Style.Alignment.X, Style.Alignment.Y, textSize, WRAP);
+                Style.Alignment.X, Style.Alignment.Y, textSize, Style.TextWrap);
             
             gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);
@@ -866,7 +865,8 @@ namespace Imui.Controls
             },
             CaretWidth = 2.0f,
             Padding = 2.0f,
-            Alignment = new ImTextAlignment(0.0f, 0.0f)
+            Alignment = new ImTextAlignment(0.0f, 0.0f),
+            TextWrap = false
         };
         
         public ImTextEditStateStyle Normal;
@@ -874,6 +874,7 @@ namespace Imui.Controls
         public float CaretWidth;
         public ImPadding Padding;
         public ImTextAlignment Alignment;
+        public bool TextWrap;
 
         public ImRect GetContentRect(ImRect rect)
         {
