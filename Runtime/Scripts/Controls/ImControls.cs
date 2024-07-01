@@ -38,14 +38,14 @@ namespace Imui.Controls
             gui.Layout.AddSpace(space);
         }
 
-        public static void BeginIdent(this ImGui gui)
+        public static void BeginIndent(this ImGui gui)
         {
-            gui.Layout.AddIdent(Style.Ident);
+            gui.Layout.AddIndent(Style.Indent);
         }
 
-        public static void EndIdent(this ImGui gui)
+        public static void EndIndent(this ImGui gui)
         {
-            gui.Layout.AddIdent(-Style.Ident);
+            gui.Layout.AddIndent(-Style.Indent);
         }
     }
     
@@ -57,13 +57,13 @@ namespace Imui.Controls
             Spacing = 4,
             InnerSpacing = 2,
             ScrollSpeedScale = 6,
-            Ident = 20
+            Indent = 20
         };
         
         public float TextSize;
         public float Spacing;
         public float InnerSpacing;
         public float ScrollSpeedScale;
-        public float Ident;
+        public float Indent;
     }
 }
