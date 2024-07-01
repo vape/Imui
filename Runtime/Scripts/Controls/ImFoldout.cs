@@ -46,17 +46,23 @@ namespace Imui.Controls
 
         public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect, in ReadOnlySpan<char> label)
         {
-            Foldout(gui, id, ref open, in rect);
+            Foldout(gui, id, ref open, in rect, out var state);
 
             Style.Button.GetContentRect(rect).SplitLeft(GetArrowSize(gui), ImControls.Style.InnerSpacing, out var textRect);
-            gui.Text(in label, GetTextSettings(), textRect);
+            
+            using (new ImStyleScope<ImTextStyle>(ref ImText.Style))
+            {
+                ImText.Style.Color = ImButton.Style.GetStyle(state).FrontColor;
+                
+                gui.Text(in label, GetTextSettings(), textRect);
+            }
         }
         
-        public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect)
+        public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect, out ImButtonState state)
         {
             using var __ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
             
-            var clicked = gui.Button(id, in rect, out var state);
+            var clicked = gui.Button(id, in rect, out state);
             var left = Style.Button.GetContentRect(rect).SplitLeft(GetArrowSize(gui), ImControls.Style.InnerSpacing, out _);
             var style = ImButton.Style.GetStyle(state);
             
