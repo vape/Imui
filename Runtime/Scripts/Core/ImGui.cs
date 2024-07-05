@@ -310,12 +310,17 @@ namespace Imui.Core
             if (rect.Contains(Input.MousePosition))
             {
                 var currentOrder = meshProperties.Order;
-                
+
                 for (int i = nextFrameData.HoveredGroups.Count - 1; i >= 0; --i)
                 {
-                    if (nextFrameData.HoveredGroups.Array[i].Order < currentOrder)
+                    var order = nextFrameData.HoveredGroups.Array[i].Order;
+                    if (order < currentOrder)
                     {
                         nextFrameData.HoveredGroups.RemoveAtFast(i);
+                    }
+                    else if (order > currentOrder)
+                    {
+                        return;
                     }
                 }
                 
