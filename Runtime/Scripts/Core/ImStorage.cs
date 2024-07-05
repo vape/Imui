@@ -40,13 +40,29 @@ namespace Imui.Core
 
         public ref T Get<T>(uint id, in T defaultValue = default) where T : unmanaged
         {
+            return ref *GetRef(id, in defaultValue);
+        }
+        
+        public T* GetRef<T>(uint id, in T defaultValue = default) where T : unmanaged
+        {
             if (!TryGet(out T* value, out Metadata* metadata, id))
             {
-                return ref *AddValue<T>(id, defaultValue);
+                return AddValue<T>(id, defaultValue);
             }
 
             metadata->Flag |= Flag.Used;
-            return ref *value;
+            return value;
+        }
+
+        public bool TryGetRef<T>(uint id, out T* value) where T : unmanaged
+        {
+            var result = TryGet(out value, out var metadata, id);
+            if (result)
+            {
+                metadata->Flag |= Flag.Used;
+            }
+
+            return result;
         }
 
         public void CollectAndCompact()

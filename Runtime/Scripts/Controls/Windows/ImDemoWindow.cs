@@ -17,6 +17,8 @@ namespace Imui.Controls.Windows
         };
         private static string singleLineText = "Single line text edit";
         private static string multiLineText = "Multiline text\nedit";
+        private static string floatText = "Will be replaced to fallback value at first occurrence";
+        private static string intText = "Same here";
 
         public static void Draw(ImGui gui)
         {
@@ -63,6 +65,24 @@ namespace Imui.Controls.Windows
             gui.Text(Format("Slider value: ", sliderValue, "0.00"));
             gui.TextEdit(ref singleLineText);
             gui.TextEdit(ref multiLineText, gui.GetAvailableWidth(), 200);
+            
+            gui.Text("Float Input Field");
+            gui.AddSpacing();
+            gui.BeginHorizontal();
+            gui.BeginHorizontal(width: gui.GetAvailableWidth() * 0.5f);
+            gui.TextEdit(ref floatText, filter: ImTextEdit.FloatFilter);
+            gui.EndHorizontal();
+            gui.Text(Format("", float.Parse(floatText), "0.000"));
+            gui.EndHorizontal();
+            
+            gui.Text("Integer Input Field");
+            gui.AddSpacing();
+            gui.BeginHorizontal();
+            gui.BeginHorizontal(width: gui.GetAvailableWidth() * 0.5f);
+            gui.TextEdit(ref intText, filter: ImTextEdit.IntegerFilter);
+            gui.EndHorizontal();
+            gui.Text(Format("", int.Parse(intText), "0"));
+            gui.EndHorizontal();
 
             gui.AddSpacing();
         }

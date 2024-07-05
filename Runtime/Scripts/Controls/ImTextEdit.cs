@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Imui.Core;
 using Imui.IO.Events;
 using Imui.Rendering;
@@ -13,20 +14,61 @@ namespace Imui.Controls
         public int Caret;
         public int Selection;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct ImTextTempFilterBuffer
+    {
+        public const int BUFFER_LENGTH = 64;
+        
+        public fixed char Buffer[BUFFER_LENGTH];
+        public byte Length;
+
+        public void Populate(ReadOnlySpan<char> buffer)
+        {
+            fixed (char* buf = Buffer)
+            {
+                var span = new Span<char>(buf, BUFFER_LENGTH);
+                var len = buffer.Length > BUFFER_LENGTH ? BUFFER_LENGTH : buffer.Length;
+                
+                buffer[..len].CopyTo(span);
+                Length = (byte)len;
+            }
+        }
+
+        public ReadOnlySpan<char> AsSpan()
+        {
+            fixed (char* buf = Buffer)
+            {
+                return new Span<char>(buf, Length);
+            }
+        }
+    }
     
     // TODO (artem-s): text input with dropdown selection
-    // TODO (artem-s): better filtering accepting intermediate input
     public static class ImTextEdit
     {
         public const float CARET_BLINKING_TIME = 0.3f;
         public const float MIN_WIDTH = 1;
         public const float MIN_HEIGHT = 1;
 
+        private const string TEMP_BUFFER_TAG = "temp_buffer"; 
+
         public static ImTextEditStyle Style = ImTextEditStyle.Default;
 
         public static readonly ImTextEditIntegerFilter IntegerFilter = new();
         public static readonly ImTextEditFloatFilter FloatFilter = new();
 
+        // TODO: implement convenient functions for float/int/etc input fields
+        // public static void TextEditFloat(this ImGui gui, ref float value)
+        // {
+        //     
+        // }
+        //
+        // public static void TextEditInt(this ImGui gui, ref int value)
+        // {
+        //     
+        // }
+        
         public static void TextEdit(this ImGui gui, ref string text, ImTextEditFilter filter = null)
         {
             gui.AddControlSpacing();
@@ -71,7 +113,7 @@ namespace Imui.Controls
             }
         }
         
-        public static bool TextEdit(
+        public static unsafe bool TextEdit(
             ImGui gui, 
             uint id, 
             in ImRect rect, 
@@ -84,6 +126,35 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var stateStyle = selected ? Style.Selected : Style.Normal;
             var textChanged = false;
+
+            ImTextTempFilterBuffer* tempBuffer = null;
+
+            if (filter != null && !filter.IsValid(buffer))
+            {
+                var fallbackString = filter.GetFallbackString();
+                buffer.Clear(fallbackString.Length);
+                buffer.Insert(0, fallbackString);
+                textChanged = true;
+            }
+            
+            if (selected && filter != null)
+            {
+                gui.PushId(id);
+                
+                var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);
+                if (!gui.Storage.TryGetRef(tempBufferId, out tempBuffer))
+                {
+                    tempBuffer = gui.Storage.GetRef<ImTextTempFilterBuffer>(tempBufferId);
+                    tempBuffer->Populate(buffer);
+                }
+                // else relying on collecting garbage on every frame to clean up filter state
+                // TODO: if storage gc mechanism is somehow changed - return back here
+                
+                gui.PopId();
+                
+                buffer.Clear(tempBuffer->Length);
+                buffer.Insert(0, tempBuffer->AsSpan());
+            }
             
             gui.Box(in rect, in stateStyle.Box);
             var textRect = Style.GetContentRect(rect);
@@ -150,7 +221,6 @@ namespace Imui.Controls
                             ref buffer, 
                             in textRect, 
                             in layout, 
-                            filter, 
                             multiline,
                             out var isTextChanged))
                     {
@@ -169,8 +239,9 @@ namespace Imui.Controls
                         break;
                     case ImTextEventType.Submit:
                         gui.ResetActiveControl();
-                        buffer = new ImTextEditBuffer(textEvent.Text);
-                        textChanged = true;
+                        textChanged = buffer.Length != 0 || textEvent.Text.Length != 0;
+                        buffer.Clear(textEvent.Text.Length);
+                        Insert(ref state, ref buffer, textEvent.Text);
                         break;
                 }
             }
@@ -180,6 +251,16 @@ namespace Imui.Controls
             gui.EndScrollable(multiline ? ImScrollFlag.None : ImScrollFlag.NoHorizontalBar | ImScrollFlag.NoVerticalBar);
             gui.Layout.Pop();
             gui.Canvas.PopRectMask();
+
+            if (filter != null && !filter.IsValid(buffer))
+            {
+                textChanged = false;
+            }
+            
+            if (tempBuffer != null)
+            {
+                tempBuffer->Populate(buffer);
+            }
             
             return textChanged;
         }
@@ -190,7 +271,6 @@ namespace Imui.Controls
             ref ImTextEditBuffer buffer, 
             in ImRect textRect, 
             in ImTextLayout layout,
-            ImTextEditFilter filter,
             bool multiline,
             out bool textChanged)
         {
@@ -245,7 +325,7 @@ namespace Imui.Controls
                             break;
                         
                         case ImKeyboardCommandFlag.Paste:
-                            textChanged |= PasteFromClipboard(gui, ref state, ref buffer, filter);
+                            textChanged |= PasteFromClipboard(gui, ref state, ref buffer);
                             break;
 
                         default:
@@ -262,7 +342,7 @@ namespace Imui.Controls
                             }
 
                             textChanged |= DeleteSelection(ref state, ref buffer);
-                            textChanged |= TryInsert(ref state, ref buffer, evt.Char, filter);
+                            textChanged |= Insert(ref state, ref buffer, evt.Char);
                             break;
                         }
                     }
@@ -274,7 +354,7 @@ namespace Imui.Controls
             return stateChanged || textChanged;
         }
 
-        public static bool PasteFromClipboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer, ImTextEditFilter filter)
+        public static bool PasteFromClipboard(ImGui gui, ref ImTextEditState state, ref ImTextEditBuffer buffer)
         {
             var clipboardText = gui.Input.Clipboard;
             if (clipboardText.Length == 0)
@@ -282,49 +362,25 @@ namespace Imui.Controls
                 return false;
             }
 
-            var textChanged = DeleteSelection(ref state, ref buffer);
-            if (TryInsert(ref state, ref buffer, clipboardText, filter))
-            {
-                textChanged = true;
-                state.Caret += clipboardText.Length;
-            }
+            DeleteSelection(ref state, ref buffer);
+            Insert(ref state, ref buffer, clipboardText);
 
-            return textChanged;
+            return true;
         }
 
-        public static unsafe bool TryInsert(ref ImTextEditState state, ref ImTextEditBuffer buffer, char chr, ImTextEditFilter filter)
+        public static unsafe bool Insert(ref ImTextEditState state, ref ImTextEditBuffer buffer, char chr)
         {
-            return TryInsert(ref state, ref buffer, new ReadOnlySpan<char>(&chr, 1), filter);
+            return Insert(ref state, ref buffer, new ReadOnlySpan<char>(&chr, 1));
         }
 
-        public static bool TryInsert(ref ImTextEditState state, ref ImTextEditBuffer buffer, ReadOnlySpan<char> text, ImTextEditFilter filter)
+        public static bool Insert(ref ImTextEditState state, ref ImTextEditBuffer buffer, ReadOnlySpan<char> text)
         {
-            const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 2048;
-            
-            if (filter == null)
-            {
-                buffer.Insert(state.Caret, in text);
-                state.Caret += text.Length;
-                return true;
-            }
-
-            var length = buffer.Length + text.Length;
-            var tempBuffer = length > (MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)) ? new char[length] : stackalloc char[length];
-
-            ((ReadOnlySpan<char>)buffer).CopyTo(tempBuffer);
-            if (state.Caret < buffer.Length)
-            {
-                tempBuffer[state.Caret..].CopyTo(tempBuffer[(state.Caret + text.Length)..]);
-            }
-            
-            text.CopyTo((tempBuffer)[state.Caret..]);
-
-            if (!filter.IsValid(tempBuffer))
+            if (text.Length == 0)
             {
                 return false;
             }
             
-            buffer.Insert(state.Caret, text);
+            buffer.Insert(state.Caret, in text);
             state.Caret += text.Length;
             return true;
         }
@@ -495,6 +551,7 @@ namespace Imui.Controls
             return state.Caret != prevCaret || state.Selection != prevSelection;
         }
 
+        // TODO: doesn't work when caret is horizontally outside of the scope
         public static void ScrollToCaret(
             ImGui gui, 
             in ImTextEditState state, 
@@ -769,6 +826,18 @@ namespace Imui.Controls
             }
         }
 
+        public void Clear(int length)
+        {
+            MakeMutable(length);
+            Length = 0;
+        }
+        
+        public void Clear()
+        {
+            MakeMutable(Length);
+            Length = 0;
+        }
+
         public void Delete(int position, int count)
         {
             MakeMutable(Length);
@@ -817,13 +886,19 @@ namespace Imui.Controls
     public abstract class ImTextEditFilter
     {
         public abstract bool IsValid(in ReadOnlySpan<char> buffer);
+        public abstract string GetFallbackString();
     }
 
     public sealed class ImTextEditIntegerFilter : ImTextEditFilter
     {
         public override bool IsValid(in ReadOnlySpan<char> buffer)
         {
-            return long.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+            return int.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+        }
+
+        public override string GetFallbackString()
+        {
+            return "0";
         }
     }
     
@@ -831,7 +906,12 @@ namespace Imui.Controls
     {
         public override bool IsValid(in ReadOnlySpan<char> buffer)
         {
-            return double.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+            return float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
+        }
+
+        public override string GetFallbackString()
+        {
+            return "0.0";
         }
     }
 
