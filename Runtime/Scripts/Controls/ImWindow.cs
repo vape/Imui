@@ -22,6 +22,15 @@ namespace Imui.Controls
         {
             var id = gui.PushId(title);
             
+            if (gui.IsGroupHovered(id))
+            {
+                ref readonly var evt = ref gui.Input.MouseEvent;
+                if (evt.Type is ImMouseEventType.Down or ImMouseEventType.BeginDrag)
+                {
+                    gui.WindowManager.RequestFocus(id);
+                }
+            }
+            
             ref var state = ref gui.WindowManager.BeginWindow(id, title, width, height, flags);
             
             gui.Canvas.PushOrder(state.Order * WINDOW_ORDER_OFFSET);
@@ -30,6 +39,7 @@ namespace Imui.Controls
             Back(gui, in state, out var contentRect);
             
             gui.RegisterControl(id, state.Rect);
+            gui.RegisterGroup(id, state.Rect);
             
             gui.Layout.Push(ImAxis.Vertical, contentRect);
             gui.BeginScrollable();
