@@ -18,7 +18,6 @@ namespace Imui.Controls
                 ImSizeType.AutoFit => gui.Layout.AddRect(Style.GetButtonSize(gui.MeasureTextSize(label, GetTextSettings()))),
                 _ => gui.Layout.AddRect(gui.GetAvailableWidth(), Style.GetButtonHeight(gui.GetRowHeight()))
             };
-
         }
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, ImSize size = default)

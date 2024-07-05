@@ -57,41 +57,55 @@ namespace Imui.Controls
 
         public static readonly ImTextEditIntegerFilter IntegerFilter = new();
         public static readonly ImTextEditFloatFilter FloatFilter = new();
-
-        // TODO: implement convenient functions for float/int/etc input fields
-        // public static void TextEditFloat(this ImGui gui, ref float value)
-        // {
-        //     
-        // }
-        //
-        // public static void TextEditInt(this ImGui gui, ref int value)
-        // {
-        //     
-        // }
         
-        public static void TextEdit(this ImGui gui, ref string text, ImTextEditFilter filter = null)
+        public static ImRect GetRect(ImGui gui, ImSize size)
         {
-            gui.AddControlSpacing();
-
-            var width = Mathf.Max(MIN_WIDTH, gui.Layout.GetAvailableWidth());
-            var height = Mathf.Max(MIN_HEIGHT, Style.GetControlHeight(gui.GetRowHeight()));
-            var rect = gui.Layout.AddRect(width, height);
-            TextEdit(gui, ref text, in rect, filter, false);
-        }
-
-        public static void TextEdit(this ImGui gui, ref string text, float width, float height, ImTextEditFilter filter = null, bool multiline = true)
-        {
-            gui.AddControlSpacing();
-            
-            var rect = gui.Layout.AddRect(width, height);
-            TextEdit(gui, ref text, in rect, filter, multiline);
+            return size.Type switch
+            {
+                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
+                _ => gui.Layout.AddRect(
+                    Mathf.Max(MIN_WIDTH, gui.GetAvailableWidth()), 
+                    Mathf.Max(MIN_HEIGHT, Style.GetControlHeight(gui.GetRowHeight())))
+            };
         }
         
-        public static void TextEdit(this ImGui gui, ref string text, Vector2 size, ImTextEditFilter filter = null, bool multiline = true)
+        public static void TextEdit(this ImGui gui, ref int value, ImSize size = default, ReadOnlySpan<char> format = default)
+        {
+            TextEditNumeric(gui, ref value, IntegerFilter, format, size);
+        }
+        
+        public static void TextEdit(this ImGui gui, ref float value, ImSize size = default, ReadOnlySpan<char> format = default)
+        {
+            TextEditNumeric(gui, ref value, FloatFilter, format, size);
+        }
+
+        private static void TextEditNumeric<T>(ImGui gui, ref T value, ImTextEditFilterNumeric<T> filter, ReadOnlySpan<char> format, ImSize size)
+        {
+            var buffer = new ImTextEditBuffer();
+            buffer.MakeMutable();
+            
+            if (filter.TryFormat(buffer.Buffer, value, out var length, format))
+            {
+                buffer.Length = length;
+            }
+            else
+            {
+                buffer.Insert(0, filter.GetFallbackString());
+            }
+            
+            var rect = GetRect(gui, size);
+            var changed = TextEdit(gui, ref buffer, in rect, FloatFilter, multiline: false);
+            if (changed && filter.TryParse(buffer, out var newValue))
+            {
+                value = newValue;
+            }
+        }
+        
+        public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, ImTextEditFilter filter = null, bool multiline = true)
         {
             gui.AddControlSpacing();
-            
-            var rect = gui.Layout.AddRect(size);
+
+            var rect = GetRect(gui, size);
             TextEdit(gui, ref text, in rect, filter, multiline);
         }
         
@@ -101,6 +115,14 @@ namespace Imui.Controls
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
             TextEdit(gui, id, in rect, ref text, ref state, filter, multiline);
+        }
+        
+        public static bool TextEdit(this ImGui gui, ref ImTextEditBuffer buffer, in ImRect rect, ImTextEditFilter filter = null, bool multiline = true)
+        {
+            var id = gui.GetNextControlId();
+            ref var state = ref gui.Storage.Get<ImTextEditState>(id);
+
+            return TextEdit(gui, id, in rect, ref buffer, ref state, filter, multiline);
         }
         
         public static void TextEdit(this ImGui gui, uint id, in ImRect rect, ref string text, ref ImTextEditState state, ImTextEditFilter filter = null, bool multiline = true)
@@ -777,7 +799,9 @@ namespace Imui.Controls
     
     public ref struct ImTextEditBuffer
     {
-        private static char[] StaticBuffer = new char[1024];
+        public const int DEFAULT_MUTABLE_BUFFER_CAPACITY = 1024;
+        
+        private static char[] StaticBuffer = new char[DEFAULT_MUTABLE_BUFFER_CAPACITY];
 
         public int Length;
         public string InitText;
@@ -805,11 +829,11 @@ namespace Imui.Controls
             return InitText;
         }
 
-        public void MakeMutable(int length)
+        public void MakeMutable(int capacity = DEFAULT_MUTABLE_BUFFER_CAPACITY)
         {
             if (InitText != null)
             {
-                var nextLength = Mathf.NextPowerOfTwo(Mathf.Max(InitText.Length, length));
+                var nextLength = Mathf.NextPowerOfTwo(Mathf.Max(InitText.Length, capacity));
                 if (nextLength > StaticBuffer.Length)
                 {
                     Array.Resize(ref StaticBuffer, nextLength);
@@ -820,9 +844,18 @@ namespace Imui.Controls
                 Length = InitText.Length;
                 InitText = null;
             }
-            else if (Buffer.Length < length)
+            else
             {
-                Array.Resize(ref Buffer, Mathf.NextPowerOfTwo(length));
+                if (Buffer == null)
+                {
+                    Buffer = StaticBuffer;
+                    Length = 0;
+                }
+                
+                if (Buffer.Length < capacity)
+                {
+                    Array.Resize(ref Buffer, Mathf.NextPowerOfTwo(capacity));
+                }
             }
         }
 
@@ -889,30 +922,26 @@ namespace Imui.Controls
         public abstract string GetFallbackString();
     }
 
-    public sealed class ImTextEditIntegerFilter : ImTextEditFilter
+    public abstract class ImTextEditFilterNumeric<T> : ImTextEditFilter
     {
-        public override bool IsValid(in ReadOnlySpan<char> buffer)
-        {
-            return int.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
-        }
+        public abstract bool TryParse(in ReadOnlySpan<char> buffer, out T value);
+        public abstract bool TryFormat(in Span<char> buffer, T value, out int length, ReadOnlySpan<char> format);
+    }
 
-        public override string GetFallbackString()
-        {
-            return "0";
-        }
+    public sealed class ImTextEditIntegerFilter : ImTextEditFilterNumeric<int>
+    {
+        public override bool IsValid(in ReadOnlySpan<char> buffer) => TryParse(in buffer, out _);
+        public override string GetFallbackString() => "0";
+        public override bool TryParse(in ReadOnlySpan<char> buffer, out int value) => int.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+        public override bool TryFormat(in Span<char> buffer, int value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
     }
     
-    public sealed class ImTextEditFloatFilter : ImTextEditFilter
+    public sealed class ImTextEditFloatFilter : ImTextEditFilterNumeric<float>
     {
-        public override bool IsValid(in ReadOnlySpan<char> buffer)
-        {
-            return float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
-        }
-
-        public override string GetFallbackString()
-        {
-            return "0.0";
-        }
+        public override bool IsValid(in ReadOnlySpan<char> buffer) => TryParse(in buffer, out _);
+        public override string GetFallbackString() => "0.0";
+        public override bool TryParse(in ReadOnlySpan<char> buffer, out float value) => float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        public override bool TryFormat(in Span<char> buffer, float value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
     }
 
     public class ImTextEditStyle
