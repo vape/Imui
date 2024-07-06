@@ -269,7 +269,11 @@ namespace Imui.IO.UGUI
         {
             if (commandBufferPool.Count == 0)
             {
-                var cmd = new CommandBuffer();
+                var cmd = new CommandBuffer()
+                {
+                    name = "Imui Canvas Backend"
+                };
+                
                 commandBufferPool.Add(cmd);
             }
 
