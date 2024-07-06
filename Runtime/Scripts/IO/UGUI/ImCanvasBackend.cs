@@ -93,17 +93,6 @@ namespace Imui.IO.UGUI
             }
         }
 
-        protected override void OnDisable()
-        {
-            base.OnDisable();
-            
-            if (touchKeyboardHandler != null)
-            {
-                touchKeyboardHandler.Dispose();
-                touchKeyboardHandler = null;
-            }
-        }
-
         public void SetRaycaster(ImInputRaycaster raycaster)
         {
             this.raycaster = raycaster;
