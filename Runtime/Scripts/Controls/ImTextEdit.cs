@@ -64,7 +64,7 @@ namespace Imui.Controls
             {
                 ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(
-                    Mathf.Max(MIN_WIDTH, gui.GetAvailableWidth()), 
+                    Mathf.Max(MIN_WIDTH, gui.GetLayoutWidth()), 
                     Mathf.Max(MIN_HEIGHT, Style.GetControlHeight(gui.GetRowHeight())))
             };
         }

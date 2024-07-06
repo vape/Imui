@@ -78,7 +78,7 @@ namespace Imui.Controls.Windows
         {
             gui.AddSpacing();
             
-            var width = gui.GetAvailableWidth();
+            var width = gui.GetLayoutWidth();
             var height = 200.0f;
             var rect = gui.Layout.AddRect(width, height);
 

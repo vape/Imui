@@ -5,19 +5,24 @@ namespace Imui.Controls
 {
     public static class ImLayoutExtensions
     {
-        public static Vector2 GetAvailableSize(this ImGui gui)
+        public static Vector2 GetLayoutSize(this ImGui gui)
         {
             return gui.Layout.GetAvailableSize();
         }
         
-        public static float GetAvailableWidth(this ImGui gui)
+        public static float GetLayoutWidth(this ImGui gui)
         {
             return gui.Layout.GetAvailableWidth();
         }
 
-        public static float GetAvailableHeight(this ImGui gui)
+        public static float GetLayoutHeight(this ImGui gui)
         {
             return gui.Layout.GetAvailableHeight();
+        }
+
+        public static ImRect GetLayoutBounds(this ImGui gui)
+        {
+            return gui.Layout.GetBoundsRect();
         }
         
         public static void BeginVertical(this ImGui gui, float width = 0.0f, float height = 0.0f)

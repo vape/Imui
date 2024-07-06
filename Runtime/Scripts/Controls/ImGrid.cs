@@ -17,7 +17,7 @@ namespace Imui.Controls
     {
         public static ImGridState BeginGrid(this ImGui gui, int columns, float cellHeight = 0)
         {
-            var width = gui.GetAvailableWidth();
+            var width = gui.GetLayoutWidth();
             var spacing = GetDefaultSpacing();
             var cellWidth = (width + spacing.x) / columns - spacing.x;
             cellHeight = cellHeight <= 0 ? cellWidth : cellHeight;

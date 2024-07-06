@@ -64,12 +64,12 @@ namespace Imui.Controls.Windows
             gui.Slider(ref sliderValue, 0.0f, 1.0f);
             gui.Text(Format("Slider value: ", sliderValue, "0.00"));
             gui.TextEdit(ref singleLineText);
-            gui.TextEdit(ref multiLineText, (gui.GetAvailableWidth(), 200));
+            gui.TextEdit(ref multiLineText, (gui.GetLayoutWidth(), 200));
             
             gui.Text("Float TextEdit");
             gui.AddSpacing();
             gui.BeginHorizontal();
-            gui.BeginHorizontal(width: gui.GetAvailableWidth() * 0.5f);
+            gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.5f);
             gui.TextEdit(ref floatValue);
             gui.EndHorizontal();
             gui.Text(Format("", floatValue));
@@ -78,7 +78,7 @@ namespace Imui.Controls.Windows
             gui.Text("Float TextEdit (limited precision)");
             gui.AddSpacing();
             gui.BeginHorizontal();
-            gui.BeginHorizontal(width: gui.GetAvailableWidth() * 0.5f);
+            gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.5f);
             gui.TextEdit(ref floatValue, format: "0.0");
             gui.EndHorizontal();
             gui.Text(Format("", floatValue));
@@ -87,7 +87,7 @@ namespace Imui.Controls.Windows
             gui.Text("Integer TextEdit");
             gui.AddSpacing();
             gui.BeginHorizontal();
-            gui.BeginHorizontal(width: gui.GetAvailableWidth() * 0.5f);
+            gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.5f);
             gui.TextEdit(ref intValue);
             gui.EndHorizontal();
             gui.Text(Format("", intValue));

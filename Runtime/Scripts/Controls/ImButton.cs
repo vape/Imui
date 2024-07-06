@@ -16,7 +16,7 @@ namespace Imui.Controls
             {
                 ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
                 ImSizeType.AutoFit => gui.Layout.AddRect(Style.GetButtonSize(gui.MeasureTextSize(label, GetTextSettings()))),
-                _ => gui.Layout.AddRect(gui.GetAvailableWidth(), Style.GetButtonHeight(gui.GetRowHeight()))
+                _ => gui.Layout.AddRect(gui.GetLayoutWidth(), Style.GetButtonHeight(gui.GetRowHeight()))
             };
         }
         
