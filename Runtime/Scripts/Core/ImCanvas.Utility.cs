@@ -35,6 +35,15 @@ namespace Imui.Core
             PushSettings(in prop);
         }
 
+        public void PopContrast() => PopSettings();
+        public void PushDefaultContrast() => PushContrast(0.0f);
+        public void PushContrast(float contrast)
+        {
+            var prop = GetActiveSettingsCopy();
+            prop.Contrast = contrast;
+            PushSettings(in prop);
+        }
+
         public void PopClipRect() => PopSettings();
         public void PushClipRect(ImRect rect)
         {

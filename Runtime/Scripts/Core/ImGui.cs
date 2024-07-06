@@ -6,9 +6,6 @@ using UnityEngine;
 
 namespace Imui.Core
 {
-    // TODO (artem-s):
-    // * Check for per-frame allocations and overall optimization
-    
     public class ImGui : IDisposable
     {
         private const int CONTROL_IDS_CAPACITY = 32;
@@ -20,9 +17,12 @@ namespace Imui.Core
         private const float UI_SCALE_MIN = 0.05f;
         private const float UI_SCALE_MAX = 16.0f;
 
+        private const float READONLY_SCOPE_CONTRAST = 0.5f;
+
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
         private const int SCROLL_RECT_STACK_CAPACITY = 8;
+        private const int READONLY_STACK_CAPACITY = 4;
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
 
@@ -78,6 +78,14 @@ namespace Imui.Core
                 uiScale = Mathf.Clamp(value, UI_SCALE_MIN, UI_SCALE_MAX);
             }
         }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return readOnlyStack.TryPeek(@default: false);
+            }
+        }
         
         public readonly ImMeshBuffer MeshBuffer;
         public readonly ImMeshRenderer MeshRenderer;
@@ -96,6 +104,7 @@ namespace Imui.Core
         private float uiScale = 1.0f;
         private ImDynamicArray<ControlId> idsStack;
         private ImDynamicArray<uint> scrollRectsStack;
+        private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
         private ImControlFlag activeControlFlag;
         
@@ -118,6 +127,7 @@ namespace Imui.Core
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             idsStack = new ImDynamicArray<ControlId>(CONTROL_IDS_CAPACITY);
             scrollRectsStack = new ImDynamicArray<uint>(SCROLL_RECT_STACK_CAPACITY);
+            readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
             
             Input.SetRaycaster(Raycast);
         }
@@ -157,6 +167,26 @@ namespace Imui.Core
             Storage.CollectAndCompact();
         }
 
+        public void BeginReadOnly(bool isReadOnly)
+        {
+            readOnlyStack.Push(isReadOnly);
+
+            if (isReadOnly)
+            {
+                Canvas.PushContrast(READONLY_SCOPE_CONTRAST);
+            }
+            else
+            {
+                Canvas.PushDefaultContrast();
+            }
+        }
+
+        public void EndReadOnly()
+        {
+            readOnlyStack.Pop();
+            Canvas.PopContrast();
+        }
+        
         internal ref ImDynamicArray<uint> GetScrollRectStack()
         {
             return ref scrollRectsStack;

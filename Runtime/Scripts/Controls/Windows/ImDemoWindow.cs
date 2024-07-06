@@ -19,6 +19,7 @@ namespace Imui.Controls.Windows
         private static string multiLineText = "Multiline text\nedit";
         private static float floatValue;
         private static int intValue;
+        private static bool isReadOnly;
 
         public static void Draw(ImGui gui)
         {
@@ -31,6 +32,8 @@ namespace Imui.Controls.Windows
             }
             gui.EndFoldout();
 
+            gui.BeginReadOnly(isReadOnly);
+            
             gui.BeginFoldout("Layout", out var layoutOpen);
             if (layoutOpen)
             {
@@ -45,11 +48,16 @@ namespace Imui.Controls.Windows
             }
             gui.EndFoldout();
             
+            gui.EndReadOnly();
+            
             gui.EndWindow();
         }
 
         private static void DrawWidgetsPage(ImGui gui)
         {
+            gui.Checkbox(ref isReadOnly, "Read Only");
+
+            gui.BeginReadOnly(isReadOnly);
             gui.BeginDropdown("Click me", out var open);
             if (open)
             {
@@ -94,6 +102,8 @@ namespace Imui.Controls.Windows
             gui.EndHorizontal();
 
             gui.AddSpacing();
+            
+            gui.EndReadOnly();
         }
 
         private static void DrawLayoutPage(ImGui gui)

@@ -30,8 +30,7 @@ namespace Imui.Controls
         {
             const float EPSILON = 0.000001f;
             
-            var prevValue = value;
-            value = Mathf.InverseLerp(min, max, value);
+            var normValue = Mathf.InverseLerp(min, max, value);
 
             gui.Box(in rect, in Style.Box);
 
@@ -43,7 +42,7 @@ namespace Imui.Controls
             var xmin = rectPadded.X + handleW / 2.0f;
             var xmax = rectPadded.X + rectPadded.W - handleW / 2.0f;
             
-            var handleX = Mathf.Lerp(xmin, xmax, value) - (handleW / 2.0f);
+            var handleX = Mathf.Lerp(xmin, xmax, normValue) - (handleW / 2.0f);
             var handleY = rectPadded.Y + (rectPadded.H / 2.0f) - (handleH / 2.0f);
             var handleRect = new ImRect(handleX, handleY, handleW, handleH);
 
@@ -56,6 +55,13 @@ namespace Imui.Controls
                 gui.Button(id, in handleRect, out _);
             }
             
+            gui.RegisterControl(id, rect);
+
+            if (gui.IsReadOnly)
+            {
+                return false;
+            }
+            
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
@@ -65,7 +71,7 @@ namespace Imui.Controls
                     break;
                 
                 case ImMouseEventType.Drag when active:
-                    value = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, value) + evt.Delta.x);
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, normValue) + evt.Delta.x);
                     gui.Input.UseMouseEvent();
                     break;
                 
@@ -74,11 +80,14 @@ namespace Imui.Controls
                     break;
             }
             
-            gui.RegisterControl(id, rect);
-            
-            value = Mathf.Lerp(min, max, value);
-            
-            return Mathf.Abs(value - prevValue) > EPSILON;
+            var newValue = Mathf.Lerp(min, max, normValue);
+            if (Mathf.Abs(newValue - value) > EPSILON)
+            {
+                value = newValue;
+                return true;
+            }
+
+            return false;
         }
     }
 

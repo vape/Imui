@@ -53,8 +53,15 @@ namespace Imui.Controls
             var pressed = gui.IsControlActive(id);
             var clicked = false;
             
+            gui.RegisterControl(id, rect);
+            
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
             gui.Box(in rect, Style.GetStyle(state));
+
+            if (gui.IsReadOnly)
+            {
+                return false;
+            }
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -80,8 +87,6 @@ namespace Imui.Controls
                     }
                     break;
             }
-            
-            gui.RegisterControl(id, rect);
 
             return clicked;
         }
@@ -98,6 +103,13 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             var clicked = false;
+            
+            gui.RegisterControl(id, rect);
+
+            if (gui.IsReadOnly)
+            {
+                return false;
+            }
             
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -122,8 +134,6 @@ namespace Imui.Controls
                     }
                     break;
             }
-            
-            gui.RegisterControl(id, rect);
 
             return clicked;
         }

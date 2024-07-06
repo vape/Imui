@@ -148,6 +148,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var stateStyle = selected ? Style.Selected : Style.Normal;
             var textChanged = false;
+            var editable = !gui.IsReadOnly;
 
             ImTextTempFilterBuffer* tempBuffer = null;
 
@@ -227,7 +228,10 @@ namespace Imui.Controls
             
             if (selected)
             {
-                gui.Input.RequestTouchKeyboard(buffer);
+                if (editable)
+                {
+                    gui.Input.RequestTouchKeyboard(buffer);
+                }
                 
                 DrawCaret(gui, state.Caret, in textRect, in layout, in stateStyle, in buffer);
                 DrawSelection(gui, state.Caret, state.Selection, in textRect, in layout, in stateStyle, in buffer);
@@ -244,6 +248,7 @@ namespace Imui.Controls
                             in textRect, 
                             in layout, 
                             multiline,
+                            editable,
                             out var isTextChanged))
                     {
                         textChanged |= isTextChanged;
@@ -294,6 +299,7 @@ namespace Imui.Controls
             in ImRect textRect, 
             in ImTextLayout layout,
             bool multiline,
+            bool editable,
             out bool textChanged)
         {
             var stateChanged = false;
@@ -323,11 +329,11 @@ namespace Imui.Controls
                     stateChanged |= MoveCaretVertical(gui, in textRect, in layout, ref state, in buffer, -1, evt.Command);
                     break;
                 
-                case KeyCode.Delete:
+                case KeyCode.Delete when editable:
                     textChanged |= DeleteForward(ref state, ref buffer);
                     break;
                 
-                case KeyCode.Backspace:
+                case KeyCode.Backspace when editable:
                     textChanged |= DeleteBackward(ref state, ref buffer);
                     break;
 
@@ -346,7 +352,7 @@ namespace Imui.Controls
                             stateChanged = true;
                             break;
                         
-                        case ImKeyboardCommandFlag.Paste:
+                        case ImKeyboardCommandFlag.Paste when editable:
                             textChanged |= PasteFromClipboard(gui, ref state, ref buffer);
                             break;
 
@@ -359,6 +365,11 @@ namespace Imui.Controls
 
                             // do not allow to add new lines while in single line mode
                             if (!multiline && evt.Char == '\n')
+                            {
+                                break;
+                            }
+
+                            if (!editable)
                             {
                                 break;
                             }

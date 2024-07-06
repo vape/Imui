@@ -40,6 +40,7 @@ namespace Imui.Rendering
             return ref buffer.Meshes[buffer.MeshesCount - 1];
         }
 
+        // TODO: closed property is not used for some reason...
         public void AddLine(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
             Profiler.BeginSample("MeshDrawer.AddLine");

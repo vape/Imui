@@ -13,6 +13,7 @@ namespace Imui.Core
         public Texture MainTex;
         public Texture FontTex;
         public int Order;
+        public float Contrast;
     }
     
     public partial class ImCanvas : IDisposable
@@ -133,6 +134,7 @@ namespace Imui.Core
             mesh.Order = settings.Order;
             mesh.ClipRect = settings.ClipRect;
             mesh.MaskRect = settings.MaskRect;
+            mesh.Contrast = settings.Contrast;
         }
 
         public bool Cull(ImRect rect)

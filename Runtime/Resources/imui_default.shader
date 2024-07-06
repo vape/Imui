@@ -7,6 +7,7 @@
         [PerRendererData] _MaskEnable("Enable Masking", int) = 0
         [PerRendererData] _MaskRect("Mask Rect", Vector) = (0, 0, 0, 0)
         [PerRendererData] _MaskCornerRadius("Mask Corner Radius", float) = 0
+        [PerRendererData] _Contrast("Contrast", float) = 1
     }
     
     SubShader
@@ -50,6 +51,7 @@
             bool _MaskEnable;
             float4 _MaskRect;
             float _MaskCornerRadius;
+            float _Contrast;
 
             // simplified signed distance round box from here: https://iquilezles.org/articles/distfunctions2d/ 
             float sdf_round_box(in float2 p, in float2 s, in float r) 
@@ -75,10 +77,12 @@
                 col.a *= _MaskEnable
                     ? 1 - saturate(sdf_round_box(i.vertex.xy - _MaskRect.xy, _MaskRect.zw, _MaskCornerRadius) * 2 + 1)
                     : 1;
+                col *= i.color;
+                col.rgb = ((col.rgb - 0.5f) * (1 - _Contrast)) + 0.5f;
                 
-                return i.color * col;
+                return col;
             }
-
+            
             ENDCG
         }
     }

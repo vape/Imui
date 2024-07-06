@@ -112,6 +112,15 @@ namespace Imui.Controls
 
                 dx -= normalDelta * size.x;
             }
+            
+            var groupRect = GetVisibleRect(view, in state);
+            gui.RegisterGroup(id, groupRect);
+
+            // Scroll bars should probably work even in read only mode
+            // if (gui.IsReadOnly)
+            // {
+            //     return;
+            // }
 
             var deferredUseMouseEvent = false;
             var groupHovered = gui.IsGroupHovered(id);
@@ -141,8 +150,7 @@ namespace Imui.Controls
                     gui.ResetActiveControl();
                     break;
             }
-
-            var groupRect = GetVisibleRect(view, in state);
+            
             var prevOffset = state.Offset;
             
             state.Offset.x = Mathf.Clamp(state.Offset.x + dx, Mathf.Min(0, view.W - size.x), 0);
@@ -153,8 +161,6 @@ namespace Imui.Controls
             {
                 gui.Input.UseMouseEvent();
             }
-            
-            gui.RegisterGroup(id, groupRect);
         }
         
         public static float Bar(

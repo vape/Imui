@@ -18,6 +18,7 @@ namespace Imui.Rendering
         private static readonly int MaskEnabledId = Shader.PropertyToID("_MaskEnable");
         private static readonly int MaskRectId = Shader.PropertyToID("_MaskRect");
         private static readonly int MaskCornerRadiusId = Shader.PropertyToID("_MaskCornerRadius");
+        private static readonly int ContrastId = Shader.PropertyToID("_Contrast");
         
         #if IMUI_DEBUG
         public bool Wireframe;
@@ -92,6 +93,7 @@ namespace Imui.Rendering
 
                 properties.SetTexture(MainTexId, meshData.MainTex);
                 properties.SetTexture(FontTexId, meshData.FontTex);
+                properties.SetFloat(ContrastId, meshData.Contrast);
                 
                 if (meshData.MaskRect.Enabled)
                 {
