@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -71,7 +72,7 @@ namespace Imui.Rendering
         {
             UnloadFont();
             
-            fontAsset = FontAsset.CreateFontAsset(font, (int)(size ?? font.fontSize), FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH,
+            fontAsset = FontAsset.CreateFontAsset(font, (int)(size ?? font.fontSize), FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED,
                 (int)FONT_ATLAS_W, (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
             fontAsset.TryAddCharacters(ASCII);
             fontAsset.atlasTexture.Apply();
@@ -194,6 +195,7 @@ namespace Imui.Rendering
 #endif
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         private float AddGlyphQuad(Glyph glyph, float px, float py, float scale)
         {
             var rect = glyph.glyphRect;
@@ -202,49 +204,61 @@ namespace Imui.Rendering
             var h = rect.height;
             var w = rect.width;
             var metrics = glyph.metrics;
+            var by = metrics.horizontalBearingY;
+            var bx = metrics.horizontalBearingX;
+            
+            var uv0x = x / FONT_ATLAS_W;
+            var uv0y = y / FONT_ATLAS_H;
+            var uv1x = (x + w) / FONT_ATLAS_W;
+            var uv1y = (y + h) / FONT_ATLAS_H;
+            
+            var gw = scale * w;
+            var gh = scale * h;
+            var ox = scale * bx;
+            var oy = scale * (by - h - descentLine);
 
-            var glyphWidth = w * scale;
-            var glyphHeight = h * scale;
-            var verticalOffset = (metrics.horizontalBearingY - h - descentLine) * scale;
-            var horizontalOffset = metrics.horizontalBearingX * scale;
+            var p0x = px + ox;
+            var p0y = py + oy;
+            var p1x = p0x + gw;
+            var p1y = p0y + gh;
 
             var vc = buffer.VerticesCount;
             var ic = buffer.IndicesCount;
             
             ref var v0 = ref buffer.Vertices[vc + 0];
-            v0.Position.x = px + horizontalOffset;
-            v0.Position.y = py + verticalOffset;
+            v0.Position.x = p0x;
+            v0.Position.y = p0y;
             v0.Position.z = Depth;
             v0.Color = Color;
-            v0.UV.x = x / FONT_ATLAS_W;
-            v0.UV.y = y / FONT_ATLAS_H;
+            v0.UV.x = uv0x;
+            v0.UV.y = uv0y;
             v0.Atlas = ImMeshDrawer.FONT_TEX_ID;
 
             ref var v1 = ref buffer.Vertices[vc + 1];
-            v1.Position.x = px + horizontalOffset;
-            v1.Position.y = py + glyphHeight + verticalOffset;
+            v1.Position.x = p0x;
+            v1.Position.y = p1y;
             v1.Position.z = Depth;
             v1.Color = Color;
-            v1.UV.x = x / FONT_ATLAS_W;
-            v1.UV.y = (y + h) / FONT_ATLAS_H;
+            v1.UV.x = uv0x;
+            v1.UV.y = uv1y;
             v1.Atlas = ImMeshDrawer.FONT_TEX_ID;
             
             ref var v2 = ref buffer.Vertices[vc + 2];
-            v2.Position.x = px + glyphWidth + horizontalOffset;
-            v2.Position.y = py + glyphHeight + verticalOffset;
+            v2.Position.x = p1x;
+            v2.Position.y = p1y;
             v2.Position.z = Depth;
             v2.Color = Color;
-            v2.UV.x = (x + w) / FONT_ATLAS_W;
-            v2.UV.y = (y + h) / FONT_ATLAS_H;
+            v2.UV.x = uv1x;
+            v2.UV.y = uv1y;
             v2.Atlas = ImMeshDrawer.FONT_TEX_ID;
 
             ref var v3 = ref buffer.Vertices[vc + 3];
-            v3.Position.x = px + glyphWidth + horizontalOffset;
-            v3.Position.y = py + verticalOffset;
+            v3.Position.x = p1x;
+            v3.Position.y = p0y;
             v3.Position.z = Depth;
             v3.Color = Color;
-            v3.UV.x = (x + w) / FONT_ATLAS_W;
-            v3.UV.y = (y) / FONT_ATLAS_H;
+            v3.UV.x = uv1x;
+            v3.UV.y = uv0y;
             v3.Atlas = ImMeshDrawer.FONT_TEX_ID;
             
             buffer.Indices[ic + 0] = vc + 0;
