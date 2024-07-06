@@ -43,12 +43,16 @@ namespace Imui.Controls
             
             gui.Layout.Push(frame.Axis, visibleRect, ImLayoutFlag.None);
             gui.Layout.SetOffset(state.Offset);
-            gui.BeginScope(id);
+
+            ref var scrollRectStack = ref gui.GetScrollRectStack();
+            scrollRectStack.Push(id);
         }
         
         public static void EndScrollable(this ImGui gui, ImScrollFlag flags = ImScrollFlag.None)
         {
-            gui.EndScope(out var id);
+            ref var scrollRectStack = ref gui.GetScrollRectStack();
+            var id = scrollRectStack.Pop();
+            
             gui.Layout.Pop(out var contentFrame);
 
             var bounds = gui.Layout.GetBoundsRect();
@@ -58,14 +62,17 @@ namespace Imui.Controls
 
         public static Vector2 GetScrollOffset(this ImGui gui)
         {
-            var id = gui.GetScope();
+            ref var scrollRectStack = ref gui.GetScrollRectStack();
+            var id = scrollRectStack.Peek();
             
             return gui.Storage.Get<ImScrollState>(id).Offset;
         }
 
         public static void SetScrollOffset(this ImGui gui, Vector2 offset)
         {
-            var id = gui.GetScope();
+            ref var scrollRectStack = ref gui.GetScrollRectStack();
+            var id = scrollRectStack.Peek();
+            
             ref var state = ref gui.Storage.Get<ImScrollState>(id);
             
             state.Offset = offset;

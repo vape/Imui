@@ -22,7 +22,7 @@ namespace Imui.Core
 
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
-        private const int SCOPES_STACK_CAPACITY = 32;
+        private const int SCROLL_RECT_STACK_CAPACITY = 8;
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
 
@@ -89,13 +89,13 @@ namespace Imui.Core
         public readonly ImWindowManager WindowManager;
         public readonly IImInputBackend Input;
         public readonly IImRenderingBackend Renderer;
-        
+
         internal FrameData nextFrameData;
         internal FrameData frameData;
 
         private float uiScale = 1.0f;
         private ImDynamicArray<ControlId> idsStack;
-        private ImDynamicArray<uint> scopes;
+        private ImDynamicArray<uint> scrollRectsStack;
         private uint activeControl;
         private ImControlFlag activeControlFlag;
         
@@ -117,7 +117,7 @@ namespace Imui.Core
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             idsStack = new ImDynamicArray<ControlId>(CONTROL_IDS_CAPACITY);
-            scopes = new ImDynamicArray<uint>(SCOPES_STACK_CAPACITY);
+            scrollRectsStack = new ImDynamicArray<uint>(SCROLL_RECT_STACK_CAPACITY);
             
             Input.SetRaycaster(Raycast);
         }
@@ -157,19 +157,9 @@ namespace Imui.Core
             Storage.CollectAndCompact();
         }
 
-        public void BeginScope(uint id)
+        internal ref ImDynamicArray<uint> GetScrollRectStack()
         {
-            scopes.Push(id);
-        }
-
-        public uint GetScope()
-        {
-            return scopes.Peek();
-        }
-
-        public void EndScope(out uint id)
-        {
-            id = scopes.Pop();
+            return ref scrollRectsStack;
         }
 
         public uint PushId()
