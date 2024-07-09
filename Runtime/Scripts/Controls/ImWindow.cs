@@ -24,7 +24,7 @@ namespace Imui.Controls
             if (gui.IsGroupHovered(id))
             {
                 ref readonly var evt = ref gui.Input.MouseEvent;
-                if (evt.Type is ImMouseEventType.Down or ImMouseEventType.BeginDrag)
+                if (evt.Type is ImMouseEventType.Down)
                 {
                     gui.WindowManager.RequestFocus(id);
                 }
