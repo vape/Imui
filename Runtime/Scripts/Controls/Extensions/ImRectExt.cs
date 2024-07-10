@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    public static class ImRectExtensions
+    public static class ImRectExt
     {
         public static Vector2 Max(this Vector2 vec, float x, float y)
         {
@@ -19,47 +19,31 @@ namespace Imui.Controls
         }
 
         
-        public static ImRect SplitTop(this ImRect rect, float height, out ImRect next)
+        public static ImRect SplitTop(this ImRect rect, float height, out ImRect bottom)
         {
-            next = rect;
-            next.H = rect.H - height;
-            rect.Y += next.H;
+            bottom = rect;
+            bottom.H = rect.H - height;
+            rect.Y += bottom.H;
             rect.H = height;
             return rect;
         }
 
-        public static ImRect SplitLeft(this ImRect rect, float width, out ImRect next)
+        public static ImRect SplitLeft(this ImRect rect, float width, out ImRect right)
         {
-            next = rect;
-            next.X += width;
-            next.W = rect.W - width;
+            right = rect;
+            right.X += width;
+            right.W = rect.W - width;
             rect.W = width;
             return rect;
         }
         
-        public static ImRect SplitLeft(this ImRect rect, float width, float space, out ImRect next)
+        public static ImRect SplitLeft(this ImRect rect, float width, float space, out ImRect right)
         {
-            next = rect;
-            next.X += width + space;
-            next.W = rect.W - width - space;
+            right = rect;
+            right.X += width + space;
+            right.W = rect.W - width - space;
             rect.W = width;
             return rect;
-        }
-
-        public static void AddPadding(this ref ImRect rect, float size)
-        {
-            rect.X += size;
-            rect.Y += size;
-            rect.W -= size * 2;
-            rect.H -= size * 2;
-        }
-        
-        public static void AddPadding(this ref ImRect rect, ImPadding padding)
-        {
-            rect.X += padding.Left;
-            rect.Y += padding.Bottom;
-            rect.W -= padding.Left + padding.Right;
-            rect.H -= padding.Top + padding.Bottom;
         }
         
         public static ImRect WithAspect(this ImRect rect, float aspect)
@@ -82,17 +66,7 @@ namespace Imui.Controls
 
             return rect;
         }
-
-        public static ImRect WithPadding(this ImRect rect, float left, float top, float right, float bottom)
-        {
-            rect.X += left;
-            rect.Y += bottom;
-            rect.W -= left + right;
-            rect.H -= top + bottom;
-
-            return rect;
-        }
-
+        
         public static ImRect WithPadding(this ImRect rect, ImPadding padding)
         {
             rect.X += padding.Left;
@@ -102,31 +76,19 @@ namespace Imui.Controls
 
             return rect;
         }
-
-        public static void ApplyPadding(this ref ImRect rect, float padding)
+        
+        public static void AddPaddingToSize(ref Vector2 size, ImPadding padding)
         {
-            rect.X += padding;
-            rect.Y += padding;
-            rect.W -= padding * 2;
-            rect.H -= padding * 2;
+            size.x += padding.Left + padding.Right;
+            size.y += padding.Bottom + padding.Top;
         }
         
-        public static void ApplyPadding(this ref ImRect rect, ImPadding padding)
+        public static void AddPadding(this ref ImRect rect, ImPadding padding)
         {
             rect.X += padding.Left;
             rect.Y += padding.Bottom;
             rect.W -= padding.Left + padding.Right;
             rect.H -= padding.Top + padding.Bottom;
-        }
-
-        public static ImRect WithMargin(this ImRect rect, ImPadding margin)
-        {
-            rect.X -= margin.Left;
-            rect.Y -= margin.Bottom;
-            rect.W += margin.Left + margin.Right;
-            rect.H += margin.Top + margin.Bottom;
-
-            return rect;
         }
         
         public static ImRect ScaleFromCenter(this ImRect rect, float scale)

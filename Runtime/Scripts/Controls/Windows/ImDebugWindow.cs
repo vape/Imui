@@ -48,7 +48,7 @@ namespace Imui.Controls.Windows
             frameTimes.PushFront(Time.deltaTime);
             DrawFrametimeGraph(gui);
             
-            if (gui.Button(debugOverlay ? "Disable Overlay" : "Enable Overlay", ImSizeType.AutoFit))
+            if (gui.Button(debugOverlay ? "Disable Overlay" : "Enable Overlay", ImSizeType.Fit))
             {
                 debugOverlay = !debugOverlay;
             }

@@ -1,4 +1,5 @@
 using System;
+using Imui.Controls.Styling;
 using Imui.Core;
 
 namespace Imui.Controls
@@ -7,19 +8,26 @@ namespace Imui.Controls
     public static class ImControls
     {
         public static ImControlsStyle Style = ImControlsStyle.Default;
-        
-        [Obsolete]
-        public static float GetTextSize(this ImGui gui)
+
+        public static float TextSize => Style.TextSize;
+        public static ImPadding Padding => Style.Padding;
+        public static float InnerSpacing => Style.InnerSpacing;
+
+        public static ImRect GetRowRect(ImGui gui, ImSize size)
         {
-            return Style.TextSize;
+            return size.Type switch
+            {
+                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
+            };
         }
         
         public static float GetRowHeight(this ImGui gui)
         {
-            return gui.TextDrawer.GetLineHeight(Style.TextSize);
+            return gui.TextDrawer.GetLineHeight(Style.TextSize) + Style.Padding.Bottom + Style.Padding.Top;
         }
         
-        public static void AddControlSpacing(this ImGui gui)
+        public static void AddSpacingIfLayoutFrameNotEmpty(this ImGui gui)
         {
             ref readonly var frame = ref gui.Layout.GetFrame();
             if (frame.Size.x != 0 || frame.Size.y != 0)
@@ -30,7 +38,7 @@ namespace Imui.Controls
         
         public static void AddSpacing(this ImGui gui)
         {
-            gui.Layout.AddSpace(Style.Spacing);
+            gui.Layout.AddSpace(Style.ControlsSpacing);
         }
         
         public static void AddSpacing(this ImGui gui, float space)
@@ -53,15 +61,17 @@ namespace Imui.Controls
     {
         public static readonly ImControlsStyle Default = new ImControlsStyle()
         {
+            Padding = 2,
             TextSize = 26,
-            Spacing = 4,
+            ControlsSpacing = 4,
             InnerSpacing = 2,
             ScrollSpeedScale = 6,
             Indent = 20
         };
-        
+
+        public ImPadding Padding;
         public float TextSize;
-        public float Spacing;
+        public float ControlsSpacing;
         public float InnerSpacing;
         public float ScrollSpeedScale;
         public float Indent;

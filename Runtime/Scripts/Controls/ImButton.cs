@@ -12,17 +12,22 @@ namespace Imui.Controls
 
         public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
         {
-            return size.Type switch
+            if (size.Type == ImSizeType.Fit)
             {
-                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
-                ImSizeType.AutoFit => gui.Layout.AddRect(Style.GetButtonSize(gui.MeasureTextSize(label, GetTextSettings()))),
-                _ => gui.Layout.AddRect(gui.GetLayoutWidth(), Style.GetButtonHeight(gui.GetRowHeight()))
-            };
+                var textSettings = Style.GetTextSettings();
+                var textSize = gui.MeasureTextSize(label, in textSettings);
+                ImRectExt.AddPaddingToSize(ref textSize, ImControls.Padding);
+                ImRectExt.AddPaddingToSize(ref textSize, Style.AdditionalPadding);
+
+                return gui.Layout.AddRect(textSize);
+            }
+
+            return ImControls.GetRowRect(gui, size);
         }
         
         public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, ImSize size = default)
         {
-            gui.AddControlSpacing();
+            gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size, label);
             return Button(gui, label, in rect);
@@ -41,9 +46,12 @@ namespace Imui.Controls
         public static bool Button(this ImGui gui, uint id, in ReadOnlySpan<char> label, in ImRect rect, out ImButtonState state)
         {
             var clicked = Button(gui, id, in rect, out state);
-            var textSettings = GetTextSettings();
-            var textColor = Style.GetStyle(state).FrontColor;
-            gui.Canvas.Text(in label, textColor, Style.GetContentRect(rect), in textSettings);
+            var textSettings = Style.GetTextSettings();
+            var textColor = Style.GetStateStyle(state).FrontColor;
+            var textRect = Style.GetContentRect(rect);
+            
+            gui.Canvas.Text(in label, textColor, textRect, in textSettings);
+            
             return clicked;
         }
         
@@ -56,7 +64,7 @@ namespace Imui.Controls
             gui.RegisterControl(id, rect);
             
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
-            gui.Box(in rect, Style.GetStyle(state));
+            gui.Box(in rect, Style.GetStateStyle(state));
 
             if (gui.IsReadOnly)
             {
@@ -137,11 +145,6 @@ namespace Imui.Controls
 
             return clicked;
         }
-
-        public static ImTextSettings GetTextSettings()
-        {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment, Style.TextWrap);
-        }
     }
 
     public enum ImButtonState
@@ -156,7 +159,7 @@ namespace Imui.Controls
     {
         public static readonly ImButtonStyle Default = new ImButtonStyle()
         {
-            Padding = 2.0f,
+            AdditionalPadding = 0.0f,
             Alignment = new ImTextAlignment(0.5f, 0.5f),
             TextWrap = false,
             Normal = new ImBoxStyle()
@@ -188,28 +191,19 @@ namespace Imui.Controls
         public ImBoxStyle Normal;
         public ImBoxStyle Hovered;
         public ImBoxStyle Pressed;
-        public ImPadding Padding;
+        public ImPadding AdditionalPadding;
         public ImTextAlignment Alignment;
         public bool TextWrap;
 
-        public Vector2 GetButtonSize(Vector2 contentSize)
-        {
-            return new Vector2(
-                contentSize.x + Padding.Horizontal, 
-                contentSize.y + Padding.Vertical);
-        }
-
-        public float GetButtonHeight(float contentHeight)
-        {
-            return contentHeight + Padding.Vertical;
-        }
-
         public ImRect GetContentRect(ImRect buttonRect)
         {
-            return buttonRect.WithPadding(Padding);
+            buttonRect.AddPadding(AdditionalPadding);
+            buttonRect.AddPadding(ImControls.Padding);
+            
+            return buttonRect;
         }
         
-        public ImBoxStyle GetStyle(ImButtonState state)
+        public ImBoxStyle GetStateStyle(ImButtonState state)
         {
             switch (state)
             {
@@ -220,6 +214,11 @@ namespace Imui.Controls
                 default:
                     return Normal;
             }
+        }
+        
+        public ImTextSettings GetTextSettings()
+        {
+            return new ImTextSettings(ImControls.Style.TextSize, Alignment, TextWrap);
         }
 
         public void SetBorderRadius(ImRectRadius radius)

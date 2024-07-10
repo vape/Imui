@@ -37,7 +37,7 @@ namespace Imui.Controls
         
         public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings settings)
         {
-            gui.AddControlSpacing();
+            gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var space = gui.Layout.GetAvailableSize().Max(MIN_WIDTH, MIN_HEIGHT);
             var rect = gui.Layout.GetRect(space);
@@ -58,11 +58,11 @@ namespace Imui.Controls
         // TODO (artem-s): Got to come up with better solution instead of just brute forcing the fuck of it every time
         public static float AutoSizeTextSlow(this ImGui gui, in ReadOnlySpan<char> text, ImTextSettings settings, Vector2 bounds, float minSize = 1)
         {
-            var textSize = gui.MeasureTextSize(in text, in settings, bounds);
+            var textSize = gui.MeasureTextSize(text, in settings, bounds);
             while (settings.Size > minSize && (textSize.x > bounds.x || textSize.y > bounds.y))
             {
                 settings.Size -= 1;
-                textSize = gui.MeasureTextSize(in text, in settings, bounds);
+                textSize = gui.MeasureTextSize(text, in settings, bounds);
             }
 
             return settings.Size;
@@ -74,7 +74,7 @@ namespace Imui.Controls
             return scale * gui.TextDrawer.FontRenderSize;
         }
         
-        public static Vector2 MeasureTextSize(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings textSettings, Vector2 bounds = default)
+        public static Vector2 MeasureTextSize(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings textSettings, Vector2 bounds = default)
         {
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 
                 bounds.x, 

@@ -4,9 +4,9 @@ namespace Imui.Controls.Styling
 {
     public enum ImSizeType
     {
-        Default   = 0,
-        FixedSize = 1,
-        AutoFit   = 2
+        Auto  = 0,
+        Fixed = 1,
+        Fit   = 2
     }
     
     public struct ImSize
@@ -26,7 +26,7 @@ namespace Imui.Controls.Styling
         {
             Width = width;
             Height = height;
-            Type = ImSizeType.FixedSize;
+            Type = ImSizeType.Fixed;
         }
 
         public ImSize(ImSizeType type)

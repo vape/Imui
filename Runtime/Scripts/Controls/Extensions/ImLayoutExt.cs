@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    public static class ImLayoutExtensions
+    public static class ImLayoutExt
     {
         public static Vector2 GetLayoutSize(this ImGui gui)
         {

@@ -8,21 +8,31 @@ namespace Imui.Controls
     {
         public static ImPanelStyle Style = ImPanelStyle.Default;
         
-        public static void BeginPanel(this ImGui gui, in ImRect rect)
+        public static void BeginPanel(this ImGui gui, ImRect rect)
         {
             gui.Box(in rect, Style.Box);
             gui.RegisterRaycastTarget(rect);
+
+            var layoutRect = rect.WithPadding(ImControls.Padding);
+            var maskRect = rect.WithPadding(Style.Box.BorderWidth);
             
-            gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(Style.Padding));
-            gui.Canvas.PushRectMask(rect.WithPadding(Style.Box.BorderWidth), Style.Box.BorderRadius);
+            gui.Layout.Push(ImAxis.Vertical, layoutRect);
+            gui.Canvas.PushRectMask(maskRect, Style.Box.BorderRadius);
+            gui.Canvas.PushClipRect(maskRect); // need this to properly handle clicking outside drawing area
             gui.BeginScrollable();
         }
 
         public static void EndPanel(this ImGui gui)
         {
             gui.EndScrollable();
+            gui.Canvas.PopClipRect();
             gui.Canvas.PopRectMask();
             gui.Layout.Pop();
+        }
+
+        public static float GetEnclosingHeight(float contentHeight)
+        {
+            return contentHeight + ImControls.Padding.Vertical;
         }
     }
 
@@ -36,21 +46,9 @@ namespace Imui.Controls
                 BorderColor = ImColors.Black,
                 BorderWidth = 1,
                 BorderRadius = 3
-            },
-            Padding = 4f
+            }
         };
 
         public ImBoxStyle Box;
-        public ImPadding Padding;
-
-        public float GetHeight(float contentHeight)
-        {
-            return contentHeight + Padding.Vertical;
-        }
-        
-        public ImRect GetContentRect(ImRect popupRect)
-        {
-            return popupRect.WithPadding(Padding);
-        }
     }
 }

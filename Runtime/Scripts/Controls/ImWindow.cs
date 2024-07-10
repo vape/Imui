@@ -95,7 +95,7 @@ namespace Imui.Controls
             
             var titleBarRect = GetTitleBarRect(gui, in state.Rect, out _);
             state.Rect.SplitTop(titleBarRect.H, out content);
-            content.AddPadding(Style.Padding);
+            content.AddPadding(Style.ContentPadding);
         }
 
         public static void Front(ImGui gui, in ImRect rect)
@@ -231,11 +231,11 @@ namespace Imui.Controls
         public Color32 BackColor;
         public Color32 FrontColor;
         public ImTextAlignment Alignment;
-        public ImPadding Padding;
+        public ImPadding AdditionalPadding;
 
         public float GetHeight(float contentHeight)
         {
-            return contentHeight + Padding.Vertical;
+            return contentHeight + AdditionalPadding.Vertical;
         }
     }
         
@@ -253,12 +253,12 @@ namespace Imui.Controls
             },
             ResizeHandleColor = ImColors.Gray2.WithAlpha(196),
             ResizeHandleSize = 24,
-            Padding = 4,
+            ContentPadding = 4,
             TitleBar = new ImWindowTitleBarStyle()
             {
                 BackColor = ImColors.Gray3,
                 FrontColor = ImColors.White,
-                Padding = 8,
+                AdditionalPadding = 2,
                 Alignment = new ImTextAlignment(0.5f, 0.5f)
             }
         };
@@ -266,7 +266,7 @@ namespace Imui.Controls
         public ImBoxStyle Box;
         public Color32 ResizeHandleColor;
         public float ResizeHandleSize;
-        public ImPadding Padding;
+        public ImPadding ContentPadding;
         public ImWindowTitleBarStyle TitleBar;
     }
 }

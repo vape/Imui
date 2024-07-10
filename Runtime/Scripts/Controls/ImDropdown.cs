@@ -13,21 +13,12 @@ namespace Imui.Controls
     public static class ImDropdown
     {
         public static ImDropdownStyle Style = ImDropdownStyle.Default;
-
-        private static ImRect GetRect(ImGui gui, ImSize size)
-        {
-            return size.Type switch
-            {
-                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
-                _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), ImButton.Style.GetButtonHeight(gui.GetRowHeight()))
-            };
-        }
         
         public static void BeginDropdown(this ImGui gui, in ReadOnlySpan<char> label, out bool open, ImSize size = default)
         {
-            gui.AddControlSpacing();
+            gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size);
+            var rect = ImControls.GetRowRect(gui, size);
             BeginDropdown(gui, in label, out open, rect);
         }
         
@@ -54,9 +45,9 @@ namespace Imui.Controls
         
         public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, ImSize size = default)
         {
-            gui.AddControlSpacing();
+            gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size);
+            var rect = ImControls.GetRowRect(gui, size);
             return Dropdown(gui, ref selected, in options, in rect);
         }
         
@@ -95,10 +86,9 @@ namespace Imui.Controls
         {
             changed = false;
             
-            var contentHeight = gui.GetRowHeight();
-            var optionButtonHeight = Style.OptionButton.GetButtonHeight(contentHeight);
+            var optionButtonHeight = gui.GetRowHeight();
             var totalSpacingHeight = Style.OptionsButtonsSpacing * (options.Length - 1);
-            var panelHeight = ImPanel.Style.GetHeight(Mathf.Min(Style.MaxPanelHeight, options.Length * optionButtonHeight + totalSpacingHeight));
+            var panelHeight = ImPanel.GetEnclosingHeight(Mathf.Min(Style.MaxPanelHeight, options.Length * optionButtonHeight + totalSpacingHeight));
             var panelRect = new ImRect(position.x, position.y - panelHeight, width, panelHeight);
 
             gui.Canvas.PushNoClipRect();
@@ -106,13 +96,13 @@ namespace Imui.Controls
 
             gui.PushId(id);
             gui.BeginPopup();
-            gui.BeginPanel(in panelRect);
+            gui.BeginPanel(panelRect);
 
             var optionButtonWidth = gui.Layout.GetAvailableWidth();
 
             using (new ImStyleScope<ImControlsStyle>(ref ImControls.Style))
             {
-                ImControls.Style.Spacing = Style.OptionsButtonsSpacing;
+                ImControls.Style.ControlsSpacing = Style.OptionsButtonsSpacing;
                     
                 for (int i = 0; i < options.Length; ++i)
                 {
@@ -139,28 +129,25 @@ namespace Imui.Controls
         }
 
         public static bool DropdownButton(ImGui gui, uint id, in ReadOnlySpan<char> label, ImRect rect)
-        { 
+        {
+            var arrowRect = ImButton.Style.GetContentRect(rect);
+            arrowRect.W = arrowRect.H * Style.ArrowOuterScale;
+            
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style);
-
-            var arrowSize = gui.GetRowHeight();
             
             ImButton.Style.Alignment = Style.Alignment;
-            ImButton.Style.Padding.Right += arrowSize + ImControls.Style.InnerSpacing;
+            ImButton.Style.AdditionalPadding.Left += arrowRect.W + ImControls.Style.InnerSpacing;
 
             var clicked = gui.Button(id, label, rect, out var state);
-            
-            var arrowRect = ImButton.Style.GetContentRect(rect);
-            arrowRect.X += arrowRect.W + ImControls.Style.InnerSpacing;
-            arrowRect.W = arrowSize;
-            
-            DrawArrow(gui, arrowRect, ImButton.Style.GetStyle(state).FrontColor);
+
+            DrawArrow(gui, arrowRect, ImButton.Style.GetStateStyle(state).FrontColor);
 
             return clicked;
         }
 
         public static void DrawArrow(ImGui gui, ImRect rect, Color32 color)
         {
-            rect = rect.WithAspect(1f).ScaleFromCenter(Style.ArrowScale).WithAspect(1.1547f);
+            rect = rect.WithAspect(1.0f).ScaleFromCenter(Style.ArrowInnerScale).WithAspect(1.1547f);
             
             Span<Vector2> points = stackalloc Vector2[3]
             {
@@ -184,7 +171,8 @@ namespace Imui.Controls
             var style = new ImDropdownStyle()
             {
                 Alignment = new ImTextAlignment(0.0f, 0.5f),
-                ArrowScale = 0.5f,
+                ArrowInnerScale = 0.7f,
+                ArrowOuterScale = 0.7f,
                 MaxPanelHeight = DEFAULT_MAX_PANEL_HEIGHT,
                 OptionsButtonsSpacing = 0
             };
@@ -193,7 +181,7 @@ namespace Imui.Controls
             style.OptionButton.Normal.BackColor = ImColors.Blue.WithAlpha(0);
             style.OptionButton.Hovered.BackColor = ImColors.Blue.WithAlpha(32);
             style.OptionButton.Pressed.BackColor = ImColors.Blue.WithAlpha(48);
-            style.OptionButton.Padding += 4;
+            style.OptionButton.AdditionalPadding += 4;
             style.OptionButton.Alignment.X = 0;
             style.OptionButton.SetBorderWidth(0);
             
@@ -204,14 +192,15 @@ namespace Imui.Controls
             style.OptionButtonSelected.Hovered.FrontColor = ImColors.White;
             style.OptionButtonSelected.Pressed.BackColor = ImColors.DarkBlue;
             style.OptionButtonSelected.Pressed.FrontColor = ImColors.White;
-            style.OptionButtonSelected.Padding += 4;
+            style.OptionButtonSelected.AdditionalPadding += 4;
             style.OptionButtonSelected.Alignment.X = 0;
             style.OptionButtonSelected.SetBorderWidth(0);
 
             return style;
         }
 
-        public float ArrowScale;
+        public float ArrowInnerScale;
+        public float ArrowOuterScale;
         public ImTextAlignment Alignment;
         public float MaxPanelHeight;
         public ImButtonStyle OptionButton;

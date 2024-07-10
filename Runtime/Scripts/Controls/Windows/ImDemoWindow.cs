@@ -20,6 +20,7 @@ namespace Imui.Controls.Windows
         private static float floatValue;
         private static int intValue;
         private static bool isReadOnly;
+        private static bool[] checkboxes = new bool[8];
 
         public static void Draw(ImGui gui)
         {
@@ -61,11 +62,17 @@ namespace Imui.Controls.Windows
             gui.BeginDropdown("Click me", out var open);
             if (open)
             {
-                gui.Text("Hello there!");
+                gui.AddSpacing();
+                gui.BeginHorizontal();
+                for (int i = 0; i < checkboxes.Length; ++i)
+                {
+                    gui.Checkbox(ref checkboxes[i]);
+                }
+                gui.EndHorizontal();
             }
             gui.EndDropdown();
             
-            gui.Button("Small Button", ImSizeType.AutoFit);
+            gui.Button("Small Button", ImSizeType.Fit);
             gui.Button("Big Button");
             gui.Checkbox(ref checkmarkValue, "Checkmark");
             gui.Dropdown(ref selectedValue, values);
@@ -113,7 +120,7 @@ namespace Imui.Controls.Windows
             gui.BeginHorizontal();
             for (int i = 0; i < 3; ++i)
             {
-                gui.Button("Horizontal", ImSizeType.AutoFit);
+                gui.Button("Horizontal", ImSizeType.Fit);
             }
             gui.EndHorizontal();
             
@@ -122,7 +129,7 @@ namespace Imui.Controls.Windows
             gui.BeginVertical();
             for (int i = 0; i < 3; ++i)
             {
-                gui.Button("Vertical", ImSizeType.AutoFit);
+                gui.Button("Vertical", ImSizeType.Fit);
             }
             gui.EndVertical();
             
@@ -142,8 +149,20 @@ namespace Imui.Controls.Windows
             gui.Text("Text Size");
             gui.Slider(ref ImControls.Style.TextSize, 6, 128);
             
-            gui.Text("Controls Spacing");
-            gui.Slider(ref ImControls.Style.Spacing, 0, 32);
+            gui.Text("Spacing");
+            gui.Slider(ref ImControls.Style.ControlsSpacing, 0, 32);
+            
+            gui.Text("Padding Left");
+            gui.Slider(ref ImControls.Style.Padding.Left, 0, 32);
+            
+            gui.Text("Padding Right");
+            gui.Slider(ref ImControls.Style.Padding.Right, 0, 32);
+            
+            gui.Text("Padding Top");
+            gui.Slider(ref ImControls.Style.Padding.Top, 0, 32);
+            
+            gui.Text("Padding Bottom");
+            gui.Slider(ref ImControls.Style.Padding.Bottom, 0, 32);
         }
         
         private static ReadOnlySpan<char> Format(ReadOnlySpan<char> prefix, float value, ReadOnlySpan<char> format = default)

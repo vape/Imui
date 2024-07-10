@@ -10,7 +10,7 @@ namespace Imui.Controls
         {
             return size.Type switch
             {
-                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(texture.width, texture.height)
             };
         }

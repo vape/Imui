@@ -45,6 +45,8 @@ namespace Imui.Controls
     }
     
     // TODO (artem-s): text input with dropdown selection
+    // TODO (artem-s): do not handle drag events if control is not active
+    // TODO (artem-s): handle double click to select words
     public static class ImTextEdit
     {
         public const float CARET_BLINKING_TIME = 0.3f;
@@ -62,10 +64,10 @@ namespace Imui.Controls
         {
             return size.Type switch
             {
-                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(
                     Mathf.Max(MIN_WIDTH, gui.GetLayoutWidth()), 
-                    Mathf.Max(MIN_HEIGHT, Style.GetControlHeight(gui.GetRowHeight())))
+                    Mathf.Max(MIN_HEIGHT, gui.GetRowHeight()))
             };
         }
         
@@ -93,6 +95,8 @@ namespace Imui.Controls
                 buffer.Insert(0, filter.GetFallbackString());
             }
             
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
             var rect = GetRect(gui, size);
             var changed = TextEdit(gui, ref buffer, in rect, FloatFilter, multiline: false);
             if (changed && filter.TryParse(buffer, out var newValue))
@@ -103,7 +107,7 @@ namespace Imui.Controls
         
         public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, ImTextEditFilter filter = null, bool multiline = true)
         {
-            gui.AddControlSpacing();
+            gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size);
             TextEdit(gui, ref text, in rect, filter, multiline);
@@ -984,7 +988,6 @@ namespace Imui.Controls
                 SelectionColor = ImColors.Black.WithAlpha(64)
             },
             CaretWidth = 2.0f,
-            Padding = 2.0f,
             Alignment = new ImTextAlignment(0.0f, 0.0f),
             TextWrap = false
         };
@@ -992,23 +995,14 @@ namespace Imui.Controls
         public ImTextEditStateStyle Normal;
         public ImTextEditStateStyle Selected;
         public float CaretWidth;
-        public ImPadding Padding;
         public ImTextAlignment Alignment;
         public bool TextWrap;
 
-        public ImRect GetContentRect(ImRect rect)
+        public ImRect GetContentRect(ImRect textRect)
         {
-            return rect.WithPadding(Padding);
-        }
-
-        public float GetControlHeight(float contentHeight)
-        {
-            return contentHeight + Padding.Vertical;
-        }
-
-        public ImTextSettings GetTextSettings()
-        {
-            return new ImTextSettings(ImControls.Style.TextSize, Alignment);
+            textRect.AddPadding(ImControls.Padding);
+            
+            return textRect;
         }
     }
 

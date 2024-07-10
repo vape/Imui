@@ -13,14 +13,14 @@ namespace Imui.Controls
         {
             return size.Type switch
             {
-                ImSizeType.FixedSize => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
             };
         }
         
         public static bool Slider(this ImGui gui, ref float value, float min, float max, ImSize size = default)
         {
-            gui.AddControlSpacing();
+            gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size);
             return Slider(gui, ref value, min, max, in rect); 
