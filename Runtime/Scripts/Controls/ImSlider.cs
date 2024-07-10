@@ -23,16 +23,16 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size);
-            return Slider(gui, ref value, min, max, in rect); 
+            return Slider(gui, ref value, min, max, rect); 
         }
         
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, in ImRect rect)
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImRect rect)
         {
             const float EPSILON = 0.000001f;
             
             var normValue = Mathf.InverseLerp(min, max, value);
 
-            gui.Box(in rect, in Style.Box);
+            gui.Box(rect, in Style.Box);
 
             var rectPadded = rect.WithPadding(Style.Padding);
 
@@ -52,7 +52,7 @@ namespace Imui.Controls
 
             using (new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Handle))
             {
-                gui.Button(id, in handleRect, out _);
+                gui.Button(id, handleRect, out _);
             }
             
             gui.RegisterControl(id, rect);

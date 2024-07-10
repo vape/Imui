@@ -39,7 +39,7 @@ namespace Imui.Controls
             var state = gui.Storage.Get<ImScrollState>(id);
             
             ref readonly var frame = ref gui.Layout.GetFrame();
-            var visibleRect = GetVisibleRect(frame.Bounds, in state);
+            var visibleRect = GetVisibleRect(frame.Bounds, state);
             
             gui.Layout.Push(frame.Axis, visibleRect, ImLayoutFlag.None);
             gui.Layout.SetOffset(state.Offset);
@@ -57,7 +57,7 @@ namespace Imui.Controls
 
             var bounds = gui.Layout.GetBoundsRect();
             
-            Scroll(gui, id, in bounds, contentFrame.Size, flags);
+            Scroll(gui, id, bounds, contentFrame.Size, flags);
         }
 
         public static Vector2 GetScrollOffset(this ImGui gui)
@@ -78,11 +78,11 @@ namespace Imui.Controls
             state.Offset = offset;
         }
         
-        public static void Scroll(ImGui gui, uint id, in ImRect view, Vector2 size, ImScrollFlag flags)
+        public static void Scroll(ImGui gui, uint id, ImRect view, Vector2 size, ImScrollFlag flags)
         {
             ref var state = ref gui.Storage.Get<ImScrollState>(id);
             
-            Layout(ref state, in view, size, out var adjust, flags);
+            Layout(ref state, view, size, out var adjust, flags);
 
             var dx = 0f;
             var dy = 0f;
@@ -113,7 +113,7 @@ namespace Imui.Controls
                 dx -= normalDelta * size.x;
             }
             
-            var groupRect = GetVisibleRect(view, in state);
+            var groupRect = GetVisibleRect(view, state);
             gui.RegisterGroup(id, groupRect);
 
             // Scroll bars should probably work even in read only mode
@@ -213,7 +213,7 @@ namespace Imui.Controls
             return delta;
         }
 
-        public static ImRect GetVisibleRect(ImRect view, in ImScrollState state)
+        public static ImRect GetVisibleRect(ImRect view, ImScrollState state)
         {
             if ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0)
             {
@@ -249,7 +249,7 @@ namespace Imui.Controls
             return view;
         }
         
-        private static void Layout(ref ImScrollState state, in ImRect view, in Vector2 size, out Vector2 adjust, ImScrollFlag flags)
+        private static void Layout(ref ImScrollState state, ImRect view, Vector2 size, out Vector2 adjust, ImScrollFlag flags)
         {
             state.Layout = default;
 

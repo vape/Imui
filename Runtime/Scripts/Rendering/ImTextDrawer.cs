@@ -274,7 +274,7 @@ namespace Imui.Rendering
             return metrics.horizontalAdvance * scale;
         }
         
-        public ref readonly ImTextLayout BuildTempLayout(in ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, bool wrap)
+        public ref readonly ImTextLayout BuildTempLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, bool wrap)
         {
             FillLayout(text, width, height, alignX, alignY, size, wrap, ref SharedLayout);
             return ref SharedLayout;

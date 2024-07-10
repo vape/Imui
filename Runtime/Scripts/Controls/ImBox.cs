@@ -6,7 +6,7 @@ namespace Imui.Controls
 {
     public static class ImBox
     {
-        public static void Box(this ImGui gui, in ImRect rect, in ImBoxStyle style)
+        public static void Box(this ImGui gui, ImRect rect, in ImBoxStyle style)
         {
             gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderWidth, style.BorderRadius);
         }

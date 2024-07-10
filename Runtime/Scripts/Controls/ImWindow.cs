@@ -66,7 +66,7 @@ namespace Imui.Controls
             
             if ((state.Flags & ImWindowFlag.DisableTitleBar) == 0)
             {
-                clicked |= TitleBar(gui, state.Title, ref state, in activeRect);
+                clicked |= TitleBar(gui, state.Title, ref state, activeRect);
             }
             
             if (clicked)
@@ -93,22 +93,22 @@ namespace Imui.Controls
                 return;
             }
             
-            var titleBarRect = GetTitleBarRect(gui, in state.Rect, out _);
+            var titleBarRect = GetTitleBarRect(gui, state.Rect, out _);
             state.Rect.SplitTop(titleBarRect.H, out content);
             content.AddPadding(Style.ContentPadding);
         }
 
-        public static void Front(ImGui gui, in ImRect rect)
+        public static void Front(ImGui gui, ImRect rect)
         {
             gui.Canvas.RectOutline(rect, Style.Box.BorderColor, Style.Box.BorderWidth, Style.Box.BorderRadius);
         }
 
-        public static bool TitleBar(ImGui gui, in ReadOnlySpan<char> text, ref ImWindowState state, in ImRect windowRect)
+        public static bool TitleBar(ImGui gui, ReadOnlySpan<char> text, ref ImWindowState state, ImRect windowRect)
         {
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
-            var rect = GetTitleBarRect(gui, in windowRect, out var radius);
+            var rect = GetTitleBarRect(gui, windowRect, out var radius);
             var textSettings = GetTitleBarTextSettings();
             var movable = (state.Flags & ImWindowFlag.DisableMoving) == 0;
             
@@ -147,7 +147,7 @@ namespace Imui.Controls
 
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
-            var handleRect = GetResizeHandleRect(in rect, out var radius);
+            var handleRect = GetResizeHandleRect(rect, out var radius);
             var active = gui.IsControlActive(id);
             
             var segments = ImShapes.SegmentCountForRadius(radius);
@@ -196,7 +196,7 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static ImRect GetResizeHandleRect(in ImRect rect, out float cornerRadius)
+        public static ImRect GetResizeHandleRect(ImRect rect, out float cornerRadius)
         {
             cornerRadius = Mathf.Max(Style.Box.BorderRadius.BottomRight, 0);
             
@@ -209,7 +209,7 @@ namespace Imui.Controls
             return handleRect;
         }
         
-        public static ImRect GetTitleBarRect(ImGui gui, in ImRect rect, out ImRectRadius cornerRadius)
+        public static ImRect GetTitleBarRect(ImGui gui, ImRect rect, out ImRectRadius cornerRadius)
         {
             var height = Style.TitleBar.GetHeight(gui.GetRowHeight());
             var radiusTopLeft = Style.Box.BorderRadius.TopLeft - Style.Box.BorderWidth;

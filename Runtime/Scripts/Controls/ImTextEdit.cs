@@ -98,7 +98,7 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var rect = GetRect(gui, size);
-            var changed = TextEdit(gui, ref buffer, in rect, FloatFilter, multiline: false);
+            var changed = TextEdit(gui, ref buffer, rect, FloatFilter, multiline: false);
             if (changed && filter.TryParse(buffer, out var newValue))
             {
                 value = newValue;
@@ -110,29 +110,29 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size);
-            TextEdit(gui, ref text, in rect, filter, multiline);
+            TextEdit(gui, ref text, rect, filter, multiline);
         }
         
-        public static void TextEdit(this ImGui gui, ref string text, in ImRect rect, ImTextEditFilter filter = null, bool multiline = true)
+        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = null, bool multiline = true)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            TextEdit(gui, id, in rect, ref text, ref state, filter, multiline);
+            TextEdit(gui, id, rect, ref text, ref state, filter, multiline);
         }
         
-        public static bool TextEdit(this ImGui gui, ref ImTextEditBuffer buffer, in ImRect rect, ImTextEditFilter filter = null, bool multiline = true)
+        public static bool TextEdit(this ImGui gui, ref ImTextEditBuffer buffer, ImRect rect, ImTextEditFilter filter = null, bool multiline = true)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            return TextEdit(gui, id, in rect, ref buffer, ref state, filter, multiline);
+            return TextEdit(gui, id, rect, ref buffer, ref state, filter, multiline);
         }
         
-        public static void TextEdit(this ImGui gui, uint id, in ImRect rect, ref string text, ref ImTextEditState state, ImTextEditFilter filter = null, bool multiline = true)
+        public static void TextEdit(this ImGui gui, uint id, ImRect rect, ref string text, ref ImTextEditState state, ImTextEditFilter filter = null, bool multiline = true)
         {
             var buffer = new ImTextEditBuffer(text);
-            var changed = TextEdit(gui, id, in rect, ref buffer, ref state, filter, multiline);
+            var changed = TextEdit(gui, id, rect, ref buffer, ref state, filter, multiline);
             if (changed)
             {
                 text = buffer.GetString();
@@ -142,7 +142,7 @@ namespace Imui.Controls
         public static unsafe bool TextEdit(
             ImGui gui, 
             uint id, 
-            in ImRect rect, 
+            ImRect rect, 
             ref ImTextEditBuffer buffer, 
             ref ImTextEditState state,
             ImTextEditFilter filter,
@@ -183,7 +183,7 @@ namespace Imui.Controls
                 buffer.Insert(0, tempBuffer->AsSpan());
             }
             
-            gui.Box(in rect, in stateStyle.Box);
+            gui.Box(rect, in stateStyle.Box);
             var textRect = Style.GetContentRect(rect);
 
             var textSize = ImControls.Style.TextSize;
@@ -211,18 +211,18 @@ namespace Imui.Controls
                     }
                 
                     state.Selection = 0;
-                    state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in textRect, in layout, in buffer);
+                    state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, textRect, in layout, in buffer);
                     
                     gui.Input.UseMouseEvent();
                     break;
                 
                 case ImMouseEventType.Drag when selected:
-                    var newCaretPosition = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, in textRect, in layout, in buffer);
+                    var newCaretPosition = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, textRect, in layout, in buffer);
                     state.Selection -= newCaretPosition - state.Caret;
                     state.Caret = newCaretPosition;
                     
                     gui.Input.UseMouseEvent();
-                    ScrollToCaret(gui, in state, in textRect, in layout, in buffer);
+                    ScrollToCaret(gui, state, textRect, in layout, in buffer);
                     break;
                 
                 case ImMouseEventType.Down when selected && !hovered:
@@ -237,8 +237,8 @@ namespace Imui.Controls
                     gui.Input.RequestTouchKeyboard(buffer);
                 }
                 
-                DrawCaret(gui, state.Caret, in textRect, in layout, in stateStyle, in buffer);
-                DrawSelection(gui, state.Caret, state.Selection, in textRect, in layout, in stateStyle, in buffer);
+                DrawCaret(gui, state.Caret, textRect, in layout, in stateStyle, in buffer);
+                DrawSelection(gui, state.Caret, state.Selection, textRect, in layout, in stateStyle, in buffer);
                 
                 for (int i = 0; i < gui.Input.KeyboardEventsCount; ++i)
                 {
@@ -249,7 +249,7 @@ namespace Imui.Controls
                             in keyboardEvent, 
                             ref state, 
                             ref buffer, 
-                            in textRect, 
+                            textRect, 
                             in layout, 
                             multiline,
                             editable,
@@ -258,7 +258,7 @@ namespace Imui.Controls
                         textChanged |= isTextChanged;
                         
                         gui.Input.UseKeyboardEvent(i);
-                        ScrollToCaret(gui, in state, in textRect, in layout, in buffer);
+                        ScrollToCaret(gui, state, textRect, in layout, in buffer);
                     }
                 }
                 
@@ -300,7 +300,7 @@ namespace Imui.Controls
             in ImKeyboardEvent evt, 
             ref ImTextEditState state, 
             ref ImTextEditBuffer buffer, 
-            in ImRect textRect, 
+            ImRect textRect, 
             in ImTextLayout layout,
             bool multiline,
             bool editable,
@@ -326,11 +326,11 @@ namespace Imui.Controls
                     break;
                 
                 case KeyCode.UpArrow:
-                    stateChanged |= MoveCaretVertical(gui, in textRect, in layout, ref state, in buffer, +1, evt.Command);
+                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, +1, evt.Command);
                     break;
                 
                 case KeyCode.DownArrow:
-                    stateChanged |= MoveCaretVertical(gui, in textRect, in layout, ref state, in buffer, -1, evt.Command);
+                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, -1, evt.Command);
                     break;
                 
                 case KeyCode.Delete when editable:
@@ -417,7 +417,7 @@ namespace Imui.Controls
                 return false;
             }
             
-            buffer.Insert(state.Caret, in text);
+            buffer.Insert(state.Caret, text);
             state.Caret += text.Length;
             return true;
         }
@@ -519,7 +519,7 @@ namespace Imui.Controls
 
         public static bool MoveCaretVertical(
             ImGui gui, 
-            in ImRect textRect,
+            ImRect textRect,
             in ImTextLayout layout,
             ref ImTextEditState state, 
             in ImTextEditBuffer buffer, 
@@ -533,9 +533,9 @@ namespace Imui.Controls
 
             var prevCaret = state.Caret;
             var prevSelection = state.Selection;
-            var viewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in textRect, in layout, in buffer);
+            var viewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, textRect, in layout, in buffer);
             viewPosition.y += (-layout.LineHeight * 0.5f) + (dir * layout.LineHeight);
-            state.Caret = ViewToCaretPosition(viewPosition, gui.TextDrawer, in textRect, in layout, in buffer);
+            state.Caret = ViewToCaretPosition(viewPosition, gui.TextDrawer, textRect, in layout, in buffer);
 
             if (cmd.HasFlag(ImKeyboardCommandFlag.Selection))
             {
@@ -591,12 +591,12 @@ namespace Imui.Controls
         // TODO: doesn't work when caret is horizontally outside of the scope
         public static void ScrollToCaret(
             ImGui gui, 
-            in ImTextEditState state, 
-            in ImRect textRect, 
+            ImTextEditState state, 
+            ImRect textRect, 
             in ImTextLayout layout, 
             in ImTextEditBuffer buffer)
         {
-            var viewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, in textRect, in layout, in buffer);
+            var viewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, textRect, in layout, in buffer);
             
             ref readonly var frame = ref gui.Layout.GetFrame();
             var scrollOffset = gui.GetScrollOffset();
@@ -647,7 +647,7 @@ namespace Imui.Controls
             return ((ReadOnlySpan<char>)buffer).Slice(begin, end - begin);
         }
 
-        public static int ViewToCaretPosition(Vector2 position, ImTextDrawer drawer, in ImRect rect, in ImTextLayout layout, in ImTextEditBuffer buffer)
+        public static int ViewToCaretPosition(Vector2 position, ImTextDrawer drawer, ImRect rect, in ImTextLayout layout, in ImTextEditBuffer buffer)
         {
             var origin = rect.TopLeft;
             var line = 0;
@@ -712,12 +712,12 @@ namespace Imui.Controls
             return caret;
         }
         
-        public static Vector2 CaretToViewPosition(int caret, ImTextDrawer drawer, in ImRect rect, in ImTextLayout layout, in ImTextEditBuffer buffer)
+        public static Vector2 CaretToViewPosition(int caret, ImTextDrawer drawer, ImRect rect, in ImTextLayout layout, in ImTextEditBuffer buffer)
         {
-            return LineOffsetToViewPosition(FindLineAtCaretPosition(caret, in layout, out var linePosition), linePosition, buffer, in rect, drawer, in layout);
+            return LineOffsetToViewPosition(FindLineAtCaretPosition(caret, in layout, out var linePosition), linePosition, buffer, rect, drawer, in layout);
         }
 
-        public static Vector2 LineOffsetToViewPosition(int line, int offset, ReadOnlySpan<char> buffer, in ImRect rect, ImTextDrawer drawer, in ImTextLayout layout)
+        public static Vector2 LineOffsetToViewPosition(int line, int offset, ReadOnlySpan<char> buffer, ImRect rect, ImTextDrawer drawer, in ImTextLayout layout)
         {
             var yOffset = line * -layout.LineHeight + layout.OffsetY;
             var xOffset = line >= layout.LinesCount ? layout.OffsetX : layout.Lines[line].OffsetX;
@@ -754,12 +754,12 @@ namespace Imui.Controls
         
         public static void DrawCaret(ImGui gui, 
             int position,
-            in ImRect textRect, 
+            ImRect textRect, 
             in ImTextLayout layout, 
             in ImTextEditStateStyle style, 
             in ImTextEditBuffer buffer)
         {
-            var viewPosition = CaretToViewPosition(position, gui.TextDrawer, in textRect, in layout, in buffer);
+            var viewPosition = CaretToViewPosition(position, gui.TextDrawer, textRect, in layout, in buffer);
             var caretViewRect = new ImRect(
                 viewPosition.x, 
                 viewPosition.y - layout.LineHeight, 
@@ -775,7 +775,7 @@ namespace Imui.Controls
         public static void DrawSelection(ImGui gui, 
             int position,
             int size,
-            in ImRect textRect, 
+            ImRect textRect, 
             in ImTextLayout layout, 
             in ImTextEditStateStyle style,
             in ImTextEditBuffer buffer)
@@ -798,8 +798,8 @@ namespace Imui.Controls
                 var lineRelativeBegin = Mathf.Max(0, begin - line.Start);
                 var lineRelativeEnd = Mathf.Min(line.Count, end - line.Start);
 
-                var p0 = LineOffsetToViewPosition(i, lineRelativeBegin, buffer, in textRect, gui.TextDrawer, in layout);
-                var p1 = LineOffsetToViewPosition(i, lineRelativeEnd, buffer, in textRect, gui.TextDrawer, in layout);
+                var p0 = LineOffsetToViewPosition(i, lineRelativeBegin, buffer, textRect, gui.TextDrawer, in layout);
+                var p1 = LineOffsetToViewPosition(i, lineRelativeEnd, buffer, textRect, gui.TextDrawer, in layout);
                 
                 var lineSelectionRect = new ImRect(
                     p0.x, 
@@ -908,7 +908,7 @@ namespace Imui.Controls
             Insert(position,  new ReadOnlySpan<char>(&c, 1));
         }
 
-        public void Insert(int position, in ReadOnlySpan<char> text)
+        public void Insert(int position, ReadOnlySpan<char> text)
         {
             MakeMutable(Length + text.Length);
          
@@ -933,30 +933,30 @@ namespace Imui.Controls
         
     public abstract class ImTextEditFilter
     {
-        public abstract bool IsValid(in ReadOnlySpan<char> buffer);
+        public abstract bool IsValid(ReadOnlySpan<char> buffer);
         public abstract string GetFallbackString();
     }
 
     public abstract class ImTextEditFilterNumeric<T> : ImTextEditFilter
     {
-        public abstract bool TryParse(in ReadOnlySpan<char> buffer, out T value);
-        public abstract bool TryFormat(in Span<char> buffer, T value, out int length, ReadOnlySpan<char> format);
+        public abstract bool TryParse(ReadOnlySpan<char> buffer, out T value);
+        public abstract bool TryFormat(Span<char> buffer, T value, out int length, ReadOnlySpan<char> format);
     }
 
     public sealed class ImTextEditIntegerFilter : ImTextEditFilterNumeric<int>
     {
-        public override bool IsValid(in ReadOnlySpan<char> buffer) => TryParse(in buffer, out _);
+        public override bool IsValid(ReadOnlySpan<char> buffer) => TryParse(buffer, out _);
         public override string GetFallbackString() => "0";
-        public override bool TryParse(in ReadOnlySpan<char> buffer, out int value) => int.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
-        public override bool TryFormat(in Span<char> buffer, int value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
+        public override bool TryParse(ReadOnlySpan<char> buffer, out int value) => int.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+        public override bool TryFormat(Span<char> buffer, int value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
     }
     
     public sealed class ImTextEditFloatFilter : ImTextEditFilterNumeric<float>
     {
-        public override bool IsValid(in ReadOnlySpan<char> buffer) => TryParse(in buffer, out _);
+        public override bool IsValid(ReadOnlySpan<char> buffer) => TryParse(buffer, out _);
         public override string GetFallbackString() => "0.0";
-        public override bool TryParse(in ReadOnlySpan<char> buffer, out float value) => float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
-        public override bool TryFormat(in Span<char> buffer, float value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
+        public override bool TryParse(ReadOnlySpan<char> buffer, out float value) => float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        public override bool TryFormat(Span<char> buffer, float value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
     }
 
     public class ImTextEditStyle

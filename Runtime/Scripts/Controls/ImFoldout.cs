@@ -11,23 +11,23 @@ namespace Imui.Controls
 
         public static ImFoldoutStyle Style = ImFoldoutStyle.Default;
         
-        public static void BeginFoldout(this ImGui gui, in ReadOnlySpan<char> label, out bool open, ImSize size = default)
+        public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, out bool open, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id =  gui.PushId(label);
             var rect = ImControls.GetRowRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
-            Foldout(gui, id, ref state, in rect, in label);
+            Foldout(gui, id, ref state, rect, label);
             open = state;
         }
 
-        public static void BeginFoldout(this ImGui gui, in ReadOnlySpan<char> label, ref bool open, in ImRect rect)
+        public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, ref bool open, ImRect rect)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id = gui.PushId(label);
-            Foldout(gui, id, ref open, in rect, in label);
+            Foldout(gui, id, ref open, rect, label);
         }
         
         public static void EndFoldout(this ImGui gui)
@@ -35,9 +35,9 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect, in ReadOnlySpan<char> label)
+        public static void Foldout(this ImGui gui, uint id, ref bool open, ImRect rect, ReadOnlySpan<char> label)
         {
-            Foldout(gui, id, ref open, in rect, out var state);
+            Foldout(gui, id, ref open, rect, out var state);
 
             var textRect = Style.Button.GetContentRect(rect);
             var arrowOffset = textRect.H * Style.ArrowOuterScale + ImControls.Style.InnerSpacing;
@@ -48,16 +48,17 @@ namespace Imui.Controls
             {
                 ImText.Style.Color = ImButton.Style.GetStateStyle(state).FrontColor;
                 
-                gui.Text(in label, GetTextSettings(), textRect);
+                gui.Text(label, GetTextSettings(), textRect);
             }
         }
         
-        public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect, out ImButtonState state)
+        public static void Foldout(this ImGui gui, uint id, ref bool open, ImRect rect, out ImButtonState state)
         {
             using var __ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
 
-            var arrowRect = GetArrowRect(rect);
-            var clicked = gui.Button(id, in rect, out state);
+            var arrowRect = Style.Button.GetContentRect(rect);
+            arrowRect.W = arrowRect.H * Style.ArrowOuterScale;
+            var clicked = gui.Button(id, rect, out state);
             var style = ImButton.Style.GetStateStyle(state);
             
             if (open)
@@ -106,13 +107,6 @@ namespace Imui.Controls
         public static ImTextSettings GetTextSettings()
         {
             return new ImTextSettings(ImControls.Style.TextSize, Style.Button.Alignment, Style.Button.TextWrap);
-        }
-
-        public static ImRect GetArrowRect(ImRect rect)
-        {
-            var arrowRect = Style.Button.GetContentRect(rect);
-            arrowRect.W = arrowRect.H * Style.ArrowOuterScale;
-            return arrowRect;
         }
     }
 

@@ -224,14 +224,14 @@ namespace Imui.Core
             }
         }
 
-        public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
+        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
         {
             textDrawer.Color = color;
             textDrawer.Depth = DrawingDepth;
             textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
         }
 
-        public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, in ImTextLayout layout)
+        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in ImTextLayout layout)
         {
             var rect = new ImRect(position.x + layout.OffsetX, position.y - layout.Height + layout.OffsetY, layout.Width, layout.Height);
             if (Cull(rect))
@@ -244,13 +244,13 @@ namespace Imui.Core
             textDrawer.AddTextWithLayout(text, in layout, position.x, position.y);
         }
 
-        public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
+        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
             ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);
             Text(text, color, rect.TopLeft, in layout);
         }
         
-        public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings, out ImRect textRect)
+        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings, out ImRect textRect)
         {
             ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);
             
@@ -263,7 +263,7 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
 
-        public void Line(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        public void Line(ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)
             {
@@ -276,10 +276,10 @@ namespace Imui.Core
             meshDrawer.ScaleOffset = TexScaleOffset;
             meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DrawingDepth;
-            meshDrawer.AddLine(in path, closed, thickness, bias, 1.0f - bias);
+            meshDrawer.AddLine(path, closed, thickness, bias, 1.0f - bias);
         }
 
-        public void LineMiter(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        public void LineMiter(ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)
             {
@@ -292,16 +292,16 @@ namespace Imui.Core
             meshDrawer.ScaleOffset = TexScaleOffset;
             meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DrawingDepth;
-            meshDrawer.AddLineMiter(in path, closed, thickness, bias, 1.0f - bias);
+            meshDrawer.AddLineMiter(path, closed, thickness, bias, 1.0f - bias);
         }
 
-        public void ConvexFill(in ReadOnlySpan<Vector2> points, Color32 color)
+        public void ConvexFill(ReadOnlySpan<Vector2> points, Color32 color)
         {
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = TexScaleOffset;
             meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DrawingDepth;
-            meshDrawer.AddFilledConvexMesh(in points);
+            meshDrawer.AddFilledConvexMesh(points);
         }
 
         public void Dispose()

@@ -67,7 +67,7 @@ namespace Imui.Controls
             
             textRect.X += ImControls.Style.InnerSpacing;
             textRect.W -= ImControls.Style.InnerSpacing;
-            gui.Canvas.Text(in label, Style.TextColor, textRect, textSettings);
+            gui.Canvas.Text(label, Style.TextColor, textRect, textSettings);
             
             if (gui.InvisibleButton(id, textRect))
             {
@@ -85,7 +85,7 @@ namespace Imui.Controls
         {
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Checkbox);
             
-            var clicked = gui.Button(id, in rect, out var state);
+            var clicked = gui.Button(id, rect, out var state);
             var style = Style.Checkbox.GetStateStyle(state);
 
             if (value)

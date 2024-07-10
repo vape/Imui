@@ -41,7 +41,7 @@ namespace Imui.Rendering
         }
 
         // TODO: closed property is not used for some reason...
-        public void AddLine(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
+        public void AddLine(ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
             Profiler.BeginSample("MeshDrawer.AddLine");
             
@@ -124,7 +124,7 @@ namespace Imui.Rendering
         }
         
         // TODO (artem-s): add proper texturing
-        public void AddLineMiter(in ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
+        public void AddLineMiter(ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
             Profiler.BeginSample("MeshDrawer.AddLineMiter");
             
@@ -527,7 +527,7 @@ namespace Imui.Rendering
             Profiler.EndSample();
         }
 
-        public void AddFilledConvexMesh(in ReadOnlySpan<Vector2> points)
+        public void AddFilledConvexMesh(ReadOnlySpan<Vector2> points)
         {
             ImAssert.True(points.Length > 2, "points.Length > 2");
             

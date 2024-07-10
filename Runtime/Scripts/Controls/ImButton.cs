@@ -25,37 +25,37 @@ namespace Imui.Controls
             return ImControls.GetRowRect(gui, size);
         }
         
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, ImSize size = default)
+        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size, label);
-            return Button(gui, label, in rect);
+            return Button(gui, label, rect);
         }
         
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)
+        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect)
         {
-            return Button(gui, gui.GetNextControlId(), label, in rect, out _);
+            return Button(gui, gui.GetNextControlId(), label, rect, out _);
         }
 
-        public static bool Button(this ImGui gui, in ImRect rect, out ImButtonState state)
+        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state)
         {
-            return Button(gui, gui.GetNextControlId(), in rect, out state);
+            return Button(gui, gui.GetNextControlId(), rect, out state);
         }
 
-        public static bool Button(this ImGui gui, uint id, in ReadOnlySpan<char> label, in ImRect rect, out ImButtonState state)
+        public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, out ImButtonState state)
         {
-            var clicked = Button(gui, id, in rect, out state);
+            var clicked = Button(gui, id, rect, out state);
             var textSettings = Style.GetTextSettings();
             var textColor = Style.GetStateStyle(state).FrontColor;
             var textRect = Style.GetContentRect(rect);
             
-            gui.Canvas.Text(in label, textColor, textRect, in textSettings);
+            gui.Canvas.Text(label, textColor, textRect, in textSettings);
             
             return clicked;
         }
         
-        public static bool Button(this ImGui gui, uint id, in ImRect rect, out ImButtonState state)
+        public static bool Button(this ImGui gui, uint id, ImRect rect, out ImButtonState state)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
@@ -64,7 +64,7 @@ namespace Imui.Controls
             gui.RegisterControl(id, rect);
             
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
-            gui.Box(in rect, Style.GetStateStyle(state));
+            gui.Box(rect, Style.GetStateStyle(state));
 
             if (gui.IsReadOnly)
             {

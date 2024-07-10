@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace Imui.Core
 {
-    // TODO (artem-s): many places has 'in' modifier which is not really needed nor giving any performance and its confusing
     // TODO (artem-s): its time to add dark and light themes
     public class ImGui : IDisposable
     {
@@ -226,7 +225,7 @@ namespace Imui.Core
             return ImHash.Get(++parent.Gen, parent.Id);
         }
 
-        public uint GetControlId(in ReadOnlySpan<char> name)
+        public uint GetControlId(ReadOnlySpan<char> name)
         {
             ref var parent = ref idsStack.Peek();
             return ImHash.Get(name, parent.Id);

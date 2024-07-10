@@ -12,17 +12,17 @@ namespace Imui.Controls
         
         public static ImTextStyle Style = ImTextStyle.Default;
 
-        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, bool wrap = false)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, bool wrap = false)
         {
-            Text(gui, in text, GetTextSettings(wrap));
+            Text(gui, text, GetTextSettings(wrap));
         }
         
-        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImRect rect, bool wrap = false)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool wrap = false)
         {
-            Text(gui, in text, GetTextSettings(wrap), rect);
+            Text(gui, text, GetTextSettings(wrap), rect);
         }
 
-        public static void TextAutoSize(this ImGui gui, in ReadOnlySpan<char> text, in ImRect rect, bool wrap = false)
+        public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool wrap = false)
         {
             // (artem-s): at least try to skip costly auto-sizing
             if (gui.Canvas.Cull(rect))
@@ -31,23 +31,23 @@ namespace Imui.Controls
             }
             
             var settings = GetTextSettings(wrap);
-            settings.Size = AutoSizeTextSlow(gui, in text, settings, rect.Size);
-            Text(gui, in text, settings, rect);
+            settings.Size = AutoSizeTextSlow(gui, text, settings, rect.Size);
+            Text(gui, text, settings, rect);
         }
         
-        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings settings)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var space = gui.Layout.GetAvailableSize().Max(MIN_WIDTH, MIN_HEIGHT);
             var rect = gui.Layout.GetRect(space);
-            gui.Canvas.Text(in text, Style.Color, rect, in settings, out var textRect);
+            gui.Canvas.Text(text, Style.Color, rect, in settings, out var textRect);
             gui.Layout.AddRect(textRect);
         }
         
-        public static void Text(this ImGui gui, in ReadOnlySpan<char> text, in ImTextSettings settings, ImRect rect)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings, ImRect rect)
         {
-            gui.Canvas.Text(in text, Style.Color, rect, in settings);
+            gui.Canvas.Text(text, Style.Color, rect, in settings);
         }
 
         public static ImTextSettings GetTextSettings(bool wrap)
@@ -56,7 +56,7 @@ namespace Imui.Controls
         }
 
         // TODO (artem-s): Got to come up with better solution instead of just brute forcing the fuck of it every time
-        public static float AutoSizeTextSlow(this ImGui gui, in ReadOnlySpan<char> text, ImTextSettings settings, Vector2 bounds, float minSize = 1)
+        public static float AutoSizeTextSlow(this ImGui gui, ReadOnlySpan<char> text, ImTextSettings settings, Vector2 bounds, float minSize = 1)
         {
             var textSize = gui.MeasureTextSize(text, in settings, bounds);
             while (settings.Size > minSize && (textSize.x > bounds.x || textSize.y > bounds.y))
@@ -76,7 +76,7 @@ namespace Imui.Controls
         
         public static Vector2 MeasureTextSize(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings textSettings, Vector2 bounds = default)
         {
-            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(in text, 
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(text, 
                 bounds.x, 
                 bounds.y,
                 textSettings.Align.X,

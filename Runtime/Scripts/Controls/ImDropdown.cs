@@ -14,22 +14,22 @@ namespace Imui.Controls
     {
         public static ImDropdownStyle Style = ImDropdownStyle.Default;
         
-        public static void BeginDropdown(this ImGui gui, in ReadOnlySpan<char> label, out bool open, ImSize size = default)
+        public static void BeginDropdown(this ImGui gui, ReadOnlySpan<char> label, out bool open, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = ImControls.GetRowRect(gui, size);
-            BeginDropdown(gui, in label, out open, rect);
+            BeginDropdown(gui, label, out open, rect);
         }
         
-        public static void BeginDropdown(this ImGui gui, in ReadOnlySpan<char> label, out bool open, in ImRect rect)
+        public static void BeginDropdown(this ImGui gui, ReadOnlySpan<char> label, out bool open, ImRect rect)
         {
             gui.PushId(label);
             
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImDropdownState>(id);
 
-            var clicked = DropdownButton(gui, id, in label, rect);
+            var clicked = DropdownButton(gui, id, label, rect);
             if (clicked)
             {
                 state.Open = !state.Open;
@@ -43,21 +43,21 @@ namespace Imui.Controls
             gui.PopId();
         }
         
-        public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, ImSize size = default)
+        public static bool Dropdown(this ImGui gui, ref int selected, ReadOnlySpan<string> options, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = ImControls.GetRowRect(gui, size);
-            return Dropdown(gui, ref selected, in options, in rect);
+            return Dropdown(gui, ref selected, options, rect);
         }
         
-        public static bool Dropdown(this ImGui gui, ref int selected, in ReadOnlySpan<string> options, in ImRect rect)
+        public static bool Dropdown(this ImGui gui, ref int selected, ReadOnlySpan<string> options, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            return Dropdown(gui, id, ref selected, in options, in rect);
+            return Dropdown(gui, id, ref selected, options, rect);
         }
         
-        public static bool Dropdown(this ImGui gui, uint id, ref int selected, in ReadOnlySpan<string> options, in ImRect rect)
+        public static bool Dropdown(this ImGui gui, uint id, ref int selected, ReadOnlySpan<string> options, ImRect rect)
         {
             ref var state = ref gui.Storage.Get<ImDropdownState>(id);
 
@@ -128,7 +128,7 @@ namespace Imui.Controls
             gui.Canvas.PopClipRect();
         }
 
-        public static bool DropdownButton(ImGui gui, uint id, in ReadOnlySpan<char> label, ImRect rect)
+        public static bool DropdownButton(ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect)
         {
             var arrowRect = ImButton.Style.GetContentRect(rect);
             arrowRect.W = arrowRect.H * Style.ArrowOuterScale;
