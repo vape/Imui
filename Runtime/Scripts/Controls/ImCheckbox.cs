@@ -67,7 +67,7 @@ namespace Imui.Controls
             
             textRect.X += ImControls.Style.InnerSpacing;
             textRect.W -= ImControls.Style.InnerSpacing;
-            gui.Canvas.Text(label, Style.TextColor, textRect, textSettings);
+            gui.Canvas.Text(label, ImText.Style.Color, textRect, textSettings);
             
             if (gui.InvisibleButton(id, textRect))
             {
@@ -130,7 +130,6 @@ namespace Imui.Controls
             {
                 CheckmarkScale = 0.6f,
                 Checkbox = ImButtonStyle.Default,
-                TextColor = ImColors.Black,
                 WrapText = false
             };
 
@@ -143,7 +142,6 @@ namespace Imui.Controls
         public float CheckmarkScale;
         public ImButtonStyle Checkbox;
         public bool WrapText;
-        public Color32 TextColor;
         
         public ImTextSettings GetTextSettings()
         {
