@@ -10,8 +10,6 @@ namespace Imui.Controls
         public const float MIN_WIDTH = 1;
         public const float MIN_HEIGHT = 1;
         
-        public static ImTextStyle Style = ImTextStyle.Default;
-
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, bool wrap = false)
         {
             Text(gui, text, GetTextSettings(wrap));
@@ -41,18 +39,18 @@ namespace Imui.Controls
             
             var space = gui.Layout.GetAvailableSize().Max(MIN_WIDTH, MIN_HEIGHT);
             var rect = gui.Layout.GetRect(space);
-            gui.Canvas.Text(text, Style.Color, rect, in settings, out var textRect);
+            gui.Canvas.Text(text, ImTheme.Active.Text.Color, rect, in settings, out var textRect);
             gui.Layout.AddRect(textRect);
         }
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings, ImRect rect)
         {
-            gui.Canvas.Text(text, Style.Color, rect, in settings);
+            gui.Canvas.Text(text, ImTheme.Active.Text.Color, rect, in settings);
         }
 
         public static ImTextSettings GetTextSettings(bool wrap)
         {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment, wrap);
+            return new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Text.Alignment, wrap);
         }
 
         // TODO (artem-s): Got to come up with better solution instead of just brute forcing the fuck of it every time
@@ -91,12 +89,6 @@ namespace Imui.Controls
     [Serializable]
     public struct ImTextStyle
     {
-        public static readonly ImTextStyle Default = new ImTextStyle()
-        {
-            Color = ImColors.Black,
-            Alignment = new ImTextAlignment(0.0f, 0.0f)
-        };
-        
         public Color32 Color;
         public ImTextAlignment Alignment;
     }

@@ -7,8 +7,6 @@ namespace Imui.Controls
 {
     public static class ImSlider
     {
-        public static ImSliderStyle Style = ImSliderStyle.Default;
-
         public static ImRect GetRect(ImGui gui, ImSize size)
         {
             return size.Type switch
@@ -32,11 +30,11 @@ namespace Imui.Controls
             
             var normValue = Mathf.InverseLerp(min, max, value);
 
-            gui.Box(rect, in Style.Box);
+            gui.Box(rect, in ImTheme.Active.Slider.Box);
 
-            var rectPadded = rect.WithPadding(Style.Padding);
+            var rectPadded = rect.WithPadding(ImTheme.Active.Slider.Padding);
 
-            var handleW = rectPadded.H * Style.HandleAspectRatio;
+            var handleW = rectPadded.H * ImTheme.Active.Slider.HandleAspectRatio;
             var handleH = rectPadded.H;
             
             var xmin = rectPadded.X + handleW / 2.0f;
@@ -50,7 +48,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
 
-            using (new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Handle))
+            using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, ImTheme.Active.Slider.Handle))
             {
                 gui.Button(id, handleRect, out _);
             }
@@ -93,33 +91,6 @@ namespace Imui.Controls
 
     public struct ImSliderStyle
     {
-        public static readonly ImSliderStyle Default = CreateDefaultStyle();
-
-        public static ImSliderStyle CreateDefaultStyle()
-        {
-            var style = new ImSliderStyle()
-            {
-                Box = new ImBoxStyle()
-                {
-                    BackColor = ImColors.White,
-                    BorderWidth = 1,
-                    BorderColor = ImColors.Black,
-                    BorderRadius = 4
-                },
-                Handle = ImButtonStyle.Default,
-                Padding = 1,
-                HandleAspectRatio = 1.5f
-            };
-            
-            style.Handle.Normal.BackColor = ImColors.Black;
-            style.Handle.Hovered.BackColor = ImColors.Gray1;
-            style.Handle.Pressed.BackColor = ImColors.Black;
-            style.Handle.SetBorderRadius(style.Box.BorderRadius - style.Box.BorderWidth);
-            style.Handle.SetBorderWidth(0);
-            
-            return style;
-        }
-
         public ImBoxStyle Box;
         public ImButtonStyle Handle;
         public ImPadding Padding;

@@ -8,8 +8,6 @@ namespace Imui.Controls
     public static class ImFoldout
     {
         private const float ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
-
-        public static ImFoldoutStyle Style = ImFoldoutStyle.Default;
         
         public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, out bool open, ImSize size = default)
         {
@@ -37,29 +35,17 @@ namespace Imui.Controls
 
         public static void Foldout(this ImGui gui, uint id, ref bool open, ImRect rect, ReadOnlySpan<char> label)
         {
-            Foldout(gui, id, ref open, rect, out var state);
+            var arrowRect = ImButton.GetContentRect(rect);
+            var arrowSize = arrowRect.H * ImTheme.Active.Foldout.ArrowOuterScale;
+            arrowRect.W = arrowSize;
 
-            var textRect = Style.Button.GetContentRect(rect);
-            var arrowOffset = textRect.H * Style.ArrowOuterScale + ImControls.Style.InnerSpacing;
-            textRect.X += arrowOffset;
-            textRect.W -= arrowOffset;
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in ImTheme.Active.Foldout.Button);
             
-            using (new ImStyleScope<ImTextStyle>(ref ImText.Style))
-            {
-                ImText.Style.Color = ImButton.Style.GetStateStyle(state).FrontColor;
-                
-                gui.Text(label, GetTextSettings(), textRect);
-            }
-        }
-        
-        public static void Foldout(this ImGui gui, uint id, ref bool open, ImRect rect, out ImButtonState state)
-        {
-            using var __ = new ImStyleScope<ImButtonStyle>(ref ImButton.Style, Style.Button);
+            ImTheme.Active.Button.Alignment = ImTheme.Active.Foldout.TextAlignment;
+            ImTheme.Active.Button.AdditionalPadding.Left += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
 
-            var arrowRect = Style.Button.GetContentRect(rect);
-            arrowRect.W = arrowRect.H * Style.ArrowOuterScale;
-            var clicked = gui.Button(id, rect, out state);
-            var style = ImButton.Style.GetStateStyle(state);
+            var clicked = gui.Button(id, label, rect, out var state);
+            var style = ImButton.GetStateStyle(state);
             
             if (open)
             {
@@ -75,10 +61,10 @@ namespace Imui.Controls
                 open = !open;
             }
         }
-
+        
         public static void DrawClosedArrow(ImCanvas canvas, ImRect rect, Color32 color)
         {
-            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(Style.ArrowInnerScale).WithAspect(1.0f / ARROW_ASPECT_RATIO);
+            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Foldout.ArrowInnerScale).WithAspect(1.0f / ARROW_ASPECT_RATIO);
             
             Span<Vector2> points = stackalloc Vector2[3]
             {
@@ -92,7 +78,7 @@ namespace Imui.Controls
 
         public static void DrawOpenArrow(ImCanvas canvas, ImRect rect, Color32 color)
         {
-            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(Style.ArrowInnerScale).WithAspect(ARROW_ASPECT_RATIO);
+            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Foldout.ArrowInnerScale).WithAspect(ARROW_ASPECT_RATIO);
             
             Span<Vector2> points = stackalloc Vector2[3]
             {
@@ -103,33 +89,13 @@ namespace Imui.Controls
         
             canvas.ConvexFill(points, color);
         }
-
-        public static ImTextSettings GetTextSettings()
-        {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.Button.Alignment, Style.Button.TextWrap);
-        }
     }
 
     public struct ImFoldoutStyle
     {
-        public static readonly ImFoldoutStyle Default = CreateDefaultStyle();
-
-        private static ImFoldoutStyle CreateDefaultStyle()
-        {
-            var style = new ImFoldoutStyle()
-            {
-                ArrowInnerScale = 0.7f,
-                ArrowOuterScale = 0.7f,
-                Button = ImButtonStyle.Default
-            };
-
-            style.Button.Alignment.X = 0.0f;
-            style.Button.SetBorderWidth(0);
-            return style;
-        }
-
         public float ArrowInnerScale;
         public float ArrowOuterScale;
         public ImButtonStyle Button;
+        public ImTextAlignment TextAlignment;
     }
 }

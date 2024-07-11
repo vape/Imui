@@ -2,22 +2,21 @@ using System;
 using Imui.Core;
 using Imui.IO.Events;
 using Imui.Controls.Styling;
-using UnityEngine;
 
 namespace Imui.Controls
 {
     public static class ImButton
     {
-        public static ImButtonStyle Style = ImButtonStyle.Default;
-
         public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
         {
             if (size.Type == ImSizeType.Fit)
             {
-                var textSettings = Style.GetTextSettings();
+                ref readonly var style = ref ImTheme.Active.Button;
+
+                var textSettings = GetTextSettings();
                 var textSize = gui.MeasureTextSize(label, in textSettings);
-                ImRectExt.AddPaddingToSize(ref textSize, ImControls.Padding);
-                ImRectExt.AddPaddingToSize(ref textSize, Style.AdditionalPadding);
+                ImRectExt.AddPaddingToSize(ref textSize, ImTheme.Active.Controls.Padding);
+                ImRectExt.AddPaddingToSize(ref textSize, style.AdditionalPadding);
 
                 return gui.Layout.AddRect(textSize);
             }
@@ -46,9 +45,9 @@ namespace Imui.Controls
         public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, out ImButtonState state)
         {
             var clicked = Button(gui, id, rect, out state);
-            var textSettings = Style.GetTextSettings();
-            var textColor = Style.GetStateStyle(state).FrontColor;
-            var textRect = Style.GetContentRect(rect);
+            var textSettings = GetTextSettings();
+            var textColor = GetStateStyle(state).FrontColor;
+            var textRect = GetContentRect(rect);
             
             gui.Canvas.Text(label, textColor, textRect, in textSettings);
             
@@ -64,7 +63,7 @@ namespace Imui.Controls
             gui.RegisterControl(id, rect);
             
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
-            gui.Box(rect, Style.GetStateStyle(state));
+            gui.Box(rect, GetStateStyle(state));
 
             if (gui.IsReadOnly)
             {
@@ -145,6 +144,38 @@ namespace Imui.Controls
 
             return clicked;
         }
+
+        public static ImRect GetContentRect(ImRect rect)
+        {
+            ref readonly var style = ref ImTheme.Active.Button;
+            
+            rect.AddPadding(style.AdditionalPadding);
+            rect.AddPadding(ImTheme.Active.Controls.Padding);
+
+            return rect;
+        }
+
+        public static ImBoxStyle GetStateStyle(ImButtonState state)
+        {
+            ref readonly var style = ref ImTheme.Active.Button;
+            
+            switch (state)
+            {
+                case ImButtonState.Hovered:
+                    return style.Hovered;
+                case ImButtonState.Pressed:
+                    return style.Pressed;
+                default:
+                    return style.Normal;
+            }
+        }
+        
+        public static ImTextSettings GetTextSettings()
+        {
+            ref readonly var style = ref ImTheme.Active.Button;
+
+            return new ImTextSettings(ImTheme.Active.Controls.TextSize, style.Alignment, style.TextWrap);
+        }
     }
 
     public enum ImButtonState
@@ -157,96 +188,11 @@ namespace Imui.Controls
     [Serializable]
     public struct ImButtonStyle
     {
-        public static readonly ImButtonStyle Default = new ImButtonStyle()
-        {
-            AdditionalPadding = 0.0f,
-            Alignment = new ImTextAlignment(0.5f, 0.5f),
-            TextWrap = false,
-            Normal = new ImBoxStyle()
-            {
-                BackColor = new Color32(230, 230, 230, 255),
-                BorderColor = ImColors.Black,
-                FrontColor = ImColors.Black,
-                BorderRadius = 3,
-                BorderWidth = 1
-            },
-            Hovered = new ImBoxStyle()
-            {
-                BackColor = new Color32(235, 235, 235, 255),
-                BorderColor = ImColors.Gray1,
-                FrontColor = ImColors.Gray1,
-                BorderRadius = 3,
-                BorderWidth = 1
-            },
-            Pressed = new ImBoxStyle()
-            {
-                BackColor = new Color32(220, 220, 220, 255),
-                BorderColor = ImColors.Black,
-                FrontColor = ImColors.Black,
-                BorderRadius = 3,
-                BorderWidth = 1
-            }
-        };
-        
         public ImBoxStyle Normal;
         public ImBoxStyle Hovered;
         public ImBoxStyle Pressed;
         public ImPadding AdditionalPadding;
         public ImTextAlignment Alignment;
         public bool TextWrap;
-
-        public ImRect GetContentRect(ImRect buttonRect)
-        {
-            buttonRect.AddPadding(AdditionalPadding);
-            buttonRect.AddPadding(ImControls.Padding);
-            
-            return buttonRect;
-        }
-        
-        public ImBoxStyle GetStateStyle(ImButtonState state)
-        {
-            switch (state)
-            {
-                case ImButtonState.Hovered:
-                    return Hovered;
-                case ImButtonState.Pressed:
-                    return Pressed;
-                default:
-                    return Normal;
-            }
-        }
-        
-        public ImTextSettings GetTextSettings()
-        {
-            return new ImTextSettings(ImControls.Style.TextSize, Alignment, TextWrap);
-        }
-
-        public void SetBorderRadius(ImRectRadius radius)
-        {
-            Normal.BorderRadius = radius;
-            Hovered.BorderRadius = radius;
-            Pressed.BorderRadius = radius;
-        }
-
-        public void SetBorderWidth(float width)
-        {
-            Normal.BorderWidth = width;
-            Hovered.BorderWidth = width;
-            Pressed.BorderWidth = width;
-        }
-
-        public void SetTint(Color32 backColor, Color32 frontColor)
-        {
-            Color.RGBToHSV(backColor, out var h, out var s, out var v);
-            
-            Normal.BackColor = backColor;
-            Normal.FrontColor = frontColor;
-
-            Hovered.BackColor = Color.HSVToRGB(h, s, v * 1.1f);
-            Hovered.FrontColor = frontColor;
-
-            Pressed.BackColor = Color.HSVToRGB(h, s, v * 0.9f);
-            Pressed.FrontColor = frontColor;
-        }
     }
 }

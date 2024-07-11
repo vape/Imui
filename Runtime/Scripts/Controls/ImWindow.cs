@@ -11,8 +11,6 @@ namespace Imui.Controls
         private const int WINDOW_ORDER_OFFSET = 128;
         private const int WINDOW_FRONT_ORDER_OFFSET = 64;
         
-        public static ImWindowStyle Style = ImWindowStyle.Default;
-        
         public static void BeginWindow(this ImGui gui, 
             string title, 
             float width = ImWindowManager.DEFAULT_WIDTH, 
@@ -29,11 +27,12 @@ namespace Imui.Controls
                     gui.WindowManager.RequestFocus(id);
                 }
             }
-            
+
+            ref readonly var style = ref ImTheme.Active.Window;
             ref var state = ref gui.WindowManager.BeginWindow(id, title, width, height, flags);
             
             gui.Canvas.PushOrder(state.Order * WINDOW_ORDER_OFFSET);
-            gui.Canvas.PushRectMask(state.Rect, Style.Box.BorderRadius);
+            gui.Canvas.PushRectMask(state.Rect, style.Box.BorderRadius);
             gui.Canvas.PushClipRect(state.Rect);
             Back(gui, in state, out var contentRect);
             
@@ -85,7 +84,9 @@ namespace Imui.Controls
         
         public static void Back(ImGui gui, in ImWindowState state, out ImRect content)
         {
-            gui.Canvas.Rect(state.Rect, Style.Box.BackColor, Style.Box.BorderRadius);
+            ref readonly var style = ref ImTheme.Active.Window;
+            
+            gui.Canvas.Rect(state.Rect, style.Box.BackColor, style.Box.BorderRadius);
 
             if ((state.Flags & ImWindowFlag.DisableTitleBar) != 0)
             {
@@ -95,25 +96,28 @@ namespace Imui.Controls
             
             var titleBarRect = GetTitleBarRect(gui, state.Rect, out _);
             state.Rect.SplitTop(titleBarRect.H, out content);
-            content.AddPadding(Style.ContentPadding);
+            content.AddPadding(style.ContentPadding);
         }
 
         public static void Front(ImGui gui, ImRect rect)
         {
-            gui.Canvas.RectOutline(rect, Style.Box.BorderColor, Style.Box.BorderWidth, Style.Box.BorderRadius);
+            ref readonly var style = ref ImTheme.Active.Window;
+            gui.Canvas.RectOutline(rect, style.Box.BorderColor, style.Box.BorderWidth, style.Box.BorderRadius);
         }
 
         public static bool TitleBar(ImGui gui, ReadOnlySpan<char> text, ref ImWindowState state, ImRect windowRect)
         {
+            ref readonly var style = ref ImTheme.Active.Window;
+            
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
             var rect = GetTitleBarRect(gui, windowRect, out var radius);
-            var textSettings = GetTitleBarTextSettings();
+            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, style.TitleBar.Alignment);
             var movable = (state.Flags & ImWindowFlag.DisableMoving) == 0;
             
-            gui.Canvas.Rect(rect, Style.TitleBar.BackColor, radius);
-            gui.Canvas.Text(text, Style.TitleBar.FrontColor, rect, in textSettings);
+            gui.Canvas.Rect(rect, style.TitleBar.BackColor, radius);
+            gui.Canvas.Text(text, style.TitleBar.FrontColor, rect, in textSettings);
 
             var clicked = false;
             ref readonly var evt = ref gui.Input.MouseEvent;
@@ -149,6 +153,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var handleRect = GetResizeHandleRect(rect, out var radius);
             var active = gui.IsControlActive(id);
+            ref readonly var style = ref ImTheme.Active.Window;
             
             var segments = ImShapes.SegmentCountForRadius(radius);
             var step = (1f / segments) * HALF_PI;
@@ -168,7 +173,7 @@ namespace Imui.Controls
                 buffer[i + 1].y = cy + Mathf.Sin(a) * radius;
             }
             
-            gui.Canvas.ConvexFill(buffer, Style.ResizeHandleColor);
+            gui.Canvas.ConvexFill(buffer, style.ResizeHandleColor);
 
             var clicked = false;
             ref readonly var evt = ref gui.Input.MouseEvent;
@@ -198,9 +203,11 @@ namespace Imui.Controls
 
         public static ImRect GetResizeHandleRect(ImRect rect, out float cornerRadius)
         {
-            cornerRadius = Mathf.Max(Style.Box.BorderRadius.BottomRight, 0);
+            ref readonly var style = ref ImTheme.Active.Window;
             
-            var handleSize = Mathf.Max(Style.ResizeHandleSize, cornerRadius);
+            cornerRadius = Mathf.Max(style.Box.BorderRadius.BottomRight, 0);
+            
+            var handleSize = Mathf.Max(style.ResizeHandleSize, cornerRadius);
             var handleRect = rect;
             handleRect.X += handleRect.W - handleSize;
             handleRect.W = handleSize;
@@ -211,17 +218,14 @@ namespace Imui.Controls
         
         public static ImRect GetTitleBarRect(ImGui gui, ImRect rect, out ImRectRadius cornerRadius)
         {
-            var height = Style.TitleBar.GetHeight(gui.GetRowHeight());
-            var radiusTopLeft = Style.Box.BorderRadius.TopLeft - Style.Box.BorderWidth;
-            var radiusTopRight = Style.Box.BorderRadius.TopRight - Style.Box.BorderWidth;
+            ref readonly var style = ref ImTheme.Active.Window;
+            
+            var height = style.TitleBar.AdditionalPadding.Vertical + gui.GetRowHeight();
+            var radiusTopLeft = style.Box.BorderRadius.TopLeft - style.Box.BorderWidth;
+            var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderWidth;
             cornerRadius = new ImRectRadius(radiusTopLeft, radiusTopRight);
             
-            return rect.WithPadding(Style.Box.BorderWidth).SplitTop(height);
-        }
-
-        public static ImTextSettings GetTitleBarTextSettings()
-        {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.TitleBar.Alignment);
+            return rect.WithPadding(style.Box.BorderWidth).SplitTop(height);
         }
     }
     
@@ -232,37 +236,11 @@ namespace Imui.Controls
         public Color32 FrontColor;
         public ImTextAlignment Alignment;
         public ImPadding AdditionalPadding;
-
-        public float GetHeight(float contentHeight)
-        {
-            return contentHeight + AdditionalPadding.Vertical;
-        }
     }
         
     [Serializable]
     public struct ImWindowStyle
     {
-        public static readonly ImWindowStyle Default = new ImWindowStyle()
-        {
-            Box = new ImBoxStyle()
-            {
-                BackColor = ImColors.White,
-                BorderColor = ImColors.Black,
-                BorderWidth = 1.0f,
-                BorderRadius = 4.0f
-            },
-            ResizeHandleColor = ImColors.Gray2.WithAlpha(196),
-            ResizeHandleSize = 24,
-            ContentPadding = 4,
-            TitleBar = new ImWindowTitleBarStyle()
-            {
-                BackColor = ImColors.Gray3,
-                FrontColor = ImColors.White,
-                AdditionalPadding = 2,
-                Alignment = new ImTextAlignment(0.5f, 0.5f)
-            }
-        };
-
         public ImBoxStyle Box;
         public Color32 ResizeHandleColor;
         public float ResizeHandleSize;

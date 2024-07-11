@@ -1,3 +1,4 @@
+using Imui.Controls.Styling;
 using Imui.Core;
 using UnityEngine;
 
@@ -27,7 +28,7 @@ namespace Imui.Controls
         
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize)
         {
-            return BeginGrid(gui, cellSize, new Vector2(ImControls.Style.InnerSpacing, ImControls.Style.InnerSpacing));
+            return BeginGrid(gui, cellSize, new Vector2(ImTheme.Active.Controls.InnerSpacing, ImTheme.Active.Controls.InnerSpacing));
         }
         
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize, Vector2 spacing)
@@ -72,7 +73,7 @@ namespace Imui.Controls
 
         public static Vector2 GetDefaultSpacing()
         {
-            return new Vector2(ImControls.Style.InnerSpacing, ImControls.Style.InnerSpacing);
+            return new Vector2(ImTheme.Active.Controls.InnerSpacing, ImTheme.Active.Controls.InnerSpacing);
         }
     }
 }

@@ -147,22 +147,22 @@ namespace Imui.Controls.Windows
         private static void DrawStylePage(ImGui gui)
         {
             gui.Text("Text Size");
-            gui.Slider(ref ImControls.Style.TextSize, 6, 128);
+            gui.Slider(ref ImTheme.Active.Controls.TextSize, 6, 128);
             
             gui.Text("Spacing");
-            gui.Slider(ref ImControls.Style.ControlsSpacing, 0, 32);
+            gui.Slider(ref ImTheme.Active.Controls.ControlsSpacing, 0, 32);
             
             gui.Text("Padding Left");
-            gui.Slider(ref ImControls.Style.Padding.Left, 0, 32);
+            gui.Slider(ref ImTheme.Active.Controls.Padding.Left, 0, 32);
             
             gui.Text("Padding Right");
-            gui.Slider(ref ImControls.Style.Padding.Right, 0, 32);
+            gui.Slider(ref ImTheme.Active.Controls.Padding.Right, 0, 32);
             
             gui.Text("Padding Top");
-            gui.Slider(ref ImControls.Style.Padding.Top, 0, 32);
+            gui.Slider(ref ImTheme.Active.Controls.Padding.Top, 0, 32);
             
             gui.Text("Padding Bottom");
-            gui.Slider(ref ImControls.Style.Padding.Bottom, 0, 32);
+            gui.Slider(ref ImTheme.Active.Controls.Padding.Bottom, 0, 32);
         }
         
         private static ReadOnlySpan<char> Format(ReadOnlySpan<char> prefix, float value, ReadOnlySpan<char> format = default)

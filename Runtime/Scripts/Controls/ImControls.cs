@@ -1,4 +1,3 @@
-using System;
 using Imui.Controls.Styling;
 using Imui.Core;
 
@@ -7,12 +6,6 @@ namespace Imui.Controls
     // TODO (artem-s): implement table layout helper
     public static class ImControls
     {
-        public static ImControlsStyle Style = ImControlsStyle.Default;
-
-        public static float TextSize => Style.TextSize;
-        public static ImPadding Padding => Style.Padding;
-        public static float InnerSpacing => Style.InnerSpacing;
-
         public static ImRect GetRowRect(ImGui gui, ImSize size)
         {
             return size.Type switch
@@ -24,7 +17,11 @@ namespace Imui.Controls
         
         public static float GetRowHeight(this ImGui gui)
         {
-            return gui.TextDrawer.GetLineHeight(Style.TextSize) + Style.Padding.Bottom + Style.Padding.Top;
+            var padding =
+                ImTheme.Active.Controls.Padding.Bottom +
+                ImTheme.Active.Controls.Padding.Top;
+
+            return gui.TextDrawer.GetLineHeight(ImTheme.Active.Controls.TextSize) + padding;
         }
         
         public static void AddSpacingIfLayoutFrameNotEmpty(this ImGui gui)
@@ -38,7 +35,7 @@ namespace Imui.Controls
         
         public static void AddSpacing(this ImGui gui)
         {
-            gui.Layout.AddSpace(Style.ControlsSpacing);
+            gui.Layout.AddSpace(ImTheme.Active.Controls.ControlsSpacing);
         }
         
         public static void AddSpacing(this ImGui gui, float space)
@@ -48,27 +45,17 @@ namespace Imui.Controls
 
         public static void BeginIndent(this ImGui gui)
         {
-            gui.Layout.AddIndent(Style.Indent);
+            gui.Layout.AddIndent(ImTheme.Active.Controls.Indent);
         }
 
         public static void EndIndent(this ImGui gui)
         {
-            gui.Layout.AddIndent(-Style.Indent);
+            gui.Layout.AddIndent(-ImTheme.Active.Controls.Indent);
         }
     }
     
     public struct ImControlsStyle
     {
-        public static readonly ImControlsStyle Default = new ImControlsStyle()
-        {
-            Padding = 2,
-            TextSize = 26,
-            ControlsSpacing = 4,
-            InnerSpacing = 2,
-            ScrollSpeedScale = 6,
-            Indent = 20
-        };
-
         public ImPadding Padding;
         public float TextSize;
         public float ControlsSpacing;

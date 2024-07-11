@@ -54,9 +54,7 @@ namespace Imui.Controls
         public const float MIN_HEIGHT = 1;
 
         private const string TEMP_BUFFER_TAG = "temp_buffer"; 
-
-        public static ImTextEditStyle Style = ImTextEditStyle.Default;
-
+        
         public static readonly ImTextEditIntegerFilter IntegerFilter = new();
         public static readonly ImTextEditFloatFilter FloatFilter = new();
         
@@ -148,9 +146,11 @@ namespace Imui.Controls
             ImTextEditFilter filter,
             bool multiline)
         {
+            ref readonly var style = ref ImTheme.Active.TextEdit;
+            
             var selected = gui.IsControlActive(id);
             var hovered = gui.IsControlHovered(id);
-            var stateStyle = selected ? Style.Selected : Style.Normal;
+            var stateStyle = selected ? style.Selected : style.Normal;
             var textChanged = false;
             var editable = !gui.IsReadOnly;
 
@@ -184,13 +184,13 @@ namespace Imui.Controls
             }
             
             gui.Box(rect, in stateStyle.Box);
-            var textRect = Style.GetContentRect(rect);
+            var textRect = rect.WithPadding(ImTheme.Active.Controls.Padding);
 
-            var textSize = ImControls.Style.TextSize;
+            var textSize = ImTheme.Active.Controls.TextSize;
             var layout = gui.TextDrawer.BuildTempLayout(
                 buffer, 
                 textRect.W, textRect.H, 
-                Style.Alignment.X, Style.Alignment.Y, textSize, Style.TextWrap);
+                style.Alignment.X, style.Alignment.Y, textSize, style.TextWrap);
             
             gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);
@@ -763,7 +763,7 @@ namespace Imui.Controls
             var caretViewRect = new ImRect(
                 viewPosition.x, 
                 viewPosition.y - layout.LineHeight, 
-                Style.CaretWidth,
+                ImTheme.Active.TextEdit.CaretWidth,
                 layout.LineHeight);
 
             if ((long)(Time.unscaledTime / CARET_BLINKING_TIME) % 2 == 0)
@@ -959,54 +959,16 @@ namespace Imui.Controls
         public override bool TryFormat(Span<char> buffer, float value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
     }
 
-    public class ImTextEditStyle
+    public struct ImTextEditStyle
     {
-        public static readonly ImTextEditStyle Default = new ImTextEditStyle()
-        {
-            Normal = new ImTextEditStateStyle()
-            {
-                Box = new ImBoxStyle()
-                {
-                    BackColor = ImColors.Gray7,
-                    FrontColor = ImColors.Black,
-                    BorderColor = ImColors.Gray1,
-                    BorderRadius = 3.0f,
-                    BorderWidth = 1.0f
-                },
-                SelectionColor = ImColors.Black.WithAlpha(32)
-            },
-            Selected = new ImTextEditStateStyle()
-            {
-                Box = new ImBoxStyle()
-                {
-                    BackColor = ImColors.White,
-                    FrontColor = ImColors.Black,
-                    BorderColor = ImColors.Black,
-                    BorderRadius = 3.0f,
-                    BorderWidth = 1.0f
-                },
-                SelectionColor = ImColors.Black.WithAlpha(64)
-            },
-            CaretWidth = 2.0f,
-            Alignment = new ImTextAlignment(0.0f, 0.0f),
-            TextWrap = false
-        };
-        
         public ImTextEditStateStyle Normal;
         public ImTextEditStateStyle Selected;
         public float CaretWidth;
         public ImTextAlignment Alignment;
         public bool TextWrap;
-
-        public ImRect GetContentRect(ImRect textRect)
-        {
-            textRect.AddPadding(ImControls.Padding);
-            
-            return textRect;
-        }
     }
 
-    public class ImTextEditStateStyle
+    public struct ImTextEditStateStyle
     {
         public ImBoxStyle Box;
         public Color32 SelectionColor;
