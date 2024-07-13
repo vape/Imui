@@ -6,7 +6,7 @@ namespace Imui.Controls.Styling.Themes
     {
         public static ImTheme Create()
         {
-            var theme = ImDefaultTheme.Create();
+            var theme = ImLightTheme.Create();
             
             theme.Window.Box.BackColor = new Color32(41, 41, 41, 255);
             theme.Window.Box.BorderColor = new Color32(31, 31, 31, 255);

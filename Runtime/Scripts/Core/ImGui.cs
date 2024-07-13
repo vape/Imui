@@ -18,7 +18,7 @@ namespace Imui.Core
         private const float UI_SCALE_MIN = 0.05f;
         private const float UI_SCALE_MAX = 16.0f;
 
-        private const float READONLY_SCOPE_CONTRAST = 0.5f;
+        private const float READONLY_SCOPE_CONTRAST = 0.3f;
 
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;

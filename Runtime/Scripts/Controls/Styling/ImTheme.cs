@@ -6,7 +6,7 @@ namespace Imui.Controls.Styling
     [Serializable]
     public struct ImTheme
     {
-        public static ImTheme Active = ImDefaultTheme.Create();
+        public static ImTheme Active = ImLightTheme.Create();
 
         public ImControlsStyle Controls;
         public ImWindowStyle Window;

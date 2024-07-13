@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Imui.Controls.Styling.Themes
 {
-    public static class ImDefaultTheme
+    public static class ImLightTheme
     {
         public static ImTheme Create()
         {
@@ -29,18 +29,18 @@ namespace Imui.Controls.Styling.Themes
             {
                 Box = new ImBoxStyle()
                 {
-                    BackColor = ImColors.White,
-                    BorderColor = ImColors.Black,
+                    BackColor = new Color32(232, 232, 232, 255),
+                    BorderColor = new Color32(51, 51, 51, 255),
                     BorderWidth = 1.0f,
                     BorderRadius = 8.0f
                 },
-                ResizeHandleColor = ImColors.Gray2.WithAlpha(196),
+                ResizeHandleColor = new Color32(51, 51, 51, 128),
                 ResizeHandleSize = 30.0f,
                 ContentPadding = 4.0f,
                 TitleBar = new ImWindowTitleBarStyle()
                 {
-                    BackColor = ImColors.Gray3,
-                    FrontColor = ImColors.White,
+                    BackColor = new Color32(209, 209, 209, 255),
+                    FrontColor = new Color32(46, 46, 46, 255),
                     AdditionalPadding = 2.0f,
                     Alignment = new ImTextAlignment(0.5f, 0.5f)
                 }
@@ -51,7 +51,7 @@ namespace Imui.Controls.Styling.Themes
         {
             return new ImTextStyle()
             {
-                Color = ImColors.Black,
+                Color = new Color32(13, 13, 13, 255),
                 Alignment = new ImTextAlignment(0.0f, 0.0f)
             };
         }
@@ -67,21 +67,21 @@ namespace Imui.Controls.Styling.Themes
                 BorderWidth = 1.0f,
                 Normal = new ImButtonStateStyle()
                 {
-                    BackColor = new Color32(230, 230, 230, 255),
-                    BorderColor = ImColors.Black,
-                    FrontColor = ImColors.Black
+                    BackColor = new Color32(215, 215, 215, 255),
+                    FrontColor = new Color32(13, 13, 13, 255),
+                    BorderColor = new Color32(153, 153, 153, 255),
                 },
                 Hovered = new ImButtonStateStyle()
                 {
-                    BackColor = new Color32(235, 235, 235, 255),
-                    BorderColor = ImColors.Gray1,
-                    FrontColor = ImColors.Gray1
+                    BackColor = new Color32(219, 219, 219, 255),
+                    FrontColor = new Color32(64, 64, 64, 255),
+                    BorderColor = new Color32(166, 166, 166, 255),
                 },
                 Pressed = new ImButtonStateStyle()
                 {
-                    BackColor = new Color32(220, 220, 220, 255),
-                    BorderColor = ImColors.Black,
-                    FrontColor = ImColors.Black
+                    BackColor = new Color32(202, 202, 202, 255),
+                    FrontColor = new Color32(13, 13, 13, 255),
+                    BorderColor = new Color32(128, 128, 128, 255),
                 }
             };
         }
@@ -115,8 +115,8 @@ namespace Imui.Controls.Styling.Themes
             {
                 Box = new ImBoxStyle
                 {
-                    BackColor = ImColors.White,
-                    BorderColor = ImColors.Black,
+                    BackColor = new Color32(202, 202, 202, 255),
+                    BorderColor = new Color32(128, 128, 128, 255),
                     BorderWidth = 1.0f,
                     BorderRadius = 4.0f
                 }
@@ -133,18 +133,18 @@ namespace Imui.Controls.Styling.Themes
                 BorderRadius = 4.0f,
                 NormalState = new ImScrollBarStateStyle()
                 {
-                    BackColor = ImColors.Black,
-                    FrontColor = ImColors.Gray7
+                    BackColor = new Color32(51, 51, 51, 255),
+                    FrontColor = new Color32(255, 255, 255, 192),
                 },
                 HoveredState = new ImScrollBarStateStyle()
                 {
-                    BackColor = ImColors.Black,
-                    FrontColor = ImColors.Gray8
+                    BackColor = new Color32(51, 51, 51, 255),
+                    FrontColor = new Color32(255, 255, 255, 230),
                 },
                 PressedState = new ImScrollBarStateStyle()
                 {
-                    BackColor  = ImColors.Black,
-                    FrontColor = ImColors.Gray6
+                    BackColor = new Color32(51, 51, 51, 255),
+                    FrontColor = new Color32(255, 255, 255, 205),
                 }
             };
         }
@@ -157,25 +157,25 @@ namespace Imui.Controls.Styling.Themes
                 {
                     Box = new ImBoxStyle()
                     {
-                        BackColor = ImColors.Gray7,
-                        FrontColor = ImColors.Black,
-                        BorderColor = ImColors.Gray1,
+                        BackColor = new Color32(202, 202, 202, 255),
+                        FrontColor = new Color32(13, 13, 13, 255),
+                        BorderColor = new Color32(128, 128, 128, 255),
                         BorderRadius = 4.0f,
                         BorderWidth = 1.0f
                     },
-                    SelectionColor = ImColors.Black.WithAlpha(32)
+                    SelectionColor = new Color32(0, 115, 190, 102),
                 },
                 Selected = new ImTextEditStateStyle()
                 {
                     Box = new ImBoxStyle()
                     {
-                        BackColor = ImColors.White,
-                        FrontColor = ImColors.Black,
-                        BorderColor = ImColors.Black,
+                        BackColor = new Color32(230, 230, 230, 255),
+                        FrontColor = new Color32(13, 13, 13, 255),
+                        BorderColor = new Color32(53, 53, 53, 255),
                         BorderRadius = 4.0f,
                         BorderWidth = 1.0f
                     },
-                    SelectionColor = ImColors.Black.WithAlpha(64)
+                    SelectionColor = new Color32(0, 115, 190, 102),
                 },
                 CaretWidth = 2.0f,
                 Alignment = new ImTextAlignment(0.0f, 0.0f),
@@ -195,21 +195,32 @@ namespace Imui.Controls.Styling.Themes
             };
 
             style.OptionButton = CreateButtonStyle();
-            style.OptionButton.Normal.BackColor = ImColors.Blue.WithAlpha(0);
-            style.OptionButton.Hovered.BackColor = ImColors.Blue.WithAlpha(32);
-            style.OptionButton.Pressed.BackColor = ImColors.Blue.WithAlpha(48);
             style.OptionButton.AdditionalPadding = 0.0f;
             style.OptionButton.AdditionalPadding.Left = 4.0f;
             style.OptionButton.Alignment.X = 0.0f;
             style.OptionButton.BorderWidth = 0.0f;
 
             style.OptionButtonSelected = style.OptionButton;
-            style.OptionButtonSelected.Normal.BackColor = ImColors.DarkBlue.WithAlpha(240);
-            style.OptionButtonSelected.Normal.FrontColor = ImColors.White;
-            style.OptionButtonSelected.Hovered.BackColor = ImColors.DarkBlue.WithAlpha(224);
-            style.OptionButtonSelected.Hovered.FrontColor = ImColors.White;
-            style.OptionButtonSelected.Pressed.BackColor = ImColors.DarkBlue.WithAlpha(255);
-            style.OptionButtonSelected.Pressed.FrontColor = ImColors.White;
+            
+            style.OptionButton.Normal.BackColor = new Color32(255, 255, 255, 64);
+            style.OptionButton.Normal.FrontColor = new Color32(38, 38, 38, 255);
+            style.OptionButton.Normal.BorderColor = new Color32(0, 0, 0, 0);
+            style.OptionButton.Hovered.BackColor = new Color32(255, 255, 255, 102);
+            style.OptionButton.Hovered.FrontColor = new Color32(51, 51, 51, 255);
+            style.OptionButton.Hovered.BorderColor = new Color32(0, 0, 0, 0);
+            style.OptionButton.Pressed.BackColor = new Color32(255, 255, 255, 153);
+            style.OptionButton.Pressed.FrontColor = new Color32(13, 13, 13, 255);
+            style.OptionButton.Pressed.BorderColor = new Color32(0, 0, 0, 0);
+            style.OptionButtonSelected.Normal.BackColor = new Color32(0, 122, 204, 255);
+            style.OptionButtonSelected.Normal.BorderColor = new Color32(0, 0, 0, 0);
+            style.OptionButtonSelected.Normal.FrontColor = new Color32(255, 255, 255, 255);
+            style.OptionButtonSelected.Hovered.BackColor = new Color32(0, 137, 230, 255);
+            style.OptionButtonSelected.Hovered.BorderColor = new Color32(0, 0, 0, 0);
+            style.OptionButtonSelected.Hovered.FrontColor = new Color32(255, 255, 255, 255);
+            style.OptionButtonSelected.Pressed.BackColor = new Color32(0, 107, 179, 255);
+            style.OptionButtonSelected.Pressed.BorderColor = new Color32(0, 0, 0, 0);
+            style.OptionButtonSelected.Pressed.FrontColor = new Color32(255, 255, 255, 255);
+
 
             return style;
         }
@@ -220,9 +231,9 @@ namespace Imui.Controls.Styling.Themes
             {
                 Box = new ImBoxStyle()
                 {
-                    BackColor = ImColors.White,
+                    BackColor = new Color32(202, 202, 202, 255),
+                    BorderColor = new Color32(128, 128, 128, 255),
                     BorderWidth = 1.0f,
-                    BorderColor = ImColors.Black,
                     BorderRadius = 4.0f
                 },
                 Handle = CreateButtonStyle(),
@@ -230,11 +241,12 @@ namespace Imui.Controls.Styling.Themes
                 HandleAspectRatio = 1.0f
             };
             
-            style.Handle.Normal.BackColor = ImColors.Black;
-            style.Handle.Hovered.BackColor = ImColors.Gray1;
-            style.Handle.Pressed.BackColor = ImColors.Black;
-            style.Handle.BorderRadius = (style.Box.BorderRadius - style.Box.BorderWidth);
-            style.Handle.BorderWidth = 0.0f;
+            style.Handle.Normal.BackColor = new Color32(51, 51, 51, 255);
+            style.Handle.Normal.BorderColor = new Color32(0, 0, 0, 0);
+            style.Handle.Hovered.BackColor = new Color32(63, 63, 63, 255);
+            style.Handle.Hovered.BorderColor = new Color32(0, 0, 0, 0);
+            style.Handle.Pressed.BackColor = new Color32(25, 25, 25, 255);
+            style.Handle.Pressed.BorderColor = new Color32(0, 0, 0, 0);
             
             return style;
         }
