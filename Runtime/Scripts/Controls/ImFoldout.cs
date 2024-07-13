@@ -36,14 +36,14 @@ namespace Imui.Controls
         public static void Foldout(this ImGui gui, uint id, ref bool open, ImRect rect, ReadOnlySpan<char> label)
         {
             var arrowRect = ImButton.GetContentRect(rect);
-            var arrowSize = arrowRect.H * ImTheme.Active.Foldout.ArrowOuterScale;
+            var arrowSize = (arrowRect.H - ImTheme.Active.Controls.ExtraRowHeight) * ImTheme.Active.Foldout.ArrowOuterScale;
             arrowRect.W = arrowSize;
 
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
 
             ImTheme.Active.Button.BorderWidth = ImTheme.Active.Foldout.BorderWidth;
             ImTheme.Active.Button.Alignment = ImTheme.Active.Foldout.TextAlignment;
-            ImTheme.Active.Button.AdditionalPadding.Left += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
+            ImTheme.Active.Button.Padding.Left += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
 
             var clicked = gui.Button(id, label, rect, out var state);
             var frontColor = ImButton.GetStateFontColor(state);

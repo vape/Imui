@@ -105,7 +105,7 @@ namespace Imui.Controls.Windows
                 points[i] = new Vector2(rect.X + xn * rect.W * nw, rect.Y + yn * rect.H);
             }
             
-            gui.Canvas.RectWithOutline(rect, ImColors.Gray6, ImColors.Black, 1.0f);
+            gui.Canvas.RectWithOutline(rect, new Color32(192, 192, 192, 255), ImColors.Black, 1.0f);
             gui.Canvas.Line(points, ImColors.Black, false, 1);
         }
 

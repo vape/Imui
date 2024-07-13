@@ -12,7 +12,7 @@ namespace Imui.Controls
             gui.Box(rect, ImTheme.Active.Panel.Box);
             gui.RegisterRaycastTarget(rect);
 
-            var layoutRect = rect.WithPadding(ImTheme.Active.Controls.Padding);
+            var layoutRect = rect.WithPadding(ImTheme.Active.Panel.Padding);
             var maskRect = rect.WithPadding(ImTheme.Active.Panel.Box.BorderWidth);
             
             gui.Layout.Push(ImAxis.Vertical, layoutRect);
@@ -31,13 +31,14 @@ namespace Imui.Controls
 
         public static float GetEnclosingHeight(float contentHeight)
         {
-            return contentHeight + ImTheme.Active.Controls.Padding.Vertical;
+            return contentHeight + ImTheme.Active.Panel.Padding.Vertical;
         }
     }
 
     [Serializable]
     public struct ImPanelStyle
     {
+        public ImPadding Padding;
         public ImBoxStyle Box;
     }
 }

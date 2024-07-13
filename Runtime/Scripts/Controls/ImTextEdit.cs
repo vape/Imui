@@ -103,23 +103,34 @@ namespace Imui.Controls
             }
         }
         
-        public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, ImTextEditFilter filter = null, bool multiline = true)
+        public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, ImTextEditFilter filter = null, bool? multiline = null)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size);
-            TextEdit(gui, ref text, rect, filter, multiline);
+
+            if (multiline == null)
+            {
+                multiline = rect.H > gui.GetRowHeight();
+            }
+            
+            TextEdit(gui, ref text, rect, filter, multiline.Value);
         }
         
-        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = null, bool multiline = true)
+        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = null, bool? multiline = null)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
+            
+            if (multiline == null)
+            {
+                multiline = rect.H > gui.GetRowHeight();
+            }
 
-            TextEdit(gui, id, rect, ref text, ref state, filter, multiline);
+            TextEdit(gui, id, rect, ref text, ref state, filter, multiline.Value);
         }
         
-        public static bool TextEdit(this ImGui gui, ref ImTextEditBuffer buffer, ImRect rect, ImTextEditFilter filter = null, bool multiline = true)
+        public static bool TextEdit(this ImGui gui, ref ImTextEditBuffer buffer, ImRect rect, ImTextEditFilter filter, bool multiline)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
@@ -127,7 +138,7 @@ namespace Imui.Controls
             return TextEdit(gui, id, rect, ref buffer, ref state, filter, multiline);
         }
         
-        public static void TextEdit(this ImGui gui, uint id, ImRect rect, ref string text, ref ImTextEditState state, ImTextEditFilter filter = null, bool multiline = true)
+        public static void TextEdit(this ImGui gui, uint id, ImRect rect, ref string text, ref ImTextEditState state, ImTextEditFilter filter, bool multiline)
         {
             var buffer = new ImTextEditBuffer(text);
             var changed = TextEdit(gui, id, rect, ref buffer, ref state, filter, multiline);
@@ -184,13 +195,26 @@ namespace Imui.Controls
             }
             
             gui.Box(rect, in stateStyle.Box);
-            var textRect = rect.WithPadding(ImTheme.Active.Controls.Padding);
-
+            
             var textSize = ImTheme.Active.Controls.TextSize;
+            var textPadding = ImTheme.Active.TextEdit.Padding;
+            var textAlignment = ImTheme.Active.TextEdit.Alignment;
+
+            if (!multiline)
+            {
+                // single-line text is always drawn at vertical center
+                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeight(textSize), 0.0f) / 2.0f;
+
+                textPadding.Top = halfVertPadding;
+                textPadding.Bottom = halfVertPadding;
+            }
+
+            var textRect = rect.WithPadding(textPadding);
+            
             var layout = gui.TextDrawer.BuildTempLayout(
                 buffer, 
                 textRect.W, textRect.H, 
-                style.Alignment.X, style.Alignment.Y, textSize, style.TextWrap);
+                textAlignment.X, textAlignment.Y, textSize, style.TextWrap);
             
             gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);
@@ -973,6 +997,7 @@ namespace Imui.Controls
         public ImTextEditStateStyle Selected;
         public float CaretWidth;
         public ImTextAlignment Alignment;
+        public ImPadding Padding;
         public bool TextWrap;
     }
 }

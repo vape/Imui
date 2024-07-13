@@ -131,14 +131,14 @@ namespace Imui.Controls
         public static bool DropdownButton(ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect)
         {
             var arrowRect = ImButton.GetContentRect(rect);
-            var arrowSize = arrowRect.H * ImTheme.Active.Dropdown.ArrowOuterScale;
+            var arrowSize = (arrowRect.H - ImTheme.Active.Controls.ExtraRowHeight) * ImTheme.Active.Dropdown.ArrowOuterScale;
             arrowRect.X += arrowRect.W - arrowSize;
             arrowRect.W = arrowSize;
             
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
             
             ImTheme.Active.Button.Alignment = ImTheme.Active.Dropdown.Alignment;
-            ImTheme.Active.Button.AdditionalPadding.Right += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
+            ImTheme.Active.Button.Padding.Right += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
 
             var clicked = gui.Button(id, label, rect, out var state);
 

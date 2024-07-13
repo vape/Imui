@@ -18,11 +18,7 @@ namespace Imui.Controls
         
         public static float GetRowHeight(this ImGui gui)
         {
-            var padding =
-                ImTheme.Active.Controls.Padding.Bottom +
-                ImTheme.Active.Controls.Padding.Top;
-
-            return gui.TextDrawer.GetLineHeight(ImTheme.Active.Controls.TextSize) + padding;
+            return gui.TextDrawer.GetLineHeight(ImTheme.Active.Controls.TextSize) + ImTheme.Active.Controls.ExtraRowHeight;
         }
         
         public static void AddSpacingIfLayoutFrameNotEmpty(this ImGui gui)
@@ -58,7 +54,7 @@ namespace Imui.Controls
     [Serializable]
     public struct ImControlsStyle
     {
-        public ImPadding Padding;
+        public float ExtraRowHeight;
         public float TextSize;
         public float ControlsSpacing;
         public float InnerSpacing;

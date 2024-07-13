@@ -60,7 +60,7 @@ namespace Imui.Controls.Styling.Themes
         {
             return new ImButtonStyle()
             {
-                AdditionalPadding = 0.0f,
+                Padding = new ImPadding(4.0f, 4.0f, 0.0f, 0.0f),
                 Alignment = new ImTextAlignment(0.5f, 0.5f),
                 TextWrap = false,
                 BorderRadius = 4.0f,
@@ -119,7 +119,8 @@ namespace Imui.Controls.Styling.Themes
                     BorderColor = new Color32(128, 128, 128, 255),
                     BorderWidth = 1.0f,
                     BorderRadius = 4.0f
-                }
+                },
+                Padding = 4.0f
             };
         }
 
@@ -177,6 +178,7 @@ namespace Imui.Controls.Styling.Themes
                     },
                     SelectionColor = new Color32(0, 115, 190, 102),
                 },
+                Padding = 4.0f,
                 CaretWidth = 2.0f,
                 Alignment = new ImTextAlignment(0.0f, 0.0f),
                 TextWrap = false
@@ -195,8 +197,8 @@ namespace Imui.Controls.Styling.Themes
             };
 
             style.OptionButton = CreateButtonStyle();
-            style.OptionButton.AdditionalPadding = 0.0f;
-            style.OptionButton.AdditionalPadding.Left = 4.0f;
+            style.OptionButton.Padding = 0.0f;
+            style.OptionButton.Padding.Left = 4.0f;
             style.OptionButton.Alignment.X = 0.0f;
             style.OptionButton.BorderWidth = 0.0f;
 
@@ -255,7 +257,7 @@ namespace Imui.Controls.Styling.Themes
         {
             return new ImControlsStyle()
             {
-                Padding = 4.0f,
+                ExtraRowHeight = 8.0f,
                 TextSize = 22.0f,
                 ControlsSpacing = 2.0f,
                 InnerSpacing = 2.0f,

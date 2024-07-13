@@ -78,7 +78,7 @@ namespace Imui.Controls.Windows
             gui.Dropdown(ref selectedValue, values);
             gui.Slider(ref sliderValue, 0.0f, 1.0f);
             gui.Text(Format("Slider value: ", sliderValue, "0.00"));
-            gui.TextEdit(ref singleLineText);
+            gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, (gui.GetLayoutWidth(), 200));
             
             gui.Text("Float TextEdit");
@@ -152,17 +152,8 @@ namespace Imui.Controls.Windows
             gui.Text("Spacing");
             gui.Slider(ref ImTheme.Active.Controls.ControlsSpacing, 0, 32);
             
-            gui.Text("Padding Left");
-            gui.Slider(ref ImTheme.Active.Controls.Padding.Left, 0, 32);
-            
-            gui.Text("Padding Right");
-            gui.Slider(ref ImTheme.Active.Controls.Padding.Right, 0, 32);
-            
-            gui.Text("Padding Top");
-            gui.Slider(ref ImTheme.Active.Controls.Padding.Top, 0, 32);
-            
-            gui.Text("Padding Bottom");
-            gui.Slider(ref ImTheme.Active.Controls.Padding.Bottom, 0, 32);
+            gui.Text("Extra Row Size");
+            gui.Slider(ref ImTheme.Active.Controls.ExtraRowHeight, 0, 32);
         }
         
         private static ReadOnlySpan<char> Format(ReadOnlySpan<char> prefix, float value, ReadOnlySpan<char> format = default)

@@ -12,14 +12,14 @@ namespace Imui.Controls
         {
             if (size.Type == ImSizeType.Fit)
             {
-                ref readonly var style = ref ImTheme.Active.Button;
-
                 var textSettings = GetTextSettings();
                 var textSize = gui.MeasureTextSize(label, in textSettings);
-                ImRectExt.AddPaddingToSize(ref textSize, ImTheme.Active.Controls.Padding);
-                ImRectExt.AddPaddingToSize(ref textSize, style.AdditionalPadding);
+                var rectSize = textSize;
 
-                return gui.Layout.AddRect(textSize);
+                rectSize.x += ImTheme.Active.Button.Padding.Horizontal;
+                rectSize.y += ImTheme.Active.Controls.ExtraRowHeight;
+
+                return gui.Layout.AddRect(rectSize);
             }
 
             return ImControls.GetRowRect(gui, size);
@@ -147,13 +147,8 @@ namespace Imui.Controls
         }
 
         public static ImRect GetContentRect(ImRect rect)
-        {
-            ref readonly var style = ref ImTheme.Active.Button;
-            
-            rect.AddPadding(style.AdditionalPadding);
-            rect.AddPadding(ImTheme.Active.Controls.Padding);
-
-            return rect;
+        { 
+            return rect.WithPadding(ImTheme.Active.Button.Padding);
         }
 
         public static Color32 GetStateFontColor(ImButtonState state)
@@ -223,7 +218,7 @@ namespace Imui.Controls
         public ImButtonStateStyle Pressed;
         public float BorderWidth;
         public ImRectRadius BorderRadius;
-        public ImPadding AdditionalPadding;
+        public ImPadding Padding;
         public ImTextAlignment Alignment;
         public bool TextWrap;
     }
