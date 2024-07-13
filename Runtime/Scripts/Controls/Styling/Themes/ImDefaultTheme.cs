@@ -32,16 +32,16 @@ namespace Imui.Controls.Styling.Themes
                     BackColor = ImColors.White,
                     BorderColor = ImColors.Black,
                     BorderWidth = 1.0f,
-                    BorderRadius = 4.0f
+                    BorderRadius = 8.0f
                 },
                 ResizeHandleColor = ImColors.Gray2.WithAlpha(196),
-                ResizeHandleSize = 24,
-                ContentPadding = 4,
+                ResizeHandleSize = 30.0f,
+                ContentPadding = 4.0f,
                 TitleBar = new ImWindowTitleBarStyle()
                 {
                     BackColor = ImColors.Gray3,
                     FrontColor = ImColors.White,
-                    AdditionalPadding = 2,
+                    AdditionalPadding = 2.0f,
                     Alignment = new ImTextAlignment(0.5f, 0.5f)
                 }
             };
@@ -63,29 +63,25 @@ namespace Imui.Controls.Styling.Themes
                 AdditionalPadding = 0.0f,
                 Alignment = new ImTextAlignment(0.5f, 0.5f),
                 TextWrap = false,
-                Normal = new ImBoxStyle()
+                BorderRadius = 4.0f,
+                BorderWidth = 1.0f,
+                Normal = new ImButtonStateStyle()
                 {
                     BackColor = new Color32(230, 230, 230, 255),
                     BorderColor = ImColors.Black,
-                    FrontColor = ImColors.Black,
-                    BorderRadius = 3,
-                    BorderWidth = 1
+                    FrontColor = ImColors.Black
                 },
-                Hovered = new ImBoxStyle()
+                Hovered = new ImButtonStateStyle()
                 {
                     BackColor = new Color32(235, 235, 235, 255),
                     BorderColor = ImColors.Gray1,
-                    FrontColor = ImColors.Gray1,
-                    BorderRadius = 3,
-                    BorderWidth = 1
+                    FrontColor = ImColors.Gray1
                 },
-                Pressed = new ImBoxStyle()
+                Pressed = new ImButtonStateStyle()
                 {
                     BackColor = new Color32(220, 220, 220, 255),
                     BorderColor = ImColors.Black,
-                    FrontColor = ImColors.Black,
-                    BorderRadius = 3,
-                    BorderWidth = 1
+                    FrontColor = ImColors.Black
                 }
             };
         }
@@ -104,15 +100,11 @@ namespace Imui.Controls.Styling.Themes
         {
             var style = new ImFoldoutStyle()
             {
-                ArrowInnerScale = 0.7f,
+                ArrowInnerScale = 0.6f,
                 ArrowOuterScale = 0.7f,
-                Button = CreateButtonStyle(),
+                BorderWidth = 0.0f,
                 TextAlignment = new ImTextAlignment(0.0f, 0.5f)
             };
-
-            style.Button.Normal.BorderWidth = 0.0f;
-            style.Button.Hovered.BorderWidth = 0.0f;
-            style.Button.Pressed.BorderWidth = 0.0f;
 
             return style;
         }
@@ -125,8 +117,8 @@ namespace Imui.Controls.Styling.Themes
                 {
                     BackColor = ImColors.White,
                     BorderColor = ImColors.Black,
-                    BorderWidth = 1,
-                    BorderRadius = 3
+                    BorderWidth = 1.0f,
+                    BorderRadius = 4.0f
                 }
             };
         }
@@ -135,10 +127,10 @@ namespace Imui.Controls.Styling.Themes
         {
             return new ImScrollStyle()
             {
-                Size = 20,
-                Margin = 1,
-                Padding = 1,
-                BorderRadius = 3,
+                Size = 20.0f,
+                Margin = 2.0f,
+                Padding = 1.0f,
+                BorderRadius = 4.0f,
                 NormalState = new ImScrollBarStateStyle()
                 {
                     BackColor = ImColors.Black,
@@ -168,7 +160,7 @@ namespace Imui.Controls.Styling.Themes
                         BackColor = ImColors.Gray7,
                         FrontColor = ImColors.Black,
                         BorderColor = ImColors.Gray1,
-                        BorderRadius = 3.0f,
+                        BorderRadius = 4.0f,
                         BorderWidth = 1.0f
                     },
                     SelectionColor = ImColors.Black.WithAlpha(32)
@@ -180,7 +172,7 @@ namespace Imui.Controls.Styling.Themes
                         BackColor = ImColors.White,
                         FrontColor = ImColors.Black,
                         BorderColor = ImColors.Black,
-                        BorderRadius = 3.0f,
+                        BorderRadius = 4.0f,
                         BorderWidth = 1.0f
                     },
                     SelectionColor = ImColors.Black.WithAlpha(64)
@@ -196,21 +188,20 @@ namespace Imui.Controls.Styling.Themes
             var style = new ImDropdownStyle()
             {
                 Alignment = new ImTextAlignment(0.0f, 0.5f),
-                ArrowInnerScale = 0.7f,
+                ArrowInnerScale = 0.6f,
                 ArrowOuterScale = 0.7f,
-                MaxPanelHeight = 300,
-                OptionsButtonsSpacing = 0
+                MaxPanelHeight = 300.0f,
+                OptionsButtonsSpacing = 2.0f
             };
 
             style.OptionButton = CreateButtonStyle();
             style.OptionButton.Normal.BackColor = ImColors.Blue.WithAlpha(0);
             style.OptionButton.Hovered.BackColor = ImColors.Blue.WithAlpha(32);
             style.OptionButton.Pressed.BackColor = ImColors.Blue.WithAlpha(48);
-            style.OptionButton.AdditionalPadding += 4;
-            style.OptionButton.Alignment.X = 0;
-            style.OptionButton.Normal.BorderWidth = 0;
-            style.OptionButton.Hovered.BorderWidth = 0;
-            style.OptionButton.Pressed.BorderWidth = 0;
+            style.OptionButton.AdditionalPadding = 0.0f;
+            style.OptionButton.AdditionalPadding.Left = 4.0f;
+            style.OptionButton.Alignment.X = 0.0f;
+            style.OptionButton.BorderWidth = 0.0f;
 
             style.OptionButtonSelected = style.OptionButton;
             style.OptionButtonSelected.Normal.BackColor = ImColors.DarkBlue.WithAlpha(240);
@@ -230,24 +221,20 @@ namespace Imui.Controls.Styling.Themes
                 Box = new ImBoxStyle()
                 {
                     BackColor = ImColors.White,
-                    BorderWidth = 1,
+                    BorderWidth = 1.0f,
                     BorderColor = ImColors.Black,
-                    BorderRadius = 4
+                    BorderRadius = 4.0f
                 },
                 Handle = CreateButtonStyle(),
-                Padding = 1,
-                HandleAspectRatio = 1.5f
+                Padding = 1.0f,
+                HandleAspectRatio = 1.0f
             };
             
             style.Handle.Normal.BackColor = ImColors.Black;
-            style.Handle.Normal.BorderRadius = (style.Box.BorderRadius - style.Box.BorderWidth);
-            style.Handle.Normal.BorderWidth = 0.0f;
             style.Handle.Hovered.BackColor = ImColors.Gray1;
-            style.Handle.Hovered.BorderRadius = style.Handle.Normal.BorderRadius;
-            style.Handle.Hovered.BorderWidth = 0.0f;
             style.Handle.Pressed.BackColor = ImColors.Black;
-            style.Handle.Pressed.BorderRadius = style.Handle.Normal.BorderRadius;
-            style.Handle.Pressed.BorderWidth = 0.0f;
+            style.Handle.BorderRadius = (style.Box.BorderRadius - style.Box.BorderWidth);
+            style.Handle.BorderWidth = 0.0f;
             
             return style;
         }
@@ -256,12 +243,12 @@ namespace Imui.Controls.Styling.Themes
         {
             return new ImControlsStyle()
             {
-                Padding = 2,
-                TextSize = 26,
-                ControlsSpacing = 4,
-                InnerSpacing = 2,
-                ScrollSpeedScale = 6,
-                Indent = 20
+                Padding = 4.0f,
+                TextSize = 22.0f,
+                ControlsSpacing = 2.0f,
+                InnerSpacing = 2.0f,
+                ScrollSpeedScale = 6.0f,
+                Indent = 20.0f
             };
         }
     }

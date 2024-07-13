@@ -142,7 +142,7 @@ namespace Imui.Controls
 
             var clicked = gui.Button(id, label, rect, out var state);
 
-            DrawArrow(gui, arrowRect, ImButton.GetStateStyle(state).FrontColor);
+            DrawArrow(gui, arrowRect, ImButton.GetStateFontColor(state));
 
             return clicked;
         }
@@ -162,6 +162,7 @@ namespace Imui.Controls
         }
     }
 
+    [Serializable]
     public struct ImDropdownStyle
     {
         public float ArrowInnerScale;

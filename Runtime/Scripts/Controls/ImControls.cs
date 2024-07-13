@@ -1,3 +1,4 @@
+using System;
 using Imui.Controls.Styling;
 using Imui.Core;
 
@@ -54,6 +55,7 @@ namespace Imui.Controls
         }
     }
     
+    [Serializable]
     public struct ImControlsStyle
     {
         public ImPadding Padding;

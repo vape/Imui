@@ -1,3 +1,4 @@
+using System;
 using Imui.Core;
 using Imui.Controls.Styling;
 
@@ -34,6 +35,7 @@ namespace Imui.Controls
         }
     }
 
+    [Serializable]
     public struct ImPanelStyle
     {
         public ImBoxStyle Box;

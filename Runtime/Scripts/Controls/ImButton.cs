@@ -2,6 +2,7 @@ using System;
 using Imui.Core;
 using Imui.IO.Events;
 using Imui.Controls.Styling;
+using UnityEngine;
 
 namespace Imui.Controls
 {
@@ -46,7 +47,7 @@ namespace Imui.Controls
         {
             var clicked = Button(gui, id, rect, out state);
             var textSettings = GetTextSettings();
-            var textColor = GetStateStyle(state).FrontColor;
+            var textColor = GetStateFontColor(state);
             var textRect = GetContentRect(rect);
             
             gui.Canvas.Text(label, textColor, textRect, in textSettings);
@@ -63,7 +64,7 @@ namespace Imui.Controls
             gui.RegisterControl(id, rect);
             
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
-            gui.Box(rect, GetStateStyle(state));
+            gui.Box(rect, GetStateBoxStyle(state));
 
             if (gui.IsReadOnly)
             {
@@ -155,18 +156,39 @@ namespace Imui.Controls
             return rect;
         }
 
-        public static ImBoxStyle GetStateStyle(ImButtonState state)
+        public static Color32 GetStateFontColor(ImButtonState state)
+        {
+            ref readonly var stateStyle = ref GetStateStyle(state);
+            return stateStyle.FrontColor;
+        }
+
+        public static ImBoxStyle GetStateBoxStyle(ImButtonState state)
+        {
+            ref readonly var style = ref ImTheme.Active.Button;
+            ref readonly var stateStyle = ref GetStateStyle(state);
+            
+            return new ImBoxStyle
+            {
+                BackColor = stateStyle.BackColor,
+                FrontColor = stateStyle.FrontColor,
+                BorderColor = stateStyle.BorderColor,
+                BorderWidth = style.BorderWidth,
+                BorderRadius = style.BorderRadius
+            };
+        }
+
+        public static ref readonly ImButtonStateStyle GetStateStyle(ImButtonState state)
         {
             ref readonly var style = ref ImTheme.Active.Button;
             
             switch (state)
             {
                 case ImButtonState.Hovered:
-                    return style.Hovered;
+                    return ref style.Hovered;
                 case ImButtonState.Pressed:
-                    return style.Pressed;
+                    return ref style.Pressed;
                 default:
-                    return style.Normal;
+                    return ref style.Normal;
             }
         }
         
@@ -184,13 +206,23 @@ namespace Imui.Controls
         Hovered,
         Pressed
     }
+
+    [Serializable]
+    public struct ImButtonStateStyle
+    {
+        public Color32 BackColor;
+        public Color32 FrontColor;
+        public Color32 BorderColor;
+    }
     
     [Serializable]
     public struct ImButtonStyle
     {
-        public ImBoxStyle Normal;
-        public ImBoxStyle Hovered;
-        public ImBoxStyle Pressed;
+        public ImButtonStateStyle Normal;
+        public ImButtonStateStyle Hovered;
+        public ImButtonStateStyle Pressed;
+        public float BorderWidth;
+        public ImRectRadius BorderRadius;
         public ImPadding AdditionalPadding;
         public ImTextAlignment Alignment;
         public bool TextWrap;

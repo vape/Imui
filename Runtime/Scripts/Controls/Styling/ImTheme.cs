@@ -1,7 +1,9 @@
+using System;
 using Imui.Controls.Styling.Themes;
 
 namespace Imui.Controls.Styling
 {
+    [Serializable]
     public struct ImTheme
     {
         public static ImTheme Active = ImDefaultTheme.Create();

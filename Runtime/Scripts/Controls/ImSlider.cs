@@ -1,3 +1,4 @@
+using System;
 using Imui.Core;
 using Imui.IO.Events;
 using Imui.Controls.Styling;
@@ -89,6 +90,7 @@ namespace Imui.Controls
         }
     }
 
+    [Serializable]
     public struct ImSliderStyle
     {
         public ImBoxStyle Box;

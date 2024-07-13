@@ -82,14 +82,14 @@ namespace Imui.Controls
         public static void Checkbox(this ImGui gui, uint id, ref bool value, ImRect rect)
         {
             var clicked = gui.Button(id, rect, out var state);
-            var style = ImButton.GetStateStyle(state);
+            var frontColor = ImButton.GetStateFontColor(state);
 
             if (value)
             {
                 var checkmarkRect = rect.ScaleFromCenter(ImTheme.Active.Checkbox.CheckmarkScale);
                 var checkmarkStrokeWidth = checkmarkRect.W * 0.2f;
                 
-                DrawCheckmark(gui.Canvas, checkmarkRect, style.FrontColor, checkmarkStrokeWidth);
+                DrawCheckmark(gui.Canvas, checkmarkRect, frontColor, checkmarkStrokeWidth);
             }
             
             if (clicked)
@@ -121,6 +121,7 @@ namespace Imui.Controls
         }
     }
 
+    [Serializable]
     public struct ImCheckboxStyle
     {
         public float CheckmarkScale;

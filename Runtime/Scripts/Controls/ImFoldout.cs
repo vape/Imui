@@ -39,21 +39,22 @@ namespace Imui.Controls
             var arrowSize = arrowRect.H * ImTheme.Active.Foldout.ArrowOuterScale;
             arrowRect.W = arrowSize;
 
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in ImTheme.Active.Foldout.Button);
-            
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
+
+            ImTheme.Active.Button.BorderWidth = ImTheme.Active.Foldout.BorderWidth;
             ImTheme.Active.Button.Alignment = ImTheme.Active.Foldout.TextAlignment;
             ImTheme.Active.Button.AdditionalPadding.Left += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
 
             var clicked = gui.Button(id, label, rect, out var state);
-            var style = ImButton.GetStateStyle(state);
+            var frontColor = ImButton.GetStateFontColor(state);
             
             if (open)
             {
-                DrawOpenArrow(gui.Canvas, arrowRect, style.FrontColor);
+                DrawOpenArrow(gui.Canvas, arrowRect, frontColor);
             }
             else
             {
-                DrawClosedArrow(gui.Canvas, arrowRect, style.FrontColor);
+                DrawClosedArrow(gui.Canvas, arrowRect, frontColor);
             }
             
             if (clicked)
@@ -91,11 +92,12 @@ namespace Imui.Controls
         }
     }
 
+    [Serializable]
     public struct ImFoldoutStyle
     {
         public float ArrowInnerScale;
         public float ArrowOuterScale;
-        public ImButtonStyle Button;
+        public float BorderWidth;
         public ImTextAlignment TextAlignment;
     }
 }

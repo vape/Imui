@@ -959,6 +959,14 @@ namespace Imui.Controls
         public override bool TryFormat(Span<char> buffer, float value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
     }
 
+    [Serializable]
+    public struct ImTextEditStateStyle
+    {
+        public ImBoxStyle Box;
+        public Color32 SelectionColor;
+    }
+    
+    [Serializable]
     public struct ImTextEditStyle
     {
         public ImTextEditStateStyle Normal;
@@ -966,11 +974,5 @@ namespace Imui.Controls
         public float CaretWidth;
         public ImTextAlignment Alignment;
         public bool TextWrap;
-    }
-
-    public struct ImTextEditStateStyle
-    {
-        public ImBoxStyle Box;
-        public Color32 SelectionColor;
     }
 }
