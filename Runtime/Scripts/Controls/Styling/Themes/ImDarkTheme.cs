@@ -24,7 +24,7 @@ namespace Imui.Controls.Styling.Themes
             theme.Button.Pressed.BackColor = new Color32(56, 56, 56, 255);
             theme.Button.Pressed.FrontColor = new Color32(179, 179, 179, 255);
             theme.Button.Pressed.BorderColor = new Color32(10, 10, 10, 255);
-            theme.Panel.Box.BackColor = new Color32(41, 41, 41, 255);
+            theme.Panel.Box.BackColor = new Color32(31, 31, 31, 255);
             theme.Panel.Box.BorderColor = new Color32(20, 20, 20, 255);
             theme.Scroll.NormalState.BackColor = new Color32(20, 20, 20, 255);
             theme.Scroll.NormalState.FrontColor = new Color32(76, 76, 76, 255);
