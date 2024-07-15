@@ -8,25 +8,30 @@ namespace Imui.Controls.Windows
 {
     public static class ImDebugWindow
     {
+        private const int MOVING_AVERAGE_INTERVAL = 90;
+        private const int FRAME_TIMES_BUFFER_SIZE = 120;
+        
         private static readonly Color32 groupColor = new Color32(255, 0, 0, 32);
         private static readonly Color32 controlColor = new Color32(0, 255, 0, 64);
         
         private static bool debugOverlay = false;
         private static char[] formatBuffer = new char[256];
-        private static ImCircularBuffer<float> frameTimes = new ImCircularBuffer<float>(128);
+        private static ImCircularBuffer<float> frameTimes = new ImCircularBuffer<float>(FRAME_TIMES_BUFFER_SIZE);
+        private static float maxFrameTime;
+        private static float avgFrameTime;
         
         public static void Draw(ImGui gui)
         {
-            gui.BeginWindow("Imui Debug");
+            gui.BeginWindow("Imui Debug", width: 350, 383);
 
             var buffer = new Span<char>(formatBuffer);
             var length = 0;
             
-            Append(buffer, "Hovered Control: ", ref length);
+            Append(buffer, "Hovered: ", ref length);
             Append(buffer, gui.frameData.HoveredControl.Id, ref length);
             Flush(gui, buffer, ref length);
             
-            Append(buffer, "Hot Control: ", ref length);
+            Append(buffer, "Active: ", ref length);
             Append(buffer, gui.GetActiveControl(), ref length);
             Flush(gui, buffer, ref length);
 
@@ -34,24 +39,29 @@ namespace Imui.Controls.Windows
             Append(buffer, gui.Storage.OccupiedSize, ref length);
             Append(buffer, "/", ref length);
             Append(buffer, gui.Storage.Capacity, ref length);
+            Append(buffer, " bytes", ref length);
             Flush(gui, buffer, ref length);
-
-            Append(buffer, "Frametime: ", ref length);
-            Append(buffer, Time.deltaTime * 1000, ref length, "0.0");
+            
+            Append(buffer, "Vertices: ", ref length);
+            Append(buffer, gui.frameData.VerticesCount, ref length);
+            Flush(gui, buffer, ref length);
+            
+            Append(buffer, "Indices: ", ref length);
+            Append(buffer, gui.frameData.IndicesCount, ref length);
+            Flush(gui, buffer, ref length);
+            
+            Append(buffer, "FPS: ", ref length);
+            Append(buffer, avgFrameTime <= 0 ? 0 : 1 / avgFrameTime, ref length, "0");
+            Append(buffer, " (", ref length);
+            Append(buffer, avgFrameTime * 1000, ref length, "0.0");
             Append(buffer, "ms", ref length);
+            Append(buffer, ")", ref length);
             Flush(gui, buffer, ref length);
 
-            Append(buffer, "FPS:", ref length);
-            Append(buffer, 1 / Time.deltaTime, ref length, "0");
-            Flush(gui, buffer, ref length);
-
-            frameTimes.PushFront(Time.deltaTime);
+            AppendFrameTime();
             DrawFrametimeGraph(gui);
             
-            if (gui.Button(debugOverlay ? "Disable Overlay" : "Enable Overlay", ImSizeType.Fit))
-            {
-                debugOverlay = !debugOverlay;
-            }
+            gui.Checkbox(ref debugOverlay, "Highlight Controls/Groups");
             
             #if IMUI_DEBUG
             gui.Checkbox(ref gui.MeshRenderer.Wireframe, "Wireframe");
@@ -74,26 +84,43 @@ namespace Imui.Controls.Windows
             }
         }
 
+        private static void AppendFrameTime()
+        {
+            frameTimes.PushFront(Time.deltaTime);
+            
+            maxFrameTime = 0.0f;
+            avgFrameTime = 0.0f;
+
+            var avgCount = 0;
+            
+            for (int i = frameTimes.Count - 1; i >= 0; --i)
+            {
+                var value = frameTimes.Get(i);
+                if (value > maxFrameTime)
+                {
+                    maxFrameTime = value;
+                }
+
+                if (avgCount < MOVING_AVERAGE_INTERVAL)
+                {
+                    avgFrameTime += value;
+                    avgCount++;
+                }
+            }
+
+            avgFrameTime /= avgCount;
+        }
+
         private static void DrawFrametimeGraph(ImGui gui)
         {
             gui.AddSpacing();
             
             var width = gui.GetLayoutWidth();
-            var height = 200.0f;
+            var height = 100.0f;
             var rect = gui.Layout.AddRect(width, height);
-
-            var min = 0;
-            var max = Application.targetFrameRate * 2.0f;
-
-            for (int i = 0; i < frameTimes.Count; ++i)
-            {
-                var value = frameTimes.Array[i] * 2;
-                if (value > max)
-                {
-                    max = value;
-                }
-            }
-
+            var min = 0.0f;
+            var max = Mathf.Max(maxFrameTime, Mathf.RoundToInt(avgFrameTime / 0.004f) * 0.004f * 2);
+            
             Span<Vector2> points = stackalloc Vector2[frameTimes.Count];
             var nw = frameTimes.Count / (float)frameTimes.Capacity;
             for (int i = 0; i < frameTimes.Count; ++i)
@@ -104,9 +131,10 @@ namespace Imui.Controls.Windows
 
                 points[i] = new Vector2(rect.X + xn * rect.W * nw, rect.Y + yn * rect.H);
             }
-            
-            gui.Canvas.RectWithOutline(rect, new Color32(192, 192, 192, 255), ImColors.Black, 1.0f);
-            gui.Canvas.Line(points, ImColors.Black, false, 1);
+
+            gui.BeginPanel(rect);
+            gui.Canvas.Line(points, ImTheme.Active.Text.Color, false, 1);
+            gui.EndPanel();
         }
 
         private static void Flush(ImGui gui, Span<char> buffer, ref int length)

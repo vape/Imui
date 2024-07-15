@@ -18,7 +18,7 @@ namespace Imui.Rendering
         public Color32 Color;
         public Vector4 ScaleOffset;
 
-        private readonly ImMeshBuffer buffer;
+        internal readonly ImMeshBuffer buffer;
         
         public ImMeshDrawer(ImMeshBuffer buffer)
         {

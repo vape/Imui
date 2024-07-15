@@ -51,12 +51,16 @@ namespace Imui.Core
             public ControlData HoveredControl;
             public ImDynamicArray<ControlData> HoveredGroups;
             public ImDynamicArray<ImRect> FloatingControls;
+            public int VerticesCount;
+            public int IndicesCount;
 
             public FrameData(int hoveredGroupsCapacity, int floatingControlsCapacity)
             {
                 HoveredControl = default;
                 HoveredGroups = new ImDynamicArray<ControlData>(hoveredGroupsCapacity);
                 FloatingControls = new ImDynamicArray<ImRect>(floatingControlsCapacity);
+                IndicesCount = 0;
+                VerticesCount = 0;
             }
             
             public void Clear()
@@ -356,6 +360,9 @@ namespace Imui.Core
         
         public void Render()
         {
+            nextFrameData.VerticesCount = MeshDrawer.buffer.VerticesCount;
+            nextFrameData.IndicesCount = MeshDrawer.buffer.IndicesCount;
+            
             var renderCmd = Renderer.CreateCommandBuffer();
             var screenSize = Renderer.GetScreenRect().size;
             Renderer.SetupRenderTarget(renderCmd);
