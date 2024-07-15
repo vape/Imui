@@ -23,10 +23,13 @@ namespace Imui.Controls
 
                     var textSettings = GetTextSettings();
                     var textSize = gui.MeasureTextSize(label, in textSettings);
-                    var width = size.Type == ImSizeType.Fit
-                        ? boxSize + ImTheme.Active.Controls.InnerSpacing + textSize.x
-                        : gui.GetLayoutWidth();
+                    var width = boxSize + ImTheme.Active.Controls.InnerSpacing + textSize.x;
                     var height = Mathf.Max(boxSize, textSize.y);
+                    
+                    if (size.Type != ImSizeType.Fit)
+                    {
+                        width = Mathf.Max(gui.GetLayoutWidth(), width);
+                    }
                         
                     return gui.Layout.AddRect(width, height);
             }
