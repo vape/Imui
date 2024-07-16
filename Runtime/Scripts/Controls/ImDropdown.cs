@@ -97,6 +97,7 @@ namespace Imui.Controls
             gui.PushId(id);
             gui.BeginPopup();
             gui.BeginPanel(panelRect);
+            gui.BeginScrollable();
 
             var optionButtonWidth = gui.Layout.GetAvailableWidth();
 
@@ -119,7 +120,8 @@ namespace Imui.Controls
                     }
                 }
             }
-                
+            
+            gui.EndScrollable();
             gui.EndPanel();
             gui.EndPopup(out closed);
             gui.PopId();

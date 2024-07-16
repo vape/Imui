@@ -18,12 +18,10 @@ namespace Imui.Controls
             gui.Layout.Push(ImAxis.Vertical, layoutRect);
             gui.Canvas.PushRectMask(maskRect, ImTheme.Active.Panel.Box.BorderRadius);
             gui.Canvas.PushClipRect(maskRect); // need this to properly handle clicking outside drawing area
-            gui.BeginScrollable();
         }
 
         public static void EndPanel(this ImGui gui)
         {
-            gui.EndScrollable();
             gui.Canvas.PopClipRect();
             gui.Canvas.PopRectMask();
             gui.Layout.Pop();
