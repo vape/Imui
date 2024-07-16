@@ -171,9 +171,9 @@ namespace Imui.IO.UGUI
             return ((Vector2)Input.mousePosition - GetScreenRect().position) / scale;
         }
 
-        public void RequestTouchKeyboard(ReadOnlySpan<char> text)
+        public void RequestTouchKeyboard(uint owner, ReadOnlySpan<char> text, ImTouchKeyboardSettings settings)
         {
-            touchKeyboardHandler.RequestTouchKeyboard(text);
+            touchKeyboardHandler.RequestTouchKeyboard(owner, text, settings);
         }
 
         private void OnGUI()

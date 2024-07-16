@@ -5,6 +5,7 @@ using Imui.Core;
 using Imui.IO.Events;
 using Imui.Rendering;
 using Imui.Controls.Styling;
+using Imui.IO.Utility;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -256,11 +257,6 @@ namespace Imui.Controls
             
             if (selected)
             {
-                if (editable)
-                {
-                    gui.Input.RequestTouchKeyboard(buffer);
-                }
-                
                 DrawCaret(gui, state.Caret, textRect, in layout, in stateStyle, in buffer);
                 DrawSelection(gui, state.Caret, state.Selection, textRect, in layout, in stateStyle, in buffer);
                 
@@ -297,6 +293,19 @@ namespace Imui.Controls
                         textChanged = buffer.Length != 0 || textEvent.Text.Length != 0;
                         buffer.Clear(textEvent.Text.Length);
                         Insert(ref state, ref buffer, textEvent.Text);
+                        break;
+                    default:
+                        if (editable)
+                        {
+                            var settings = new ImTouchKeyboardSettings()
+                            {
+                                Muiltiline = multiline,
+                                Type = filter?.KeyboardType ?? ImTouchKeyboardType.Default,
+                                CharactersLimit = filter == null ? 0 : ImTextTempFilterBuffer.BUFFER_LENGTH
+                            };
+                            
+                            gui.Input.RequestTouchKeyboard(id, buffer, settings);
+                        }
                         break;
                 }
             }
@@ -957,12 +966,16 @@ namespace Imui.Controls
         
     public abstract class ImTextEditFilter
     {
+        public virtual ImTouchKeyboardType KeyboardType => ImTouchKeyboardType.Default;
+        
         public abstract bool IsValid(ReadOnlySpan<char> buffer);
         public abstract string GetFallbackString();
     }
 
     public abstract class ImTextEditFilterNumeric<T> : ImTextEditFilter
     {
+        public override ImTouchKeyboardType KeyboardType => ImTouchKeyboardType.Numeric;
+        
         public abstract bool TryParse(ReadOnlySpan<char> buffer, out T value);
         public abstract bool TryFormat(Span<char> buffer, T value, out int length, ReadOnlySpan<char> format);
     }
@@ -977,9 +990,18 @@ namespace Imui.Controls
     
     public sealed class ImTextEditFloatFilter : ImTextEditFilterNumeric<float>
     {
+        // allow to use comma as decimal separator
+        private static readonly CultureInfo DeCulture = new("de");
+        
         public override bool IsValid(ReadOnlySpan<char> buffer) => TryParse(buffer, out _);
         public override string GetFallbackString() => "0.0";
-        public override bool TryParse(ReadOnlySpan<char> buffer, out float value) => float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+
+        public override bool TryParse(ReadOnlySpan<char> buffer, out float value) { 
+            return 
+                float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out value) ||
+                float.TryParse(buffer, NumberStyles.Float, DeCulture, out value);
+        }
+        
         public override bool TryFormat(Span<char> buffer, float value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
     }
 

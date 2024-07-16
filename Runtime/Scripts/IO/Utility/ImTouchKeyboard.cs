@@ -4,15 +4,29 @@ using UnityEngine;
 
 namespace Imui.IO.Utility
 {
+    public enum ImTouchKeyboardType
+    {
+        Default,
+        Numeric
+    }
+    
+    public struct ImTouchKeyboardSettings
+    {
+        public bool Muiltiline;
+        public ImTouchKeyboardType Type;
+        public int CharactersLimit;
+    }
+    
     public class ImTouchKeyboard : IDisposable
     {
         private const int TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD = 3;
 
         public TouchScreenKeyboard TouchKeyboard;
-        
+
+        private uint touchKeyboardOwner;
         private int touchKeyboardRequestFrame;
         
-        public void RequestTouchKeyboard(ReadOnlySpan<char> text)
+        public void RequestTouchKeyboard(uint owner, ReadOnlySpan<char> text, ImTouchKeyboardSettings settings)
         {
             #if UNITY_WEBGL
             // TODO (artem-s): fix touch keyboard handling for webgl
@@ -24,9 +38,22 @@ namespace Imui.IO.Utility
                 return;
             }
 
+            if (owner != touchKeyboardOwner && TouchKeyboard != null)
+            {
+                TouchKeyboard.active = false;
+                TouchKeyboard = null;
+                touchKeyboardOwner = 0;
+            }
+
             if (TouchKeyboard == null)
             {
-                TouchKeyboard = TouchScreenKeyboard.Open(new string(text), TouchScreenKeyboardType.Default);
+                touchKeyboardOwner = owner;
+                TouchKeyboard = TouchScreenKeyboard.Open(
+                    new string(text), 
+                    GetType(settings.Type), 
+                    false,
+                    settings.Muiltiline);
+                TouchKeyboard.characterLimit = settings.CharactersLimit;
             }
 
             if (!TouchKeyboard.active)
@@ -35,6 +62,17 @@ namespace Imui.IO.Utility
             }
             
             touchKeyboardRequestFrame = Time.frameCount;
+        }
+
+        private TouchScreenKeyboardType GetType(ImTouchKeyboardType type)
+        {
+            switch (type)
+            {
+                case ImTouchKeyboardType.Numeric:
+                    return TouchScreenKeyboardType.DecimalPad;
+                default:
+                    return TouchScreenKeyboardType.Default;
+            }
         }
 
         public void HandleTouchKeyboard(out ImTextEvent textEvent)

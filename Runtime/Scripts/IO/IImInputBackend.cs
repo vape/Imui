@@ -1,5 +1,6 @@
 using System;
 using Imui.IO.Events;
+using Imui.IO.Utility;
 using UnityEngine;
 
 namespace Imui.IO
@@ -34,6 +35,6 @@ namespace Imui.IO
         void SetRaycaster(ImInputRaycaster raycaster);
         void SetScale(float scale);
         void Pull();
-        void RequestTouchKeyboard(ReadOnlySpan<char> text);
+        void RequestTouchKeyboard(uint owner, ReadOnlySpan<char> text, ImTouchKeyboardSettings settings);
     }
 }
