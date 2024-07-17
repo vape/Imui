@@ -8,6 +8,7 @@ namespace Imui.Controls.Styling
     {
         public static ImTheme Active = ImLightTheme.Create();
 
+        public string Name;
         public ImControlsStyle Controls;
         public ImWindowStyle Window;
         public ImTextStyle Text;

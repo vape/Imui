@@ -4,10 +4,13 @@ namespace Imui.Controls.Styling.Themes
 {
     public static class ImDarkTheme
     {
+        public const string NAME = "Dark";
+        
         public static ImTheme Create()
         {
             var theme = ImLightTheme.Create();
-            
+
+            theme.Name = NAME;
             theme.Window.Box.BackColor = new Color32(41, 41, 41, 255);
             theme.Window.Box.BorderColor = new Color32(31, 31, 31, 255);
             theme.Window.Box.BorderWidth = 2.0f;

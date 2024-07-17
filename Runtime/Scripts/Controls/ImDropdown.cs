@@ -41,25 +41,25 @@ namespace Imui.Controls
             gui.PopId();
         }
         
-        public static bool Dropdown(this ImGui gui, ref int selected, ReadOnlySpan<string> options, ImSize size = default)
+        public static bool Dropdown(this ImGui gui, ref int selected, ReadOnlySpan<string> options, ImSize size = default, ReadOnlySpan<char> defaultLabel = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = ImControls.GetRowRect(gui, size);
-            return Dropdown(gui, ref selected, options, rect);
+            return Dropdown(gui, ref selected, options, rect, defaultLabel);
         }
         
-        public static bool Dropdown(this ImGui gui, ref int selected, ReadOnlySpan<string> options, ImRect rect)
+        public static bool Dropdown(this ImGui gui, ref int selected, ReadOnlySpan<string> options, ImRect rect, ReadOnlySpan<char> defaultLabel = default)
         {
             var id = gui.GetNextControlId();
-            return Dropdown(gui, id, ref selected, options, rect);
+            return Dropdown(gui, id, ref selected, options, rect, defaultLabel);
         }
         
-        public static bool Dropdown(this ImGui gui, uint id, ref int selected, ReadOnlySpan<string> options, ImRect rect)
+        public static bool Dropdown(this ImGui gui, uint id, ref int selected, ReadOnlySpan<string> options, ImRect rect, ReadOnlySpan<char> defaultLabel = default)
         {
             ref var state = ref gui.Storage.Get<ImDropdownState>(id);
 
-            var text = selected < 0 || selected >= options.Length ? string.Empty : options[selected];
+            var text = selected < 0 || selected >= options.Length ? defaultLabel : options[selected];
             var clicked = DropdownButton(gui, id, text, rect);
             var changed = false;
             var closed = false;

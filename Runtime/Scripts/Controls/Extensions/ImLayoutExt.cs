@@ -24,6 +24,18 @@ namespace Imui.Controls
         {
             return gui.Layout.GetBoundsRect();
         }
+
+        public static ImRect AddLayoutRect(this ImGui gui, float width, float height)
+        {
+            return gui.Layout.AddRect(width, height);
+        }
+        
+        public static ImRect AddLayoutRectWithSpacing(this ImGui gui, float width, float height)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
+            return gui.Layout.AddRect(width, height);
+        }
         
         public static void BeginVertical(this ImGui gui, float width = 0.0f, float height = 0.0f)
         {

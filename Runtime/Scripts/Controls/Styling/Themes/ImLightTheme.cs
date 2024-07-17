@@ -5,10 +5,13 @@ namespace Imui.Controls.Styling.Themes
 {
     public static class ImLightTheme
     {
+        public const string NAME = "Light";
+        
         public static ImTheme Create()
         {
             return new ImTheme()
             {
+                Name = NAME,
                 Window = CreateWindowStyle(),
                 Text = CreateTextStyle(),
                 Button = CreateButtonStyle(),
@@ -262,7 +265,7 @@ namespace Imui.Controls.Styling.Themes
                 ControlsSpacing = 2.0f,
                 InnerSpacing = 2.0f,
                 ScrollSpeedScale = 6.0f,
-                Indent = 20.0f
+                Indent = 8.0f
             };
         }
     }

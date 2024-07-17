@@ -103,5 +103,33 @@ namespace Imui.Controls
 
             return rect;
         }
+
+        public static ImRect Clamp(ImRect bounds, ImRect rect)
+        {
+            rect.W = Mathf.Min(rect.W, bounds.W);
+            rect.H = Mathf.Min(rect.H, bounds.H);
+
+            if (rect.X < bounds.X)
+            {
+                rect.X += bounds.X - rect.X;
+            }
+
+            if (rect.Right > bounds.Right)
+            {
+                rect.X -= rect.Right - bounds.Right;
+            }
+
+            if (rect.Y < bounds.Y)
+            {
+                rect.Y += bounds.Y - rect.Y;
+            }
+
+            if (rect.Top > bounds.Top)
+            {
+                rect.Y -= rect.Top - bounds.Top;
+            }
+
+            return rect;
+        }
     }
 }
