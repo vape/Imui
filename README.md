@@ -14,6 +14,10 @@ The basic principle is the same as in Dear ImGui: every frame, we generate a mes
 
 You can install Imui as a git package in Unity Package Manager
 
+## Themes
+
+Dark and light themes are supported, check out demo [here](https://vape.github.io/imui_demo/).
+
 ## Controls
 
 Supports a very basic set of controls:
