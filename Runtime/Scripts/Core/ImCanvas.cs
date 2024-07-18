@@ -2,43 +2,32 @@ using System;
 using Imui.Rendering;
 using Imui.Utility;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace Imui.Core
 {
+    public struct ImCanvasSettings
+    {
+        public Material Material;
+        public ImMeshClipRect ClipRect;
+        public ImMeshMaskRect MaskRect;
+        public Texture MainTex;
+        public Texture FontTex;
+        public int Order;
+        public float Contrast;
+    }
+    
     public partial class ImCanvas : IDisposable
     {
         public const int DEFAULT_ORDER = 0;
-        
-        // TODO (artem-s): allow to change drawing depth
-        private const int DEFAULT_DEPTH = 0;
         
         private const int DEFAULT_TEX_W = 4;
         private const int DEFAULT_TEX_H = 4;
         
         private const int MESH_SETTINGS_CAPACITY = 32;
-        private const int TEMP_POINTS_BUFFER_CAPACITY = 1024;
 
         private const float LINE_THICKNESS_THRESHOLD = 0.01f;
         
         private const string SHADER_NAME = "imui_default";
-        
-        private struct TextureInfo
-        {
-            public int Id;
-            public Texture2D Texture;
-            public Vector4 ScaleOffset;
-        }
-
-        public struct MeshSettings
-        {
-            public Material Material;
-            public MeshClipRect ClipRect;
-            public MeshMaskRect MaskRect;
-            public int Order;
-            public Texture MainTex;
-            public Texture FontTex;
-        }
         
         private static Texture2D CreateDefaultTexture()
         {
@@ -54,22 +43,21 @@ namespace Imui.Core
 
         public ImRect ScreenRect => new ImRect(Vector2.zero, ScreenSize);
         public Vector2 ScreenSize => screenSize;
-        public Vector4 DefaultTexScaleOffset => defaultTexScaleOffset;
+
+        public int DrawingDepth = 0;
+        public Vector4 TexScaleOffset = new(1, 1, 0, 0);
         
         private Shader shader;
         private Material material;
         private Texture2D defaultTexture;
-        private DynamicArray<TextureInfo> texturesInfo;
-        private DynamicArray<MeshSettings> meshSettingsStack;
+        private ImDynamicArray<ImCanvasSettings> settingsStack;
         private Vector2 screenSize;
-        private ResizeableBuffer<Vector2> tempPointsBuffer;
         private bool disposed;
         
-        private readonly Vector4 defaultTexScaleOffset;
-        private readonly MeshDrawer meshDrawer;
-        private readonly TextDrawer textDrawer;
+        private readonly ImMeshDrawer meshDrawer;
+        private readonly ImTextDrawer textDrawer;
         
-        public ImCanvas(MeshDrawer meshDrawer, TextDrawer textDrawer)
+        public ImCanvas(ImMeshDrawer meshDrawer, ImTextDrawer textDrawer)
         {
             this.meshDrawer = meshDrawer;
             this.textDrawer = textDrawer;
@@ -77,10 +65,7 @@ namespace Imui.Core
             shader = Resources.Load<Shader>(SHADER_NAME);
             material = new Material(shader);
             defaultTexture = CreateDefaultTexture();
-            defaultTexScaleOffset = new Vector4(1, 1, 0, 0);
-            texturesInfo = new DynamicArray<TextureInfo>(capacity: 64);
-            meshSettingsStack = new DynamicArray<MeshSettings>(MESH_SETTINGS_CAPACITY);
-            tempPointsBuffer = new ResizeableBuffer<Vector2>(TEMP_POINTS_BUFFER_CAPACITY);
+            settingsStack = new ImDynamicArray<ImCanvasSettings>(MESH_SETTINGS_CAPACITY);
         }
         
         public void SetScreen(Vector2 screenSize)
@@ -93,41 +78,41 @@ namespace Imui.Core
             meshDrawer.Clear();
         }
 
-        public void PushMeshSettings(in MeshSettings settings)
+        public void PushSettings(in ImCanvasSettings settings)
         {
-            meshSettingsStack.Push(in settings);
+            settingsStack.Push(in settings);
             meshDrawer.NextMesh();
             
-            ApplyMeshSettings();
+            ApplySettings();
         }
         
-        public void PopMeshSettings()
+        public void PopSettings()
         {
-            meshSettingsStack.Pop();
+            settingsStack.Pop();
 
-            if (meshSettingsStack.Count > 0)
+            if (settingsStack.Count > 0)
             {
                 meshDrawer.NextMesh();
-                ApplyMeshSettings();
+                ApplySettings();
             }
         }
 
-        internal ref readonly MeshSettings GetActiveMeshSettingsRef()
+        internal ref readonly ImCanvasSettings GetActiveSettings()
         {
-            return ref meshSettingsStack.Peek();
+            return ref settingsStack.Peek();
         }
         
-        public MeshSettings GetActiveMeshSettings()
+        public ImCanvasSettings GetActiveSettingsCopy()
         {
-            return meshSettingsStack.Peek();
+            return settingsStack.Peek();
         }
         
-        public MeshSettings CreateDefaultMeshSettings()
+        public ImCanvasSettings CreateDefaultSettings()
         {
-            return new MeshSettings()
+            return new ImCanvasSettings()
             {
                 Order = DEFAULT_ORDER,
-                ClipRect = new MeshClipRect()
+                ClipRect = new ImMeshClipRect()
                 {
                     Enabled = true,
                     Rect = new Rect(Vector2.zero, screenSize)
@@ -138,10 +123,10 @@ namespace Imui.Core
             };
         }
 
-        private void ApplyMeshSettings()
+        private void ApplySettings()
         {
             ref var mesh = ref meshDrawer.GetMesh();
-            ref var settings = ref meshSettingsStack.Peek();
+            ref var settings = ref settingsStack.Peek();
 
             mesh.FontTex = settings.FontTex;
             mesh.MainTex = settings.MainTex;
@@ -149,13 +134,14 @@ namespace Imui.Core
             mesh.Order = settings.Order;
             mesh.ClipRect = settings.ClipRect;
             mesh.MaskRect = settings.MaskRect;
+            mesh.Contrast = settings.Contrast;
         }
 
         public bool Cull(ImRect rect)
         {
             var r = (Rect)rect;
             
-            ref var settings = ref meshSettingsStack.Peek();
+            ref var settings = ref settingsStack.Peek();
             if (settings.ClipRect.Enabled && !settings.ClipRect.Rect.Overlaps(r))
             {
                 return true;
@@ -168,8 +154,25 @@ namespace Imui.Core
 
             return !ScreenRect.Overlaps(rect);
         }
+
+        public void Circle(Vector2 position, float radius, Color32 color)
+        {
+            var rect = new ImRect(position.x - radius, position.y - radius, radius * 2, radius * 2);
+            Ellipse(rect, color);
+        }
+
+        public void Ellipse(ImRect rect, Color32 color)
+        {
+            if (Cull(rect))
+            {
+                return;
+            }
+
+            var path = ImShapes.Ellipse(rect);
+            ConvexFill(path, color);
+        }
         
-        public void Rect(ImRect rect, Color32 color, Vector4 texScaleOffset)
+        public void Rect(ImRect rect, Color32 color)
         {
             if (Cull(rect))
             {
@@ -177,20 +180,20 @@ namespace Imui.Core
             }
             
             meshDrawer.Color = color;
-            meshDrawer.ScaleOffset = texScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
-            meshDrawer.Depth = DEFAULT_DEPTH;
+            meshDrawer.ScaleOffset = TexScaleOffset;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Depth = DrawingDepth;
             meshDrawer.AddQuad(rect.X, rect.Y, rect.W, rect.H);
         }
         
-        public void Rect(ImRect rect, Color32 color, ImRectRadius radius = default)
+        public void Rect(ImRect rect, Color32 color, ImRectRadius radius)
         {
             if (Cull(rect))
             {
                 return;
             }
             
-            var path = GenerateRectOutline(rect, radius);
+            var path = ImShapes.Rect(rect, radius);
             ConvexFill(path, color);
         }
 
@@ -201,19 +204,19 @@ namespace Imui.Core
                 return;
             }
             
-            var path = GenerateRectOutline(rect, radius);
+            var path = ImShapes.Rect(rect, radius);
             LineMiter(path, color, true, thickness, bias);
         }
 
-        public void RectWithOutline(ImRect rect, Color32 backColor, Color32 outlineColor, float thickness, ImRectRadius radius = default, float bias = 0.0f)
+        public void RectWithOutline(ImRect rect, Color32 color, Color32 outlineColor, float thickness, ImRectRadius radius = default, float bias = 0.0f)
         {
             if (Cull(rect))
             {
                 return;
             }
 
-            var path = GenerateRectOutline(rect, radius);
-            ConvexFill(path, backColor);
+            var path = ImShapes.Rect(rect, radius);
+            ConvexFill(path, color);
             
             if (thickness >= LINE_THICKNESS_THRESHOLD)
             {
@@ -221,14 +224,14 @@ namespace Imui.Core
             }
         }
 
-        public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
+        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
         {
             textDrawer.Color = color;
-            textDrawer.Depth = DEFAULT_DEPTH;
+            textDrawer.Depth = DrawingDepth;
             textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
         }
 
-        public void Text(in ReadOnlySpan<char> text, Color32 color, Vector2 position, in TextDrawer.Layout layout)
+        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in ImTextLayout layout)
         {
             var rect = new ImRect(position.x + layout.OffsetX, position.y - layout.Height + layout.OffsetY, layout.Width, layout.Height);
             if (Cull(rect))
@@ -237,19 +240,19 @@ namespace Imui.Core
             }
             
             textDrawer.Color = color;
-            textDrawer.Depth = DEFAULT_DEPTH;
+            textDrawer.Depth = DrawingDepth;
             textDrawer.AddTextWithLayout(text, in layout, position.x, position.y);
         }
 
-        public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
+        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
-            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);
             Text(text, color, rect.TopLeft, in layout);
         }
         
-        public void Text(in ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings, out ImRect textRect)
+        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings, out ImRect textRect)
         {
-            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);
             
             textRect = new ImRect(
                 rect.X + layout.OffsetX, 
@@ -260,7 +263,7 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
 
-        public void LineSimple(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        public void Line(ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)
             {
@@ -270,13 +273,13 @@ namespace Imui.Core
             bias = Mathf.Clamp01(bias);
             
             meshDrawer.Color = color;
-            meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
-            meshDrawer.Depth = DEFAULT_DEPTH;
-            meshDrawer.AddLine(in path, closed, thickness, bias, 1.0f - bias);
+            meshDrawer.ScaleOffset = TexScaleOffset;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Depth = DrawingDepth;
+            meshDrawer.AddLine(path, closed, thickness, bias, 1.0f - bias);
         }
 
-        public void LineMiter(in ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        public void LineMiter(ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)
             {
@@ -286,100 +289,19 @@ namespace Imui.Core
             bias = Mathf.Clamp01(bias);
             
             meshDrawer.Color = color;
-            meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
-            meshDrawer.Depth = DEFAULT_DEPTH;
-            meshDrawer.AddLineMiter(in path, closed, thickness, bias, 1.0f - bias);
+            meshDrawer.ScaleOffset = TexScaleOffset;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Depth = DrawingDepth;
+            meshDrawer.AddLineMiter(path, closed, thickness, bias, 1.0f - bias);
         }
 
-        public void ConvexFill(in ReadOnlySpan<Vector2> points, Color32 color)
+        public void ConvexFill(ReadOnlySpan<Vector2> points, Color32 color)
         {
             meshDrawer.Color = color;
-            meshDrawer.ScaleOffset = defaultTexScaleOffset;
-            meshDrawer.Atlas = MeshDrawer.MAIN_TEX_ID;
-            meshDrawer.Depth = DEFAULT_DEPTH;
-            meshDrawer.AddFilledConvexMesh(in points);
-        }
-
-        public Span<Vector2> GenerateRectOutline(ImRect rect, ImRectRadius radius)
-        {
-            radius.Clamp(Mathf.Min(rect.W, rect.H) / 2.0f);
-
-            var segments = MeshDrawer.CalculateSegmentsCount(radius.GetMax());
-            var span = tempPointsBuffer.AsSpan((segments + 1) * 4);
-            
-            GenerateRectOutline(span, rect, radius, segments);
-            
-            return span;
-        }
-        
-        public void GenerateRectOutline(Span<Vector2> buffer, ImRect rect, ImRectRadius radius, int segments)
-        {
-            const float PI = Mathf.PI;
-            const float HALF_PI = PI / 2;
-         
-            Profiler.BeginSample("ImCanvas.GenerateRectOutlinePath");
-            
-            var p = 0;
-            var step = (1f / segments) * HALF_PI;
-            
-            var cx = rect.X + rect.W - radius.BottomRight;
-            var cy = rect.Y + radius.BottomRight;
-            buffer[p].x = cx + Mathf.Cos(PI + HALF_PI) * radius.BottomRight;
-            buffer[p].y = cy + Mathf.Sin(PI + HALF_PI) * radius.BottomRight;
-            p++;
-            
-            for (int i = 0; i < segments; ++i)
-            {
-                var a = PI + HALF_PI + step * (i + 1);
-                buffer[p].x = cx + Mathf.Cos(a) * radius.BottomRight;
-                buffer[p].y = cy + Mathf.Sin(a) * radius.BottomRight;
-                p++;
-            }
-            
-            cx = rect.X + rect.W - radius.TopRight;
-            cy = rect.Y + rect.H - radius.TopRight;
-            buffer[p].x = cx + Mathf.Cos(0) * radius.TopRight;
-            buffer[p].y = cy + Mathf.Sin(0) * radius.TopRight;
-            p++;
-            
-            for (int i = 0; i < segments; ++i)
-            {
-                var a = 0 + step * (i + 1);
-                buffer[p].x = cx + Mathf.Cos(a) * radius.TopRight;
-                buffer[p].y = cy + Mathf.Sin(a) * radius.TopRight;
-                p++;
-            }
-            
-            cx = rect.X + radius.TopLeft;
-            cy = rect.Y + rect.H - radius.TopLeft;
-            buffer[p].x = cx + Mathf.Cos(HALF_PI) * radius.TopLeft;
-            buffer[p].y = cy + Mathf.Sin(HALF_PI) * radius.TopLeft;
-            p++;
-            
-            for (int i = 0; i < segments; ++i)
-            {
-                var a = HALF_PI + step * (i + 1);
-                buffer[p].x = cx + Mathf.Cos(a) * radius.TopLeft;
-                buffer[p].y = cy + Mathf.Sin(a) * radius.TopLeft;
-                p++;
-            }
-                        
-            cx = rect.X + radius.BottomLeft;
-            cy = rect.Y + radius.BottomLeft;
-            buffer[p].x = cx + Mathf.Cos(PI) * radius.BottomLeft;
-            buffer[p].y = cy + Mathf.Sin(PI) * radius.BottomLeft;
-            p++;
-            
-            for (int i = 0; i < segments; ++i)
-            {
-                var a = PI + step * (i + 1);
-                buffer[p].x = cx + Mathf.Cos(a) * radius.BottomLeft;
-                buffer[p].y = cy + Mathf.Sin(a) * radius.BottomLeft;
-                p++;
-            }
-            
-            Profiler.EndSample();
+            meshDrawer.ScaleOffset = TexScaleOffset;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Depth = DrawingDepth;
+            meshDrawer.AddFilledConvexMesh(points);
         }
 
         public void Dispose()

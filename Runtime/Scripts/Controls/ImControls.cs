@@ -1,26 +1,27 @@
 using System;
+using Imui.Controls.Styling;
 using Imui.Core;
-using UnityEngine;
 
 namespace Imui.Controls
 {
     // TODO (artem-s): implement table layout helper
     public static class ImControls
     {
-        public static ImControlsStyle Style = ImControlsStyle.Default;
-        
-        [Obsolete]
-        public static float GetTextSize(this ImGui gui)
+        public static ImRect GetRowRect(ImGui gui, ImSize size)
         {
-            return Style.TextSize;
+            return size.Type switch
+            {
+                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
+            };
         }
         
         public static float GetRowHeight(this ImGui gui)
         {
-            return gui.TextDrawer.GetLineHeight(Style.TextSize);
+            return gui.TextDrawer.GetLineHeight(ImTheme.Active.Controls.TextSize) + ImTheme.Active.Controls.ExtraRowHeight;
         }
         
-        public static void AddControlSpacing(this ImGui gui)
+        public static void AddSpacingIfLayoutFrameNotEmpty(this ImGui gui)
         {
             ref readonly var frame = ref gui.Layout.GetFrame();
             if (frame.Size.x != 0 || frame.Size.y != 0)
@@ -31,55 +32,33 @@ namespace Imui.Controls
         
         public static void AddSpacing(this ImGui gui)
         {
-            gui.Layout.AddSpace(Style.Spacing);
+            gui.Layout.AddSpace(ImTheme.Active.Controls.ControlsSpacing);
         }
         
         public static void AddSpacing(this ImGui gui, float space)
         {
             gui.Layout.AddSpace(space);
         }
-        
-        public static void DrawBox(this ImGui gui, in ImRect rect, in ImBoxStyle style)
+
+        public static void BeginIndent(this ImGui gui)
         {
-            gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderWidth, style.BorderRadius);
+            gui.Layout.AddIndent(ImTheme.Active.Controls.Indent);
         }
 
-        public static void BeginIdent(this ImGui gui)
+        public static void EndIndent(this ImGui gui)
         {
-            gui.Layout.AddIdent(Style.Ident);
+            gui.Layout.AddIndent(-ImTheme.Active.Controls.Indent);
         }
-
-        public static void EndIdent(this ImGui gui)
-        {
-            gui.Layout.AddIdent(-Style.Ident);
-        }
-    }
-    
-    public struct ImControlsStyle
-    {
-        public static readonly ImControlsStyle Default = new ImControlsStyle()
-        {
-            TextSize = 26,
-            Spacing = 4,
-            InnerSpacing = 2,
-            ScrollSpeedScale = 6,
-            Ident = 20
-        };
-        
-        public float TextSize;
-        public float Spacing;
-        public float InnerSpacing;
-        public float ScrollSpeedScale;
-        public float Ident;
     }
     
     [Serializable]
-    public struct ImBoxStyle
+    public struct ImControlsStyle
     {
-        public Color32 BackColor;
-        public Color32 FrontColor;
-        public Color32 BorderColor;
-        public float BorderWidth;
-        public ImRectRadius BorderRadius;
+        public float ExtraRowHeight;
+        public float TextSize;
+        public float ControlsSpacing;
+        public float InnerSpacing;
+        public float ScrollSpeedScale;
+        public float Indent;
     }
 }

@@ -1,6 +1,6 @@
 using System;
+using Imui.Controls.Styling;
 using Imui.Core;
-using Imui.Utility;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -8,55 +8,24 @@ namespace Imui.Controls
     public static class ImFoldout
     {
         private const float ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
-
-        public static ImFoldoutStyle Style = ImFoldoutStyle.Default;
         
-        public static void BeginFoldout(this ImGui gui, in ReadOnlySpan<char> label, out bool open)
+        public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, out bool open, ImSize size = default)
         {
-            gui.AddControlSpacing();
+            gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id =  gui.PushId(label);
-            var width = gui.Layout.GetAvailableWidth();
-            var height = Style.GetHeight(gui.GetRowHeight());
-            var rect = gui.Layout.AddRect(width, height);
+            var rect = ImControls.GetRowRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
-            Foldout(gui, id, ref state, in rect, in label);
+            Foldout(gui, id, ref state, rect, label);
             open = state;
         }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ReadOnlySpan<char> label)
+
+        public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, ref bool open, ImRect rect)
         {
-            gui.AddControlSpacing();
+            gui.AddSpacingIfLayoutFrameNotEmpty();
             
-            var width = gui.Layout.GetAvailableWidth();
-            var height = Style.GetHeight(gui.GetRowHeight());
-            BeginFoldout(gui, ref open, in label, gui.Layout.AddRect(width, height));
-        }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ReadOnlySpan<char> label, Vector2 size)
-        {
-            BeginFoldout(gui, ref open, in label, gui.Layout.AddRect(size));
-        }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ReadOnlySpan<char> label, float width, float height)
-        {
-            BeginFoldout(gui, ref open, in label, gui.Layout.AddRect(width, height));
-        }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ReadOnlySpan<char> label, in ImRect rect)
-        {
-            gui.AddControlSpacing();
-            
-            var id =  gui.PushId(label);
-            Foldout(gui, id, ref open, in rect, in label);
-        }
-        
-        public static void BeginFoldout(this ImGui gui, ref bool open, in ImRect rect, out ImRect contentRect)
-        {
-            gui.AddControlSpacing();
-            
-            var id = gui.PushId();
-            Foldout(gui, id, ref open, in rect, out contentRect);
+            var id = gui.PushId(label);
+            Foldout(gui, id, ref open, rect, label);
         }
         
         public static void EndFoldout(this ImGui gui)
@@ -64,26 +33,28 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect, in ReadOnlySpan<char> label)
+        public static void Foldout(this ImGui gui, uint id, ref bool open, ImRect rect, ReadOnlySpan<char> label)
         {
-            Foldout(gui, id, ref open, in rect, out var contentRect);
-            gui.Text(in label, GetTextSettings(), contentRect);
-        }
-        
-        public static void Foldout(this ImGui gui, uint id, ref bool open, in ImRect rect, out ImRect contentRect)
-        {
-            var clicked = gui.Button(id, in rect, out var state);
-            var content = ImButton.Style.GetContentRect(rect);
-            var left = content.SplitLeft(GetArrowSize(gui), ImControls.Style.InnerSpacing, out contentRect);
-            var style = ImButton.Style.GetStyle(state);
+            var arrowRect = ImButton.GetContentRect(rect);
+            var arrowSize = (arrowRect.H - ImTheme.Active.Controls.ExtraRowHeight) * ImTheme.Active.Foldout.ArrowOuterScale;
+            arrowRect.W = arrowSize;
+
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
+
+            ImTheme.Active.Button.BorderWidth = ImTheme.Active.Foldout.BorderWidth;
+            ImTheme.Active.Button.Alignment = ImTheme.Active.Foldout.TextAlignment;
+            ImTheme.Active.Button.Padding.Left += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
+
+            var clicked = gui.Button(id, label, rect, out var state);
+            var frontColor = ImButton.GetStateFontColor(state);
             
             if (open)
             {
-                DrawOpenArrow(gui.Canvas, in left, style.FrontColor);
+                DrawOpenArrow(gui.Canvas, arrowRect, frontColor);
             }
             else
             {
-                DrawClosedArrow(gui.Canvas, in left, style.FrontColor);
+                DrawClosedArrow(gui.Canvas, arrowRect, frontColor);
             }
             
             if (clicked)
@@ -91,10 +62,10 @@ namespace Imui.Controls
                 open = !open;
             }
         }
-
-        public static void DrawClosedArrow(ImCanvas canvas, in ImRect rect, Color32 color)
+        
+        public static void DrawClosedArrow(ImCanvas canvas, ImRect rect, Color32 color)
         {
-            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(Style.ArrowScale).WithAspect(1.0f / ARROW_ASPECT_RATIO);
+            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Foldout.ArrowInnerScale).WithAspect(1.0f / ARROW_ASPECT_RATIO);
             
             Span<Vector2> points = stackalloc Vector2[3]
             {
@@ -106,9 +77,9 @@ namespace Imui.Controls
             canvas.ConvexFill(points, color);
         }
 
-        public static void DrawOpenArrow(ImCanvas canvas, in ImRect rect, Color32 color)
+        public static void DrawOpenArrow(ImCanvas canvas, ImRect rect, Color32 color)
         {
-            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(Style.ArrowScale).WithAspect(ARROW_ASPECT_RATIO);
+            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Foldout.ArrowInnerScale).WithAspect(ARROW_ASPECT_RATIO);
             
             Span<Vector2> points = stackalloc Vector2[3]
             {
@@ -119,41 +90,14 @@ namespace Imui.Controls
         
             canvas.ConvexFill(points, color);
         }
-
-        public static ImTextSettings GetTextSettings()
-        {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.Button.Alignment);
-        }
-
-        public static float GetArrowSize(ImGui gui)
-        {
-            return gui.GetRowHeight();
-        }
     }
 
+    [Serializable]
     public struct ImFoldoutStyle
     {
-        public static readonly ImFoldoutStyle Default = CreateDefaultStyle();
-
-        private static ImFoldoutStyle CreateDefaultStyle()
-        {
-            var style = new ImFoldoutStyle()
-            {
-                ArrowScale = 0.5f,
-                Button = ImButtonStyle.Default
-            };
-
-            style.Button.Alignment.X = 0.0f;
-            style.Button.SetBorderWidth(0);
-            return style;
-        }
-
-        public float ArrowScale;
-        public ImButtonStyle Button;
-
-        public float GetHeight(float contentHeight)
-        {
-            return contentHeight + Button.Padding.Vertical;
-        }
+        public float ArrowInnerScale;
+        public float ArrowOuterScale;
+        public float BorderWidth;
+        public ImTextAlignment TextAlignment;
     }
 }

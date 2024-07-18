@@ -21,18 +21,21 @@ namespace Imui.Core
     {
         public float Size;
         public ImTextAlignment Align;
+        public bool Wrap;
 
-        public ImTextSettings(float size, float alignX = 0.0f, float alignY = 0.0f)
+        public ImTextSettings(float size, float alignX = 0.0f, float alignY = 0.0f, bool wrap = true)
         {
             Size = size;
             Align.X = alignX;
             Align.Y = alignY;
+            Wrap = wrap;
         }
 
-        public ImTextSettings(float size, ImTextAlignment alignment)
+        public ImTextSettings(float size, ImTextAlignment alignment, bool wrap = true)
         {
             Size = size;
             Align = alignment;
+            Wrap = wrap;
         }
     }
 }

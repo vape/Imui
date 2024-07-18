@@ -21,8 +21,8 @@ namespace Imui.Core
         public const int DEFAULT_WIDTH = 500;
         public const int DEFAULT_HEIGHT = 500;
         
-        private DynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
-        private DynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
+        private ImDynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
+        private ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
         private Vector2 screenSize;
         
         public ref ImWindowState BeginWindow(uint id, string title, float width = DEFAULT_WIDTH, float height = DEFAULT_HEIGHT, ImWindowFlag flags = ImWindowFlag.None)
@@ -42,7 +42,7 @@ namespace Imui.Core
                 Id = id,
                 Order = windows.Count,
                 Title = title,
-                Rect = GetWindowRect(width, height),
+                Rect = GetNewWindowRect(width, height),
                 Flags = flags
             });
             
@@ -57,6 +57,28 @@ namespace Imui.Core
         public bool IsDrawingWindow()
         {
             return drawingStack.Count > 0;
+        }
+        
+        public ImRect GetCurrentWindowRect()
+        {
+            if (!IsDrawingWindow())
+            {
+                return default;
+            }
+
+            ref var state = ref GetWindowState(drawingStack.Peek());
+            return state.Rect;
+        }
+
+        public void SetCurrentWindowRect(ImRect rect)
+        {
+            if (!IsDrawingWindow())
+            {
+                return;
+            }
+
+            ref var state = ref GetWindowState(drawingStack.Peek());
+            state.Rect = rect;
         }
 
         public bool Raycast(float x, float y)
@@ -118,7 +140,7 @@ namespace Imui.Core
             return -1;
         }
 
-        private ImRect GetWindowRect(float width, float height)
+        private ImRect GetNewWindowRect(float width, float height)
         {
             var size = new Vector2(width, height);
             var position = new Vector2((screenSize.x - width) / 2f, (screenSize.y - height) / 2f);

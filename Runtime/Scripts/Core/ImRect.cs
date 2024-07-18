@@ -98,7 +98,7 @@ namespace Imui.Core
             return new ImRect(x1, y1, x2 - x1, y2 - y1);
         }
 
-        public void Encapsulate(in ImRect other)
+        public void Encapsulate(ImRect other)
         {
             var l = Mathf.Min(other.X, X);
             var b = Mathf.Min(other.Y, Y);
@@ -154,12 +154,12 @@ namespace Imui.Core
             return HashCode.Combine(X, Y, W, H);
         }
 
-        public static explicit operator Rect(in ImRect rect)
+        public static explicit operator Rect(ImRect rect)
         {
             return new Rect(rect.X, rect.Y, rect.W, rect.H);
         }
 
-        public static explicit operator Vector4(in ImRect rect)
+        public static explicit operator Vector4(ImRect rect)
         {
             return new Vector4(rect.X, rect.Y, rect.W, rect.H);
         }
@@ -205,7 +205,7 @@ namespace Imui.Core
             BottomLeft = Mathf.Min(size, BottomLeft);
         }
 
-        public float GetMax()
+        public float RadiusForMask()
         {
             var max = TopLeft;
             max = TopRight > max ? TopRight : max;

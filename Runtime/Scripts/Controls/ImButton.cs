@@ -1,76 +1,75 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Styling;
-using Imui.Utility;
+using Imui.Controls.Styling;
 using UnityEngine;
 
 namespace Imui.Controls
 {
     public static class ImButton
     {
-        public static ImButtonStyle Style = ImButtonStyle.Default;
-        
-        public static bool ButtonFitted(this ImGui gui, in ReadOnlySpan<char> label)
+        public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
         {
-            gui.AddControlSpacing();
+            if (size.Type == ImSizeType.Fit)
+            {
+                var textSettings = GetTextSettings();
+                var textSize = gui.MeasureTextSize(label, in textSettings);
+                var rectSize = textSize;
 
+                rectSize.x += ImTheme.Active.Button.Padding.Horizontal;
+                rectSize.y += ImTheme.Active.Controls.ExtraRowHeight;
+
+                return gui.Layout.AddRect(rectSize);
+            }
+
+            return ImControls.GetRowRect(gui, size);
+        }
+        
+        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+
+            var rect = GetRect(gui, size, label);
+            return Button(gui, label, rect);
+        }
+        
+        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect)
+        {
+            return Button(gui, gui.GetNextControlId(), label, rect, out _);
+        }
+
+        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state)
+        {
+            return Button(gui, gui.GetNextControlId(), rect, out state);
+        }
+
+        public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, out ImButtonState state)
+        {
+            var clicked = Button(gui, id, rect, out state);
             var textSettings = GetTextSettings();
-            var textSize = gui.MeasureTextSize(label, in textSettings);
-            var rect = gui.Layout.AddRect(Style.GetButtonSize(textSize));
-            return Button(gui, label, in rect);
-        }
-
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label)
-        {
-            gui.AddControlSpacing();
-
-            var width = gui.Layout.GetAvailableWidth();
-            var height = Style.GetButtonHeight(gui.GetRowHeight());
-            var rect = gui.Layout.AddRect(width, height);
-            return Button(gui, label, in rect);
-        }
-
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, float width, float height)
-        {
-            gui.AddControlSpacing();
+            var textColor = GetStateFontColor(state);
+            var textRect = GetContentRect(rect);
             
-            var rect = gui.Layout.AddRect(width, height);
-            return Button(gui, label, in rect);
-        }
-        
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, Vector2 size)
-        {
-            gui.AddControlSpacing();
+            gui.Canvas.Text(label, textColor, textRect, in textSettings);
             
-            var rect = gui.Layout.AddRect(size);
-            return Button(gui, label, in rect);
-        }
-        
-        public static bool Button(this ImGui gui, in ReadOnlySpan<char> label, in ImRect rect)
-        {
-            var clicked = Button(gui, in rect, out var state);
-            var textSettings = GetTextSettings();
-            var textColor = Style.GetStyle(state).FrontColor;
-            gui.Canvas.Text(in label, textColor, Style.GetContentRect(rect), in textSettings);
-            return clicked;
-        }
-
-        public static bool Button(this ImGui gui, in ImRect rect, out ImButtonState state)
-        {
-            var id = gui.GetNextControlId();
-            var clicked = Button(gui, id, in rect, out state);
             return clicked;
         }
         
-        public static bool Button(this ImGui gui, uint id, in ImRect rect, out ImButtonState state)
+        public static bool Button(this ImGui gui, uint id, ImRect rect, out ImButtonState state)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             var clicked = false;
             
+            gui.RegisterControl(id, rect);
+            
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
-            gui.DrawBox(in rect, Style.GetStyle(state));
+            gui.Box(rect, GetStateBoxStyle(state));
+
+            if (gui.IsReadOnly)
+            {
+                return false;
+            }
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -96,8 +95,6 @@ namespace Imui.Controls
                     }
                     break;
             }
-            
-            gui.RegisterControl(id, rect);
 
             return clicked;
         }
@@ -106,7 +103,7 @@ namespace Imui.Controls
         {
             var id = gui.GetNextControlId();
 
-            return InvisibleButton(gui, id, rect);
+            return InvisibleButton(gui, id, rect, actOnPress);
         }
         
         public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, bool actOnPress = false)
@@ -114,6 +111,13 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             var clicked = false;
+            
+            gui.RegisterControl(id, rect);
+
+            if (gui.IsReadOnly)
+            {
+                return false;
+            }
             
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -138,15 +142,56 @@ namespace Imui.Controls
                     }
                     break;
             }
-            
-            gui.RegisterControl(id, rect);
 
             return clicked;
         }
 
+        public static ImRect GetContentRect(ImRect rect)
+        { 
+            return rect.WithPadding(ImTheme.Active.Button.Padding);
+        }
+
+        public static Color32 GetStateFontColor(ImButtonState state)
+        {
+            ref readonly var stateStyle = ref GetStateStyle(state);
+            return stateStyle.FrontColor;
+        }
+
+        public static ImBoxStyle GetStateBoxStyle(ImButtonState state)
+        {
+            ref readonly var style = ref ImTheme.Active.Button;
+            ref readonly var stateStyle = ref GetStateStyle(state);
+            
+            return new ImBoxStyle
+            {
+                BackColor = stateStyle.BackColor,
+                FrontColor = stateStyle.FrontColor,
+                BorderColor = stateStyle.BorderColor,
+                BorderWidth = style.BorderWidth,
+                BorderRadius = style.BorderRadius
+            };
+        }
+
+        public static ref readonly ImButtonStateStyle GetStateStyle(ImButtonState state)
+        {
+            ref readonly var style = ref ImTheme.Active.Button;
+            
+            switch (state)
+            {
+                case ImButtonState.Hovered:
+                    return ref style.Hovered;
+                case ImButtonState.Pressed:
+                    return ref style.Pressed;
+                default:
+                    return ref style.Normal;
+            }
+        }
+        
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImControls.Style.TextSize, Style.Alignment);
+            ref readonly var style = ref ImTheme.Active.Button;
+
+            return new ImTextSettings(ImTheme.Active.Controls.TextSize, style.Alignment, style.TextWrap);
         }
     }
 
@@ -156,102 +201,25 @@ namespace Imui.Controls
         Hovered,
         Pressed
     }
+
+    [Serializable]
+    public struct ImButtonStateStyle
+    {
+        public Color32 BackColor;
+        public Color32 FrontColor;
+        public Color32 BorderColor;
+    }
     
     [Serializable]
     public struct ImButtonStyle
     {
-        public static readonly ImButtonStyle Default = new ImButtonStyle()
-        {
-            Padding = 2.0f,
-            Alignment = new ImTextAlignment(0.5f, 0.5f),
-            Normal = new ImBoxStyle()
-            {
-                BackColor = ImColors.Gray7,
-                BorderColor = ImColors.Black,
-                FrontColor = ImColors.Black,
-                BorderRadius = 3,
-                BorderWidth = 1
-            },
-            Hovered = new ImBoxStyle()
-            {
-                BackColor = ImColors.Gray8,
-                BorderColor = ImColors.Gray1,
-                FrontColor = ImColors.Gray1,
-                BorderRadius = 3,
-                BorderWidth = 1
-            },
-            Pressed = new ImBoxStyle()
-            {
-                BackColor = ImColors.Gray6,
-                BorderColor = ImColors.Black,
-                FrontColor = ImColors.Black,
-                BorderRadius = 3,
-                BorderWidth = 1
-            }
-        };
-        
-        public ImBoxStyle Normal;
-        public ImBoxStyle Hovered;
-        public ImBoxStyle Pressed;
+        public ImButtonStateStyle Normal;
+        public ImButtonStateStyle Hovered;
+        public ImButtonStateStyle Pressed;
+        public float BorderWidth;
+        public ImRectRadius BorderRadius;
         public ImPadding Padding;
         public ImTextAlignment Alignment;
-
-        public Vector2 GetButtonSize(Vector2 contentSize)
-        {
-            return new Vector2(
-                contentSize.x + Padding.Horizontal, 
-                contentSize.y + Padding.Vertical);
-        }
-
-        public float GetButtonHeight(float contentHeight)
-        {
-            return contentHeight + Padding.Vertical;
-        }
-
-        public ImRect GetContentRect(ImRect buttonRect)
-        {
-            return buttonRect.WithPadding(Padding);
-        }
-        
-        public ImBoxStyle GetStyle(ImButtonState state)
-        {
-            switch (state)
-            {
-                case ImButtonState.Hovered:
-                    return Hovered;
-                case ImButtonState.Pressed:
-                    return Pressed;
-                default:
-                    return Normal;
-            }
-        }
-
-        public void SetBorderRadius(ImRectRadius radius)
-        {
-            Normal.BorderRadius = radius;
-            Hovered.BorderRadius = radius;
-            Pressed.BorderRadius = radius;
-        }
-
-        public void SetBorderWidth(float width)
-        {
-            Normal.BorderWidth = width;
-            Hovered.BorderWidth = width;
-            Pressed.BorderWidth = width;
-        }
-
-        public void SetTint(Color32 backColor, Color32 frontColor)
-        {
-            Color.RGBToHSV(backColor, out var h, out var s, out var v);
-            
-            Normal.BackColor = backColor;
-            Normal.FrontColor = frontColor;
-
-            Hovered.BackColor = Color.HSVToRGB(h, s, v * 1.1f);
-            Hovered.FrontColor = frontColor;
-
-            Pressed.BackColor = Color.HSVToRGB(h, s, v * 0.9f);
-            Pressed.FrontColor = frontColor;
-        }
+        public bool TextWrap;
     }
 }

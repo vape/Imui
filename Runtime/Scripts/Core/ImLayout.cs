@@ -20,7 +20,7 @@ namespace Imui.Core
         public Vector2 Size;
         public ImRect Bounds;
         public Vector2 Offset;
-        public float Ident;
+        public float Indent;
         public ImLayoutFlag Flags;
 
         public void Append(Vector2 size)
@@ -33,7 +33,7 @@ namespace Imui.Core
             switch (Axis)
             {
                 case ImAxis.Vertical:
-                    Size.x = Mathf.Max(Size.x, width);
+                    Size.x = Mathf.Max(Size.x, width + Indent);
                     Size.y += height;
                     break;
                 case ImAxis.Horizontal:
@@ -63,7 +63,7 @@ namespace Imui.Core
     {
         private const int FRAME_STACK_CAPACITY = 32;
         
-        private DynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
+        private ImDynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
         
         public void Push(ImAxis axis, float width = 0, float height = 0)
         {
@@ -151,7 +151,7 @@ namespace Imui.Core
         public float GetAvailableWidth()
         {
             ref readonly var frame = ref GetFrame();
-            return frame.Axis == ImAxis.Horizontal ? frame.Bounds.W - frame.Size.x : frame.Bounds.W - frame.Ident;
+            return frame.Axis == ImAxis.Horizontal ? frame.Bounds.W - frame.Size.x : frame.Bounds.W - frame.Indent;
         }
         
         public float GetAvailableHeight()
@@ -169,11 +169,11 @@ namespace Imui.Core
             switch (frame.Axis)
             {
                 case ImAxis.Vertical:
-                    w -= frame.Ident;
                     h -= frame.Size.y;
+                    w -= frame.Indent;
                     break;
                 case ImAxis.Horizontal:
-                    w -= frame.Size.x - frame.Ident;
+                    w -= frame.Size.x;
                     break;
                 default:
                     throw new NotImplementedException();
@@ -199,7 +199,7 @@ namespace Imui.Core
         public ImRect GetContentRect()
         {
             ref readonly var frame = ref frames.Peek();
-            var x = frame.Bounds.X + frame.Ident;
+            var x = frame.Bounds.X;
             var y = frame.Bounds.Y + frame.Bounds.H - frame.Size.y;
             var w = frame.Size.x;
             var h = frame.Size.y;
@@ -245,10 +245,10 @@ namespace Imui.Core
             frame.Append(space);
         }
 
-        public void AddIdent(float space)
+        public void AddIndent(float space)
         {
             ref var frame = ref frames.Peek();
-            frame.Ident += space;
+            frame.Indent += space;
         }
 
         public static Vector2 GetNextPosition(in ImLayoutFrame frame, float height)
@@ -256,7 +256,7 @@ namespace Imui.Core
             var hm = frame.Axis == ImAxis.Horizontal ? 1 : 0;
             var vm = frame.Axis == ImAxis.Vertical ? 1 : 0;
 
-            var x = frame.Bounds.X + frame.Offset.x + (frame.Size.x * hm) + (frame.Ident * vm);
+            var x = frame.Bounds.X + frame.Offset.x + (frame.Size.x * hm) + (frame.Indent * vm);
             var y = frame.Bounds.Y + frame.Offset.y + frame.Bounds.H + - (frame.Size.y * vm) - height;
             
             return new Vector2(x, y);
