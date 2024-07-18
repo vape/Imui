@@ -30,6 +30,7 @@ Supports a very basic set of controls:
 * Text Editor
 * Dropdown
 * Scroll Bar
+* Foldout
 
 ## Layout
 
