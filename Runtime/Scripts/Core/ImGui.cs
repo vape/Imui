@@ -150,7 +150,7 @@ namespace Imui.Core
             Input.SetScale(UiScale);
             Input.Pull();
 
-            Canvas.SetScreen(scaledScreenSize);
+            Canvas.SetScreen(scaledScreenSize, uiScale);
             Canvas.Clear();
             Canvas.PushSettings(Canvas.CreateDefaultSettings());
             
