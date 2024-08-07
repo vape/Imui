@@ -34,11 +34,11 @@ namespace Imui.Controls.Windows
         {
             gui.BeginWindow("Demo", width: 700, height: 700);
             
-            gui.BeginFoldout("Widgets", out var widgetsOpen);
+            gui.BeginFoldout("Controls", out var controlsOpen);
             gui.BeginIndent();
-            if (widgetsOpen)
+            if (controlsOpen)
             {
-                DrawWidgetsPage(gui);
+                DrawControlsPage(gui);
             }
             gui.EndIndent();
             gui.EndFoldout();
@@ -84,7 +84,7 @@ namespace Imui.Controls.Windows
             }
         }
 
-        private static void DrawWidgetsPage(ImGui gui)
+        private static void DrawControlsPage(ImGui gui)
         {
             void DrawNestedFoldout(ImGui gui, int current, ref int total)
             {
