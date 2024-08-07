@@ -1,7 +1,7 @@
 ### Urgent
 - ~~Add simple arena allocator~~
-- Implement separate control for numeric input
-  - Add +/- buttons for easier input
+- ~~Implement separate control for numeric input~~
+  - ~~Add +/- buttons for easier input~~
 - Split dropdown control into preview, dropdown button and popup menu with items
 - Sliders should have its current value drawn over the knob
   - With custom format

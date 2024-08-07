@@ -36,6 +36,15 @@ namespace Imui.Controls
             rect.W = width;
             return rect;
         }
+
+        public static ImRect SplitRight(this ImRect rect, float width, out ImRect left)
+        {
+            left = rect;
+            left.W -= width;
+            rect.W = width;
+            rect.X += left.W;
+            return rect;
+        }
         
         public static ImRect SplitLeft(this ImRect rect, float width, float space, out ImRect right)
         {

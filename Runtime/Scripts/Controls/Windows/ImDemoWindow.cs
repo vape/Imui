@@ -29,6 +29,7 @@ namespace Imui.Controls.Windows
         private static bool showDebugWindow = false;
         private static int clicks;
         private static int nestedFoldouts;
+        private static bool showPlusMinusButtons = true;
 
         public static void Draw(ImGui gui)
         {
@@ -165,22 +166,25 @@ namespace Imui.Controls.Windows
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, (gui.GetLayoutWidth(), 200));
             
+            gui.AddSpacing(gui.GetRowHeight() * 0.5f);
+            gui.Checkbox(ref showPlusMinusButtons, "Show +/-");
+            
             gui.Text("Float TextEdit");
             gui.AddSpacing();
             gui.BeginHorizontal();
-            gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.7f);
-            gui.FloatEdit(ref floatValue);
+            gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
+            gui.FloatEdit(ref floatValue, format: "0.00#####", step: showPlusMinusButtons ? 0.01f : 0.0f);
             gui.EndHorizontal();
-            gui.Text(Format(" = ", floatValue));
+            gui.Text(Format(" floatValue = ", floatValue, "0.0######"));
             gui.EndHorizontal();
 
             gui.Text("Integer TextEdit");
             gui.AddSpacing();
             gui.BeginHorizontal();
-            gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.7f);
-            gui.IntEdit(ref intValue);
+            gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
+            gui.IntEdit(ref intValue, step: showPlusMinusButtons ? 1 : 0);
             gui.EndHorizontal();
-            gui.Text(Format(" = ", intValue));
+            gui.Text(Format(" intValue = ", intValue));
             gui.EndHorizontal();
 
             gui.AddSpacing();

@@ -67,11 +67,16 @@ namespace Imui.Rendering
                 var abx = b.x - a.x;
                 var aby = b.y - a.y;
                 var abm = Mathf.Sqrt(abx * abx + aby * aby);
-                abx /= abm;
-                aby /= abm;
-
-                normalX = -aby;
-                normalY = abx;
+                if (abm != 0)
+                {
+                    normalX = -aby / abm;
+                    normalY = abx / abm;
+                }
+                else
+                {
+                    normalX = 0;
+                    normalY = 0;
+                }
                 
                 ref var v0 = ref buffer.Vertices[vc + 0];
                 v0.Position.x = a.x + normalX * -1 * outerThickness;
@@ -127,11 +132,16 @@ namespace Imui.Rendering
                 var abx = b.x - a.x;
                 var aby = b.y - a.y;
                 var abm = Mathf.Sqrt(abx * abx + aby * aby);
-                abx /= abm;
-                aby /= abm;
-
-                normalX = -aby;
-                normalY = abx;
+                if (abm != 0)
+                {
+                    normalX = -aby / abm;
+                    normalY = abx / abm;
+                }
+                else
+                {
+                    normalX = 0;
+                    normalY = 0;
+                }
                 
                 ref var v0 = ref buffer.Vertices[vc + 0];
                 v0.Position.x = a.x + normalX * -1 * outerThickness;
