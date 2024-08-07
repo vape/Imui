@@ -63,8 +63,17 @@ namespace Imui.Core
                 
                 if (currArrayTail == bufferTail && capacity > (size + arraySizeDelta))
                 {
-                    Reserve(arraySizeDelta, true);
-                    array = new Span<T>(currArrayPtr, nextArraySize);
+                    if (arraySizeDelta < 0)
+                    {
+                        array = new Span<T>(currArrayPtr, nextArraySize);
+                        size += arraySizeDelta;
+                    }
+                    else
+                    {
+                        Reserve(arraySizeDelta, true);
+                        array = new Span<T>(currArrayPtr, nextArraySize);
+                    }
+                    
                     return;
                 }
             }

@@ -26,7 +26,7 @@ namespace Imui.Core
         private const int READONLY_STACK_CAPACITY = 4;
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
-        private const int DEFAULT_ARENA_CAPACITY = 1024 * 8;
+        private const int DEFAULT_ARENA_CAPACITY = 1024 * 64;
 
         private struct ControlId
         {
@@ -106,6 +106,7 @@ namespace Imui.Core
         public readonly ImWindowManager WindowManager;
         public readonly IImInputBackend Input;
         public readonly IImRenderingBackend Renderer;
+        public readonly ImFormatter Formatter;
 
         internal FrameData nextFrameData;
         internal FrameData frameData;
@@ -132,6 +133,7 @@ namespace Imui.Core
             WindowManager = new ImWindowManager();
             Input = input;
             Renderer = renderer;
+            Formatter = new ImFormatter(Arena);
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
