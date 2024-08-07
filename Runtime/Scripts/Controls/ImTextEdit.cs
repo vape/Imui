@@ -47,7 +47,6 @@ namespace Imui.Controls
     
     // TODO (artem-s): text input with dropdown selection
     // TODO (artem-s): do not handle drag events if control is not active
-    // TODO (artem-s): handle double click to select words
     public static class ImTextEdit
     {
         public const float CARET_BLINKING_TIME = 0.3f;
@@ -55,11 +54,6 @@ namespace Imui.Controls
         public const float MIN_HEIGHT = 1;
 
         private const string TEMP_BUFFER_TAG = "temp_buffer"; 
-        
-        public static readonly ImTextEditIntegerFilter IntegerFilter = new();
-        public static readonly ImTextEditFloatFilter FloatFilter = new();
-        public static readonly ImTextEditIntegerFilter IntegerFilterAllowEmptyString = new(true);
-        public static readonly ImTextEditFloatFilter FloatFilterAllowEmptyString = new(true);
         
         public static ImRect GetRect(ImGui gui, ImSize size)
         {
@@ -70,40 +64,6 @@ namespace Imui.Controls
                     Mathf.Max(MIN_WIDTH, gui.GetLayoutWidth()), 
                     Mathf.Max(MIN_HEIGHT, gui.GetRowHeight()))
             };
-        }
-        
-        public static void TextEdit(this ImGui gui, ref int value, ImSize size = default, ReadOnlySpan<char> format = default)
-        {
-            TextEditNumeric(gui, ref value, IntegerFilterAllowEmptyString, format, size);
-        }
-        
-        public static void TextEdit(this ImGui gui, ref float value, ImSize size = default, ReadOnlySpan<char> format = default)
-        {
-            TextEditNumeric(gui, ref value, FloatFilterAllowEmptyString, format, size);
-        }
-
-        private static void TextEditNumeric<T>(ImGui gui, ref T value, ImTextEditFilterNumeric<T> filter, ReadOnlySpan<char> format, ImSize size)
-        {
-            var buffer = new ImTextEditBuffer();
-            buffer.MakeMutable();
-            
-            if (filter.TryFormat(buffer.Buffer, value, out var length, format))
-            {
-                buffer.Length = length;
-            }
-            else
-            {
-                buffer.Insert(0, filter.GetFallbackString());
-            }
-            
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-            
-            var rect = GetRect(gui, size);
-            var changed = TextEdit(gui, ref buffer, rect, filter, multiline: false);
-            if (changed && filter.TryParse(buffer, out var newValue))
-            {
-                value = newValue;
-            }
         }
         
         public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, ImTextEditFilter filter = null, bool? multiline = null)
@@ -847,6 +807,7 @@ namespace Imui.Controls
         }
     }
     
+    // TODO (artem-s): use arena allocator instead of static array
     public ref struct ImTextEditBuffer
     {
         public const int DEFAULT_MUTABLE_BUFFER_CAPACITY = 1024;
@@ -972,68 +933,6 @@ namespace Imui.Controls
         
         public abstract bool IsValid(ReadOnlySpan<char> buffer);
         public abstract string GetFallbackString();
-    }
-
-    public abstract class ImTextEditFilterNumeric<T> : ImTextEditFilter
-    {
-        public override ImTouchKeyboardType KeyboardType => ImTouchKeyboardType.Numeric;
-
-        protected bool emptyStringIsValid;
-        
-        public ImTextEditFilterNumeric(bool emptyStringIsValid)
-        {
-            this.emptyStringIsValid = emptyStringIsValid;
-        }
-        
-        public abstract bool TryParse(ReadOnlySpan<char> buffer, out T value);
-        public abstract bool TryFormat(Span<char> buffer, T value, out int length, ReadOnlySpan<char> format);
-    }
-
-    public sealed class ImTextEditIntegerFilter : ImTextEditFilterNumeric<int>
-    {
-        public ImTextEditIntegerFilter(bool emptyStringIsValid = false) : base(emptyStringIsValid) { }
-        
-        public override bool IsValid(ReadOnlySpan<char> buffer) => TryParse(buffer, out _);
-        public override string GetFallbackString() => "0";
-
-        public override bool TryParse(ReadOnlySpan<char> buffer, out int value)
-        {
-            if (emptyStringIsValid && buffer.IsEmpty)
-            {
-                value = 0;
-                return true;
-            }
-            
-            return int.TryParse(buffer, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
-        }
-        
-        public override bool TryFormat(Span<char> buffer, int value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
-    }
-    
-    public sealed class ImTextEditFloatFilter : ImTextEditFilterNumeric<float>
-    {
-        // allow to use comma as decimal separator
-        private static readonly CultureInfo DeCulture = new("de");
-        
-        public ImTextEditFloatFilter(bool emptyStringIsValid = false) : base(emptyStringIsValid) { }
-        
-        public override bool IsValid(ReadOnlySpan<char> buffer) => TryParse(buffer, out _);
-        public override string GetFallbackString() => "0.0";
-
-        public override bool TryParse(ReadOnlySpan<char> buffer, out float value) 
-        {
-            if (emptyStringIsValid && buffer.IsEmpty)
-            {
-                value = 0.0f;
-                return true;
-            }
-            
-            return 
-                float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out value) ||
-                float.TryParse(buffer, NumberStyles.Float, DeCulture, out value);
-        }
-        
-        public override bool TryFormat(Span<char> buffer, float value, out int length, ReadOnlySpan<char> format) => value.TryFormat(buffer, out length, format);
     }
 
     [Serializable]

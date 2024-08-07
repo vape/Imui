@@ -169,7 +169,7 @@ namespace Imui.Controls.Windows
             gui.AddSpacing();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.7f);
-            gui.TextEdit(ref floatValue);
+            gui.FloatEdit(ref floatValue);
             gui.EndHorizontal();
             gui.Text(Format(" = ", floatValue));
             gui.EndHorizontal();
@@ -178,7 +178,7 @@ namespace Imui.Controls.Windows
             gui.AddSpacing();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.7f);
-            gui.TextEdit(ref intValue);
+            gui.IntEdit(ref intValue);
             gui.EndHorizontal();
             gui.Text(Format(" = ", intValue));
             gui.EndHorizontal();
