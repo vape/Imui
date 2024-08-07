@@ -23,6 +23,8 @@ namespace Imui.IO.UGUI
         private const int MOUSE_EVENTS_QUEUE_SIZE = 4;
         private const int KEYBOARD_EVENTS_QUEUE_SIZE = 16;
         
+        private const float HELD_DOWN_DELAY = 0.2f;
+        
         private static Texture2D ClearTexture;
         private static readonly Vector3[] TempBuffer = new Vector3[4];
 
@@ -45,6 +47,10 @@ namespace Imui.IO.UGUI
         private ImTextEvent textEvent;
         private ImTouchKeyboard touchKeyboardHandler;
         private bool elementHovered;
+        
+        private bool mouseHeldDown;
+        private float mouseDownTime;
+        private Vector2 mouseDownPosition;
         
         protected override void Awake()
         {
@@ -155,6 +161,10 @@ namespace Imui.IO.UGUI
             {
                 mouseEvent = queuedMouseEvent;
             }
+            else if (mouseHeldDown && (Time.unscaledTime - mouseDownTime) > HELD_DOWN_DELAY)
+            {
+                mouseEvent = new ImMouseEvent(ImMouseEventType.Held, 0, EventModifiers.None, new Vector2(Time.unscaledTime - mouseDownTime, 0));
+            }
             else
             {
                 mouseEvent = default;
@@ -197,27 +207,38 @@ namespace Imui.IO.UGUI
             {
                 mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
             }
+
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                mouseHeldDown = true;
+                mouseDownTime = Time.unscaledTime;
+                mouseDownPosition = MousePosition;
+            }
             
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            mouseHeldDown = false;
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnDrag(PointerEventData eventData)
         {
+            mouseHeldDown = false;
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            mouseHeldDown = false;
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnScroll(PointerEventData eventData)
         {
+            mouseHeldDown = false;
             var delta = new Vector2(eventData.scrollDelta.x, -eventData.scrollDelta.y);
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Scroll, (int)eventData.button, EventModifiers.None, delta));
         }

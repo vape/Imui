@@ -4,6 +4,7 @@
   - Add +/- buttons for easier input
 - Split dropdown control into preview, dropdown button and popup menu with items
 - Sliders should have its current value drawn over the knob
+  - With custom format
 - Radio buttons
 
 ### Better do
@@ -25,3 +26,5 @@
 - More demo windows
   - Unity console, perhaps
 - Plotting, at least very basic
+- Text edit preview hint
+- Slider steps
