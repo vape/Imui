@@ -22,7 +22,7 @@ namespace Imui.Controls.Windows
         
         public static void Draw(ImGui gui)
         {
-            gui.BeginWindow("Imui Debug", width: 350, 383);
+            gui.BeginWindow("Imui Debug", width: 350, 410);
 
             var buffer = new Span<char>(formatBuffer);
             var length = 0;
@@ -39,6 +39,11 @@ namespace Imui.Controls.Windows
             Append(buffer, gui.Storage.OccupiedSize, ref length);
             Append(buffer, "/", ref length);
             Append(buffer, gui.Storage.Capacity, ref length);
+            Append(buffer, " bytes", ref length);
+            Flush(gui, buffer, ref length);
+            
+            Append(buffer, "Arena: ", ref length);
+            Append(buffer, gui.frameData.ArenaSize, ref length);
             Append(buffer, " bytes", ref length);
             Flush(gui, buffer, ref length);
             
