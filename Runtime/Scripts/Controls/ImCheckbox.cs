@@ -70,7 +70,7 @@ namespace Imui.Controls
             textRect.W -= ImTheme.Active.Controls.InnerSpacing;
             gui.Canvas.Text(label, ImTheme.Active.Text.Color, textRect, textSettings);
             
-            if (gui.InvisibleButton(id, textRect))
+            if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPress))
             {
                 value = !value;
             }

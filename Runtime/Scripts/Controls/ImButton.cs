@@ -6,6 +6,14 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    [Flags]
+    public enum ImButtonFlag
+    {
+        None = 0,
+        ActOnPress = 1,
+        ReactToHeldDown = 2
+    }
+    
     public static class ImButton
     {
         public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
@@ -25,27 +33,27 @@ namespace Imui.Controls
             return ImControls.GetRowRect(gui, size);
         }
         
-        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default)
+        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImButtonFlag flag = ImButtonFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size, label);
-            return Button(gui, label, rect);
+            return Button(gui, label, rect, flag);
         }
         
-        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect)
+        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)
         {
-            return Button(gui, gui.GetNextControlId(), label, rect, out _);
+            return Button(gui, gui.GetNextControlId(), label, rect, out _, flag);
         }
 
-        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state)
+        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flag)
         {
-            return Button(gui, gui.GetNextControlId(), rect, out state);
+            return Button(gui, gui.GetNextControlId(), rect, out state, flag);
         }
 
-        public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, out ImButtonState state)
+        public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
         {
-            var clicked = Button(gui, id, rect, out state);
+            var clicked = Button(gui, id, rect, out state, flag);
             var textSettings = GetTextSettings();
             var textColor = GetStateFontColor(state);
             var textRect = GetContentRect(rect);
@@ -55,7 +63,7 @@ namespace Imui.Controls
             return clicked;
         }
         
-        public static bool Button(this ImGui gui, uint id, ImRect rect, out ImButtonState state)
+        public static bool Button(this ImGui gui, uint id, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
@@ -74,39 +82,46 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down:
-                    if (!pressed && hovered)
+                case ImMouseEventType.Down when hovered:
+                    if ((flag & ImButtonFlag.ActOnPress) != 0)
+                    {
+                        clicked = true;
+                        gui.Input.UseMouseEvent();
+                    }
+                    else if (!pressed)
                     {
                         gui.SetActiveControl(id);
                         gui.Input.UseMouseEvent();
                     }
                     break;
                 
-                case ImMouseEventType.Up:
-                    if (pressed)
-                    {
-                        gui.ResetActiveControl();
-                        clicked = hovered;
+                case ImMouseEventType.Up when pressed:
+                    gui.ResetActiveControl();
+                    clicked = hovered;
                         
-                        if (clicked)
-                        {
-                            gui.Input.UseMouseEvent();
-                        }
+                    if (clicked)
+                    {
+                        gui.Input.UseMouseEvent();
                     }
+                    break;
+                
+                case ImMouseEventType.Held when pressed && (flag & ImButtonFlag.ReactToHeldDown) != 0:
+                    clicked = true;
+                    gui.Input.UseMouseEvent();
                     break;
             }
 
             return clicked;
         }
 
-        public static bool InvisibleButton(this ImGui gui, ImRect rect, bool actOnPress = false)
+        public static bool InvisibleButton(this ImGui gui, ImRect rect, ImButtonFlag flag)
         {
             var id = gui.GetNextControlId();
 
-            return InvisibleButton(gui, id, rect, actOnPress);
+            return InvisibleButton(gui, id, rect, flag);
         }
         
-        public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, bool actOnPress = false)
+        public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, ImButtonFlag flag)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
@@ -122,7 +137,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down when !pressed && hovered && actOnPress:
+                case ImMouseEventType.Down when !pressed && hovered && (flag & ImButtonFlag.ActOnPress) != 0:
                     clicked = true;
                     gui.Input.UseMouseEvent();
                     break;
