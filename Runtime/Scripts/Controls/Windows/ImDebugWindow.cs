@@ -109,9 +109,9 @@ namespace Imui.Controls.Windows
                 points[i] = new Vector2(rect.X + xn * rect.W * nw, rect.Y + yn * rect.H);
             }
 
-            gui.BeginPanel(rect);
+            gui.BeginList(rect);
             gui.Canvas.Line(points, ImTheme.Active.Text.Color, false, 1);
-            gui.EndPanel();
+            gui.EndList();
         }
     }
 }

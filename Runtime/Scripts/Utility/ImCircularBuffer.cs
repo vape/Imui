@@ -1,3 +1,5 @@
+using System;
+
 namespace Imui.Utility
 {
     public struct ImCircularBuffer<T>
@@ -15,6 +17,20 @@ namespace Imui.Utility
             Head = 0;
             Count = 0;
             Array = new T[capacity];
+        }
+
+        public ImCircularBuffer(T[] array)
+        {
+            if (array == null)
+            {
+                throw new ArgumentNullException(nameof(array));
+            }
+            
+            Capacity = array.Length;
+
+            Head = 0;
+            Count = 0;
+            Array = array;
         }
 
         public ref T Get(int index)

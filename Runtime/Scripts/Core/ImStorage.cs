@@ -38,12 +38,12 @@ namespace Imui.Core
             tail = data;
         }
 
-        public ref T Get<T>(uint id, in T defaultValue = default) where T : unmanaged
+        public ref T Get<T>(uint id, T defaultValue = default) where T : unmanaged
         {
-            return ref *GetRef(id, in defaultValue);
+            return ref *GetRef(id, defaultValue);
         }
         
-        public T* GetRef<T>(uint id, in T defaultValue = default) where T : unmanaged
+        public T* GetRef<T>(uint id, T defaultValue = default) where T : unmanaged
         {
             if (!TryGet(out T* value, out Metadata* metadata, id))
             {

@@ -1,13 +1,14 @@
 using System;
 using Imui.Controls.Styling;
 using Imui.Core;
+using UnityEngine;
 
 namespace Imui.Controls
 {
     // TODO (artem-s): implement table layout helper
     public static class ImControls
     {
-        public static ImRect GetRowRect(ImGui gui, ImSize size)
+        public static ImRect AddRowRect(ImGui gui, ImSize size)
         {
             return size.Type switch
             {
@@ -19,6 +20,11 @@ namespace Imui.Controls
         public static float GetRowHeight(this ImGui gui)
         {
             return gui.TextDrawer.GetLineHeight(ImTheme.Active.Controls.TextSize) + ImTheme.Active.Controls.ExtraRowHeight;
+        }
+
+        public static float GetRowsHeightWithSpacing(this ImGui gui, int rows)
+        {
+            return Mathf.Max(0, gui.GetRowHeight() * rows + ImTheme.Active.Controls.ControlsSpacing * (rows - 1));
         }
         
         public static void AddSpacingIfLayoutFrameNotEmpty(this ImGui gui)

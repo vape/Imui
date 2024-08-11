@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Imui.Controls.Styling;
 using Imui.Controls.Styling.Themes;
@@ -25,11 +26,13 @@ namespace Imui.Controls.Windows
         private static float floatValue;
         private static int intValue;
         private static bool isReadOnly;
+        private static bool customDropdownOpen;
         private static bool[] checkboxes = new bool[4];
         private static bool showDebugWindow = false;
         private static int clicks;
         private static int nestedFoldouts;
         private static bool showPlusMinusButtons = true;
+        private static HashSet<int> selectedValues = new HashSet<int>(values.Length);
 
         public static void Draw(ImGui gui)
         {
@@ -124,28 +127,39 @@ namespace Imui.Controls.Windows
             gui.Checkbox(ref isReadOnly, "Read Only");
 
             gui.BeginReadOnly(isReadOnly);
-            gui.BeginDropdown("Custom Dropdown", out var open);
-            gui.BeginIndent();
-            if (open)
+
+            var customDropdownId = gui.GetNextControlId();
+
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
+            ImDropdown.Begin(gui);
+            ImDropdown.BeginPreview(gui);
+            ImDropdown.PreviewButton(gui, customDropdownId, default, ref customDropdownOpen);
+            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f);
+            for (int i = 0; i < checkboxes.Length; ++i)
             {
+                gui.Text(checkboxes[i] ? " X " : " O ", textSettings);
+            }
+            ImDropdown.EndPreview(gui, customDropdownId, ref customDropdownOpen);
+            if (customDropdownOpen)
+            {
+                ImDropdown.BeginList(gui, customDropdownId, 1);
                 var allTrue = true;
                 
-                gui.AddSpacing();
                 gui.BeginHorizontal();
                 for (int i = 0; i < checkboxes.Length; ++i)
                 {
                     gui.Checkbox(ref checkboxes[i]);
                     allTrue &= checkboxes[i];
                 }
-                gui.EndHorizontal();
-
                 if (allTrue)
                 {
-                    gui.Text("Bingo!");
+                    gui.Text("Bingo!", textSettings);
                 }
+                gui.EndHorizontal();
+                ImDropdown.EndList(gui, ref customDropdownOpen);
             }
-            gui.EndIndent();
-            gui.EndDropdown();
+            ImDropdown.End(gui);
 
             DrawNestedFoldout(gui, 0, ref nestedFoldouts);
 
@@ -158,13 +172,30 @@ namespace Imui.Controls.Windows
             {
                 clicks = 0;
             }
-            
+
             gui.Checkbox(ref checkmarkValue, "Checkmark");
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Not Selected");
             gui.Slider(ref sliderValue, 0.0f, 1.0f);
             gui.Text(Format("Slider value: ", sliderValue, "0.00"));
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, (gui.GetLayoutWidth(), 200));
+            gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui.GetRowsHeightWithSpacing(3))));
+            for (int i = 0; i < values.Length; ++i)
+            {
+                var isSelected = selectedValues.Contains(i);
+                if (gui.ListItem(values[i], ref isSelected))
+                {
+                    if (isSelected)
+                    {
+                        selectedValues.Add(i);
+                    }
+                    else
+                    {
+                        selectedValues.Remove(i);
+                    }
+                }
+            }
+            gui.EndList();
             
             gui.AddSpacing(gui.GetRowHeight() * 0.5f);
             gui.Checkbox(ref showPlusMinusButtons, "Show +/-");
@@ -217,8 +248,7 @@ namespace Imui.Controls.Windows
             var grid = gui.BeginGrid(5, gui.GetRowHeight());
             for (int i = 0; i < 12; ++i)
             {
-                var cell = gui.GridNextCell(ref grid);
-                gui.TextAutoSize(Format("Grid cell ", i, "0"), cell);
+                gui.TextAutoSize(Format("Grid cell ", i, "0"), gui.GridNextCell(ref grid));
             }
             gui.EndGrid(in grid);
         }

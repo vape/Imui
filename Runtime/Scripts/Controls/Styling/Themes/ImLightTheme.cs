@@ -17,13 +17,57 @@ namespace Imui.Controls.Styling.Themes
                 Button = CreateButtonStyle(),
                 Checkbox = CreateCheckboxStyle(),
                 Foldout = CreateFoldoutStyle(),
-                Panel = CreatePanelStyle(),
                 Scroll = CreateScrollStyle(),
                 TextEdit = CreateTextEditStyle(),
                 Dropdown = CreateDropdownStyle(),
                 Slider = CreateSliderStyle(),
-                Controls = CreateControlsStyle()
+                Controls = CreateControlsStyle(),
+                List = CreateListStyle()
             };
+        }
+
+        private static ImListStyle CreateListStyle()
+        {
+            var style = new ImListStyle()
+            {
+                Box = new ImBoxStyle
+                {
+                    BackColor = new Color32(202, 202, 202, 255),
+                    BorderColor = new Color32(128, 128, 128, 255),
+                    BorderWidth = 1.0f,
+                    BorderRadius = 4.0f
+                },
+                Padding = 4.0f
+            };
+            
+            style.ItemNormal = CreateButtonStyle();
+            style.ItemNormal.Padding = 0.0f;
+            style.ItemNormal.Padding.Left = 4.0f;
+            style.ItemNormal.Alignment.X = 0.0f;
+            style.ItemNormal.BorderWidth = 0.0f;
+
+            style.ItemSelected = style.ItemNormal;
+            
+            style.ItemNormal.Normal.BackColor = new Color32(255, 255, 255, 64);
+            style.ItemNormal.Normal.FrontColor = new Color32(38, 38, 38, 255);
+            style.ItemNormal.Normal.BorderColor = new Color32(0, 0, 0, 0);
+            style.ItemNormal.Hovered.BackColor = new Color32(255, 255, 255, 102);
+            style.ItemNormal.Hovered.FrontColor = new Color32(51, 51, 51, 255);
+            style.ItemNormal.Hovered.BorderColor = new Color32(0, 0, 0, 0);
+            style.ItemNormal.Pressed.BackColor = new Color32(255, 255, 255, 153);
+            style.ItemNormal.Pressed.FrontColor = new Color32(13, 13, 13, 255);
+            style.ItemNormal.Pressed.BorderColor = new Color32(0, 0, 0, 0);
+            style.ItemSelected.Normal.BackColor = new Color32(0, 122, 204, 255);
+            style.ItemSelected.Normal.BorderColor = new Color32(0, 0, 0, 0);
+            style.ItemSelected.Normal.FrontColor = new Color32(255, 255, 255, 255);
+            style.ItemSelected.Hovered.BackColor = new Color32(0, 137, 230, 255);
+            style.ItemSelected.Hovered.BorderColor = new Color32(0, 0, 0, 0);
+            style.ItemSelected.Hovered.FrontColor = new Color32(255, 255, 255, 255);
+            style.ItemSelected.Pressed.BackColor = new Color32(0, 107, 179, 255);
+            style.ItemSelected.Pressed.BorderColor = new Color32(0, 0, 0, 0);
+            style.ItemSelected.Pressed.FrontColor = new Color32(255, 255, 255, 255);
+
+            return style;
         }
 
         public static ImWindowStyle CreateWindowStyle()
@@ -111,22 +155,7 @@ namespace Imui.Controls.Styling.Themes
 
             return style;
         }
-
-        public static ImPanelStyle CreatePanelStyle()
-        {
-            return new ImPanelStyle()
-            {
-                Box = new ImBoxStyle
-                {
-                    BackColor = new Color32(202, 202, 202, 255),
-                    BorderColor = new Color32(128, 128, 128, 255),
-                    BorderWidth = 1.0f,
-                    BorderRadius = 4.0f
-                },
-                Padding = 4.0f
-            };
-        }
-
+        
         public static ImScrollStyle CreateScrollStyle()
         {
             return new ImScrollStyle()
@@ -193,40 +222,11 @@ namespace Imui.Controls.Styling.Themes
             var style = new ImDropdownStyle()
             {
                 Alignment = new ImTextAlignment(0.0f, 0.5f),
-                ArrowInnerScale = 0.6f,
-                ArrowOuterScale = 0.7f,
-                MaxPanelHeight = 300.0f,
-                OptionsButtonsSpacing = 2.0f
+                ArrowScale = 0.4f,
+                MinListWidth = 100.0f,
+                MaxListHeight = 300.0f
             };
-
-            style.OptionButton = CreateButtonStyle();
-            style.OptionButton.Padding = 0.0f;
-            style.OptionButton.Padding.Left = 4.0f;
-            style.OptionButton.Alignment.X = 0.0f;
-            style.OptionButton.BorderWidth = 0.0f;
-
-            style.OptionButtonSelected = style.OptionButton;
             
-            style.OptionButton.Normal.BackColor = new Color32(255, 255, 255, 64);
-            style.OptionButton.Normal.FrontColor = new Color32(38, 38, 38, 255);
-            style.OptionButton.Normal.BorderColor = new Color32(0, 0, 0, 0);
-            style.OptionButton.Hovered.BackColor = new Color32(255, 255, 255, 102);
-            style.OptionButton.Hovered.FrontColor = new Color32(51, 51, 51, 255);
-            style.OptionButton.Hovered.BorderColor = new Color32(0, 0, 0, 0);
-            style.OptionButton.Pressed.BackColor = new Color32(255, 255, 255, 153);
-            style.OptionButton.Pressed.FrontColor = new Color32(13, 13, 13, 255);
-            style.OptionButton.Pressed.BorderColor = new Color32(0, 0, 0, 0);
-            style.OptionButtonSelected.Normal.BackColor = new Color32(0, 122, 204, 255);
-            style.OptionButtonSelected.Normal.BorderColor = new Color32(0, 0, 0, 0);
-            style.OptionButtonSelected.Normal.FrontColor = new Color32(255, 255, 255, 255);
-            style.OptionButtonSelected.Hovered.BackColor = new Color32(0, 137, 230, 255);
-            style.OptionButtonSelected.Hovered.BorderColor = new Color32(0, 0, 0, 0);
-            style.OptionButtonSelected.Hovered.FrontColor = new Color32(255, 255, 255, 255);
-            style.OptionButtonSelected.Pressed.BackColor = new Color32(0, 107, 179, 255);
-            style.OptionButtonSelected.Pressed.BorderColor = new Color32(0, 0, 0, 0);
-            style.OptionButtonSelected.Pressed.FrontColor = new Color32(255, 255, 255, 255);
-
-
             return style;
         }
 

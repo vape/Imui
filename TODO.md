@@ -2,19 +2,21 @@
 - ~~Add simple arena allocator~~
 - ~~Implement separate control for numeric input~~
   - ~~Add +/- buttons for easier input~~
-- Split dropdown control into preview, dropdown button and popup menu with items
+- ~~Split dropdown control into preview, dropdown button and popup menu with items~~
 - Sliders should have its current value drawn over the knob
   - With custom format
 - Radio buttons
 
 ### Better do
+- Reorder demo controls from basic to more advanced
+- Fix all the warnings in code
 - TextEdit as dropdown preview area
 - Handle double clicks in ImTextEdit to select words
 - Implement table layout
 - Implement tabs
   - Vertical tabs
   - Horizontal tabs
-- Implement header control
+- Implement foldable header control
 - Tree layout
 - Text drawing overhaul
   - __Word__ wrapping

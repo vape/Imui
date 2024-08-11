@@ -14,7 +14,7 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id =  gui.PushId(label);
-            var rect = ImControls.GetRowRect(gui, size);
+            var rect = ImControls.AddRowRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
             Foldout(gui, id, ref state, rect, label);
             open = state;

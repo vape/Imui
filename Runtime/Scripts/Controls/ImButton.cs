@@ -32,7 +32,7 @@ namespace Imui.Controls
                 return gui.Layout.AddRect(rectSize);
             }
 
-            return ImControls.GetRowRect(gui, size);
+            return ImControls.AddRowRect(gui, size);
         }
         
         public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImButtonFlag flag = ImButtonFlag.None)
@@ -48,9 +48,14 @@ namespace Imui.Controls
             return Button(gui, gui.GetNextControlId(), label, rect, out _, flag);
         }
 
-        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flag)
+        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
         {
             return Button(gui, gui.GetNextControlId(), rect, out state, flag);
+        }
+
+        public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)
+        {
+            return Button(gui, id, label, rect, out _, flag);
         }
 
         public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
