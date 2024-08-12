@@ -20,5 +20,6 @@ namespace Imui.Controls.Styling
         public ImDropdownStyle Dropdown;
         public ImSliderStyle Slider;
         public ImListStyle List;
+        public ImRadioStyle Radio;
     }
 }

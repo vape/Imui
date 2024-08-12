@@ -11,7 +11,7 @@ namespace Imui.Controls
         {
             return ImControls.AddRowRect(gui, size);
         }
-        
+
         public static void BeginList(this ImGui gui, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
@@ -32,7 +32,7 @@ namespace Imui.Controls
             gui.Canvas.PushClipRect(maskRect); // need this to properly handle clicking outside drawing area
             gui.BeginScrollable();
         }
-        
+
         public static void EndList(this ImGui gui)
         {
             gui.EndScrollable();
@@ -41,7 +41,7 @@ namespace Imui.Controls
             gui.Layout.Pop();
         }
 
-        public static bool ListItem(this ImGui gui, int index, ReadOnlySpan<char> label, ref int selected)
+        public static bool ListItem(this ImGui gui, ref int selected, int index, ReadOnlySpan<char> label)
         {
             ref readonly var style = ref (index == selected ? ref ImTheme.Active.List.ItemSelected : ref ImTheme.Active.List.ItemNormal);
 
@@ -56,8 +56,8 @@ namespace Imui.Controls
 
             return false;
         }
-        
-        public static bool ListItem(this ImGui gui, ReadOnlySpan<char> label, ref bool isSelected)
+
+        public static bool ListItem(this ImGui gui, ref bool isSelected, ReadOnlySpan<char> label)
         {
             ref readonly var style = ref (isSelected ? ref ImTheme.Active.List.ItemSelected : ref ImTheme.Active.List.ItemNormal);
 
@@ -72,7 +72,7 @@ namespace Imui.Controls
 
             return false;
         }
-        
+
         public static float GetEnclosingHeight(float contentHeight)
         {
             return contentHeight + ImTheme.Active.List.Padding.Vertical;

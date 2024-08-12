@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Imui.Controls.Styling;
 using Imui.Controls.Styling.Themes;
 using Imui.Core;
+using Imui.IO.Events;
 using UnityEngine;
 
 namespace Imui.Controls.Windows
@@ -10,6 +11,9 @@ namespace Imui.Controls.Windows
     public static class ImDemoWindow
     {
         private static char[] formatBuffer = new char[256];
+
+        private static ImMouseEventType mouseEventEnum;
+        private static ImKeyboardCommandFlag keyboardCmdFlag;
         
         private static bool checkmarkValue;
         private static int selectedValue = -1;
@@ -186,7 +190,7 @@ namespace Imui.Controls.Windows
             for (int i = 0; i < values.Length; ++i)
             {
                 var isSelected = selectedValues.Contains(i);
-                if (gui.ListItem(values[i], ref isSelected))
+                if (gui.ListItem(ref isSelected, values[i]))
                 {
                     if (isSelected)
                     {
@@ -222,6 +226,9 @@ namespace Imui.Controls.Windows
             gui.EndHorizontal();
 
             gui.AddSpacing();
+            
+            gui.Radio(ref mouseEventEnum);
+            gui.Radio(ref keyboardCmdFlag);
             
             gui.EndReadOnly();
         }

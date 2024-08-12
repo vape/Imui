@@ -5,12 +5,11 @@
 - ~~Split dropdown control into preview, dropdown button and popup menu with items~~
 - ~~Sliders should have its current value drawn over the knob~~
   - ~~With custom format~~
-- Radio buttons
+- ~~Radio buttons~~
 
 ### Better do
 - Reorder demo controls from basic to more advanced
 - Fix all the warnings in code
-- TextEdit as dropdown preview area
 - Handle double clicks in ImTextEdit to select words
 - Implement table layout
 - Implement tabs
@@ -23,8 +22,10 @@
   - Add support for (basic subset of) rich text
   - Optimize layout and rendering
 - Fix touch keyboard in webgl
+- Unit tests
 
 ### Maybe
+- TextEdit as dropdown preview area
 - More demo windows
   - Unity console, perhaps
 - Plotting, at least very basic

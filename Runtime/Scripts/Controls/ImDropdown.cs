@@ -51,7 +51,7 @@ namespace Imui.Controls
                 BeginList(gui, id, items.Length);
                 for (int i = 0; i < items.Length; ++i)
                 {
-                    if (gui.ListItem(i, items[i], ref selected))
+                    if (gui.ListItem(ref selected, i, items[i]))
                     {
                         state.Open = false;
                     }

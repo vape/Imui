@@ -6,7 +6,7 @@ namespace Imui.Controls.Styling.Themes
     public static class ImLightTheme
     {
         public const string NAME = "Light";
-        
+
         public static ImTheme Create()
         {
             return new ImTheme()
@@ -22,7 +22,18 @@ namespace Imui.Controls.Styling.Themes
                 Dropdown = CreateDropdownStyle(),
                 Slider = CreateSliderStyle(),
                 Controls = CreateControlsStyle(),
-                List = CreateListStyle()
+                List = CreateListStyle(),
+                Radio = CreateRadioStyle()
+            };
+        }
+
+        private static ImRadioStyle CreateRadioStyle()
+        {
+            return new ImRadioStyle
+            {
+                IndicatorScale = 0.6f,
+                TextAlignment = new ImTextAlignment(0.0f, 0.5f),
+                WrapText = false
             };
         }
 
@@ -39,7 +50,7 @@ namespace Imui.Controls.Styling.Themes
                 },
                 Padding = 4.0f
             };
-            
+
             style.ItemNormal = CreateButtonStyle();
             style.ItemNormal.Padding = 0.0f;
             style.ItemNormal.Padding.Left = 4.0f;
@@ -47,7 +58,7 @@ namespace Imui.Controls.Styling.Themes
             style.ItemNormal.BorderWidth = 0.0f;
 
             style.ItemSelected = style.ItemNormal;
-            
+
             style.ItemNormal.Normal.BackColor = new Color32(255, 255, 255, 64);
             style.ItemNormal.Normal.FrontColor = new Color32(38, 38, 38, 255);
             style.ItemNormal.Normal.BorderColor = new Color32(0, 0, 0, 0);
@@ -96,11 +107,7 @@ namespace Imui.Controls.Styling.Themes
 
         public static ImTextStyle CreateTextStyle()
         {
-            return new ImTextStyle()
-            {
-                Color = new Color32(13, 13, 13, 255),
-                Alignment = new ImTextAlignment(0.0f, 0.0f)
-            };
+            return new ImTextStyle() { Color = new Color32(13, 13, 13, 255), Alignment = new ImTextAlignment(0.0f, 0.0f) };
         }
 
         public static ImButtonStyle CreateButtonStyle()
@@ -155,7 +162,7 @@ namespace Imui.Controls.Styling.Themes
 
             return style;
         }
-        
+
         public static ImScrollStyle CreateScrollStyle()
         {
             return new ImScrollStyle()
@@ -166,18 +173,15 @@ namespace Imui.Controls.Styling.Themes
                 BorderRadius = 4.0f,
                 NormalState = new ImScrollBarStateStyle()
                 {
-                    BackColor = new Color32(51, 51, 51, 255),
-                    FrontColor = new Color32(255, 255, 255, 192),
+                    BackColor = new Color32(51, 51, 51, 255), FrontColor = new Color32(255, 255, 255, 192),
                 },
                 HoveredState = new ImScrollBarStateStyle()
                 {
-                    BackColor = new Color32(51, 51, 51, 255),
-                    FrontColor = new Color32(255, 255, 255, 230),
+                    BackColor = new Color32(51, 51, 51, 255), FrontColor = new Color32(255, 255, 255, 230),
                 },
                 PressedState = new ImScrollBarStateStyle()
                 {
-                    BackColor = new Color32(51, 51, 51, 255),
-                    FrontColor = new Color32(255, 255, 255, 205),
+                    BackColor = new Color32(51, 51, 51, 255), FrontColor = new Color32(255, 255, 255, 205),
                 }
             };
         }
@@ -216,7 +220,7 @@ namespace Imui.Controls.Styling.Themes
                 TextWrap = false
             };
         }
-        
+
         private static ImDropdownStyle CreateDropdownStyle()
         {
             var style = new ImDropdownStyle()
@@ -226,7 +230,7 @@ namespace Imui.Controls.Styling.Themes
                 MinListWidth = 100.0f,
                 MaxListHeight = 300.0f
             };
-            
+
             return style;
         }
 
@@ -246,14 +250,14 @@ namespace Imui.Controls.Styling.Themes
                 Padding = 1.0f,
                 HandleAspectRatio = 1.0f,
             };
-            
+
             style.Handle.Normal.BackColor = new Color32(110, 110, 110, 255);
             style.Handle.Normal.BorderColor = new Color32(0, 0, 0, 0);
             style.Handle.Hovered.BackColor = new Color32(115, 115, 115, 255);
             style.Handle.Hovered.BorderColor = new Color32(0, 0, 0, 0);
             style.Handle.Pressed.BackColor = new Color32(100, 100, 100, 255);
             style.Handle.Pressed.BorderColor = new Color32(0, 0, 0, 0);
-            
+
             return style;
         }
 
