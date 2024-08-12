@@ -63,6 +63,7 @@ namespace Imui.Controls.Styling.Themes
             theme.List.ItemSelected.Pressed.BorderColor = new Color32(0, 0, 0, 0);
             theme.Slider.Box.BackColor = new Color32(33, 33, 33, 255);
             theme.Slider.Box.BorderColor = new Color32(20, 20, 20, 255);
+            theme.Slider.Box.FrontColor = new Color32(190, 190, 190, 255);
             theme.Slider.Handle.Normal.BackColor = new Color32(71, 71, 71, 255);
             theme.Slider.Handle.Normal.FrontColor = new Color32(137, 146, 155, 255);
             theme.Slider.Handle.Normal.BorderColor = new Color32(0, 0, 0, 0);

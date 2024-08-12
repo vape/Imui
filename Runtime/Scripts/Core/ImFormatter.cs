@@ -21,6 +21,21 @@ namespace Imui.Core
             return span;
         }
         
+        public Span<char> Join(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, int repeat)
+        {
+            var span = arena.AllocArray<char>(str0.Length + str1.Length * (repeat < 0 ? 0 : repeat));
+            var size = 0;
+            str0.CopyTo(span[size..]); 
+            size += str0.Length;
+            for (int i = 0; i < repeat; ++i)
+            {
+                str1.CopyTo(span[size..]);
+                size += str1.Length;
+            }
+            
+            return span;
+        }
+        
         public Span<char> Join(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length + str2.Length);
@@ -62,7 +77,7 @@ namespace Imui.Core
             str4.CopyTo(span[size..]);
             return span;
         }
-
+        
         public Span<char> Format(float value, ReadOnlySpan<char> format = default)
         {
             const int MAX_LEN = 64;

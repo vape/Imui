@@ -17,17 +17,26 @@ namespace Imui.Controls
             };
         }
         
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImSize size = default)
+        public static bool Slider(this ImGui gui, ref int value, int min, int max, ImSize size = default, ReadOnlySpan<char> format = default)
+        {
+            var floatValue = (float)value;
+            var changed = Slider(gui, ref floatValue, min, max, size, format, 1);
+            value = (int)floatValue;
+            return changed;
+        }
+        
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImSize size = default, ReadOnlySpan<char> format = default, float step = 0)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size);
-            return Slider(gui, ref value, min, max, rect); 
+            return Slider(gui, ref value, min, max, GetRect(gui, size), format, step); 
         }
         
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImRect rect)
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImRect rect, ReadOnlySpan<char> format = default, float step = 0)
         {
             const float EPSILON = 0.000001f;
+
+            step = Mathf.Abs(step);
             
             var normValue = Mathf.InverseLerp(min, max, value);
 
@@ -51,11 +60,23 @@ namespace Imui.Controls
 
             using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, ImTheme.Active.Slider.Handle))
             {
-                gui.Button(id, handleRect, out _);
+                if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPress))
+                {
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                }
             }
             
             gui.RegisterControl(id, rect);
 
+            if (format.IsEmpty)
+            {
+                format = GetFormatForStep(gui, step);
+            }
+            
+            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.5f, 0.5f);
+            gui.Text(gui.Formatter.Format(value, format), in textSettings, rect, ImTheme.Active.Slider.Box.FrontColor);
+            
             if (gui.IsReadOnly)
             {
                 return false;
@@ -65,12 +86,13 @@ namespace Imui.Controls
             switch (evt.Type)
             {
                 case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     gui.Input.UseMouseEvent();
                     break;
                 
                 case ImMouseEventType.Drag when active:
-                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, normValue) + evt.Delta.x);
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     gui.Input.UseMouseEvent();
                     break;
                 
@@ -80,6 +102,12 @@ namespace Imui.Controls
             }
             
             var newValue = Mathf.Lerp(min, max, normValue);
+            if (step > 0)
+            {
+                var precision = 1.0f / step;
+                newValue = Mathf.Round(newValue * precision) / precision;
+            }
+            
             if (Mathf.Abs(newValue - value) > EPSILON)
             {
                 value = newValue;
@@ -87,6 +115,16 @@ namespace Imui.Controls
             }
 
             return false;
+        }
+
+        public static ReadOnlySpan<char> GetFormatForStep(ImGui gui, float step)
+        {
+            if (step == 0)
+            {
+                return "0.00";
+            }
+            
+            return gui.Formatter.Join("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
         }
     }
 

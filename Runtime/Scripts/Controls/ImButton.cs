@@ -121,7 +121,7 @@ namespace Imui.Controls
                     gui.ResetActiveControl();
                     clicked = hovered;
                         
-                    if (clicked)
+                    if (clicked & (flag & ImButtonFlag.ActOnPress) == 0)
                     {
                         gui.Input.UseMouseEvent();
                     }

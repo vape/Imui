@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Imui.Controls.Styling;
 using Imui.Controls.Styling.Themes;
 using Imui.Core;
+using UnityEngine;
 
 namespace Imui.Controls.Windows
 {
@@ -14,6 +14,8 @@ namespace Imui.Controls.Windows
         private static bool checkmarkValue;
         private static int selectedValue = -1;
         private static float sliderValue;
+        private static float stepSliderValue;
+        private static int intSliderValue;
         private static int selectedTheme;
         private static string[] themes = { ImLightTheme.NAME, ImDarkTheme.NAME };
         private static string[] values = 
@@ -175,8 +177,9 @@ namespace Imui.Controls.Windows
 
             gui.Checkbox(ref checkmarkValue, "Checkmark");
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Not Selected");
-            gui.Slider(ref sliderValue, 0.0f, 1.0f);
-            gui.Text(Format("Slider value: ", sliderValue, "0.00"));
+            gui.Slider(ref sliderValue, -Mathf.PI * 2, Mathf.PI * 2, format: "0.000 rad.");
+            gui.Slider(ref stepSliderValue, -5.0f, 5.0f, step: 0.1f);
+            gui.Slider(ref intSliderValue, -10, 10);
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, (gui.GetLayoutWidth(), 200));
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui.GetRowsHeightWithSpacing(3))));

@@ -239,18 +239,19 @@ namespace Imui.Controls.Styling.Themes
                     BackColor = new Color32(202, 202, 202, 255),
                     BorderColor = new Color32(128, 128, 128, 255),
                     BorderWidth = 1.0f,
-                    BorderRadius = 4.0f
+                    BorderRadius = 4.0f,
+                    FrontColor = new Color32(0, 0, 0, 255)
                 },
                 Handle = CreateButtonStyle(),
                 Padding = 1.0f,
-                HandleAspectRatio = 1.0f
+                HandleAspectRatio = 1.0f,
             };
             
-            style.Handle.Normal.BackColor = new Color32(51, 51, 51, 255);
+            style.Handle.Normal.BackColor = new Color32(110, 110, 110, 255);
             style.Handle.Normal.BorderColor = new Color32(0, 0, 0, 0);
-            style.Handle.Hovered.BackColor = new Color32(63, 63, 63, 255);
+            style.Handle.Hovered.BackColor = new Color32(115, 115, 115, 255);
             style.Handle.Hovered.BorderColor = new Color32(0, 0, 0, 0);
-            style.Handle.Pressed.BackColor = new Color32(25, 25, 25, 255);
+            style.Handle.Pressed.BackColor = new Color32(100, 100, 100, 255);
             style.Handle.Pressed.BorderColor = new Color32(0, 0, 0, 0);
             
             return style;
