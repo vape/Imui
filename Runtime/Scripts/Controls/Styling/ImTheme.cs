@@ -21,5 +21,6 @@ namespace Imui.Controls.Styling
         public ImSliderStyle Slider;
         public ImListStyle List;
         public ImRadioStyle Radio;
+        public ImSeparatorStyle Separator;
     }
 }

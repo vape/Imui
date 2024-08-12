@@ -20,7 +20,7 @@ namespace Imui.Controls
     {
         public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
         {
-            if (size.Type == ImSizeType.Fit)
+            if (size.Type == ImSizeType.Fit || (size.Type == ImSizeType.Auto && gui.Layout.Axis == ImAxis.Horizontal))
             {
                 var textSettings = GetTextSettings();
                 var textSize = gui.MeasureTextSize(label, in textSettings);
@@ -136,14 +136,14 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static bool InvisibleButton(this ImGui gui, ImRect rect, ImButtonFlag flag)
+        public static bool InvisibleButton(this ImGui gui, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)
         {
             var id = gui.GetNextControlId();
 
             return InvisibleButton(gui, id, rect, flag);
         }
         
-        public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, ImButtonFlag flag)
+        public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);

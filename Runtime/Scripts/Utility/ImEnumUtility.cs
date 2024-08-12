@@ -53,7 +53,7 @@ namespace Imui.Utility
         
         public static bool operator ==(ImEnumValue<TEnum> val0, int val1)
         {
-            return val0.signed ? val0.longValue == val1 : val1 < 0 ? (long)val0.ulongValue == val1 : val0.ulongValue == (uint)val1;
+            return val0.signed ? val0.longValue == val1 : val1 >= 0 && val0.ulongValue == (uint)val1;
         }
         
         public static bool operator !=(ImEnumValue<TEnum> val0, int val1)

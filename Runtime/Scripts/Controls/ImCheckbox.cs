@@ -26,7 +26,7 @@ namespace Imui.Controls
                     var width = boxSize + ImTheme.Active.Controls.InnerSpacing + textSize.x;
                     var height = Mathf.Max(boxSize, textSize.y);
                     
-                    if (size.Type != ImSizeType.Fit)
+                    if (size.Type != ImSizeType.Fit && gui.Layout.Axis != ImAxis.Horizontal)
                     {
                         width = Mathf.Max(gui.GetLayoutWidth(), width);
                     }

@@ -27,7 +27,8 @@
 ### Maybe
 - TextEdit as dropdown preview area
 - More demo windows
-  - Unity console, perhaps
+  - ~~Unity console, perhaps~~
+  - Maybe even more?
 - Plotting, at least very basic
 - Text edit preview hint
 - Slider steps

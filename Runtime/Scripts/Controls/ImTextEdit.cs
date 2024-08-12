@@ -78,6 +78,27 @@ namespace Imui.Controls
             
             TextEdit(gui, ref text, rect, filter, multiline.Value);
         }
+
+        public static void TextEdit(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool? multiline = null)
+        {
+            // if text is passed not as ref, draw it as readonly
+            gui.BeginReadOnly(true);
+            var buffer = new ImTextEditBuffer(text);
+            if (multiline == null)
+            {
+                multiline = rect.H > gui.GetRowHeight();
+            }
+            TextEdit(gui, ref buffer, rect, null, multiline.Value);
+            gui.EndReadOnly();
+        }
+        
+        public static void TextEdit(this ImGui gui, string text, ImRect rect, bool? multiline = null)
+        {
+            // if text is passed not as ref, draw it as readonly
+            gui.BeginReadOnly(true);
+            TextEdit(gui, ref text, rect, null, multiline);
+            gui.EndReadOnly();
+        }
         
         public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = null, bool? multiline = null)
         {
@@ -814,19 +835,32 @@ namespace Imui.Controls
         private static char[] StaticBuffer = new char[DEFAULT_MUTABLE_BUFFER_CAPACITY];
 
         public int Length;
+        public ReadOnlySpan<char> InitSpan;
+        public bool InitWithSpan;
         public string InitText;
         public char[] Buffer;
 
         public ImTextEditBuffer(string text)
         {
+            InitSpan = default;
             InitText = text ?? string.Empty;
+            InitWithSpan = false;
             Buffer = null;
             Length = InitText.Length;
         }
 
+        public ImTextEditBuffer(ReadOnlySpan<char> text)
+        {
+            InitSpan = text;
+            InitText = null;
+            InitWithSpan = true;
+            Buffer = null;
+            Length = text.Length;
+        }
+
         public char At(int index)
         {
-            return Buffer?[index] ?? InitText[index];
+            return Buffer?[index] ?? (InitWithSpan ? InitSpan[index] : InitText[index]);
         }
         
         public string GetString()
@@ -836,12 +870,25 @@ namespace Imui.Controls
                 return new string(Buffer, 0, Length);
             }
 
-            return InitText;
+            return InitText ?? InitSpan.ToString();
         }
 
         public void MakeMutable(int capacity = DEFAULT_MUTABLE_BUFFER_CAPACITY)
         {
-            if (InitText != null)
+            if (InitWithSpan)
+            {
+                var nextLength = Mathf.NextPowerOfTwo(Mathf.Max(InitSpan.Length, capacity));
+                if (nextLength > StaticBuffer.Length)
+                {
+                    Array.Resize(ref StaticBuffer, nextLength);
+                }
+
+                Buffer = StaticBuffer;
+                InitSpan.CopyTo(Buffer);
+                Length = InitSpan.Length;
+                InitWithSpan = false;
+            }
+            else if (InitText != null)
             {
                 var nextLength = Mathf.NextPowerOfTwo(Mathf.Max(InitText.Length, capacity));
                 if (nextLength > StaticBuffer.Length)
@@ -923,7 +970,7 @@ namespace Imui.Controls
         }
         
         public static implicit operator ReadOnlySpan<char>(ImTextEditBuffer buffer) =>
-            buffer.InitText ?? new ReadOnlySpan<char>(buffer.Buffer, 0, buffer.Length);
+            buffer.InitWithSpan ? buffer.InitSpan : buffer.InitText ?? new ReadOnlySpan<char>(buffer.Buffer, 0, buffer.Length);
     }
         
     public abstract class ImTextEditFilter

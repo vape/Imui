@@ -237,11 +237,11 @@ namespace Imui.Core
             return thickness + (1 - pixelWidth) / screenScale;
         }
 
-        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
+        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size, int line = 0)
         {
             textDrawer.Color = color;
             textDrawer.Depth = DrawingDepth;
-            textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
+            textDrawer.AddTextLine(text, size / textDrawer.FontRenderSize, position.x, position.y, line);
         }
 
         public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in ImTextLayout layout)

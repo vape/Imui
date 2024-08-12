@@ -62,6 +62,15 @@ namespace Imui.Core
     public class ImLayout
     {
         private const int FRAME_STACK_CAPACITY = 32;
+
+        public ImAxis Axis
+        {
+            get
+            {
+                ref readonly var frame = ref GetFrame();
+                return frame.Axis;
+            }
+        }
         
         private ImDynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
         

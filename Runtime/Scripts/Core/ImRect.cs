@@ -15,6 +15,11 @@ namespace Imui.Core
         public Vector2 TopRight => new Vector2(X + W, Y + H);
         public Vector2 BottomLeft => Position;
         public Vector2 BottomRight => new Vector2(X + W, Y);
+
+        public Vector2 LeftCenter => new Vector2(X, Y + H / 2.0f);
+        public Vector2 RightCenter => new Vector2(X + W, Y + H / 2.0f);
+        public Vector2 TopCenter => new Vector2(X + W / 2.0f, Y + H);
+        public Vector2 BottomCenter => new Vector2(X + W / 2.0f, Y);
         public Vector2 Center => new Vector2(X + W / 2f, Y + H / 2f);
 
         public Vector2 Position

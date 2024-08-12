@@ -109,7 +109,8 @@ namespace Imui.Rendering
             return character.glyph.metrics.horizontalAdvance * scale;
         }
 
-        public void AddText(ReadOnlySpan<char> text, float scale, float x, float y)
+        // (artem-s): well that's kinda stupid API, but it works for console window so for now I'll just keep it
+        public void AddTextLine(ReadOnlySpan<char> text, float scale, float x, float y, int line)
         {
             Profiler.BeginSample("TextDrawer.AddText");
             
@@ -124,6 +125,20 @@ namespace Imui.Rendering
             for (int i = 0; i < text.Length; ++i)
             {
                 var c = text[i];
+                if (c == NEW_LINE)
+                {
+                    line--;
+                }
+
+                if (line > 0)
+                {
+                    continue;
+                }
+                else if (line < 0)
+                {
+                    break;
+                }
+                
                 if (!ct.TryGetValue(c, out var info))
                 {
                     continue;

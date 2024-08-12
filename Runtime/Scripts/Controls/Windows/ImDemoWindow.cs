@@ -35,10 +35,12 @@ namespace Imui.Controls.Windows
         private static bool customDropdownOpen;
         private static bool[] checkboxes = new bool[4];
         private static bool showDebugWindow = false;
+        private static bool showLogWindow = false;
         private static int clicks;
         private static int nestedFoldouts;
         private static bool showPlusMinusButtons = true;
         private static HashSet<int> selectedValues = new HashSet<int>(values.Length);
+        private static ImConsoleWindow consoleWindow;
 
         public static void Draw(ImGui gui)
         {
@@ -90,6 +92,18 @@ namespace Imui.Controls.Windows
             {
                 gui.PushId("DemoDebugWindow");
                 ImDebugWindow.Draw(gui);
+                gui.PopId();
+            }
+
+            if (showLogWindow)
+            {
+                if (consoleWindow == null)
+                {
+                    consoleWindow = new ImConsoleWindow();
+                }
+                
+                gui.PushId("DemoLogWindow");
+                consoleWindow.Draw(gui);
                 gui.PopId();
             }
         }
@@ -294,6 +308,7 @@ namespace Imui.Controls.Windows
         private static void DrawOtherPage(ImGui gui)
         {
             gui.Checkbox(ref showDebugWindow, "Show Debug Window");
+            gui.Checkbox(ref showLogWindow, "Show Log Window");
         }
 
         private static int GetThemeIndex(string name)

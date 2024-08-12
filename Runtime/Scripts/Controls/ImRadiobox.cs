@@ -52,7 +52,7 @@ namespace Imui.Controls
                                                  ReadOnlySpan<char> label,
                                                  ImSize size = default) where TEnum : struct, Enum
         {
-            var selected = (value == 0 && mask == 0) || (mask & value) != 0;
+            var selected = value == 0 ? mask == 0 : (mask & value) == value;
             var changed = Radio(gui, ref selected, label, size);
 
             if (!changed)

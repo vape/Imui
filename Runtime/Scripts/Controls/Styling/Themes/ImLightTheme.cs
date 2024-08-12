@@ -23,8 +23,14 @@ namespace Imui.Controls.Styling.Themes
                 Slider = CreateSliderStyle(),
                 Controls = CreateControlsStyle(),
                 List = CreateListStyle(),
-                Radio = CreateRadioStyle()
+                Radio = CreateRadioStyle(),
+                Separator = CreateSeparatorStyle()
             };
+        }
+
+        private static ImSeparatorStyle CreateSeparatorStyle()
+        {
+            return new ImSeparatorStyle { Thickness = 4.0f, FrontColor = new Color32(153, 153, 153, 255) };
         }
 
         private static ImRadioStyle CreateRadioStyle()

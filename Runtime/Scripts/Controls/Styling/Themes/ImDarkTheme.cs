@@ -73,6 +73,7 @@ namespace Imui.Controls.Styling.Themes
             theme.Slider.Handle.Pressed.BackColor = new Color32(102, 102, 102, 255);
             theme.Slider.Handle.Pressed.FrontColor = new Color32(123, 131, 140, 255);
             theme.Slider.Handle.Pressed.BorderColor = new Color32(0, 0, 0, 0);
+            theme.Separator.FrontColor = new Color32(71, 71, 71, 255);
             
             return theme;
         }
