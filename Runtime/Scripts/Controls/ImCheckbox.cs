@@ -35,33 +35,32 @@ namespace Imui.Controls
             }
         }
         
-        public static void Checkbox(this ImGui gui, ref bool value, ImSize size = default)
+        public static bool Checkbox(this ImGui gui, ref bool value, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size);
-            Checkbox(gui, ref value, rect);
+            return Checkbox(gui, ref value, rect);
         }
         
-        public static void Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImSize size = default)
+        public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size, label);
-            Checkbox(gui, ref value, label, rect);
+            return Checkbox(gui, ref value, label, rect);
         }
         
-        public static void Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
+        public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
             var boxSize = GetBoxSize(gui);
             var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
-            
-            Checkbox(gui, id, ref value, boxRect);
+            var changed = Checkbox(gui, id, ref value, boxRect);
 
             if (label.IsEmpty)
             {
-                return;
+                return changed;
             }
 
             var textSettings = GetTextSettings();
@@ -73,16 +72,19 @@ namespace Imui.Controls
             if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPress))
             {
                 value = !value;
+                changed = true;
             }
+
+            return changed;
         }
 
-        public static void Checkbox(this ImGui gui, ref bool value, ImRect rect)
+        public static bool Checkbox(this ImGui gui, ref bool value, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            Checkbox(gui, id, ref value, rect);
+            return Checkbox(gui, id, ref value, rect);
         }
         
-        public static void Checkbox(this ImGui gui, uint id, ref bool value, ImRect rect)
+        public static bool Checkbox(this ImGui gui, uint id, ref bool value, ImRect rect)
         {
             var clicked = gui.Button(id, rect, out var state);
             var frontColor = ImButton.GetStateFontColor(state);
@@ -99,6 +101,8 @@ namespace Imui.Controls
             {
                 value = !value;
             }
+
+            return clicked;
         }
 
         public static void DrawCheckmark(ImCanvas canvas, ImRect rect, Color32 color, float thickness)

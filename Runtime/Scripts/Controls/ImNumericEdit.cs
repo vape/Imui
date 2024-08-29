@@ -13,45 +13,49 @@ namespace Imui.Controls
         public static readonly Int64Filter Int64FilterAllowEmptyString = new(true);
         public static readonly DoubleFilter DoubleFilterAllowEmptyString = new(true);
 
-        public static void IntEdit(this ImGui gui,
+        public static bool IntEdit(this ImGui gui,
                                    ref int value,
                                    ImSize size = default,
                                    ReadOnlySpan<char> format = default,
                                    int step = 1)
         {
             long longValue = value;
-            var delta = TextEditNumeric(gui, ref longValue, Int64FilterAllowEmptyString, format, size, step);
+            var changed = TextEditNumeric(gui, ref longValue, Int64FilterAllowEmptyString, format, size, step, out var delta);
             longValue += (long)delta;
             value = longValue > int.MaxValue ? int.MaxValue : longValue < int.MinValue ? int.MinValue : (int)longValue;
+            return changed;
         }
 
-        public static void LongEdit(this ImGui gui,
+        public static bool LongEdit(this ImGui gui,
                                     ref long value,
                                     ImSize size = default,
                                     ReadOnlySpan<char> format = default,
                                     long step = 0)
         {
-            var delta = TextEditNumeric(gui, ref value, Int64FilterAllowEmptyString, format, size, step);
+            var changed = TextEditNumeric(gui, ref value, Int64FilterAllowEmptyString, format, size, step, out var delta);
             value += (long)delta;
+            return changed;
         }
 
-        public static void FloatEdit(this ImGui gui,
+        public static bool FloatEdit(this ImGui gui,
                                      ref float value,
                                      ImSize size = default,
                                      ReadOnlySpan<char> format = default,
                                      float step = 0.1f)
         {
             double doubleValue = value;
-            var delta = TextEditNumeric(gui, ref doubleValue, DoubleFilterAllowEmptyString, format, size, step);
+            var changed = TextEditNumeric(gui, ref doubleValue, DoubleFilterAllowEmptyString, format, size, step, out var delta);
             value = (float)(doubleValue + delta);
+            return changed;
         }
 
-        private static double TextEditNumeric<T>(ImGui gui,
-                                                 ref T value,
-                                                 NumericFilter<T> filter,
-                                                 ReadOnlySpan<char> format,
-                                                 ImSize size,
-                                                 double step)
+        private static bool TextEditNumeric<T>(ImGui gui,
+                                               ref T value,
+                                               NumericFilter<T> filter,
+                                               ReadOnlySpan<char> format,
+                                               ImSize size,
+                                               double step,
+                                               out double delta)
         {
             var buffer = new ImTextEditBuffer();
             buffer.MakeMutable();
@@ -68,7 +72,8 @@ namespace Imui.Controls
 
             ImStyleScope<ImTextEditStyle> scope = default;
             
-            var delta = 0;
+            delta = 0;
+            
             var rect = ImTextEdit.GetRect(gui, size);
             if (step != 0)
             {
@@ -80,7 +85,7 @@ namespace Imui.Controls
                 ImTheme.Active.TextEdit.Selected.Box.BorderRadius.TopRight = 0;
                 ImTheme.Active.TextEdit.Selected.Box.BorderRadius.BottomRight = 0;
                 
-                delta = PlusMinusButtons(gui, ref rect);
+                delta = PlusMinusButtons(gui, ref rect) * step;
             }
 
             var changed = gui.TextEdit(ref buffer, rect, filter, multiline: false);
@@ -88,13 +93,12 @@ namespace Imui.Controls
             {
                 value = newValue;
             }
-
             if (scope.IsValid)
             {
                 scope.Dispose();
             }
 
-            return step * delta;
+            return delta != 0 || changed;
         }
 
         private static int PlusMinusButtons(ImGui gui, ref ImRect rect)
