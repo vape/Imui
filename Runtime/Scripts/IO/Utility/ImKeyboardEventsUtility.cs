@@ -30,8 +30,8 @@ namespace Imui.IO.Utility
         {
             var result = ImKeyboardCommandFlag.None;
             var arrow = (int)evt.keyCode >= 273 && (int)evt.keyCode <= 276;
-            var jump = false;
-            var control = false;
+            bool jump;
+            bool control;
 
             if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
             {

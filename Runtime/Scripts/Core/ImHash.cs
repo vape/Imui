@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.CompilerServices;
 
+// ReSharper disable RedundantCast
+
 namespace Imui.Core
 {
     public static unsafe class ImHash

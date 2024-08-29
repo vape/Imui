@@ -9,7 +9,7 @@
 
 ### Better do
 - Reorder demo controls from basic to more advanced
-- Fix all the warnings in code
+- ~~Fix all the warnings in code~~
 - Handle double clicks in ImTextEdit to select words
 - Implement table layout
 - Implement tabs

@@ -2,6 +2,7 @@ using Imui.Core;
 using Imui.Controls.Styling;
 using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace Imui.Controls
 {
     public static class ImRectExt

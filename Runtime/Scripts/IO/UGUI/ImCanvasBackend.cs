@@ -50,7 +50,6 @@ namespace Imui.IO.UGUI
         
         private bool mouseHeldDown;
         private float mouseDownTime;
-        private Vector2 mouseDownPosition;
         
         protected override void Awake()
         {
@@ -212,7 +211,6 @@ namespace Imui.IO.UGUI
             {
                 mouseHeldDown = true;
                 mouseDownTime = Time.unscaledTime;
-                mouseDownPosition = MousePosition;
             }
             
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale));

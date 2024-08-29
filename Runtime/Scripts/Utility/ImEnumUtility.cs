@@ -2,11 +2,13 @@ using System;
 using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
 
+// ReSharper disable StaticMemberInGenericType
+
 namespace Imui.Utility
 {
     // (artem-s): all of that just use enums in somewhat generic way *without* gc allocations
     
-    internal struct ImEnumValue<TEnum> where TEnum: struct, Enum
+    internal readonly struct ImEnumValue<TEnum> where TEnum: struct, Enum
     {
         private readonly long longValue;
         private readonly ulong ulongValue;
@@ -43,22 +45,22 @@ namespace Imui.Utility
         
         public static bool operator ==(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
-            return val0.signed ? val0.longValue == val1.longValue : val0.ulongValue == val1.ulongValue;
+            return val0.Equals(val1);
         }
         
         public static bool operator !=(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
-            return !(val0 == val1);
+            return !val0.Equals(val1);
         }
         
         public static bool operator ==(ImEnumValue<TEnum> val0, int val1)
         {
-            return val0.signed ? val0.longValue == val1 : val1 >= 0 && val0.ulongValue == (uint)val1;
+            return val0.Equals(val1);
         }
         
         public static bool operator !=(ImEnumValue<TEnum> val0, int val1)
         {
-            return !(val0 == val1);
+            return !val0.Equals(val1);
         }
 
         public static implicit operator ImEnumValue<TEnum>(int val) => ImEnumUtility<TEnum>.Signed ? new(val) : new((ulong)val);
@@ -69,12 +71,27 @@ namespace Imui.Utility
         {
             return signed ? ImEnumUtility<TEnum>.FromValueSigned(longValue) : ImEnumUtility<TEnum>.FromValueUnsigned(ulongValue);
         }
+        
+        public bool Equals(ImEnumValue<TEnum> other)
+        {
+            return signed == other.signed && signed ? longValue == other.longValue : ulongValue == other.ulongValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ImEnumValue<TEnum> other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(longValue, ulongValue, signed);
+        }
+
     }
     
     internal static class ImEnumUtility<TEnum> where TEnum: struct, Enum
     {
-        public static bool IsFlags = typeof(TEnum).GetCustomAttribute<FlagsAttribute>() != null;
-        
+        public static readonly bool IsFlags = typeof(TEnum).GetCustomAttribute<FlagsAttribute>() != null;
         public static readonly string[] Names = Enum.GetNames(typeof(TEnum));
         public static readonly TEnum[] Values = Enum.GetValues(typeof(TEnum)) as TEnum[];
         public static readonly Type Type = Enum.GetUnderlyingType(typeof(TEnum));

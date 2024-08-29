@@ -40,7 +40,7 @@ namespace Imui.Rendering
         
         private const int FONT_ATLAS_PADDING = 2;
 
-        private static ImTextLayout SharedLayout = new()
+        private static ImTextLayout sharedLayout = new()
         {
             Lines = new ImTextLine[128]
         };
@@ -291,8 +291,8 @@ namespace Imui.Rendering
         
         public ref readonly ImTextLayout BuildTempLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, bool wrap)
         {
-            FillLayout(text, width, height, alignX, alignY, size, wrap, ref SharedLayout);
-            return ref SharedLayout;
+            FillLayout(text, width, height, alignX, alignY, size, wrap, ref sharedLayout);
+            return ref sharedLayout;
         }
         
         public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, bool wrap, ref ImTextLayout layout)
@@ -305,7 +305,7 @@ namespace Imui.Rendering
             layout.Width = 0;
             layout.Height = 0;
             layout.Size = size;
-            layout.LineHeight = this.lineHeight * layout.Scale;
+            layout.LineHeight = lineHeight * layout.Scale;
             
             if (text.IsEmpty)
             {
@@ -315,9 +315,7 @@ namespace Imui.Rendering
             var maxLineWidth = 0f;
             var lineWidth = 0f;
             var lineStart = 0;
-            var lineHeight = layout.LineHeight;
             var textLength = text.Length;
-            var fontAsset = FontAsset;
             var charsTable = fontAsset.characterLookupTable;
 
             for (int i = 0; i < textLength; ++i)
@@ -390,8 +388,8 @@ namespace Imui.Rendering
             }
 
             layout.Width = maxLineWidth;
-            layout.Height = lineHeight * layout.LinesCount;
-            layout.OffsetY = -(height - layout.LinesCount * lineHeight) * alignY;
+            layout.Height = layout.LineHeight * layout.LinesCount;
+            layout.OffsetY = -(height - layout.LinesCount * layout.LineHeight) * alignY;
         }
 
         public void Dispose()

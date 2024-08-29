@@ -34,8 +34,8 @@ namespace Imui.Controls.Windows
         private static bool isReadOnly;
         private static bool customDropdownOpen;
         private static bool[] checkboxes = new bool[4];
-        private static bool showDebugWindow = false;
-        private static bool showLogWindow = false;
+        private static bool showDebugWindow;
+        private static bool showLogWindow;
         private static int clicks;
         private static int nestedFoldouts;
         private static bool showPlusMinusButtons = true;

@@ -11,10 +11,10 @@ namespace Imui.Controls.Windows
         private const int MOVING_AVERAGE_INTERVAL = 90;
         private const int FRAME_TIMES_BUFFER_SIZE = 120;
         
-        private static readonly Color32 groupColor = new Color32(255, 0, 0, 32);
-        private static readonly Color32 controlColor = new Color32(0, 255, 0, 64);
+        private static readonly Color32 GroupColor = new Color32(255, 0, 0, 32);
+        private static readonly Color32 ControlColor = new Color32(0, 255, 0, 64);
         
-        private static bool debugOverlay = false;
+        private static bool debugOverlay;
         private static ImCircularBuffer<float> frameTimes = new ImCircularBuffer<float>(FRAME_TIMES_BUFFER_SIZE);
         private static float maxFrameTime;
         private static float avgFrameTime;
@@ -50,11 +50,11 @@ namespace Imui.Controls.Windows
             {
                 gui.Canvas.PushOrder(int.MaxValue);
                 
-                gui.Canvas.Rect(gui.frameData.HoveredControl.Rect, controlColor);
+                gui.Canvas.Rect(gui.frameData.HoveredControl.Rect, ControlColor);
 
                 for (int i = 0; i < gui.frameData.HoveredGroups.Count; ++i)
                 {
-                    gui.Canvas.Rect(gui.frameData.HoveredGroups.Array[i].Rect, groupColor);
+                    gui.Canvas.Rect(gui.frameData.HoveredGroups.Array[i].Rect, GroupColor);
                 }
                 
                 gui.Canvas.PopOrder();

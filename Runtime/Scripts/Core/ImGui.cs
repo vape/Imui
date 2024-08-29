@@ -108,8 +108,10 @@ namespace Imui.Core
         public readonly IImRenderingBackend Renderer;
         public readonly ImFormatter Formatter;
 
+        // ReSharper disable InconsistentNaming
         internal FrameData nextFrameData;
         internal FrameData frameData;
+        // ReSharper restore InconsistentNaming
 
         private float uiScale = 1.0f;
         private ImDynamicArray<ControlId> idsStack;

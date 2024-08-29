@@ -1,6 +1,7 @@
 using Imui.Core;
 using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace Imui.Controls
 {
     public static class ImLayoutExt

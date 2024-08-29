@@ -10,6 +10,7 @@ namespace Imui.Core
         [Flags]
         private enum Flag : byte
         {
+            // ReSharper disable once UnusedMember.Local
             None = 0,
             Used = 1 << 0
         }
@@ -47,7 +48,7 @@ namespace Imui.Core
         {
             if (!TryGet(out T* value, out Metadata* metadata, id))
             {
-                return AddValue<T>(id, defaultValue);
+                return AddValue(id, defaultValue);
             }
 
             metadata->Flag |= Flag.Used;
@@ -182,6 +183,7 @@ namespace Imui.Core
             GC.SuppressFinalize(this);
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private void Dispose(bool disposing)
         {
             if (disposed)

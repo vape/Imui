@@ -18,6 +18,7 @@ namespace Imui.Rendering
         public Color32 Color;
         public Vector4 ScaleOffset;
 
+        // ReSharper disable once InconsistentNaming
         internal readonly ImMeshBuffer buffer;
         
         public ImMeshDrawer(ImMeshBuffer buffer)

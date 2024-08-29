@@ -229,7 +229,7 @@ namespace Imui.Controls
                     state.Caret = newCaretPosition;
                     
                     gui.Input.UseMouseEvent();
-                    ScrollToCaret(gui, state, textRect, in layout, in buffer);
+                    ScrollToCaret(gui, state, textRect, in layout, buffer);
                     break;
                 
                 case ImMouseEventType.Down when selected && !hovered:
@@ -260,7 +260,7 @@ namespace Imui.Controls
                         textChanged |= isTextChanged;
                         
                         gui.Input.UseKeyboardEvent(i);
-                        ScrollToCaret(gui, state, textRect, in layout, in buffer);
+                        ScrollToCaret(gui, state, textRect, in layout, buffer);
                     }
                 }
                 
@@ -609,7 +609,7 @@ namespace Imui.Controls
             ImTextEditState state, 
             ImRect textRect, 
             in ImTextLayout layout, 
-            in ImTextEditBuffer buffer)
+            ImTextEditBuffer buffer)
         {
             var viewPosition = CaretToViewPosition(state.Caret, gui.TextDrawer, textRect, in layout, in buffer);
             
@@ -665,7 +665,7 @@ namespace Imui.Controls
         public static int ViewToCaretPosition(Vector2 position, ImTextDrawer drawer, ImRect rect, in ImTextLayout layout, in ImTextEditBuffer buffer)
         {
             var origin = rect.TopLeft;
-            var line = 0;
+            int line;
 
             if (position.y > origin.y)
             {
@@ -832,7 +832,7 @@ namespace Imui.Controls
     {
         public const int DEFAULT_MUTABLE_BUFFER_CAPACITY = 1024;
         
-        private static char[] StaticBuffer = new char[DEFAULT_MUTABLE_BUFFER_CAPACITY];
+        private static char[] staticBuffer = new char[DEFAULT_MUTABLE_BUFFER_CAPACITY];
 
         public int Length;
         public ReadOnlySpan<char> InitSpan;
@@ -878,12 +878,12 @@ namespace Imui.Controls
             if (InitWithSpan)
             {
                 var nextLength = Mathf.NextPowerOfTwo(Mathf.Max(InitSpan.Length, capacity));
-                if (nextLength > StaticBuffer.Length)
+                if (nextLength > staticBuffer.Length)
                 {
-                    Array.Resize(ref StaticBuffer, nextLength);
+                    Array.Resize(ref staticBuffer, nextLength);
                 }
 
-                Buffer = StaticBuffer;
+                Buffer = staticBuffer;
                 InitSpan.CopyTo(Buffer);
                 Length = InitSpan.Length;
                 InitWithSpan = false;
@@ -891,12 +891,12 @@ namespace Imui.Controls
             else if (InitText != null)
             {
                 var nextLength = Mathf.NextPowerOfTwo(Mathf.Max(InitText.Length, capacity));
-                if (nextLength > StaticBuffer.Length)
+                if (nextLength > staticBuffer.Length)
                 {
-                    Array.Resize(ref StaticBuffer, nextLength);
+                    Array.Resize(ref staticBuffer, nextLength);
                 }
 
-                Buffer = StaticBuffer;
+                Buffer = staticBuffer;
                 InitText.CopyTo(0, Buffer, 0, InitText.Length);
                 Length = InitText.Length;
                 InitText = null;
@@ -905,7 +905,7 @@ namespace Imui.Controls
             {
                 if (Buffer == null)
                 {
-                    Buffer = StaticBuffer;
+                    Buffer = staticBuffer;
                     Length = 0;
                 }
                 

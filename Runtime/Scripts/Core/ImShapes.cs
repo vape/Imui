@@ -13,7 +13,7 @@ namespace Imui.Core
         private const float PI = Mathf.PI;
         private const float HALF_PI = PI / 2;
 
-        private static ImResizeableBuffer<Vector2> TempBuffer = new(4096);
+        private static ImResizeableBuffer<Vector2> tempBuffer = new(4096);
 
         public static int SegmentCountForRadius(float radius, float maxError = 2)
         {
@@ -29,7 +29,7 @@ namespace Imui.Core
         public static Span<Vector2> Ellipse(ImRect rect)
         {
             var segments = SegmentCountForRadius(rect.W / 2f) * 4;
-            var span = TempBuffer.AsSpan(segments);
+            var span = tempBuffer.AsSpan(segments);
 
             Ellipse(rect, span, segments);
 
@@ -60,7 +60,7 @@ namespace Imui.Core
             var segTopR = radius.TopRight < 1 ? 0 : SegmentCountForRadius(radius.TopRight);
             var segBotR = radius.BottomRight < 1 ? 0 : SegmentCountForRadius(radius.BottomRight);
             var segBotL = radius.BottomLeft < 1 ? 0 : SegmentCountForRadius(radius.BottomLeft);
-            var span = TempBuffer.AsSpan(4 + (segTopL + segTopR + segBotR + segBotL));
+            var span = tempBuffer.AsSpan(4 + (segTopL + segTopR + segBotR + segBotL));
 
             Rect(rect, radius, span, segTopL, segTopR, segBotR, segBotL);
 
