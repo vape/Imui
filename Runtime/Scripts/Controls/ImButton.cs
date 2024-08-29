@@ -143,11 +143,25 @@ namespace Imui.Controls
             return InvisibleButton(gui, id, rect, flag);
         }
         
+        public static bool InvisibleButton(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
+        {
+            var id = gui.GetNextControlId();
+
+            return InvisibleButton(gui, id, rect, out state, flag);
+        }
+
         public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)
+        {
+            return InvisibleButton(gui, id, rect, out _, flag);
+        }
+        
+        public static bool InvisibleButton(this ImGui gui, uint id, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             var clicked = false;
+
+            state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
             
             gui.RegisterControl(id, rect);
 
@@ -212,7 +226,20 @@ namespace Imui.Controls
         public static ref readonly ImButtonStateStyle GetStateStyle(ImButtonState state)
         {
             ref readonly var style = ref ImTheme.Active.Button;
-            
+
+            switch (state)
+            {
+                case ImButtonState.Hovered:
+                    return ref style.Hovered;
+                case ImButtonState.Pressed:
+                    return ref style.Pressed;
+                default:
+                    return ref style.Normal;
+            }
+        }
+        
+        public static ref readonly ImButtonStateStyle GetStateStyle(in ImButtonStyle style, ImButtonState state)
+        {
             switch (state)
             {
                 case ImButtonState.Hovered:
