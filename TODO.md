@@ -15,8 +15,8 @@
 - Implement tabs
   - Vertical tabs
   - Horizontal tabs
-- Implement foldable header control
-- Tree layout
+- ~~Implement foldable header control~~ (well, it is basically tree control)
+- ~~Tree control~~
 - Text drawing overhaul
   - __Word__ wrapping
   - Add support for (basic subset of) rich text
@@ -28,7 +28,11 @@
 - TextEdit as dropdown preview area
 - More demo windows
   - ~~Unity console, perhaps~~
-  - Maybe even more?
+  - Inspector
 - Plotting, at least very basic
 - Text edit preview hint
-- Slider steps
+- ~~Slider steps~~
+- Better API for combined controls
+- Theming simplification
+  - Maybe even overall simplification, some of the controls API seems unnecessary complex
+- Controls API for non-ref values (because getters are everywhere, duh)
