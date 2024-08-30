@@ -10,6 +10,7 @@ using UnityEngine.UI;
 namespace Imui.IO.UGUI
 {
     [RequireComponent(typeof(CanvasRenderer))]
+    [ExecuteAlways]
     public class ImCanvasBackend : Graphic, 
         IImRenderingBackend, 
         IImInputBackend, 
@@ -54,19 +55,8 @@ namespace Imui.IO.UGUI
         protected override void Awake()
         {
             base.Awake();
-
-            if (!Application.isPlaying)
-            {
-                return;
-            }
             
             useGUILayout = false;
-            mouseEventsQueue = new ImCircularBuffer<ImMouseEvent>(MOUSE_EVENTS_QUEUE_SIZE);
-            keyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
-            nextKeyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
-            touchKeyboardHandler = new ImTouchKeyboard();
-            commandBufferPool = new ImDynamicArray<CommandBuffer>(COMMAND_BUFFER_POOL_INITIAL_SIZE);
-            textureRenderer = new ImTextureRenderer();
         }
         
         protected override void OnDestroy()
@@ -96,6 +86,29 @@ namespace Imui.IO.UGUI
                 ClearTexture.SetPixel(0, 0, Color.clear);
                 ClearTexture.Apply();
             }
+
+            if (mouseEventsQueue.Array == null)
+            {
+                mouseEventsQueue = new ImCircularBuffer<ImMouseEvent>(MOUSE_EVENTS_QUEUE_SIZE);
+            }
+
+            if (keyboardEvents.Array == null)
+            {
+                keyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
+            }
+
+            if (nextKeyboardEvents.Array == null)
+            {
+                nextKeyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
+            }
+
+            if (commandBufferPool.Array == null)
+            {
+                commandBufferPool = new ImDynamicArray<CommandBuffer>(COMMAND_BUFFER_POOL_INITIAL_SIZE);
+            }
+
+            touchKeyboardHandler ??= new ImTouchKeyboard();
+            textureRenderer ??= new ImTextureRenderer();
         }
 
         public void SetRaycaster(ImInputRaycaster raycaster)
@@ -154,6 +167,12 @@ namespace Imui.IO.UGUI
         
         public void Pull()
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+#endif
             mousePosition = GetMousePosition();
             
             if (mouseEventsQueue.TryPopBack(out var queuedMouseEvent))

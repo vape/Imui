@@ -1,4 +1,5 @@
 using System;
+using Imui.Utility;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -139,7 +140,7 @@ namespace Imui.Rendering
                 return;
             }
             
-            UnityEngine.Object.Destroy(mesh);
+            ImObjectUtility.Destroy(mesh);
             mesh = null;
 
             disposed = true;

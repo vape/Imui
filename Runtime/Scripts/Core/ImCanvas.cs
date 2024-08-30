@@ -325,8 +325,8 @@ namespace Imui.Core
             }
             
             Resources.UnloadAsset(shader);
-            UnityEngine.Object.Destroy(material);
-            UnityEngine.Object.Destroy(defaultTexture);
+            ImObjectUtility.Destroy(material);
+            ImObjectUtility.Destroy(defaultTexture);
             
             disposed = true;
         }

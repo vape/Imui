@@ -7,8 +7,8 @@ namespace Imui.IO.Utility
 {
     public class ImTextureRenderer : IDisposable
     {
-        private const float RES_SCALE_MIN = 0.2f;
-        private const float RES_SCALE_MAX = 4.0f;
+        private const int RES_MIN = 32;
+        private const int RES_MAX = 4096;
         
         public RenderTexture Texture { get; private set; }
 
@@ -32,10 +32,8 @@ namespace Imui.IO.Utility
                 throw new ObjectDisposedException(nameof(ImTextureRenderer));
             }
             
-            scale = Mathf.Clamp(scale, RES_SCALE_MIN, RES_SCALE_MAX);
-            
-            var w = (int)(size.x * scale);
-            var h = (int)(size.y * scale);
+            var w = Mathf.Clamp((int)(size.x * scale), RES_MIN, RES_MAX);
+            var h = Mathf.Clamp((int)(size.y * scale), RES_MIN, RES_MAX);
 
             if (w == 0 || h == 0)
             {

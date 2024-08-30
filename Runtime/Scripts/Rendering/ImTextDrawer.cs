@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Imui.Utility;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.TextCore;
@@ -399,7 +400,7 @@ namespace Imui.Rendering
                 return;
             }
             
-            UnityEngine.Object.Destroy(fontAsset);
+            ImObjectUtility.Destroy(fontAsset);
             fontAsset = null;
             
             disposed = true;
