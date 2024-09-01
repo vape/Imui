@@ -147,6 +147,7 @@ namespace Imui.Controls
             var stateStyle = selected ? style.Selected : style.Normal;
             var textChanged = false;
             var editable = !gui.IsReadOnly;
+            var adjacency = gui.GetNextControlSettings().Adjacency;
 
             ImTextTempFilterBuffer* tempBuffer = null;
 
@@ -176,8 +177,8 @@ namespace Imui.Controls
                 buffer.Clear(tempBuffer->Length);
                 buffer.Insert(0, tempBuffer->AsSpan());
             }
-            
-            gui.Box(rect, in stateStyle.Box);
+
+            gui.Box(rect, stateStyle.Box.Apply(adjacency));
             
             var textSize = ImTheme.Active.Controls.TextSize;
             var textPadding = ImTheme.Active.TextEdit.Padding;

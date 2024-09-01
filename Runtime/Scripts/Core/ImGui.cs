@@ -119,6 +119,7 @@ namespace Imui.Core
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
         private ImControlFlag activeControlFlag;
+        private ImControlSettings nextControlSettings;
         
         private bool disposed;
         
@@ -284,6 +285,16 @@ namespace Imui.Core
             activeControlFlag = default;
         }
 
+        public ImControlSettings GetNextControlSettings()
+        {
+            return nextControlSettings;
+        }
+        
+        public void SetNextAdjacency(ImControlAdjacency adjacency)
+        {
+            nextControlSettings.Adjacency |= adjacency;
+        }
+
         public bool IsControlActive(uint controlId)
         {
             return activeControl == controlId;
@@ -314,6 +325,8 @@ namespace Imui.Core
         
         public void RegisterControl(uint controlId, ImRect rect)
         {
+            nextControlSettings = default;
+            
             ref readonly var meshProperties = ref Canvas.GetActiveSettings();
             
             if (meshProperties.ClipRect.Enabled && !meshProperties.ClipRect.Rect.Contains(Input.MousePosition))

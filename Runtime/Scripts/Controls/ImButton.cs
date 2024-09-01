@@ -11,9 +11,7 @@ namespace Imui.Controls
     {
         None = 0,
         ActOnPress = 1,
-        ReactToHeldDown = 2,
-        NoRoundCornersLeft = 4,
-        NoRoundCornersRight = 8
+        ReactToHeldDown = 2
     }
     
     public static class ImButton
@@ -75,26 +73,13 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             var clicked = false;
+            var adjacency = gui.GetNextControlSettings().Adjacency;
             
             gui.RegisterControl(id, rect);
             
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
 
-            var boxStyle = GetStateBoxStyle(state);
-            
-            if ((flag & ImButtonFlag.NoRoundCornersLeft) != 0)
-            {
-                boxStyle.BorderRadius.TopLeft = 0;
-                boxStyle.BorderRadius.BottomLeft = 0;
-            }
-
-            if ((flag & ImButtonFlag.NoRoundCornersRight) != 0)
-            {
-                boxStyle.BorderRadius.TopRight = 0;
-                boxStyle.BorderRadius.BottomRight = 0;
-            }
-            
-            gui.Box(rect, boxStyle);
+            gui.Box(rect, GetStateBoxStyle(state).Apply(adjacency));
 
             if (gui.IsReadOnly)
             {

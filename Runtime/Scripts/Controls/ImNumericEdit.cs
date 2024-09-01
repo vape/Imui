@@ -69,33 +69,20 @@ namespace Imui.Controls
             }
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            ImStyleScope<ImTextEditStyle> scope = default;
             
             delta = 0;
             
             var rect = ImTextEdit.GetRect(gui, size);
             if (step != 0)
             {
-                scope = new ImStyleScope<ImTextEditStyle>(ref ImTheme.Active.TextEdit);
-                
-                // TODO (artem-s): this looks awful
-                ImTheme.Active.TextEdit.Normal.Box.BorderRadius.TopRight = 0;
-                ImTheme.Active.TextEdit.Normal.Box.BorderRadius.BottomRight = 0;
-                ImTheme.Active.TextEdit.Selected.Box.BorderRadius.TopRight = 0;
-                ImTheme.Active.TextEdit.Selected.Box.BorderRadius.BottomRight = 0;
-                
                 delta = PlusMinusButtons(gui, ref rect) * step;
+                gui.SetNextAdjacency(ImControlAdjacency.Left);
             }
 
             var changed = gui.TextEdit(ref buffer, rect, filter, multiline: false);
             if (changed && filter.TryParse(buffer, out var newValue))
             {
                 value = newValue;
-            }
-            if (scope.IsValid)
-            {
-                scope.Dispose();
             }
 
             return delta != 0 || changed;
@@ -110,12 +97,14 @@ namespace Imui.Controls
             var minusBtnRect = rect.SplitRight(width, out rect);
             var delta = 0;
 
-            if (gui.Button("-", minusBtnRect, flag: ImButtonFlag.ReactToHeldDown | ImButtonFlag.NoRoundCornersLeft | ImButtonFlag.NoRoundCornersRight))
+            gui.SetNextAdjacency(ImControlAdjacency.Middle);
+            if (gui.Button("-", minusBtnRect, flag: ImButtonFlag.ReactToHeldDown))
             {
                 delta--;
             }
 
-            if (gui.Button("+", plusBtnRect, flag: ImButtonFlag.ReactToHeldDown | ImButtonFlag.NoRoundCornersLeft))
+            gui.SetNextAdjacency(ImControlAdjacency.Right);
+            if (gui.Button("+", plusBtnRect, flag: ImButtonFlag.ReactToHeldDown))
             {
                 delta++;
             }

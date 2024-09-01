@@ -119,6 +119,7 @@ namespace Imui.Controls
             wholeRect.SplitRight(arrowWidth, out var previewRect);
             
             gui.Layout.Push(ImAxis.Horizontal, previewRect);
+            gui.SetNextAdjacency(ImControlAdjacency.Left);
         }
 
         public static void EndPreview(ImGui gui, uint id, ref bool open)
@@ -128,7 +129,9 @@ namespace Imui.Controls
             var wholeRect = gui.Layout.GetBoundsRect();
             var buttonRect = wholeRect.SplitRight(GetArrowWidth(wholeRect.W, wholeRect.H), out _);
 
-            if (ArrowButton(gui, id, true, buttonRect))
+            gui.SetNextAdjacency(ImControlAdjacency.Right);
+            
+            if (ArrowButton(gui, id, buttonRect))
             {
                 open = !open;
             }
@@ -136,7 +139,7 @@ namespace Imui.Controls
 
         public static void NoPreview(ImGui gui, uint id, ref bool open)
         {
-            if (ArrowButton(gui, id, false, gui.Layout.GetBoundsRect()))
+            if (ArrowButton(gui, id, gui.Layout.GetBoundsRect()))
             {
                 open = !open;
             }
@@ -145,9 +148,7 @@ namespace Imui.Controls
         public static void PreviewBackground(ImGui gui)
         {
             var rect = gui.Layout.GetBoundsRect();
-            var style = ImTheme.Active.TextEdit.Normal.Box;
-            style.BorderRadius.TopRight = 0;
-            style.BorderRadius.BottomRight = 0;
+            var style = ImTheme.Active.TextEdit.Normal.Box.Apply(gui.GetNextControlSettings().Adjacency);
 
             gui.Box(rect, in style);
         }
@@ -157,17 +158,15 @@ namespace Imui.Controls
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
             ImTheme.Active.Button.Alignment = ImTheme.Active.Dropdown.Alignment;
 
-            if (gui.Button(id, label, gui.Layout.GetBoundsRect(), flag: ImButtonFlag.NoRoundCornersRight))
+            if (gui.Button(id, label, gui.Layout.GetBoundsRect()))
             {
                 open = !open;
             }
         }
         
-        public static bool ArrowButton(ImGui gui, uint id, bool havePreview, ImRect rect)
+        public static bool ArrowButton(ImGui gui, uint id, ImRect rect)
         {
-            var buttonFlags = havePreview ? ImButtonFlag.NoRoundCornersLeft : ImButtonFlag.None;
-            var clicked = gui.Button(id, rect, out var state, buttonFlags);
-
+            var clicked = gui.Button(id, rect, out var state);
             DrawArrow(gui, rect, ImButton.GetStateFontColor(state));
 
             return clicked;
