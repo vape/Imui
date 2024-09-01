@@ -9,7 +9,8 @@ namespace Imui.Controls
     public enum ImDropdownFlag
     {
         None = 0,
-        NoPreview = 1
+        NoPreview = 1,
+        TextPreview = 2
     }
     
     public struct ImDropdownState
@@ -42,7 +43,14 @@ namespace Imui.Controls
             else
             {
                 BeginPreview(gui);
-                PreviewButton(gui, id, label, ref state.Open);
+                if ((flags & ImDropdownFlag.TextPreview) != 0)
+                {
+                    PreviewText(gui, label);
+                }
+                else
+                {
+                    PreviewButton(gui, id, label, ref state.Open);
+                }
                 EndPreview(gui, id, ref state.Open);
             }
 
@@ -162,6 +170,11 @@ namespace Imui.Controls
             {
                 open = !open;
             }
+        }
+
+        public static void PreviewText(ImGui gui, ReadOnlySpan<char> label)
+        {
+            gui.TextEdit(label, gui.Layout.GetBoundsRect(), false);
         }
         
         public static bool ArrowButton(ImGui gui, uint id, ImRect rect)

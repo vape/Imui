@@ -25,7 +25,7 @@
 - Unit tests
 
 ### Maybe
-- TextEdit as dropdown preview area
+- ~~TextEdit as dropdown preview area~~
 - More demo windows
   - ~~Unity console, perhaps~~
   - Inspector

@@ -33,6 +33,7 @@ namespace Imui.Controls.Windows
         private static int intValue;
         private static bool isReadOnly;
         private static bool customDropdownOpen;
+        private static ImDropdownFlag dropdownFlags;
         private static bool[] checkboxes = new bool[4];
         private static bool showDebugWindow;
         private static bool showLogWindow;
@@ -149,7 +150,7 @@ namespace Imui.Controls.Windows
             gui.BeginReadOnly(isReadOnly);
 
             var customDropdownId = gui.GetNextControlId();
-
+            
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             ImDropdown.Begin(gui);
@@ -194,7 +195,10 @@ namespace Imui.Controls.Windows
             }
 
             gui.Checkbox(ref checkmarkValue, "Checkmark");
-            gui.Dropdown(ref selectedValue, values, defaultLabel: "Not Selected");
+            gui.BeginHorizontal();
+            gui.Radio(ref dropdownFlags);
+            gui.EndHorizontal();
+            gui.Dropdown(ref selectedValue, values, defaultLabel: "Not Selected", flags: dropdownFlags);
             gui.Slider(ref sliderValue, -Mathf.PI * 2, Mathf.PI * 2, format: "0.000 rad.");
             gui.Slider(ref stepSliderValue, -5.0f, 5.0f, step: 0.1f);
             gui.Slider(ref intSliderValue, -10, 10);
