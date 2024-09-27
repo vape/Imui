@@ -54,14 +54,20 @@ namespace Imui.Controls
 
         private const string TEMP_BUFFER_TAG = "temp_buffer"; 
         
-        public static ImRect GetRect(ImGui gui, ImSize size)
+        public static ImRect GetRect(ImGui gui, ImSize size, bool? multiline = null)
         {
+            var minHeight = gui.GetRowHeight();
+            if (multiline is true)
+            {
+                minHeight *= 3;
+            }
+            
             return size.Type switch
             {
                 ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(
                     Mathf.Max(MIN_WIDTH, gui.GetLayoutWidth()), 
-                    Mathf.Max(MIN_HEIGHT, gui.GetRowHeight()))
+                    Mathf.Max(MIN_HEIGHT, minHeight))
             };
         }
         
@@ -69,7 +75,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size);
+            var rect = GetRect(gui, size, multiline);
 
             if (multiline == null)
             {
@@ -77,6 +83,20 @@ namespace Imui.Controls
             }
             
             TextEdit(gui, ref text, rect, filter, multiline.Value);
+        }
+
+        public static void TextEdit(this ImGui gui, ReadOnlySpan<char> text, ImSize size = default, bool? multiline = null)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+
+            var rect = GetRect(gui, size, multiline);
+
+            if (multiline == null)
+            {
+                multiline = rect.H > gui.GetRowHeight();
+            }
+            
+            TextEdit(gui, text, rect, multiline.Value);
         }
 
         public static void TextEdit(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool? multiline = null)
