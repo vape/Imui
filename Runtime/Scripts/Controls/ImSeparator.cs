@@ -15,13 +15,11 @@ namespace Imui.Controls
             float width;
             float height;
             
-            var layoutRect = gui.Layout.GetWholeRect();
-            
             if (gui.Layout.Axis == ImAxis.Horizontal)
             {
                 vertical = true;
                 width = ImTheme.Active.Separator.Thickness;
-                height = layoutRect.H;
+                height = gui.Layout.GetContentRect().H;
             }
             else
             {
@@ -32,7 +30,7 @@ namespace Imui.Controls
             
             Separator(gui, gui.AddLayoutRect(width, height), vertical);
         }
-
+        
         public static unsafe void Separator(this ImGui gui, ImRect rect, bool horizontal)
         {
             Vector2 p0;
