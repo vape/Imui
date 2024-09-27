@@ -11,6 +11,28 @@ namespace Imui.Core
             this.arena = arena;
         }
 
+        public Span<char> Join(ReadOnlySpan<char> str, int value)
+        {
+            var valueSpan = Format(value);
+            var span = arena.AllocArray<char>(str.Length + valueSpan.Length);
+            var size = 0;
+            str.CopyTo(span[size..]);
+            size += str.Length;
+            valueSpan.CopyTo(span[size..]);
+            return span;
+        }
+        
+        public Span<char> Join(ReadOnlySpan<char> str, float value)
+        {
+            var valueSpan = Format(value);
+            var span = arena.AllocArray<char>(str.Length + valueSpan.Length);
+            var size = 0;
+            str.CopyTo(span[size..]);
+            size += str.Length;
+            str.CopyTo(span[size..]);
+            return span;
+        }
+
         public Span<char> Join(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length);
@@ -18,21 +40,6 @@ namespace Imui.Core
             str0.CopyTo(span[size..]); 
             size += str0.Length;
             str1.CopyTo(span[size..]);
-            return span;
-        }
-        
-        public Span<char> Join(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, int repeat)
-        {
-            var span = arena.AllocArray<char>(str0.Length + str1.Length * (repeat < 0 ? 0 : repeat));
-            var size = 0;
-            str0.CopyTo(span[size..]); 
-            size += str0.Length;
-            for (int i = 0; i < repeat; ++i)
-            {
-                str1.CopyTo(span[size..]);
-                size += str1.Length;
-            }
-            
             return span;
         }
         
@@ -75,6 +82,22 @@ namespace Imui.Core
             str3.CopyTo(span[size..]);
             size += str3.Length;
             str4.CopyTo(span[size..]);
+            return span;
+        }
+        
+        
+        public Span<char> JoinDuplicate(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, int repeat)
+        {
+            var span = arena.AllocArray<char>(str0.Length + str1.Length * (repeat < 0 ? 0 : repeat));
+            var size = 0;
+            str0.CopyTo(span[size..]); 
+            size += str0.Length;
+            for (int i = 0; i < repeat; ++i)
+            {
+                str1.CopyTo(span[size..]);
+                size += str1.Length;
+            }
+            
             return span;
         }
         

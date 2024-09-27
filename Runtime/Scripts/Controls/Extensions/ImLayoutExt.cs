@@ -35,6 +35,13 @@ namespace Imui.Controls
         {
             return gui.Layout.AddRect(width, height);
         }
+
+        public static ImRect AddLayoutRectWithSpacing(this ImGui gui, Vector2 size)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
+            return gui.Layout.AddRect(size);
+        }
         
         public static ImRect AddLayoutRectWithSpacing(this ImGui gui, float width, float height)
         {

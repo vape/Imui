@@ -33,22 +33,22 @@ namespace Imui.Controls
             return ImControls.AddRowRect(gui, size);
         }
         
-        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImButtonFlag flag = ImButtonFlag.None)
+        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImButtonFlag flags = ImButtonFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size, label);
-            return Button(gui, label, rect, flag);
+            return Button(gui, label, rect, flags);
         }
         
-        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)
+        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flags = ImButtonFlag.None)
         {
-            return Button(gui, gui.GetNextControlId(), label, rect, out _, flag);
+            return Button(gui, gui.GetNextControlId(), label, rect, out _, flags);
         }
 
-        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
+        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flags = ImButtonFlag.None)
         {
-            return Button(gui, gui.GetNextControlId(), rect, out state, flag);
+            return Button(gui, gui.GetNextControlId(), rect, out state, flags);
         }
 
         public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)

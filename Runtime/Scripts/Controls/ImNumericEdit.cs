@@ -98,13 +98,13 @@ namespace Imui.Controls
             var delta = 0;
 
             gui.SetNextAdjacency(ImControlAdjacency.Middle);
-            if (gui.Button("-", minusBtnRect, flag: ImButtonFlag.ReactToHeldDown))
+            if (gui.Button("-", minusBtnRect, flags: ImButtonFlag.ReactToHeldDown))
             {
                 delta--;
             }
 
             gui.SetNextAdjacency(ImControlAdjacency.Right);
-            if (gui.Button("+", plusBtnRect, flag: ImButtonFlag.ReactToHeldDown))
+            if (gui.Button("+", plusBtnRect, flags: ImButtonFlag.ReactToHeldDown))
             {
                 delta++;
             }

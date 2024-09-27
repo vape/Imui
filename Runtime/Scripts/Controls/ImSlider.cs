@@ -124,7 +124,7 @@ namespace Imui.Controls
                 return "0.00";
             }
             
-            return gui.Formatter.Join("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
+            return gui.Formatter.JoinDuplicate("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
         }
     }
 
