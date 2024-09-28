@@ -6,6 +6,9 @@
 - ~~Sliders should have its current value drawn over the knob~~
   - ~~With custom format~~
 - ~~Radio buttons~~
+- Make API C# properties friendly
+- Simplify theming and make it ImGui property
+- Make text edit buffer generic and remove all conditions
 
 ### Better do
 - Reorder demo controls from basic to more advanced

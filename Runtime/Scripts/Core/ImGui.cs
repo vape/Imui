@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace Imui.Core
 {
-    // TODO (artem-s): its time to add dark and light themes
     public class ImGui : IDisposable
     {
         private const int CONTROL_IDS_CAPACITY = 32;
