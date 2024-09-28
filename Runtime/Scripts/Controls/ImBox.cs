@@ -22,15 +22,15 @@ namespace Imui.Controls
         public float BorderWidth;
         public ImRectRadius BorderRadius;
 
-        public ImBoxStyle Apply(ImControlAdjacency adjacency)
+        public ImBoxStyle Apply(ImAdjacency adjacency)
         {
-            if ((adjacency & ImControlAdjacency.Left) != 0)
+            if ((adjacency & ImAdjacency.Left) != 0)
             {
                 BorderRadius.BottomRight = 0;
                 BorderRadius.TopRight = 0;
             }
 
-            if ((adjacency & ImControlAdjacency.Right) != 0)
+            if ((adjacency & ImAdjacency.Right) != 0)
             {
                 BorderRadius.BottomLeft = 0;
                 BorderRadius.TopLeft = 0;

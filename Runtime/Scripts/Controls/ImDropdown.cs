@@ -127,7 +127,7 @@ namespace Imui.Controls
             wholeRect.SplitRight(arrowWidth, out var previewRect);
             
             gui.Layout.Push(ImAxis.Horizontal, previewRect);
-            gui.SetNextAdjacency(ImControlAdjacency.Left);
+            gui.SetNextAdjacency(ImAdjacency.Left);
         }
 
         public static void EndPreview(ImGui gui, uint id, ref bool open)
@@ -137,7 +137,7 @@ namespace Imui.Controls
             var wholeRect = gui.Layout.GetBoundsRect();
             var buttonRect = wholeRect.SplitRight(GetArrowWidth(wholeRect.W, wholeRect.H), out _);
 
-            gui.SetNextAdjacency(ImControlAdjacency.Right);
+            gui.SetNextAdjacency(ImAdjacency.Right);
             
             if (ArrowButton(gui, id, buttonRect))
             {

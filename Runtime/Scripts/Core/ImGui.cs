@@ -289,7 +289,7 @@ namespace Imui.Core
             return nextControlSettings;
         }
         
-        public void SetNextAdjacency(ImControlAdjacency adjacency)
+        public void SetNextAdjacency(ImAdjacency adjacency)
         {
             nextControlSettings.Adjacency |= adjacency;
         }

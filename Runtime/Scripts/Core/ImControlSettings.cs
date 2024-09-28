@@ -3,7 +3,7 @@ using System;
 namespace Imui.Core
 {
     [Flags]
-    public enum ImControlAdjacency
+    public enum ImAdjacency
     {
         None = 0,
         Left = 1,
@@ -13,6 +13,6 @@ namespace Imui.Core
     
     public struct ImControlSettings
     {
-        public ImControlAdjacency Adjacency;
+        public ImAdjacency Adjacency;
     }
 }

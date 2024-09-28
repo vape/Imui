@@ -76,7 +76,7 @@ namespace Imui.Controls
             if (step != 0)
             {
                 delta = PlusMinusButtons(gui, ref rect) * step;
-                gui.SetNextAdjacency(ImControlAdjacency.Left);
+                gui.SetNextAdjacency(ImAdjacency.Left);
             }
 
             var changed = gui.TextEdit(ref buffer, rect, filter, multiline: false);
@@ -97,13 +97,13 @@ namespace Imui.Controls
             var minusBtnRect = rect.SplitRight(width, out rect);
             var delta = 0;
 
-            gui.SetNextAdjacency(ImControlAdjacency.Middle);
+            gui.SetNextAdjacency(ImAdjacency.Middle);
             if (gui.Button("-", minusBtnRect, flags: ImButtonFlag.ReactToHeldDown))
             {
                 delta--;
             }
 
-            gui.SetNextAdjacency(ImControlAdjacency.Right);
+            gui.SetNextAdjacency(ImAdjacency.Right);
             if (gui.Button("+", plusBtnRect, flags: ImButtonFlag.ReactToHeldDown))
             {
                 delta++;
