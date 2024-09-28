@@ -15,30 +15,30 @@ namespace Imui.Controls
     public static class ImDropdown
     {
         public static bool BeginDropdown(this ImGui gui,
-                                         ReadOnlySpan<char> label,
                                          bool open,
+                                         ReadOnlySpan<char> label,
                                          ImSize size = default,
                                          ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
-            BeginDropdown(gui, label, ref open, size, preview);
+            BeginDropdown(gui, ref open, label, size, preview);
             return open;
         }
 
         public static bool BeginDropdown(this ImGui gui,
-                                         ReadOnlySpan<char> label,
                                          ref bool open,
+                                         ReadOnlySpan<char> label,
                                          ImSize size = default,
                                          ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
             var id = gui.GetNextControlId();
 
-            return BeginDropdown(gui, id, label, ref open, size, preview);
+            return BeginDropdown(gui, id, ref open, label, size, preview);
         }
 
         public static bool BeginDropdown(this ImGui gui,
                                          uint id,
-                                         ReadOnlySpan<char> label,
                                          ref bool open,
+                                         ReadOnlySpan<char> label,
                                          ImSize size = default,
                                          ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
@@ -64,7 +64,7 @@ namespace Imui.Controls
                 }
                 else
                 {
-                    PreviewButton(gui, id, label, ref open);
+                    PreviewButton(gui, id, ref open, label);
                 }
 
                 EndPreview(gui, id, ref open);
@@ -122,7 +122,7 @@ namespace Imui.Controls
 
             ref var open = ref gui.Storage.Get<bool>(id);
 
-            BeginDropdown(gui, label, ref open, size, preview);
+            BeginDropdown(gui, ref open, label, size, preview);
             if (open && DropdownList(gui, ref selected, items))
             {
                 open = false;
@@ -191,7 +191,7 @@ namespace Imui.Controls
             }
         }
         
-        public static void PreviewButton(ImGui gui, uint id, ReadOnlySpan<char> label, ref bool open)
+        public static void PreviewButton(ImGui gui, uint id, ref bool open, ReadOnlySpan<char> label)
         {
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
             ImTheme.Active.Button.Alignment = ImTheme.Active.Dropdown.Alignment;

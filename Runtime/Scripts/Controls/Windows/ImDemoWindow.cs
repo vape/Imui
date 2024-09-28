@@ -47,7 +47,7 @@ namespace Imui.Controls.Windows
         {
             gui.BeginWindow("Demo", width: 700, height: 700);
             
-            gui.BeginFoldout("Controls", out var controlsOpen);
+            gui.BeginFoldout(out var controlsOpen, "Controls");
             gui.BeginIndent();
             if (controlsOpen)
             {
@@ -58,7 +58,7 @@ namespace Imui.Controls.Windows
 
             gui.BeginReadOnly(isReadOnly);
             
-            gui.BeginFoldout("Layout", out var layoutOpen);
+            gui.BeginFoldout(out var layoutOpen, "Layout");
             gui.BeginIndent();
             if (layoutOpen)
             {
@@ -67,7 +67,7 @@ namespace Imui.Controls.Windows
             gui.EndIndent();
             gui.EndFoldout();
             
-            gui.BeginFoldout("Style", out var styleOpen);
+            gui.BeginFoldout(out var styleOpen, "Style");
             gui.BeginIndent();
             if (styleOpen)
             {
@@ -76,7 +76,7 @@ namespace Imui.Controls.Windows
             gui.EndIndent();
             gui.EndFoldout();
             
-            gui.BeginFoldout("Other", out var otherOpen);
+            gui.BeginFoldout(out var otherOpen, "Other");
             gui.BeginIndent();
             if (otherOpen)
             {
@@ -117,7 +117,7 @@ namespace Imui.Controls.Windows
                 
                 var label = current == 0 ? "Nested Foldout" : Format("Nested Foldout ", current, "0");
                 
-                gui.BeginFoldout(label, out var nestedFoldoutOpen);
+                gui.BeginFoldout(out var nestedFoldoutOpen, label);
                 gui.BeginIndent();
                 if (nestedFoldoutOpen)
                 {
@@ -153,7 +153,7 @@ namespace Imui.Controls.Windows
             
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            gui.BeginDropdown(customDropdownId, default, ref customDropdownOpen);
+            gui.BeginDropdown(customDropdownId, ref customDropdownOpen, default);
             {
                 var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f);
                 for (int i = 0; i < checkboxes.Length; ++i)

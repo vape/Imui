@@ -9,23 +9,23 @@ namespace Imui.Controls
     {
         private const float ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
         
-        public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, out bool open, ImSize size = default)
+        public static void BeginFoldout(this ImGui gui, out bool open, ReadOnlySpan<char> label, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id =  gui.PushId(label);
             var rect = ImControls.AddRowRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
-            state = BeginFoldout(gui, label, state, rect);
+            state = BeginFoldout(gui, state, label, rect);
             open = state;
         }
 
-        public static bool BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, bool open, ImRect rect)
+        public static bool BeginFoldout(this ImGui gui, bool open, ReadOnlySpan<char> label, ImRect rect)
         {
-            return BeginFoldout(gui, gui.PushId(label), label, open, rect);
+            return BeginFoldout(gui, gui.PushId(label), open, label, rect);
         }
         
-        public static bool BeginFoldout(this ImGui gui, uint id, ReadOnlySpan<char> label, bool open, ImRect rect)
+        public static bool BeginFoldout(this ImGui gui, uint id, bool open, ReadOnlySpan<char> label, ImRect rect)
         {
             if (DrawFoldout(gui, id, open, rect, label))
             {

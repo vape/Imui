@@ -25,17 +25,17 @@ namespace Imui.Controls
             Text(gui, text, GetTextSettings(wrap), rect);
         }
         
-        public static void Text(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, Color32 color, bool wrap = false)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, Color32 color, ImRect rect, bool wrap = false)
         {
-            Text(gui, text, GetTextSettings(wrap), rect, color);
+            Text(gui, text, GetTextSettings(wrap), color, rect);
         }
 
         public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool wrap = false)
         {
-            TextAutoSize(gui, text, rect, ImTheme.Active.Text.Color, wrap);
+            TextAutoSize(gui, text, ImTheme.Active.Text.Color, rect, wrap);
         }
         
-        public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, Color32 color, bool wrap = false)
+        public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, Color32 color, ImRect rect, bool wrap = false)
         {
             // (artem-s): at least try to skip costly auto-sizing
             if (gui.Canvas.Cull(rect))
@@ -45,7 +45,7 @@ namespace Imui.Controls
             
             var settings = GetTextSettings(wrap);
             settings.Size = AutoSizeTextSlow(gui, text, settings, rect.Size);
-            Text(gui, text, settings, rect, color);
+            Text(gui, text, settings, color, rect);
         }
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings)
@@ -68,7 +68,7 @@ namespace Imui.Controls
             gui.Canvas.Text(text, ImTheme.Active.Text.Color, rect, in settings);
         }
         
-        public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings, ImRect rect, Color32 color)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings, Color32 color, ImRect rect)
         {
             gui.Canvas.Text(text, color, rect, in settings);
         }

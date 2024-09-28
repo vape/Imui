@@ -99,7 +99,7 @@ namespace Imui.Controls
             }
 
             var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.5f, 0.5f);
-            gui.Text(gui.Formatter.Format(value, format), in textSettings, rect, ImTheme.Active.Slider.Box.FrontColor);
+            gui.Text(gui.Formatter.Format(value, format), in textSettings, ImTheme.Active.Slider.Box.FrontColor, rect);
 
             if (gui.IsReadOnly)
             {
