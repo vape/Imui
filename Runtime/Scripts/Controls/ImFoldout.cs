@@ -16,16 +16,25 @@ namespace Imui.Controls
             var id =  gui.PushId(label);
             var rect = ImControls.AddRowRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
-            Foldout(gui, id, ref state, rect, label);
+            if (DrawFoldout(gui, id, state, rect, label))
+            {
+                state = !state;
+            }
+
             open = state;
         }
 
-        public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, ref bool open, ImRect rect)
+        public static bool BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, bool open, ImRect rect)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id = gui.PushId(label);
-            Foldout(gui, id, ref open, rect, label);
+            if (DrawFoldout(gui, id, open, rect, label))
+            {
+                open = !open;
+            }
+
+            return open;
         }
         
         public static void EndFoldout(this ImGui gui)
@@ -33,7 +42,7 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static void Foldout(this ImGui gui, uint id, ref bool open, ImRect rect, ReadOnlySpan<char> label)
+        public static bool DrawFoldout(ImGui gui, uint id, bool open, ImRect rect, ReadOnlySpan<char> label)
         {
             var arrowRect = ImButton.GetContentRect(rect);
             var arrowSize = (arrowRect.H - ImTheme.Active.Controls.ExtraRowHeight) * ImTheme.Active.Foldout.ArrowOuterScale;
@@ -56,11 +65,8 @@ namespace Imui.Controls
             {
                 DrawClosedArrow(gui.Canvas, arrowRect, frontColor);
             }
-            
-            if (clicked)
-            {
-                open = !open;
-            }
+
+            return clicked;
         }
         
         public static void DrawClosedArrow(ImCanvas canvas, ImRect rect, Color32 color)
