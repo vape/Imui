@@ -216,16 +216,16 @@ namespace Imui.Controls.Windows
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
             {
-                var isSelected = selectedValues.Contains(i);
-                if (gui.ListItem(ref isSelected, values[i]))
+                var wasSelected = selectedValues.Contains(i);
+                if (gui.ListItem(wasSelected, values[i]))
                 {
-                    if (isSelected)
+                    if (wasSelected)
                     {
-                        selectedValues.Add(i);
+                        selectedValues.Remove(i);
                     }
                     else
                     {
-                        selectedValues.Remove(i);
+                        selectedValues.Add(i);
                     }
                 }
             }
