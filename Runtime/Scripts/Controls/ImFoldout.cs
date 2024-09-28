@@ -16,19 +16,17 @@ namespace Imui.Controls
             var id =  gui.PushId(label);
             var rect = ImControls.AddRowRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
-            if (DrawFoldout(gui, id, state, rect, label))
-            {
-                state = !state;
-            }
-
+            state = BeginFoldout(gui, label, state, rect);
             open = state;
         }
 
         public static bool BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, bool open, ImRect rect)
         {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-            
-            var id = gui.PushId(label);
+            return BeginFoldout(gui, gui.PushId(label), label, open, rect);
+        }
+        
+        public static bool BeginFoldout(this ImGui gui, uint id, ReadOnlySpan<char> label, bool open, ImRect rect)
+        {
             if (DrawFoldout(gui, id, open, rect, label))
             {
                 open = !open;

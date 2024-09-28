@@ -9,6 +9,7 @@
 - Make API C# properties friendly
 - Simplify theming and make it ImGui property
 - Make text edit buffer generic and remove all conditions
+- De-clutter controls
 
 ### Better do
 - Reorder demo controls from basic to more advanced
@@ -26,6 +27,7 @@
   - Optimize layout and rendering
 - Fix touch keyboard in webgl
 - Unit tests
+- In code documentation 
 
 ### Maybe
 - ~~TextEdit as dropdown preview area~~

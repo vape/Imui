@@ -11,12 +11,7 @@ namespace Imui.Controls
         Arrow = 1,
         Text = 2
     }
-
-    public struct ImDropdownState
-    {
-        public bool Open;
-    }
-
+    
     public static class ImDropdown
     {
         public static bool BeginDropdown(this ImGui gui,
@@ -125,12 +120,12 @@ namespace Imui.Controls
             var label = selected < 0 || selected >= items.Length ? defaultLabel : items[selected];
             var prev = selected;
 
-            ref var state = ref gui.Storage.Get<ImDropdownState>(id);
+            ref var open = ref gui.Storage.Get<bool>(id);
 
-            BeginDropdown(gui, label, ref state.Open, size, preview);
-            if (state.Open && DropdownList(gui, ref selected, items))
+            BeginDropdown(gui, label, ref open, size, preview);
+            if (open && DropdownList(gui, ref selected, items))
             {
-                state.Open = false;
+                open = false;
             }
             EndDropdown(gui);
 
@@ -209,7 +204,7 @@ namespace Imui.Controls
 
         public static void PreviewText(ImGui gui, ReadOnlySpan<char> label)
         {
-            gui.TextEdit(label, gui.Layout.GetBoundsRect(), false);
+            gui.TextEditReadonly(label, gui.Layout.GetBoundsRect(), false);
         }
 
         public static bool ArrowButton(ImGui gui, uint id, ImRect rect)

@@ -44,7 +44,6 @@ namespace Imui.Controls
         }
     }
     
-    // TODO (artem-s): text input with dropdown selection
     // TODO (artem-s): do not handle drag events if control is not active
     public static class ImTextEdit
     {
@@ -70,6 +69,33 @@ namespace Imui.Controls
                     Mathf.Max(MIN_HEIGHT, minHeight))
             };
         }
+
+        public static void TextEditReadonly(this ImGui gui, ReadOnlySpan<char> text, ImSize size = default, bool? multiline = null)
+        {
+            var rect = GetRect(gui, size, multiline);
+
+            TextEditReadonly(gui, text, rect, multiline);
+        }
+
+        public static void TextEditReadonly(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool? multiline = null)
+        {
+            var buffer = new ImTextEditBuffer(text);
+            
+            if (multiline == null)
+            {
+                multiline = rect.H > gui.GetRowHeight();
+            }
+
+            gui.BeginReadOnly(true);
+            TextEdit(gui, ref buffer, rect, null, multiline.Value);
+            gui.EndReadOnly();
+        }
+
+        public static string TextEdit(this ImGui gui, string text, ImSize size = default, ImTextEditFilter filter = null, bool? multiline = null)
+        {
+            TextEdit(gui, ref text, size, filter, multiline);
+            return text;
+        }
         
         public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, ImTextEditFilter filter = null, bool? multiline = null)
         {
@@ -85,39 +111,10 @@ namespace Imui.Controls
             TextEdit(gui, ref text, rect, filter, multiline.Value);
         }
 
-        public static void TextEdit(this ImGui gui, ReadOnlySpan<char> text, ImSize size = default, bool? multiline = null)
+        public static string TextEdit(this ImGui gui, string text, ImRect rect, ImTextEditFilter filter = null, bool? multiline = null)
         {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            var rect = GetRect(gui, size, multiline);
-
-            if (multiline == null)
-            {
-                multiline = rect.H > gui.GetRowHeight();
-            }
-            
-            TextEdit(gui, text, rect, multiline.Value);
-        }
-
-        public static void TextEdit(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool? multiline = null)
-        {
-            // if text is passed not as ref, draw it as readonly
-            gui.BeginReadOnly(true);
-            var buffer = new ImTextEditBuffer(text);
-            if (multiline == null)
-            {
-                multiline = rect.H > gui.GetRowHeight();
-            }
-            TextEdit(gui, ref buffer, rect, null, multiline.Value);
-            gui.EndReadOnly();
-        }
-        
-        public static void TextEdit(this ImGui gui, string text, ImRect rect, bool? multiline = null)
-        {
-            // if text is passed not as ref, draw it as readonly
-            gui.BeginReadOnly(true);
-            TextEdit(gui, ref text, rect, null, multiline);
-            gui.EndReadOnly();
+            TextEdit(gui, ref text, rect, filter, multiline);
+            return text;
         }
         
         public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = null, bool? multiline = null)
