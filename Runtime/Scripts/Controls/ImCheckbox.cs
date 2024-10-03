@@ -35,20 +35,24 @@ namespace Imui.Controls
             }
         }
         
-        public static bool Checkbox(this ImGui gui, ref bool value, ImSize size = default)
+        public static bool Checkbox(this ImGui gui, bool value, ReadOnlySpan<char> label = default, ImSize size = default)
         {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            var rect = GetRect(gui, size);
-            return Checkbox(gui, ref value, rect);
+            Checkbox(gui, ref value, label, size);
+            return value;
         }
         
-        public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImSize size = default)
+        public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label = default, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = GetRect(gui, size, label);
             return Checkbox(gui, ref value, label, rect);
+        }
+
+        public static bool Checkbox(this ImGui gui, bool value, ReadOnlySpan<char> label, ImRect rect)
+        {
+            Checkbox(gui, ref value, label, rect);
+            return value;
         }
         
         public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
@@ -76,12 +80,6 @@ namespace Imui.Controls
             }
 
             return changed;
-        }
-
-        public static bool Checkbox(this ImGui gui, ref bool value, ImRect rect)
-        {
-            var id = gui.GetNextControlId();
-            return Checkbox(gui, id, ref value, rect);
         }
         
         public static bool Checkbox(this ImGui gui, uint id, ref bool value, ImRect rect)

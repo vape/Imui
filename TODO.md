@@ -6,9 +6,17 @@
 - ~~Sliders should have its current value drawn over the knob~~
   - ~~With custom format~~
 - ~~Radio buttons~~
-- Make API C# properties friendly
-- Simplify theming and make it ImGui property
-- Make text edit buffer generic and remove all conditions
+- ~~Make API C# properties friendly~~
+- ~~Make text edit buffer generic and remove all conditions~~ - Well, nice solution is not possible yet until Unity adapts c#11
+- ~~De-clutter controls~~
+  - ~~Basic parameters order should follow:~~
+    1. this ImGui
+    2. ID (if present)
+    3. State
+    4. Visual
+    5. Size
+    6. Optional~~
+  - ~~Remove duplication~~
 
 ### Better do
 - Reorder demo controls from basic to more advanced
@@ -26,6 +34,8 @@
   - Optimize layout and rendering
 - Fix touch keyboard in webgl
 - Unit tests
+- In code documentation 
+- Simplify styling and fix the current themes as they look kinda ugly
 
 ### Maybe
 - ~~TextEdit as dropdown preview area~~

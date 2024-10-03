@@ -41,15 +41,15 @@ namespace Imui.Controls
             gui.Layout.Pop();
         }
 
-        public static bool ListItem(this ImGui gui, ref int selected, int index, ReadOnlySpan<char> label)
+        public static bool ListItem(this ImGui gui, ref int selectedIndex, int index, ReadOnlySpan<char> label)
         {
-            ref readonly var style = ref (index == selected ? ref ImTheme.Active.List.ItemSelected : ref ImTheme.Active.List.ItemNormal);
+            ref readonly var style = ref (index == selectedIndex ? ref ImTheme.Active.List.ItemSelected : ref ImTheme.Active.List.ItemNormal);
 
             using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in style))
             {
                 if (gui.Button(label))
                 {
-                    selected = index;
+                    selectedIndex = index;
                     return true;
                 }
             }
@@ -57,7 +57,7 @@ namespace Imui.Controls
             return false;
         }
 
-        public static bool ListItem(this ImGui gui, ref bool isSelected, ReadOnlySpan<char> label)
+        public static bool ListItem(this ImGui gui, bool isSelected, ReadOnlySpan<char> label)
         {
             ref readonly var style = ref (isSelected ? ref ImTheme.Active.List.ItemSelected : ref ImTheme.Active.List.ItemNormal);
 
@@ -65,7 +65,6 @@ namespace Imui.Controls
             {
                 if (gui.Button(label))
                 {
-                    isSelected = !isSelected;
                     return true;
                 }
             }

@@ -9,23 +9,30 @@ namespace Imui.Controls
     {
         private const float ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
         
-        public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, out bool open, ImSize size = default)
+        public static void BeginFoldout(this ImGui gui, out bool open, ReadOnlySpan<char> label, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id =  gui.PushId(label);
             var rect = ImControls.AddRowRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
-            Foldout(gui, id, ref state, rect, label);
+            state = BeginFoldout(gui, state, label, rect);
             open = state;
         }
 
-        public static void BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, ref bool open, ImRect rect)
+        public static bool BeginFoldout(this ImGui gui, bool open, ReadOnlySpan<char> label, ImRect rect)
         {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-            
-            var id = gui.PushId(label);
-            Foldout(gui, id, ref open, rect, label);
+            return BeginFoldout(gui, gui.PushId(label), open, label, rect);
+        }
+        
+        public static bool BeginFoldout(this ImGui gui, uint id, bool open, ReadOnlySpan<char> label, ImRect rect)
+        {
+            if (DrawFoldout(gui, id, open, rect, label))
+            {
+                open = !open;
+            }
+
+            return open;
         }
         
         public static void EndFoldout(this ImGui gui)
@@ -33,7 +40,7 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static void Foldout(this ImGui gui, uint id, ref bool open, ImRect rect, ReadOnlySpan<char> label)
+        public static bool DrawFoldout(ImGui gui, uint id, bool open, ImRect rect, ReadOnlySpan<char> label)
         {
             var arrowRect = ImButton.GetContentRect(rect);
             var arrowSize = (arrowRect.H - ImTheme.Active.Controls.ExtraRowHeight) * ImTheme.Active.Foldout.ArrowOuterScale;
@@ -56,11 +63,8 @@ namespace Imui.Controls
             {
                 DrawClosedArrow(gui.Canvas, arrowRect, frontColor);
             }
-            
-            if (clicked)
-            {
-                open = !open;
-            }
+
+            return clicked;
         }
         
         public static void DrawClosedArrow(ImCanvas canvas, ImRect rect, Color32 color)

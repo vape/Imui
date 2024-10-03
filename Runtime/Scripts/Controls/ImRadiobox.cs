@@ -7,6 +7,12 @@ namespace Imui.Controls
 {
     public static class ImRadio
     {
+        public static TEnum Radio<TEnum>(this ImGui gui, TEnum value, bool bitMasks = true) where TEnum : struct, Enum
+        {
+            Radio(gui, ref value, bitMasks);
+            return value;
+        }
+        
         public static bool Radio<TEnum>(this ImGui gui, ref TEnum value, bool bitMasks = true) where TEnum : struct, Enum
         {
             var changed = false;
@@ -76,20 +82,24 @@ namespace Imui.Controls
             return true;
         }
 
-        public static bool Radio(this ImGui gui, ref bool value, ImSize size = default)
+        public static bool Radio(this ImGui gui, bool value, ReadOnlySpan<char> label = default, ImSize size = default)
         {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            var rect = ImCheckbox.GetRect(gui, size);
-            return Radio(gui, ref value, rect);
+            Radio(gui, ref value, label, size);
+            return value;
         }
-
-        public static bool Radio(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImSize size = default)
+        
+        public static bool Radio(this ImGui gui, ref bool value, ReadOnlySpan<char> label = default, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = ImCheckbox.GetRect(gui, size, label);
             return Radio(gui, ref value, label, rect);
+        }
+
+        public static bool Radio(this ImGui gui, bool value, ReadOnlySpan<char> label, ImRect rect)
+        {
+            Radio(gui, ref value, label, rect);
+            return value;
         }
 
         public static bool Radio(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
@@ -118,13 +128,7 @@ namespace Imui.Controls
 
             return changed;
         }
-
-        public static bool Radio(this ImGui gui, ref bool value, ImRect rect)
-        {
-            var id = gui.GetNextControlId();
-            return Radio(gui, id, ref value, rect);
-        }
-
+        
         public static bool Radio(this ImGui gui, uint id, ref bool value, ImRect rect)
         {
             using var _ = new ImStyleScope<ImRectRadius>(ref ImTheme.Active.Button.BorderRadius);

@@ -15,7 +15,7 @@ namespace Imui.Controls.Windows
         private static ImMouseEventType mouseEventEnum;
         private static ImKeyboardCommandFlag keyboardCmdFlag;
         
-        private static bool checkmarkValue;
+        private static bool checkboxValue;
         private static int selectedValue = -1;
         private static float sliderValue;
         private static float stepSliderValue;
@@ -33,7 +33,7 @@ namespace Imui.Controls.Windows
         private static int intValue;
         private static bool isReadOnly;
         private static bool customDropdownOpen;
-        private static ImDropdownFlag dropdownFlags;
+        private static ImDropdownPreviewType dropdownPreview;
         private static bool[] checkboxes = new bool[4];
         private static bool showDebugWindow;
         private static bool showLogWindow;
@@ -47,7 +47,7 @@ namespace Imui.Controls.Windows
         {
             gui.BeginWindow("Demo", width: 700, height: 700);
             
-            gui.BeginFoldout("Controls", out var controlsOpen);
+            gui.BeginFoldout(out var controlsOpen, "Controls");
             gui.BeginIndent();
             if (controlsOpen)
             {
@@ -58,7 +58,7 @@ namespace Imui.Controls.Windows
 
             gui.BeginReadOnly(isReadOnly);
             
-            gui.BeginFoldout("Layout", out var layoutOpen);
+            gui.BeginFoldout(out var layoutOpen, "Layout");
             gui.BeginIndent();
             if (layoutOpen)
             {
@@ -67,7 +67,7 @@ namespace Imui.Controls.Windows
             gui.EndIndent();
             gui.EndFoldout();
             
-            gui.BeginFoldout("Style", out var styleOpen);
+            gui.BeginFoldout(out var styleOpen, "Style");
             gui.BeginIndent();
             if (styleOpen)
             {
@@ -76,7 +76,7 @@ namespace Imui.Controls.Windows
             gui.EndIndent();
             gui.EndFoldout();
             
-            gui.BeginFoldout("Other", out var otherOpen);
+            gui.BeginFoldout(out var otherOpen, "Other");
             gui.BeginIndent();
             if (otherOpen)
             {
@@ -117,7 +117,7 @@ namespace Imui.Controls.Windows
                 
                 var label = current == 0 ? "Nested Foldout" : Format("Nested Foldout ", current, "0");
                 
-                gui.BeginFoldout(label, out var nestedFoldoutOpen);
+                gui.BeginFoldout(out var nestedFoldoutOpen, label);
                 gui.BeginIndent();
                 if (nestedFoldoutOpen)
                 {
@@ -152,35 +152,41 @@ namespace Imui.Controls.Windows
             var customDropdownId = gui.GetNextControlId();
             
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
-            ImDropdown.Begin(gui);
-            ImDropdown.BeginPreview(gui);
-            ImDropdown.PreviewButton(gui, customDropdownId, default, ref customDropdownOpen);
-            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f);
-            for (int i = 0; i < checkboxes.Length; ++i)
+
+            gui.BeginDropdown(customDropdownId, ref customDropdownOpen, default);
             {
-                gui.Text(checkboxes[i] ? " X " : " O ", textSettings);
-            }
-            ImDropdown.EndPreview(gui, customDropdownId, ref customDropdownOpen);
-            if (customDropdownOpen)
-            {
-                ImDropdown.BeginList(gui, customDropdownId, 1);
-                var allTrue = true;
-                
-                gui.BeginHorizontal();
+                var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f);
                 for (int i = 0; i < checkboxes.Length; ++i)
                 {
-                    gui.Checkbox(ref checkboxes[i]);
-                    allTrue &= checkboxes[i];
+                    gui.Text(checkboxes[i] ? " X " : " O ", textSettings);
                 }
-                if (allTrue)
+
+                if (customDropdownOpen)
                 {
-                    gui.Text("Bingo!", textSettings);
+                    ImDropdown.BeginList(gui, 1);
+                    var allTrue = true;
+                
+                    gui.BeginHorizontal();
+                    for (int i = 0; i < checkboxes.Length; ++i)
+                    {
+                        gui.Checkbox(ref checkboxes[i]);
+                        allTrue &= checkboxes[i];
+                    }
+                    if (allTrue)
+                    {
+                        gui.Text("Bingo!", textSettings);
+                    }
+                    gui.EndHorizontal();
+                
+                    ImDropdown.EndList(gui, out var closeClicked);
+
+                    if (closeClicked)
+                    {
+                        customDropdownOpen = false;
+                    }
                 }
-                gui.EndHorizontal();
-                ImDropdown.EndList(gui, ref customDropdownOpen);
             }
-            ImDropdown.End(gui);
+            gui.EndDropdown();
 
             DrawNestedFoldout(gui, 0, ref nestedFoldouts);
 
@@ -194,11 +200,14 @@ namespace Imui.Controls.Windows
                 clicks = 0;
             }
 
-            gui.Checkbox(ref checkmarkValue, "Checkmark");
+            gui.Checkbox(ref checkboxValue, "Checkbox");
+            checkboxValue = gui.Checkbox(checkboxValue, "Synced checkbox");
+            gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
-            gui.Radio(ref dropdownFlags);
+            gui.Radio(ref dropdownPreview);
             gui.EndHorizontal();
-            gui.Dropdown(ref selectedValue, values, defaultLabel: "Not Selected", flags: dropdownFlags);
+            gui.Dropdown(ref selectedValue, values, defaultLabel: "Not Selected", preview: dropdownPreview);
+            selectedValue = gui.Dropdown(selectedValue, values, defaultLabel: "Synced dropdown");
             gui.Slider(ref sliderValue, -Mathf.PI * 2, Mathf.PI * 2, format: "0.000 rad.");
             gui.Slider(ref stepSliderValue, -5.0f, 5.0f, step: 0.1f);
             gui.Slider(ref intSliderValue, -10, 10);
@@ -207,16 +216,16 @@ namespace Imui.Controls.Windows
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
             {
-                var isSelected = selectedValues.Contains(i);
-                if (gui.ListItem(ref isSelected, values[i]))
+                var wasSelected = selectedValues.Contains(i);
+                if (gui.ListItem(wasSelected, values[i]))
                 {
-                    if (isSelected)
+                    if (wasSelected)
                     {
-                        selectedValues.Add(i);
+                        selectedValues.Remove(i);
                     }
                     else
                     {
-                        selectedValues.Remove(i);
+                        selectedValues.Add(i);
                     }
                 }
             }

@@ -5,86 +5,131 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
-    [Flags]
-    public enum ImDropdownFlag
+    public enum ImDropdownPreviewType
     {
-        None = 0,
-        NoPreview = 1,
-        TextPreview = 2
-    }
-    
-    public struct ImDropdownState
-    {
-        public bool Open;
+        Default = 0,
+        Arrow = 1,
+        Text = 2
     }
     
     public static class ImDropdown
     {
-        public static bool Dropdown(this ImGui gui,
-                                    ref int selected,
-                                    ReadOnlySpan<string> items,
-                                    ImSize size = default,
-                                    ReadOnlySpan<char> defaultLabel = default,
-                                    ImDropdownFlag flags = ImDropdownFlag.None)
+        public static bool BeginDropdown(this ImGui gui,
+                                         bool open,
+                                         ReadOnlySpan<char> label,
+                                         ImSize size = default,
+                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        {
+            BeginDropdown(gui, ref open, label, size, preview);
+            return open;
+        }
+
+        public static bool BeginDropdown(this ImGui gui,
+                                         ref bool open,
+                                         ReadOnlySpan<char> label,
+                                         ImSize size = default,
+                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        {
+            var id = gui.GetNextControlId();
+
+            return BeginDropdown(gui, id, ref open, label, size, preview);
+        }
+
+        public static bool BeginDropdown(this ImGui gui,
+                                         uint id,
+                                         ref bool open,
+                                         ReadOnlySpan<char> label,
+                                         ImSize size = default,
+                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
+
+            var rect = ImControls.AddRowRect(gui, size);
+            var prev = open;
+
+            gui.PushId(id);
+            gui.Layout.Push(ImAxis.Horizontal, rect);
             
-            var id = gui.GetNextControlId();
-            var label = selected < 0 || selected >= items.Length ? defaultLabel : items[selected];
-            var prev = selected;
-            ref var state = ref gui.Storage.Get<ImDropdownState>(id);
-            
-            Begin(gui, size);
-            
-            if ((flags & ImDropdownFlag.NoPreview) != 0)
+            if (preview == ImDropdownPreviewType.Arrow)
             {
-                NoPreview(gui, id, ref state.Open);
+                NoPreview(gui, id, ref open);
             }
             else
             {
                 BeginPreview(gui);
-                if ((flags & ImDropdownFlag.TextPreview) != 0)
+
+                if (preview == ImDropdownPreviewType.Text)
                 {
                     PreviewText(gui, label);
                 }
                 else
                 {
-                    PreviewButton(gui, id, label, ref state.Open);
+                    PreviewButton(gui, id, ref open, label);
                 }
-                EndPreview(gui, id, ref state.Open);
+
+                EndPreview(gui, id, ref open);
             }
 
-            if (state.Open)
-            {
-                BeginList(gui, id, items.Length);
-                for (int i = 0; i < items.Length; ++i)
-                {
-                    if (gui.ListItem(ref selected, i, items[i]))
-                    {
-                        state.Open = false;
-                    }
-                }
-                EndList(gui, ref state.Open);
-            }
-            
-            End(gui);
-
-            return prev != selected;
-        }
-        
-        public static void Begin(ImGui gui, ImSize size = default)
-        {
-            Begin(gui, ImControls.AddRowRect(gui, size));
-        }
-        
-        public static void Begin(ImGui gui, ImRect rect)
-        {
-            gui.Layout.Push(ImAxis.Horizontal, rect);
+            return open != prev;
         }
 
-        public static void End(ImGui gui)
+        public static void EndDropdown(this ImGui gui)
         {
             gui.Layout.Pop();
+            gui.PopId();
+        }
+
+        public static bool DropdownList(this ImGui gui, ref int selected, ReadOnlySpan<string> items)
+        {
+            var itemClicked = false;
+
+            BeginList(gui, items.Length);
+
+            for (int i = 0; i < items.Length; ++i)
+            {
+                if (gui.ListItem(ref selected, i, items[i]))
+                {
+                    itemClicked = true;
+                }
+            }
+
+            EndList(gui, out var closeClicked);
+
+            return itemClicked || closeClicked;
+        }
+
+        public static int Dropdown(this ImGui gui,
+                                   int selected,
+                                   ReadOnlySpan<string> items,
+                                   ImSize size = default,
+                                   ImDropdownPreviewType preview = ImDropdownPreviewType.Default,
+                                   ReadOnlySpan<char> defaultLabel = default)
+        {
+            Dropdown(gui, ref selected, items, size, preview, defaultLabel);
+            return selected;
+        }
+
+        public static bool Dropdown(this ImGui gui,
+                                    ref int selected,
+                                    ReadOnlySpan<string> items,
+                                    ImSize size = default,
+                                    ImDropdownPreviewType preview = ImDropdownPreviewType.Default,
+                                    ReadOnlySpan<char> defaultLabel = default)
+        {
+            var id = gui.GetNextControlId();
+            var label = selected < 0 || selected >= items.Length ? defaultLabel : items[selected];
+            var prev = selected;
+
+            ref var open = ref gui.Storage.Get<bool>(id);
+
+            BeginDropdown(gui, ref open, label, size, preview);
+            if (open && DropdownList(gui, ref selected, items))
+            {
+                open = false;
+            }
+            EndDropdown(gui);
+
+            return prev != selected;
         }
 
         public static ImRect GetListRect(ImGui gui, ImRect controlRect, int itemsCount = 0)
@@ -98,26 +143,19 @@ namespace Imui.Controls
             return new ImRect(x, y, width, height);
         }
 
-        public static void BeginList(ImGui gui, uint id, int itemsCount = 0)
+        public static void BeginList(ImGui gui, int itemsCount = 0)
         {
             var controlRect = gui.Layout.GetBoundsRect();
             var listRect = GetListRect(gui, controlRect, itemsCount);
 
-            gui.PushId(id);
             gui.BeginPopup();
             gui.BeginList(listRect);
         }
 
-        public static void EndList(ImGui gui, ref bool open)
+        public static void EndList(ImGui gui, out bool closeClicked)
         {
             gui.EndList();
-            gui.EndPopup(out var closeClicked);
-            gui.PopId();
-            
-            if (closeClicked)
-            {
-                open = false;
-            }
+            gui.EndPopup(out closeClicked);
         }
 
         public static void BeginPreview(ImGui gui)
@@ -125,7 +163,7 @@ namespace Imui.Controls
             var wholeRect = gui.Layout.GetBoundsRect();
             var arrowWidth = GetArrowWidth(wholeRect.W, wholeRect.H);
             wholeRect.SplitRight(arrowWidth, out var previewRect);
-            
+
             gui.Layout.Push(ImAxis.Horizontal, previewRect);
             gui.SetNextAdjacency(ImAdjacency.Left);
         }
@@ -138,7 +176,7 @@ namespace Imui.Controls
             var buttonRect = wholeRect.SplitRight(GetArrowWidth(wholeRect.W, wholeRect.H), out _);
 
             gui.SetNextAdjacency(ImAdjacency.Right);
-            
+
             if (ArrowButton(gui, id, buttonRect))
             {
                 open = !open;
@@ -152,16 +190,8 @@ namespace Imui.Controls
                 open = !open;
             }
         }
-
-        public static void PreviewBackground(ImGui gui)
-        {
-            var rect = gui.Layout.GetBoundsRect();
-            var style = ImTheme.Active.TextEdit.Normal.Box.Apply(gui.GetNextControlSettings().Adjacency);
-
-            gui.Box(rect, in style);
-        }
-
-        public static void PreviewButton(ImGui gui, uint id, ReadOnlySpan<char> label, ref bool open)
+        
+        public static void PreviewButton(ImGui gui, uint id, ref bool open, ReadOnlySpan<char> label)
         {
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
             ImTheme.Active.Button.Alignment = ImTheme.Active.Dropdown.Alignment;
@@ -174,29 +204,23 @@ namespace Imui.Controls
 
         public static void PreviewText(ImGui gui, ReadOnlySpan<char> label)
         {
-            gui.TextEdit(label, gui.Layout.GetBoundsRect(), false);
+            gui.TextEditReadonly(label, gui.Layout.GetBoundsRect(), false);
         }
-        
+
         public static bool ArrowButton(ImGui gui, uint id, ImRect rect)
         {
             var clicked = gui.Button(id, rect, out var state);
-            DrawArrow(gui, rect, ImButton.GetStateFontColor(state));
 
-            return clicked;
-        }
-
-        public static void DrawArrow(ImGui gui, ImRect rect, Color32 color)
-        {
             rect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Dropdown.ArrowScale).WithAspect(1.1547f);
-            
+
             Span<Vector2> points = stackalloc Vector2[3]
             {
-                new Vector2(rect.X + rect.W * 0.5f, rect.Y),
-                new Vector2(rect.X + rect.W, rect.Y + rect.H),
-                new Vector2(rect.X, rect.Y + rect.H),
+                new Vector2(rect.X + rect.W * 0.5f, rect.Y), new Vector2(rect.X + rect.W, rect.Y + rect.H), new Vector2(rect.X, rect.Y + rect.H),
             };
-        
-            gui.Canvas.ConvexFill(points, color);
+
+            gui.Canvas.ConvexFill(points, ImButton.GetStateFontColor(state));
+
+            return clicked;
         }
 
         public static float GetArrowWidth(float controlWidth, float controlHeight)

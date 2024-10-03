@@ -13,38 +13,44 @@ namespace Imui.Controls
         public static readonly Int64Filter Int64FilterAllowEmptyString = new(true);
         public static readonly DoubleFilter DoubleFilterAllowEmptyString = new(true);
 
-        public static bool IntEdit(this ImGui gui,
-                                   ref int value,
-                                   ImSize size = default,
-                                   ReadOnlySpan<char> format = default,
-                                   int step = 1)
+        public static int IntEdit(this ImGui gui, int value, ImSize size = default, ReadOnlySpan<char> format = default, int step = 1)
+        {
+            IntEdit(gui, ref value, size, format, step);
+            return value;
+        }
+
+        public static bool IntEdit(this ImGui gui, ref int value, ImSize size = default, ReadOnlySpan<char> format = default, int step = 1)
         {
             long longValue = value;
-            var changed = TextEditNumeric(gui, ref longValue, Int64FilterAllowEmptyString, format, size, step, out var delta);
+            var changed = TextEditNumeric(gui, ref longValue, Int64FilterAllowEmptyString, size, format, step, out var delta);
             longValue += (long)delta;
             value = longValue > int.MaxValue ? int.MaxValue : longValue < int.MinValue ? int.MinValue : (int)longValue;
             return changed;
         }
 
-        public static bool LongEdit(this ImGui gui,
-                                    ref long value,
-                                    ImSize size = default,
-                                    ReadOnlySpan<char> format = default,
-                                    long step = 0)
+        public static long LongEdit(this ImGui gui, long value, ImSize size = default, ReadOnlySpan<char> format = default, long step = 0)
         {
-            var changed = TextEditNumeric(gui, ref value, Int64FilterAllowEmptyString, format, size, step, out var delta);
+            LongEdit(gui, ref value, size, format, step);
+            return value;
+        }
+
+        public static bool LongEdit(this ImGui gui, ref long value, ImSize size = default, ReadOnlySpan<char> format = default, long step = 0)
+        {
+            var changed = TextEditNumeric(gui, ref value, Int64FilterAllowEmptyString, size, format, step, out var delta);
             value += (long)delta;
             return changed;
         }
 
-        public static bool FloatEdit(this ImGui gui,
-                                     ref float value,
-                                     ImSize size = default,
-                                     ReadOnlySpan<char> format = default,
-                                     float step = 0.1f)
+        public static float FloatEdit(this ImGui gui, float value, ImSize size = default, ReadOnlySpan<char> format = default, float step = 0.1f)
+        {
+            FloatEdit(gui, ref value, size, format, step);
+            return value;
+        }
+        
+        public static bool FloatEdit(this ImGui gui, ref float value, ImSize size = default, ReadOnlySpan<char> format = default, float step = 0.1f)
         {
             double doubleValue = value;
-            var changed = TextEditNumeric(gui, ref doubleValue, DoubleFilterAllowEmptyString, format, size, step, out var delta);
+            var changed = TextEditNumeric(gui, ref doubleValue, DoubleFilterAllowEmptyString, size, format, step, out var delta);
             value = (float)(doubleValue + delta);
             return changed;
         }
@@ -52,8 +58,8 @@ namespace Imui.Controls
         private static bool TextEditNumeric<T>(ImGui gui,
                                                ref T value,
                                                NumericFilter<T> filter,
-                                               ReadOnlySpan<char> format,
                                                ImSize size,
+                                               ReadOnlySpan<char> format,
                                                double step,
                                                out double delta)
         {
@@ -69,17 +75,17 @@ namespace Imui.Controls
             }
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             delta = 0;
-            
-            var rect = ImTextEdit.GetRect(gui, size);
+
+            var rect = ImTextEdit.GetRect(gui, size, false, out _);
             if (step != 0)
             {
                 delta = PlusMinusButtons(gui, ref rect) * step;
                 gui.SetNextAdjacency(ImAdjacency.Left);
             }
 
-            var changed = gui.TextEdit(ref buffer, rect, filter, multiline: false);
+            var changed = gui.TextEdit(ref buffer, rect, false, filter);
             if (changed && filter.TryParse(buffer, out var newValue))
             {
                 value = newValue;

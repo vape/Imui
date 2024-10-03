@@ -80,7 +80,7 @@ namespace Imui.Controls
             }
             
             var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Foldout.TextAlignment, ImTheme.Active.Button.TextWrap);
-            gui.Text(label, textSettings, labelRect, color: style.FrontColor);
+            gui.Text(label, textSettings, style.FrontColor, labelRect);
 
             gui.BeginIndent();
 

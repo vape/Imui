@@ -44,7 +44,6 @@ namespace Imui.Controls
         }
     }
     
-    // TODO (artem-s): text input with dropdown selection
     // TODO (artem-s): do not handle drag events if control is not active
     public static class ImTextEdit
     {
@@ -54,13 +53,28 @@ namespace Imui.Controls
 
         private const string TEMP_BUFFER_TAG = "temp_buffer"; 
         
-        public static ImRect GetRect(ImGui gui, ImSize size, bool? multiline = null)
+        public static ImRect GetRect(ImGui gui, ImSize size, bool? multiline, out bool isActuallyMultiline)
         {
             var minHeight = gui.GetRowHeight();
+
+            if (multiline == null)
+            {
+                if (size.Type == ImSizeType.Fixed && size.Height > gui.GetRowHeight())
+                {
+                    multiline = true;
+                }
+                else
+                {
+                    multiline = false;
+                }
+            }
+            
             if (multiline is true)
             {
                 minHeight *= 3;
             }
+
+            isActuallyMultiline = multiline.Value;
             
             return size.Type switch
             {
@@ -70,81 +84,62 @@ namespace Imui.Controls
                     Mathf.Max(MIN_HEIGHT, minHeight))
             };
         }
-        
-        public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, ImTextEditFilter filter = null, bool? multiline = null)
+
+        public static void TextEditReadonly(this ImGui gui, ReadOnlySpan<char> text, ImSize size = default, bool? multiline = null)
         {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            var rect = GetRect(gui, size, multiline);
-
-            if (multiline == null)
-            {
-                multiline = rect.H > gui.GetRowHeight();
-            }
-            
-            TextEdit(gui, ref text, rect, filter, multiline.Value);
+            var rect = GetRect(gui, size, multiline, out var actuallyMultiline);
+            TextEditReadonly(gui, text, rect, actuallyMultiline);
         }
 
-        public static void TextEdit(this ImGui gui, ReadOnlySpan<char> text, ImSize size = default, bool? multiline = null)
+        public static void TextEditReadonly(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool multiline)
         {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            var rect = GetRect(gui, size, multiline);
-
-            if (multiline == null)
-            {
-                multiline = rect.H > gui.GetRowHeight();
-            }
-            
-            TextEdit(gui, text, rect, multiline.Value);
-        }
-
-        public static void TextEdit(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool? multiline = null)
-        {
-            // if text is passed not as ref, draw it as readonly
-            gui.BeginReadOnly(true);
             var buffer = new ImTextEditBuffer(text);
-            if (multiline == null)
-            {
-                multiline = rect.H > gui.GetRowHeight();
-            }
-            TextEdit(gui, ref buffer, rect, null, multiline.Value);
-            gui.EndReadOnly();
-        }
-        
-        public static void TextEdit(this ImGui gui, string text, ImRect rect, bool? multiline = null)
-        {
-            // if text is passed not as ref, draw it as readonly
+
             gui.BeginReadOnly(true);
-            TextEdit(gui, ref text, rect, null, multiline);
+            TextEdit(gui, ref buffer, rect, multiline);
             gui.EndReadOnly();
         }
+
+        public static string TextEdit(this ImGui gui, string text, ImSize size = default, bool? multiline = null, ImTextEditFilter filter = null)
+        {
+            TextEdit(gui, ref text, size, multiline, filter);
+            return text;
+        }
         
-        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = null, bool? multiline = null)
+        public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, bool? multiline = null, ImTextEditFilter filter = null)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+
+            var rect = GetRect(gui, size, multiline, out var actuallyMultiline);
+            TextEdit(gui, ref text, rect, actuallyMultiline, filter);
+        }
+
+        public static string TextEdit(this ImGui gui, string text, ImRect rect, bool multiline, ImTextEditFilter filter = null)
+        {
+            TextEdit(gui, ref text, rect, multiline, filter);
+            return text;
+        }
+        
+        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, bool multiline, ImTextEditFilter filter = default)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
             
-            if (multiline == null)
-            {
-                multiline = rect.H > gui.GetRowHeight();
-            }
-
-            TextEdit(gui, id, rect, ref text, ref state, filter, multiline.Value);
+            TextEdit(gui, id, ref text, ref state, rect, multiline, filter);
         }
         
-        public static bool TextEdit(this ImGui gui, ref ImTextEditBuffer buffer, ImRect rect, ImTextEditFilter filter, bool multiline)
+        public static bool TextEdit(this ImGui gui, ref ImTextEditBuffer buffer, ImRect rect, bool multiline, ImTextEditFilter filter = default)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            return TextEdit(gui, id, rect, ref buffer, ref state, filter, multiline);
+            return TextEdit(gui, id, ref buffer, ref state, rect, multiline, filter);
         }
         
-        public static void TextEdit(this ImGui gui, uint id, ImRect rect, ref string text, ref ImTextEditState state, ImTextEditFilter filter, bool multiline)
+        public static void TextEdit(this ImGui gui, uint id, ref string text, ref ImTextEditState state, ImRect rect, bool multiline, ImTextEditFilter filter = default)
         {
             var buffer = new ImTextEditBuffer(text);
-            var changed = TextEdit(gui, id, rect, ref buffer, ref state, filter, multiline);
+            var changed = TextEdit(gui, id, ref buffer, ref state, rect, multiline, filter);
             if (changed)
             {
                 text = buffer.GetString();
@@ -154,11 +149,11 @@ namespace Imui.Controls
         public static unsafe bool TextEdit(
             ImGui gui, 
             uint id, 
-            ImRect rect, 
             ref ImTextEditBuffer buffer, 
-            ref ImTextEditState state,
-            ImTextEditFilter filter,
-            bool multiline)
+            ref ImTextEditState state, 
+            ImRect rect,
+            bool multiline,
+            ImTextEditFilter filter)
         {
             ref readonly var style = ref ImTheme.Active.TextEdit;
             
