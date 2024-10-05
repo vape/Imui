@@ -9,13 +9,13 @@
 - ~~Make API C# properties friendly~~
 - ~~Make text edit buffer generic and remove all conditions~~ - Well, nice solution is not possible yet until Unity adapts c#11
 - ~~De-clutter controls~~
-  - ~~Basic parameters order should follow:~~
+  - ~~Parameters order should follow:~~
     1. this ImGui
     2. ID (if present)
     3. State
     4. Visual
     5. Size
-    6. Optional~~
+    6. Optional
   - ~~Remove duplication~~
 
 ### Better do
@@ -33,16 +33,22 @@
   - Add support for (basic subset of) rich text
   - Optimize layout and rendering
 - Fix touch keyboard in webgl
-- Unit tests
-- In code documentation 
+- In code documentation
 - Simplify styling and fix the current themes as they look kinda ugly
+- Implement slider inside numeric editor
+- Show min/max value inside slider
+- Make slider looking similar to sliders in other GUI libraries, dearimgui look seems off
+- Implement tooltips on mouse hover
+- Fix that 2px border in adjacent controls
+- Plotting control
+- Property drawers, like in Unity's IMGUI
 
 ### Maybe
+- Unit tests
 - ~~TextEdit as dropdown preview area~~
 - More demo windows
   - ~~Unity console, perhaps~~
   - Inspector
-- Plotting, at least very basic
 - Text edit preview hint
 - ~~Slider steps~~
 - Better API for combined controls
