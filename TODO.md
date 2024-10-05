@@ -42,6 +42,10 @@
 - Fix that 2px border in adjacent controls
 - Plotting control
 - Property drawers, like in Unity's IMGUI
+- Foldable/Closeable windows
+- No control should not modify passed value unless user interacts with it
+  - Slider
+  - ?
 
 ### Maybe
 - Unit tests
