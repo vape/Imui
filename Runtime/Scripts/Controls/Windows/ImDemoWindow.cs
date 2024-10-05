@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using Imui.Controls.Styling;
 using Imui.Controls.Styling.Themes;
@@ -9,7 +10,7 @@ using UnityEngine;
 namespace Imui.Controls.Windows
 {
     [Flags]
-    public enum ImDemoEnumFlags
+    internal enum ImDemoEnumFlags
     {
         None = 0,
         Flag1 = 1,
@@ -17,11 +18,27 @@ namespace Imui.Controls.Windows
         Flag3 = 4,
         Flag1_And_3 = Flag1 | Flag3
     }
-    
+
+    internal struct ImDemoTreeNode
+    {
+        public string Name;
+        public bool Root;
+        public bool Expanded;
+        public int[] Nodes;
+
+        public ImDemoTreeNode(string name, bool root, params int[] nodes)
+        {
+            Name = name;
+            Root = root;
+            Nodes = nodes;
+            Expanded = false;
+        }
+    }
+
     public static class ImDemoWindow
     {
         private static char[] formatBuffer = new char[256];
-        
+
         private static bool checkboxValue;
         private static int selectedValue = -1;
         private static float bouncingBallSize = 22;
@@ -30,11 +47,12 @@ namespace Imui.Controls.Windows
         private static float bouncingBallTime;
         private static int selectedTheme;
         private static string[] themes = { ImLightTheme.NAME, ImDarkTheme.NAME };
-        private static string[] values = 
+
+        private static string[] values =
         {
-            "Value 1", "Value 2", "Value 3", "Value 4",  "Value 5",  "Value 6",
-            "Value 7", "Value 8", "Value 9", "Value 10", "Value 11", "Value 12"
+            "Value 1", "Value 2", "Value 3", "Value 4", "Value 5", "Value 6", "Value 7", "Value 8", "Value 9", "Value 10", "Value 11", "Value 12"
         };
+
         private static string singleLineText = "Single line text edit";
         private static string multiLineText = "Multiline text\nedit";
         private static float floatValue;
@@ -49,55 +67,70 @@ namespace Imui.Controls.Windows
         private static int nestedFoldouts;
         private static bool showPlusMinusButtons = true;
         private static ImDemoEnumFlags demoFlags;
+
+        private static int selectedNode = -1;
+        private static ImDemoTreeNode[] treeNodes = new[]
+        {
+            new ImDemoTreeNode("Node 0", true, 1, 2),
+            new ImDemoTreeNode("Node 1", false),
+            new ImDemoTreeNode("Node 2", false, 3),
+            new ImDemoTreeNode("Node 3", false),
+            new ImDemoTreeNode("Node 4", true)
+        };
+
         private static HashSet<int> selectedValues = new HashSet<int>(values.Length);
         private static ImConsoleWindow consoleWindow;
 
         public static void Draw(ImGui gui)
         {
             gui.BeginWindow("Demo", width: 700, height: 700);
-            
+
             gui.BeginFoldout(out var controlsOpen, "Controls");
             gui.BeginIndent();
             if (controlsOpen)
             {
                 DrawControlsPage(gui);
             }
+
             gui.EndIndent();
             gui.EndFoldout();
 
             gui.BeginReadOnly(isReadOnly);
-            
+
             gui.BeginFoldout(out var layoutOpen, "Layout");
             gui.BeginIndent();
             if (layoutOpen)
             {
                 DrawLayoutPage(gui);
             }
+
             gui.EndIndent();
             gui.EndFoldout();
-            
+
             gui.BeginFoldout(out var styleOpen, "Style");
             gui.BeginIndent();
             if (styleOpen)
             {
                 DrawStylePage(gui);
             }
+
             gui.EndIndent();
             gui.EndFoldout();
-            
+
             gui.BeginFoldout(out var otherOpen, "Other");
             gui.BeginIndent();
             if (otherOpen)
             {
                 DrawOtherPage(gui);
             }
+
             gui.EndIndent();
             gui.EndFoldout();
-            
+
             gui.EndReadOnly();
-            
+
             gui.EndWindow();
-            
+
             if (showDebugWindow)
             {
                 gui.PushId("DemoDebugWindow");
@@ -111,7 +144,7 @@ namespace Imui.Controls.Windows
                 {
                     consoleWindow = new ImConsoleWindow();
                 }
-                
+
                 gui.PushId("DemoLogWindow");
                 consoleWindow.Draw(gui);
                 gui.PopId();
@@ -121,7 +154,7 @@ namespace Imui.Controls.Windows
         private static void DrawControlsPage(ImGui gui)
         {
             gui.Checkbox(ref isReadOnly, "Read Only");
-            
+
             gui.BeginReadOnly(isReadOnly);
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
@@ -135,6 +168,7 @@ namespace Imui.Controls.Windows
             {
                 clicks = 0;
             }
+
             gui.EndHorizontal();
 
             gui.Checkbox(ref checkboxValue, "Checkbox");
@@ -169,11 +203,12 @@ namespace Imui.Controls.Windows
                     }
                 }
             }
+
             gui.EndList();
-            
+
             gui.Text("Numeric editors");
             gui.Checkbox(ref showPlusMinusButtons, "Show +/-");
-            
+
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
@@ -193,66 +228,111 @@ namespace Imui.Controls.Windows
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.Text("Radio buttons (enum flags)");
             gui.Radio(ref demoFlags);
-            
+
+            gui.Text("Tree");
+
+            void Node(ImGui gui, int index, ImDemoTreeNode[] nodes)
+            {
+                ref var node = ref nodes[index];
+                var selected = selectedNode == index ? ImTreeNodeState.Selected : ImTreeNodeState.None;
+                var expanded = node.Expanded ? ImTreeNodeState.Expanded : ImTreeNodeState.None;
+                var state = selected | expanded;
+                var changed = gui.BeginTreeNode(node.Name, ref state, node.Nodes?.Length == 0 ? ImTreeNodeFlags.NonExpandable : ImTreeNodeFlags.None);
+                if (changed)
+                {
+                    node.Expanded = state.HasFlag(ImTreeNodeState.Expanded);
+                    
+                    if ((state & ImTreeNodeState.Selected) != 0)
+                    {
+                        selectedNode = index;
+                    }
+                }
+                
+                if (node is { Expanded: true, Nodes: not null })
+                {
+                    for (int i = 0; i < node.Nodes.Length; ++i)
+                    {
+                        Node(gui, node.Nodes[i], nodes);
+                    }
+                }
+                gui.EndTreeNode();
+            }
+
+            for (int i = 0; i < treeNodes.Length; ++i)
+            {
+                if (treeNodes[i].Root)
+                {
+                    Node(gui, i, treeNodes);
+                }
+            }
+
+            if (selectedNode >= 0 && selectedNode < treeNodes.Length)
+            {
+                gui.Text(gui.Formatter.Join("Selected node: ", treeNodes[selectedNode].Name));
+            }
+
             gui.Text("Some custom controls");
             CustomDropdown(gui);
             NestedFoldout(gui, 0, ref nestedFoldouts);
-            
+
             gui.EndReadOnly();
         }
 
         private static void DrawLayoutPage(ImGui gui)
         {
             gui.AddSpacing();
-            
+
             gui.BeginHorizontal();
             for (int i = 0; i < 3; ++i)
             {
                 gui.Button("Horizontal", ImSizeType.Fit);
             }
+
             gui.EndHorizontal();
-            
+
             gui.AddSpacing();
-            
+
             gui.BeginVertical();
             for (int i = 0; i < 3; ++i)
             {
                 gui.Button("Vertical", ImSizeType.Fit);
             }
+
             gui.EndVertical();
-            
+
             gui.AddSpacing();
-            
+
             var grid = gui.BeginGrid(5, gui.GetRowHeight());
             for (int i = 0; i < 12; ++i)
             {
                 gui.TextAutoSize(Format("Grid cell ", i, "0"), gui.GridNextCell(ref grid));
             }
+
             gui.EndGrid(in grid);
         }
 
         private static void DrawStylePage(ImGui gui)
         {
             selectedTheme = GetThemeIndex(ImTheme.Active.Name);
-            
+
             gui.Text("Theme");
             if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
             {
                 ImTheme.Active = CreateTheme(selectedTheme);
             }
-            
+
             gui.Text(Format("Text Size: ", ImTheme.Active.Controls.TextSize));
             gui.Slider(ref ImTheme.Active.Controls.TextSize, 6, 128);
-            
+
             gui.Text(Format("Spacing: ", ImTheme.Active.Controls.ControlsSpacing));
             gui.Slider(ref ImTheme.Active.Controls.ControlsSpacing, 0, 32);
-            
-            gui.Text( Format("Extra Row Size: ", ImTheme.Active.Controls.ExtraRowHeight));
+
+            gui.Text(Format("Extra Row Size: ", ImTheme.Active.Controls.ExtraRowHeight));
             gui.Slider(ref ImTheme.Active.Controls.ExtraRowHeight, 0, 32);
 
-            gui.Text( Format("Indent: ", ImTheme.Active.Controls.Indent));
+            gui.Text(Format("Indent: ", ImTheme.Active.Controls.Indent));
             gui.Slider(ref ImTheme.Active.Controls.Indent, 0, 32);
-            
+
             if (gui.Button("Reset"))
             {
                 ImTheme.Active = CreateTheme(selectedTheme);
@@ -271,19 +351,19 @@ namespace Imui.Controls.Windows
             {
                 return ((x % y) + y) % y;
             }
-            
+
             var bounds = gui.AddLayoutRectWithSpacing(gui.GetLayoutWidth(), gui.GetRowHeight());
             var dt = Time.deltaTime * bouncingBallSpeed;
-            
+
             bouncingBallTime += dt;
-            
+
             for (int i = 0; i < bouncingBallTrail; ++i)
             {
                 var t = mod((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)), 2.0f);
                 var x = t <= 1.0f ? t : 1 - (t - 1);
                 var p = bounds.GetPointAtNormalPosition(x, 0.5f);
                 var c = ImTheme.Active.Text.Color.WithAlpha((byte)(255 * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2)));
-                
+
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }
         }
@@ -291,15 +371,15 @@ namespace Imui.Controls.Windows
         public static void CustomDropdown(ImGui gui)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             var controlId = gui.GetNextControlId();
 
             gui.BeginDropdown(controlId, ref customDropdownOpen, default);
             {
                 var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f);
-                
+
                 gui.Text("Boxes ticked: ", textSettings);
-                
+
                 for (int i = 0; i < checkboxes.Length; ++i)
                 {
                     gui.Text(checkboxes[i] ? "X" : "-", textSettings);
@@ -309,19 +389,21 @@ namespace Imui.Controls.Windows
                 {
                     ImDropdown.BeginList(gui, 1);
                     var allTrue = true;
-                
+
                     gui.BeginHorizontal();
                     for (int i = 0; i < checkboxes.Length; ++i)
                     {
                         gui.Checkbox(ref checkboxes[i]);
                         allTrue &= checkboxes[i];
                     }
+
                     if (allTrue)
                     {
                         gui.Text("Bingo!", textSettings);
                     }
+
                     gui.EndHorizontal();
-                
+
                     ImDropdown.EndList(gui, out var closeClicked);
 
                     if (closeClicked)
@@ -332,13 +414,13 @@ namespace Imui.Controls.Windows
             }
             gui.EndDropdown();
         }
-        
+
         public static void NestedFoldout(ImGui gui, int current, ref int total)
         {
             const int MAX = 8;
-                
+
             var label = current == 0 ? "Nested Foldout" : Format("Nested Foldout ", current, "0");
-                
+
             gui.BeginFoldout(out var nestedFoldoutOpen, label);
             gui.BeginIndent();
             if (nestedFoldoutOpen)
@@ -363,6 +445,7 @@ namespace Imui.Controls.Windows
                     }
                 }
             }
+
             gui.EndIndent();
             gui.EndFoldout();
         }
