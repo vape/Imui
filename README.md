@@ -8,7 +8,7 @@ Immediate mode GUI framework made specifically for Unity. It has zero per-frame 
 
 ## How it works
 
-The basic principle is the same as in Dear ImGui: every frame, we generate a mesh with all the controls in it, split into different draw calls when needed, and render it to the render texture. For simple cases, the UI can be drawn with a single draw call (when no masks or different materials are involved). Using the `ImuiGraphic` component, the whole UI can be integrated into the `Canvas` hierarchy and used like any other UGUI component.
+The basic principle is the same as in Dear ImGui: every frame, we generate a mesh with all the controls in it, split into different draw calls when needed, and render it to the render texture. For simple cases, the UI can be drawn with a single draw call (when no masks or different materials are involved). Using the `ImCanvasBackend` component, the whole UI can be integrated into the `Canvas` hierarchy and used like any other UGUI component.
 
 ## Installation
 
@@ -16,7 +16,7 @@ You can install Imui as a git package in Unity Package Manager
 
 ## Themes
 
-Dark and light themes are supported, check out demo [here](https://vape.github.io/imui_demo/).
+Dark and light themes are supported, check out demo [here](https://vape.github.io/imui_demo_030/).
 
 ## Controls
 
@@ -27,10 +27,14 @@ Supports a very basic set of controls:
 * Slider
 * Label
 * Image
-* Text Editor
+* Text/Number Editor
 * Dropdown
 * Scroll Bar
 * Foldout
+* Separator
+* Tree
+* Radio Group
+* Listbox
 
 ## Layout
 
