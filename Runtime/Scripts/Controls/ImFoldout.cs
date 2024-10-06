@@ -16,31 +16,16 @@ namespace Imui.Controls
             var id =  gui.PushId(label);
             var rect = ImControls.AddRowRect(gui, size);
             ref var state = ref gui.Storage.Get<bool>(id);
-            state = BeginFoldout(gui, state, label, rect);
+            state = DrawFoldout(gui, id, state, label, rect);
             open = state;
-        }
-
-        public static bool BeginFoldout(this ImGui gui, bool open, ReadOnlySpan<char> label, ImRect rect)
-        {
-            return BeginFoldout(gui, gui.PushId(label), open, label, rect);
-        }
-        
-        public static bool BeginFoldout(this ImGui gui, uint id, bool open, ReadOnlySpan<char> label, ImRect rect)
-        {
-            if (DrawFoldout(gui, id, open, rect, label))
-            {
-                open = !open;
-            }
-
-            return open;
         }
         
         public static void EndFoldout(this ImGui gui)
         {
             gui.PopId();
         }
-
-        public static bool DrawFoldout(ImGui gui, uint id, bool open, ImRect rect, ReadOnlySpan<char> label)
+        
+        public static bool DrawFoldout(ImGui gui, uint id, bool open, ReadOnlySpan<char> label, ImRect rect)
         {
             var arrowRect = ImButton.GetContentRect(rect);
             var arrowSize = (arrowRect.H - ImTheme.Active.Controls.ExtraRowHeight) * ImTheme.Active.Foldout.ArrowOuterScale;
@@ -52,7 +37,11 @@ namespace Imui.Controls
             ImTheme.Active.Button.Alignment = ImTheme.Active.Foldout.TextAlignment;
             ImTheme.Active.Button.Padding.Left += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
 
-            var clicked = gui.Button(id, label, rect, out var state);
+            if (gui.Button(id, label, rect, out var state))
+            {
+                open = !open;
+            }
+            
             var frontColor = ImButton.GetStateFontColor(state);
             
             if (open)
@@ -64,7 +53,7 @@ namespace Imui.Controls
                 DrawClosedArrow(gui.Canvas, arrowRect, frontColor);
             }
 
-            return clicked;
+            return open;
         }
         
         public static void DrawClosedArrow(ImCanvas canvas, ImRect rect, Color32 color)

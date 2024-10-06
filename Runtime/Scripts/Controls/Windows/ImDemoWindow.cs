@@ -423,6 +423,7 @@ namespace Imui.Controls.Windows
 
             gui.BeginFoldout(out var nestedFoldoutOpen, label);
             gui.BeginIndent();
+            
             if (nestedFoldoutOpen)
             {
                 if (current < total)
