@@ -324,17 +324,18 @@ namespace Imui.IO.UGUI
             commandBufferPool.Add(cmd);
         }
         
-        void IImRenderingBackend.SetupRenderTarget(CommandBuffer cmd)
+        Vector2Int IImRenderingBackend.SetupRenderTarget(CommandBuffer cmd)
         {
             var rect = GetScreenRect();
             var size = new Vector2Int((int)rect.width, (int)rect.height);
-            
-            textureRenderer.SetupRenderTarget(cmd, size, out var textureChanged);
+            var targetSize = textureRenderer.SetupRenderTarget(cmd, size, out var textureChanged);
 
             if (textureChanged)
             {
                 UpdateMaterial();
             }
+
+            return targetSize;
         }
 
         void IImRenderingBackend.Execute(CommandBuffer cmd)

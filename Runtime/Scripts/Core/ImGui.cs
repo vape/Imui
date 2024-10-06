@@ -389,8 +389,9 @@ namespace Imui.Core
             
             var renderCmd = Renderer.CreateCommandBuffer();
             var screenSize = Renderer.GetScreenRect().size;
-            Renderer.SetupRenderTarget(renderCmd);
-            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale);
+            var targetSize = Renderer.SetupRenderTarget(renderCmd);
+            
+            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale, targetSize);
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
         }

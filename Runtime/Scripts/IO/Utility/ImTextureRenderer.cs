@@ -14,18 +14,20 @@ namespace Imui.IO.Utility
 
         private bool disposed;
         
-        public void SetupRenderTarget(CommandBuffer cmd, Vector2Int textureSize, out bool textureChanged)
+        public Vector2Int SetupRenderTarget(CommandBuffer cmd, Vector2Int requestedSize, out bool textureChanged)
         {
             AssertDisposed();
             
-            textureChanged = SetupTexture(textureSize, 1.0f);
+            textureChanged = SetupTexture(requestedSize, 1.0f, out var targetSize);
             
             cmd.Clear();
             cmd.SetRenderTarget(Texture);
             cmd.ClearRenderTarget(true, true, Color.clear);
+
+            return targetSize;
         }
         
-        private bool SetupTexture(Vector2Int size, float scale)
+        private bool SetupTexture(Vector2Int size, float scale, out Vector2Int targetSize)
         {
             if (disposed)
             {
@@ -34,6 +36,8 @@ namespace Imui.IO.Utility
             
             var w = Mathf.Clamp((int)(size.x * scale), RES_MIN, RES_MAX);
             var h = Mathf.Clamp((int)(size.y * scale), RES_MIN, RES_MAX);
+            
+            targetSize = new Vector2Int(w, h);
 
             if (w == 0 || h == 0)
             {
@@ -49,7 +53,7 @@ namespace Imui.IO.Utility
             
             Texture = new RenderTexture(w, h, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.None);
             Texture.name = "ImuiRenderBuffer";
-            
+
             return Texture.Create();
         }
         

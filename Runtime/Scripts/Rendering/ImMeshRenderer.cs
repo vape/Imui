@@ -38,7 +38,7 @@ namespace Imui.Rendering
             mesh.MarkDynamic();
         }
 
-        public void Render(CommandBuffer cmd, ImMeshBuffer buffer, Vector2 size, float scale)
+        public void Render(CommandBuffer cmd, ImMeshBuffer buffer, Vector2 screenSize, float screenScale, Vector2Int targetSize)
         {
             mesh.Clear(true);
             
@@ -80,10 +80,13 @@ namespace Imui.Rendering
 
             mesh.UploadMeshData(false);
 
-            size /= scale;
+            var maskScale = screenScale * new Vector2(targetSize.x / screenSize.x, targetSize.y / screenSize.y);
+            var maskRadiusScale = Mathf.Min(maskScale.x, maskScale.y);
+            
+            screenSize /= screenScale;
             
             var view = Matrix4x4.identity;
-            var proj = Matrix4x4.Ortho(0, size.x, 0, size.y, short.MinValue, short.MaxValue);
+            var proj = Matrix4x4.Ortho(0, screenSize.x, 0, screenSize.y, short.MinValue, short.MaxValue);
             var gpuProj = GL.GetGPUProjectionMatrix(proj, true);
             
             cmd.SetGlobalMatrix(ViewProjectionId, view * gpuProj);
@@ -98,11 +101,11 @@ namespace Imui.Rendering
                 
                 if (meshData.MaskRect.Enabled)
                 {
-                    var radius = meshData.MaskRect.Radius * scale;
+                    var radius = meshData.MaskRect.Radius * maskRadiusScale;
                     var rect = meshData.MaskRect.Rect;
                     var hw = rect.width / 2f;
                     var hh = rect.height / 2f;
-                    var vec = new Vector4((rect.x + hw) * scale, (rect.y + hh) * scale, hw * scale, hh * scale);
+                    var vec = new Vector4((rect.x + hw) * maskScale.x, (rect.y + hh) * maskScale.y, hw * maskScale.x, hh * maskScale.y);
 
                     properties.SetInteger(MaskEnabledId, 1);
                     properties.SetVector(MaskRectId, vec);
@@ -115,10 +118,10 @@ namespace Imui.Rendering
                 
                 if (meshData.ClipRect.Enabled)
                 {
-                    var x = meshData.ClipRect.Rect.xMin * scale;
-                    var y = meshData.ClipRect.Rect.yMin * scale;
-                    var w = meshData.ClipRect.Rect.width * scale;
-                    var h = meshData.ClipRect.Rect.height * scale;
+                    var x = meshData.ClipRect.Rect.xMin * maskScale.x;
+                    var y = meshData.ClipRect.Rect.yMin * maskScale.y;
+                    var w = meshData.ClipRect.Rect.width * maskScale.x;
+                    var h = meshData.ClipRect.Rect.height * maskScale.y;
                     var clip = new Rect(x, y, w, h);
                     
                     cmd.EnableScissorRect(clip);
