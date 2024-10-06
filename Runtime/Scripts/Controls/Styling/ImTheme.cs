@@ -15,10 +15,12 @@ namespace Imui.Controls.Styling
         public ImButtonStyle Button;
         public ImCheckboxStyle Checkbox;
         public ImFoldoutStyle Foldout;
-        public ImPanelStyle Panel;
         public ImScrollStyle Scroll;
         public ImTextEditStyle TextEdit;
         public ImDropdownStyle Dropdown;
         public ImSliderStyle Slider;
+        public ImListStyle List;
+        public ImRadioStyle Radio;
+        public ImSeparatorStyle Separator;
     }
 }

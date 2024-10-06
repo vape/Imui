@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace Imui.Core
 {
-    // TODO (artem-s): its time to add dark and light themes
     public class ImGui : IDisposable
     {
         private const int CONTROL_IDS_CAPACITY = 32;
@@ -26,6 +25,7 @@ namespace Imui.Core
         private const int READONLY_STACK_CAPACITY = 4;
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
+        private const int DEFAULT_ARENA_CAPACITY = 1024 * 64;
 
         private struct ControlId
         {
@@ -53,6 +53,7 @@ namespace Imui.Core
             public ImDynamicArray<ImRect> FloatingControls;
             public int VerticesCount;
             public int IndicesCount;
+            public int ArenaSize;
 
             public FrameData(int hoveredGroupsCapacity, int floatingControlsCapacity)
             {
@@ -61,6 +62,7 @@ namespace Imui.Core
                 FloatingControls = new ImDynamicArray<ImRect>(floatingControlsCapacity);
                 IndicesCount = 0;
                 VerticesCount = 0;
+                ArenaSize = 0;
             }
             
             public void Clear()
@@ -96,15 +98,19 @@ namespace Imui.Core
         public readonly ImMeshRenderer MeshRenderer;
         public readonly ImMeshDrawer MeshDrawer;
         public readonly ImTextDrawer TextDrawer;
+        public readonly ImArena Arena;
         public readonly ImCanvas Canvas;
         public readonly ImLayout Layout;
         public readonly ImStorage Storage;
         public readonly ImWindowManager WindowManager;
         public readonly IImInputBackend Input;
         public readonly IImRenderingBackend Renderer;
+        public readonly ImFormatter Formatter;
 
+        // ReSharper disable InconsistentNaming
         internal FrameData nextFrameData;
         internal FrameData frameData;
+        // ReSharper restore InconsistentNaming
 
         private float uiScale = 1.0f;
         private ImDynamicArray<ControlId> idsStack;
@@ -112,6 +118,7 @@ namespace Imui.Core
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
         private ImControlFlag activeControlFlag;
+        private ImControlSettings nextControlSettings;
         
         private bool disposed;
         
@@ -120,6 +127,7 @@ namespace Imui.Core
             MeshBuffer = new ImMeshBuffer(INIT_MESHES_COUNT, INIT_VERTICES_COUNT, INIT_INDICES_COUNT);
             MeshDrawer = new ImMeshDrawer(MeshBuffer);
             TextDrawer = new ImTextDrawer(MeshBuffer);
+            Arena = new ImArena(DEFAULT_ARENA_CAPACITY);
             Canvas = new ImCanvas(MeshDrawer, TextDrawer);
             MeshRenderer = new ImMeshRenderer();
             Layout = new ImLayout();
@@ -127,6 +135,7 @@ namespace Imui.Core
             WindowManager = new ImWindowManager();
             Input = input;
             Renderer = renderer;
+            Formatter = new ImFormatter(Arena);
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
@@ -139,6 +148,8 @@ namespace Imui.Core
         
         public void BeginFrame()
         {
+            Arena.Clear();
+            
             idsStack.Clear(false);
 
             (nextFrameData, frameData) = (frameData, nextFrameData);
@@ -150,7 +161,7 @@ namespace Imui.Core
             Input.SetScale(UiScale);
             Input.Pull();
 
-            Canvas.SetScreen(scaledScreenSize);
+            Canvas.SetScreen(scaledScreenSize, uiScale);
             Canvas.Clear();
             Canvas.PushSettings(Canvas.CreateDefaultSettings());
             
@@ -273,6 +284,16 @@ namespace Imui.Core
             activeControlFlag = default;
         }
 
+        public ImControlSettings GetNextControlSettings()
+        {
+            return nextControlSettings;
+        }
+        
+        public void SetNextAdjacency(ImAdjacency adjacency)
+        {
+            nextControlSettings.Adjacency |= adjacency;
+        }
+
         public bool IsControlActive(uint controlId)
         {
             return activeControl == controlId;
@@ -303,6 +324,8 @@ namespace Imui.Core
         
         public void RegisterControl(uint controlId, ImRect rect)
         {
+            nextControlSettings = default;
+            
             ref readonly var meshProperties = ref Canvas.GetActiveSettings();
             
             if (meshProperties.ClipRect.Enabled && !meshProperties.ClipRect.Rect.Contains(Input.MousePosition))
@@ -362,11 +385,13 @@ namespace Imui.Core
         {
             nextFrameData.VerticesCount = MeshDrawer.buffer.VerticesCount;
             nextFrameData.IndicesCount = MeshDrawer.buffer.IndicesCount;
+            nextFrameData.ArenaSize = Arena.Size;
             
             var renderCmd = Renderer.CreateCommandBuffer();
             var screenSize = Renderer.GetScreenRect().size;
-            Renderer.SetupRenderTarget(renderCmd);
-            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale);
+            var targetSize = Renderer.SetupRenderTarget(renderCmd);
+            
+            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale, targetSize);
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
         }

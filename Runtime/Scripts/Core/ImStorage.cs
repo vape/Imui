@@ -10,6 +10,7 @@ namespace Imui.Core
         [Flags]
         private enum Flag : byte
         {
+            // ReSharper disable once UnusedMember.Local
             None = 0,
             Used = 1 << 0
         }
@@ -38,16 +39,16 @@ namespace Imui.Core
             tail = data;
         }
 
-        public ref T Get<T>(uint id, in T defaultValue = default) where T : unmanaged
+        public ref T Get<T>(uint id, T defaultValue = default) where T : unmanaged
         {
-            return ref *GetRef(id, in defaultValue);
+            return ref *GetRef(id, defaultValue);
         }
         
-        public T* GetRef<T>(uint id, in T defaultValue = default) where T : unmanaged
+        public T* GetRef<T>(uint id, T defaultValue = default) where T : unmanaged
         {
             if (!TryGet(out T* value, out Metadata* metadata, id))
             {
-                return AddValue<T>(id, defaultValue);
+                return AddValue(id, defaultValue);
             }
 
             metadata->Flag |= Flag.Used;
@@ -182,6 +183,7 @@ namespace Imui.Core
             GC.SuppressFinalize(this);
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private void Dispose(bool disposing)
         {
             if (disposed)

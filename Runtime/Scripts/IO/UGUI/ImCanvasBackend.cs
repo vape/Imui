@@ -10,6 +10,7 @@ using UnityEngine.UI;
 namespace Imui.IO.UGUI
 {
     [RequireComponent(typeof(CanvasRenderer))]
+    [ExecuteAlways]
     public class ImCanvasBackend : Graphic, 
         IImRenderingBackend, 
         IImInputBackend, 
@@ -22,6 +23,8 @@ namespace Imui.IO.UGUI
         private const int COMMAND_BUFFER_POOL_INITIAL_SIZE = 2;
         private const int MOUSE_EVENTS_QUEUE_SIZE = 4;
         private const int KEYBOARD_EVENTS_QUEUE_SIZE = 16;
+        
+        private const float HELD_DOWN_DELAY = 0.2f;
         
         private static Texture2D ClearTexture;
         private static readonly Vector3[] TempBuffer = new Vector3[4];
@@ -46,22 +49,14 @@ namespace Imui.IO.UGUI
         private ImTouchKeyboard touchKeyboardHandler;
         private bool elementHovered;
         
+        private bool mouseHeldDown;
+        private float mouseDownTime;
+        
         protected override void Awake()
         {
             base.Awake();
-
-            if (!Application.isPlaying)
-            {
-                return;
-            }
             
             useGUILayout = false;
-            mouseEventsQueue = new ImCircularBuffer<ImMouseEvent>(MOUSE_EVENTS_QUEUE_SIZE);
-            keyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
-            nextKeyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
-            touchKeyboardHandler = new ImTouchKeyboard();
-            commandBufferPool = new ImDynamicArray<CommandBuffer>(COMMAND_BUFFER_POOL_INITIAL_SIZE);
-            textureRenderer = new ImTextureRenderer();
         }
         
         protected override void OnDestroy()
@@ -91,6 +86,29 @@ namespace Imui.IO.UGUI
                 ClearTexture.SetPixel(0, 0, Color.clear);
                 ClearTexture.Apply();
             }
+
+            if (mouseEventsQueue.Array == null)
+            {
+                mouseEventsQueue = new ImCircularBuffer<ImMouseEvent>(MOUSE_EVENTS_QUEUE_SIZE);
+            }
+
+            if (keyboardEvents.Array == null)
+            {
+                keyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
+            }
+
+            if (nextKeyboardEvents.Array == null)
+            {
+                nextKeyboardEvents = new ImCircularBuffer<ImKeyboardEvent>(KEYBOARD_EVENTS_QUEUE_SIZE);
+            }
+
+            if (commandBufferPool.Array == null)
+            {
+                commandBufferPool = new ImDynamicArray<CommandBuffer>(COMMAND_BUFFER_POOL_INITIAL_SIZE);
+            }
+
+            touchKeyboardHandler ??= new ImTouchKeyboard();
+            textureRenderer ??= new ImTextureRenderer();
         }
 
         public void SetRaycaster(ImInputRaycaster raycaster)
@@ -149,11 +167,21 @@ namespace Imui.IO.UGUI
         
         public void Pull()
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+#endif
             mousePosition = GetMousePosition();
             
             if (mouseEventsQueue.TryPopBack(out var queuedMouseEvent))
             {
                 mouseEvent = queuedMouseEvent;
+            }
+            else if (mouseHeldDown && (Time.unscaledTime - mouseDownTime) > HELD_DOWN_DELAY)
+            {
+                mouseEvent = new ImMouseEvent(ImMouseEventType.Held, 0, EventModifiers.None, new Vector2(Time.unscaledTime - mouseDownTime, 0));
             }
             else
             {
@@ -197,27 +225,37 @@ namespace Imui.IO.UGUI
             {
                 mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
             }
+
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                mouseHeldDown = true;
+                mouseDownTime = Time.unscaledTime;
+            }
             
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            mouseHeldDown = false;
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnDrag(PointerEventData eventData)
         {
+            mouseHeldDown = false;
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            mouseHeldDown = false;
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
         }
 
         public void OnScroll(PointerEventData eventData)
         {
+            mouseHeldDown = false;
             var delta = new Vector2(eventData.scrollDelta.x, -eventData.scrollDelta.y);
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Scroll, (int)eventData.button, EventModifiers.None, delta));
         }
@@ -286,17 +324,18 @@ namespace Imui.IO.UGUI
             commandBufferPool.Add(cmd);
         }
         
-        void IImRenderingBackend.SetupRenderTarget(CommandBuffer cmd)
+        Vector2Int IImRenderingBackend.SetupRenderTarget(CommandBuffer cmd)
         {
             var rect = GetScreenRect();
             var size = new Vector2Int((int)rect.width, (int)rect.height);
-            
-            textureRenderer.SetupRenderTarget(cmd, size, out var textureChanged);
+            var targetSize = textureRenderer.SetupRenderTarget(cmd, size, out var textureChanged);
 
             if (textureChanged)
             {
                 UpdateMaterial();
             }
+
+            return targetSize;
         }
 
         void IImRenderingBackend.Execute(CommandBuffer cmd)

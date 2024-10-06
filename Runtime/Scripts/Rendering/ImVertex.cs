@@ -2,6 +2,8 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+// ReSharper disable RedundantArgumentDefaultValue
+
 namespace Imui.Rendering
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]

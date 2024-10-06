@@ -2,6 +2,8 @@ namespace Imui.Controls.Styling
 {
     public unsafe ref struct ImStyleScope<T> where T : unmanaged
     {
+        public bool IsValid => property != null;
+        
         private readonly T* property;
         private readonly T original;
         

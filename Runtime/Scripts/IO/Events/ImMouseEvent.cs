@@ -10,7 +10,8 @@ namespace Imui.IO.Events
         Move,
         Scroll,
         BeginDrag,
-        Drag
+        Drag,
+        Held
     }
     
     public readonly struct ImMouseEvent

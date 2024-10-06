@@ -18,6 +18,7 @@ namespace Imui.Rendering
         public Color32 Color;
         public Vector4 ScaleOffset;
 
+        // ReSharper disable once InconsistentNaming
         internal readonly ImMeshBuffer buffer;
         
         public ImMeshDrawer(ImMeshBuffer buffer)
@@ -40,7 +41,6 @@ namespace Imui.Rendering
             return ref buffer.Meshes[buffer.MeshesCount - 1];
         }
 
-        // TODO: closed property is not used for some reason...
         public void AddLine(ReadOnlySpan<Vector2> path, bool closed, float thickness, float outerScale, float innerScale)
         {
             Profiler.BeginSample("MeshDrawer.AddLine");
@@ -51,11 +51,14 @@ namespace Imui.Rendering
             var ic = buffer.IndicesCount;
             var vc = buffer.VerticesCount;
 
-            var generatedIndices = (path.Length - 1) * 6;
-            var generatedVertices = ((path.Length - 1) * 4);
+            var generatedIndices = (path.Length - (closed ? 0 : 1)) * 6;
+            var generatedVertices = ((path.Length - (closed ? 0 : 1)) * 4);
             
             buffer.EnsureIndicesCapacity(ic + generatedIndices);
             buffer.EnsureVerticesCapacity(vc + generatedVertices);
+
+            float normalX;
+            float normalY;
             
             for (int i = 0; i < path.Length - 1; ++i)
             {
@@ -65,11 +68,16 @@ namespace Imui.Rendering
                 var abx = b.x - a.x;
                 var aby = b.y - a.y;
                 var abm = Mathf.Sqrt(abx * abx + aby * aby);
-                abx /= abm;
-                aby /= abm;
-
-                var normalX = -aby;
-                var normalY = abx;
+                if (abm != 0)
+                {
+                    normalX = -aby / abm;
+                    normalY = abx / abm;
+                }
+                else
+                {
+                    normalX = 0;
+                    normalY = 0;
+                }
                 
                 ref var v0 = ref buffer.Vertices[vc + 0];
                 v0.Position.x = a.x + normalX * -1 * outerThickness;
@@ -115,6 +123,68 @@ namespace Imui.Rendering
 
                 ic += 6;
                 vc += 4;
+            }
+
+            if (closed)
+            {
+                var a = path[^1];
+                var b = path[0];
+                
+                var abx = b.x - a.x;
+                var aby = b.y - a.y;
+                var abm = Mathf.Sqrt(abx * abx + aby * aby);
+                if (abm != 0)
+                {
+                    normalX = -aby / abm;
+                    normalY = abx / abm;
+                }
+                else
+                {
+                    normalX = 0;
+                    normalY = 0;
+                }
+                
+                ref var v0 = ref buffer.Vertices[vc + 0];
+                v0.Position.x = a.x + normalX * -1 * outerThickness;
+                v0.Position.y = a.y + normalY * -1 * outerThickness;
+                v0.Position.z = Depth;
+                v0.Color = Color;
+                v0.UV.x = ScaleOffset.z;
+                v0.UV.y = ScaleOffset.w;
+                v0.Atlas = Atlas;
+
+                ref var v1 = ref buffer.Vertices[vc + 1];
+                v1.Position.x = a.x + normalX * innerThickness;
+                v1.Position.y = a.y + normalY * innerThickness;
+                v1.Position.z = Depth;
+                v1.Color = Color;
+                v1.UV = default;
+                v1.Atlas = Atlas;
+                
+                ref var v2 = ref buffer.Vertices[vc + 2];
+                v2.Position.x = b.x + normalX * -1 * outerThickness;
+                v2.Position.y = b.y + normalY * -1 * outerThickness;
+                v2.Position.z = Depth;
+                v2.Color = Color;
+                v2.UV.x = ScaleOffset.z;
+                v2.UV.y = ScaleOffset.w;
+                v2.Atlas = Atlas;
+
+                ref var v3 = ref buffer.Vertices[vc + 3];
+                v3.Position.x = b.x + normalX * innerThickness;
+                v3.Position.y = b.y + normalY * innerThickness;
+                v3.Position.z = Depth;
+                v3.Color = Color;
+                v3.UV.x = ScaleOffset.z;
+                v3.UV.y = ScaleOffset.w;
+                v3.Atlas = Atlas;
+
+                buffer.Indices[ic + 0] = vc + 0;
+                buffer.Indices[ic + 1] = vc + 1;
+                buffer.Indices[ic + 2] = vc + 3;
+                buffer.Indices[ic + 3] = vc + 3;
+                buffer.Indices[ic + 4] = vc + 2;
+                buffer.Indices[ic + 5] = vc + 0;
             }
 
             buffer.AddIndices(generatedIndices);

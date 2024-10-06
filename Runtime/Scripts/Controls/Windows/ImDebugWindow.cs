@@ -11,52 +11,29 @@ namespace Imui.Controls.Windows
         private const int MOVING_AVERAGE_INTERVAL = 90;
         private const int FRAME_TIMES_BUFFER_SIZE = 120;
         
-        private static readonly Color32 groupColor = new Color32(255, 0, 0, 32);
-        private static readonly Color32 controlColor = new Color32(0, 255, 0, 64);
+        private static readonly Color32 GroupColor = new Color32(255, 0, 0, 32);
+        private static readonly Color32 ControlColor = new Color32(0, 255, 0, 64);
         
-        private static bool debugOverlay = false;
-        private static char[] formatBuffer = new char[256];
+        private static bool debugOverlay;
         private static ImCircularBuffer<float> frameTimes = new ImCircularBuffer<float>(FRAME_TIMES_BUFFER_SIZE);
         private static float maxFrameTime;
         private static float avgFrameTime;
         
         public static void Draw(ImGui gui)
         {
-            gui.BeginWindow("Imui Debug", width: 350, 383);
+            gui.BeginWindow("Imui Debug", width: 350, 415);
+            
+            var storageRatio = gui.Formatter.Join(gui.Formatter.Format(gui.Storage.OccupiedSize)," / ", gui.Formatter.Format(gui.Storage.Capacity));
+            var fpsValue = gui.Formatter.Format(avgFrameTime <= 0 ? 0 : 1 / avgFrameTime, "0");
+            var msValue = gui.Formatter.Format(avgFrameTime * 1000, "0.0");
 
-            var buffer = new Span<char>(formatBuffer);
-            var length = 0;
-            
-            Append(buffer, "Hovered: ", ref length);
-            Append(buffer, gui.frameData.HoveredControl.Id, ref length);
-            Flush(gui, buffer, ref length);
-            
-            Append(buffer, "Active: ", ref length);
-            Append(buffer, gui.GetActiveControl(), ref length);
-            Flush(gui, buffer, ref length);
-
-            Append(buffer, "Storage: ", ref length);
-            Append(buffer, gui.Storage.OccupiedSize, ref length);
-            Append(buffer, "/", ref length);
-            Append(buffer, gui.Storage.Capacity, ref length);
-            Append(buffer, " bytes", ref length);
-            Flush(gui, buffer, ref length);
-            
-            Append(buffer, "Vertices: ", ref length);
-            Append(buffer, gui.frameData.VerticesCount, ref length);
-            Flush(gui, buffer, ref length);
-            
-            Append(buffer, "Indices: ", ref length);
-            Append(buffer, gui.frameData.IndicesCount, ref length);
-            Flush(gui, buffer, ref length);
-            
-            Append(buffer, "FPS: ", ref length);
-            Append(buffer, avgFrameTime <= 0 ? 0 : 1 / avgFrameTime, ref length, "0");
-            Append(buffer, " (", ref length);
-            Append(buffer, avgFrameTime * 1000, ref length, "0.0");
-            Append(buffer, "ms", ref length);
-            Append(buffer, ")", ref length);
-            Flush(gui, buffer, ref length);
+            gui.Text(gui.Formatter.Join("Hovered: ", gui.Formatter.Format(gui.frameData.HoveredControl.Id)));
+            gui.Text(gui.Formatter.Join("Active: ", gui.Formatter.Format(gui.GetActiveControl())));
+            gui.Text(gui.Formatter.Join("Storage: ", storageRatio, " bytes"));
+            gui.Text(gui.Formatter.Join("Arena: ", gui.Formatter.Format(gui.frameData.ArenaSize), " bytes"));
+            gui.Text(gui.Formatter.Join("Vertices: ", gui.Formatter.Format(gui.frameData.VerticesCount)));
+            gui.Text(gui.Formatter.Join("Indices: ", gui.Formatter.Format(gui.frameData.IndicesCount)));
+            gui.Text(gui.Formatter.Join("FPS: ", fpsValue, " (", msValue, " ms)"));
 
             AppendFrameTime();
             DrawFrametimeGraph(gui);
@@ -73,11 +50,11 @@ namespace Imui.Controls.Windows
             {
                 gui.Canvas.PushOrder(int.MaxValue);
                 
-                gui.Canvas.Rect(gui.frameData.HoveredControl.Rect, controlColor);
+                gui.Canvas.Rect(gui.frameData.HoveredControl.Rect, ControlColor);
 
                 for (int i = 0; i < gui.frameData.HoveredGroups.Count; ++i)
                 {
-                    gui.Canvas.Rect(gui.frameData.HoveredGroups.Array[i].Rect, groupColor);
+                    gui.Canvas.Rect(gui.frameData.HoveredGroups.Array[i].Rect, GroupColor);
                 }
                 
                 gui.Canvas.PopOrder();
@@ -132,39 +109,9 @@ namespace Imui.Controls.Windows
                 points[i] = new Vector2(rect.X + xn * rect.W * nw, rect.Y + yn * rect.H);
             }
 
-            gui.BeginPanel(rect);
+            gui.BeginList(rect);
             gui.Canvas.Line(points, ImTheme.Active.Text.Color, false, 1);
-            gui.EndPanel();
-        }
-
-        private static void Flush(ImGui gui, Span<char> buffer, ref int length)
-        {
-            gui.Text(buffer[..length]);
-            length = 0;
-        }
-
-        private static void Append(Span<char> buffer, uint value, ref int totalLength)
-        {
-            value.TryFormat(buffer[totalLength..], out var written);
-            totalLength += written;
-        }
-        
-        private static void Append(Span<char> buffer, int value, ref int totalLength)
-        {
-            value.TryFormat(buffer[totalLength..], out var written);
-            totalLength += written;
-        }
-        
-        private static void Append(Span<char> buffer, float value, ref int totalLength, string format = "0.000")
-        {
-            value.TryFormat(buffer[totalLength..], out var written, format);
-            totalLength += written;
-        }
-        
-        private static void Append(Span<char> buffer, string str, ref int totalLength)
-        {
-            str.AsSpan().CopyTo(buffer[totalLength..]);
-            totalLength += str.Length;
+            gui.EndList();
         }
     }
 }

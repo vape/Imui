@@ -1,6 +1,7 @@
 using Imui.Core;
 using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace Imui.Controls
 {
     public static class ImLayoutExt
@@ -25,9 +26,21 @@ namespace Imui.Controls
             return gui.Layout.GetBoundsRect();
         }
 
+        public static ImRect AddLayoutRect(this ImGui gui, Vector2 size)
+        {
+            return gui.Layout.AddRect(size);
+        }
+
         public static ImRect AddLayoutRect(this ImGui gui, float width, float height)
         {
             return gui.Layout.AddRect(width, height);
+        }
+
+        public static ImRect AddLayoutRectWithSpacing(this ImGui gui, Vector2 size)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
+            return gui.Layout.AddRect(size);
         }
         
         public static ImRect AddLayoutRectWithSpacing(this ImGui gui, float width, float height)

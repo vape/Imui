@@ -10,7 +10,7 @@ namespace Imui.IO
         
         Rect GetScreenRect();
         
-        void SetupRenderTarget(CommandBuffer cmd);
+        Vector2Int SetupRenderTarget(CommandBuffer cmd);
         void Execute(CommandBuffer cmd);
     }
 }

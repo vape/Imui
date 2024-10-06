@@ -16,19 +16,52 @@ namespace Imui.Controls
                 _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
             };
         }
-        
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImSize size = default)
+
+        public static int Slider(this ImGui gui, int value, int min, int max, ImSize size = default, ReadOnlySpan<char> format = default)
+        {
+            Slider(gui, ref value, min, max, size, format);
+            return value;
+        }
+
+        public static bool Slider(this ImGui gui, ref int value, int min, int max, ImSize size = default, ReadOnlySpan<char> format = default)
+        {
+            var floatValue = (float)value;
+            var changed = Slider(gui, ref floatValue, min, max, size, format, 1);
+            value = (int)floatValue;
+            return changed;
+        }
+
+        public static float Slider(this ImGui gui,
+                                   float value,
+                                   float min,
+                                   float max,
+                                   ImSize size = default,
+                                   ReadOnlySpan<char> format = default,
+                                   float step = 0)
+        {
+            Slider(gui, ref value, min, max, size, format, step);
+            return value;
+        }
+
+        public static bool Slider(this ImGui gui,
+                                  ref float value,
+                                  float min,
+                                  float max,
+                                  ImSize size = default,
+                                  ReadOnlySpan<char> format = default,
+                                  float step = 0)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size);
-            return Slider(gui, ref value, min, max, rect); 
+            return Slider(gui, ref value, min, max, GetRect(gui, size), format, step);
         }
-        
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImRect rect)
+
+        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImRect rect, ReadOnlySpan<char> format = default, float step = 0)
         {
             const float EPSILON = 0.000001f;
-            
+
+            step = Mathf.Abs(step);
+
             var normValue = Mathf.InverseLerp(min, max, value);
 
             gui.Box(rect, in ImTheme.Active.Slider.Box);
@@ -37,10 +70,10 @@ namespace Imui.Controls
 
             var handleW = rectPadded.H * ImTheme.Active.Slider.HandleAspectRatio;
             var handleH = rectPadded.H;
-            
+
             var xmin = rectPadded.X + handleW / 2.0f;
             var xmax = rectPadded.X + rectPadded.W - handleW / 2.0f;
-            
+
             var handleX = Mathf.Lerp(xmin, xmax, normValue) - (handleW / 2.0f);
             var handleY = rectPadded.Y + (rectPadded.H / 2.0f) - (handleH / 2.0f);
             var handleRect = new ImRect(handleX, handleY, handleW, handleH);
@@ -51,35 +84,54 @@ namespace Imui.Controls
 
             using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, ImTheme.Active.Slider.Handle))
             {
-                gui.Button(id, handleRect, out _);
+                if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPress))
+                {
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                }
             }
-            
+
             gui.RegisterControl(id, rect);
+
+            if (format.IsEmpty)
+            {
+                format = GetFormatForStep(gui, step);
+            }
+
+            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.5f, 0.5f);
+            gui.Text(gui.Formatter.Format(value, format), in textSettings, ImTheme.Active.Slider.Box.FrontColor, rect);
 
             if (gui.IsReadOnly)
             {
                 return false;
             }
-            
+
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
                 case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     gui.Input.UseMouseEvent();
                     break;
-                
+
                 case ImMouseEventType.Drag when active:
-                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, normValue) + evt.Delta.x);
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     gui.Input.UseMouseEvent();
                     break;
-                
+
                 case ImMouseEventType.Up when active:
                     gui.ResetActiveControl();
                     break;
             }
-            
+
             var newValue = Mathf.Lerp(min, max, normValue);
+            if (step > 0)
+            {
+                var precision = 1.0f / step;
+                newValue = Mathf.Round(newValue * precision) / precision;
+            }
+
             if (Mathf.Abs(newValue - value) > EPSILON)
             {
                 value = newValue;
@@ -87,6 +139,16 @@ namespace Imui.Controls
             }
 
             return false;
+        }
+
+        public static ReadOnlySpan<char> GetFormatForStep(ImGui gui, float step)
+        {
+            if (step == 0)
+            {
+                return "0.00";
+            }
+
+            return gui.Formatter.JoinDuplicate("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
         }
     }
 

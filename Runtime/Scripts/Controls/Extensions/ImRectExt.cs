@@ -2,6 +2,7 @@ using Imui.Core;
 using Imui.Controls.Styling;
 using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace Imui.Controls
 {
     public static class ImRectExt
@@ -34,6 +35,15 @@ namespace Imui.Controls
             right.X += width;
             right.W = rect.W - width;
             rect.W = width;
+            return rect;
+        }
+
+        public static ImRect SplitRight(this ImRect rect, float width, out ImRect left)
+        {
+            left = rect;
+            left.W -= width;
+            rect.W = width;
+            rect.X += left.W;
             return rect;
         }
         
@@ -98,6 +108,19 @@ namespace Imui.Controls
             
             rect.W *= scale;
             rect.H *= scale;
+            rect.X += (w - rect.W) * 0.5f;
+            rect.Y += (h - rect.H) * 0.5f;
+
+            return rect;
+        }
+        
+        public static ImRect ScaleFromCenter(this ImRect rect, Vector2 scale)
+        {
+            var w = rect.W;
+            var h = rect.H;
+            
+            rect.W *= scale.x;
+            rect.H *= scale.y;
             rect.X += (w - rect.W) * 0.5f;
             rect.Y += (h - rect.H) * 0.5f;
 

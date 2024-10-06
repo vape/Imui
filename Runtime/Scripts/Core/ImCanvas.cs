@@ -52,6 +52,7 @@ namespace Imui.Core
         private Texture2D defaultTexture;
         private ImDynamicArray<ImCanvasSettings> settingsStack;
         private Vector2 screenSize;
+        private float screenScale;
         private bool disposed;
         
         private readonly ImMeshDrawer meshDrawer;
@@ -68,9 +69,10 @@ namespace Imui.Core
             settingsStack = new ImDynamicArray<ImCanvasSettings>(MESH_SETTINGS_CAPACITY);
         }
         
-        public void SetScreen(Vector2 screenSize)
+        public void SetScreen(Vector2 screenSize, float screenScale)
         {
             this.screenSize = screenSize;
+            this.screenScale = screenScale;
         }
 
         public void Clear()
@@ -205,7 +207,7 @@ namespace Imui.Core
             }
             
             var path = ImShapes.Rect(rect, radius);
-            LineMiter(path, color, true, thickness, bias);
+            Line(path, color, true, GetProperRectOutlineThickness(thickness), bias);
         }
 
         public void RectWithOutline(ImRect rect, Color32 color, Color32 outlineColor, float thickness, ImRectRadius radius = default, float bias = 0.0f)
@@ -220,15 +222,26 @@ namespace Imui.Core
             
             if (thickness >= LINE_THICKNESS_THRESHOLD)
             {
-                LineMiter(path, outlineColor, true, thickness, bias);
+                Line(path, outlineColor, true, GetProperRectOutlineThickness(thickness), bias);
             }
         }
 
-        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size)
+        private float GetProperRectOutlineThickness(float thickness)
+        {
+            var pixelWidth = thickness * screenScale;
+            if (pixelWidth >= 1.0f)
+            {
+                return thickness;
+            }
+
+            return thickness + (1 - pixelWidth) / screenScale;
+        }
+
+        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size, int line = 0)
         {
             textDrawer.Color = color;
             textDrawer.Depth = DrawingDepth;
-            textDrawer.AddText(text, size / textDrawer.FontRenderSize, position.x, position.y);
+            textDrawer.AddTextLine(text, size / textDrawer.FontRenderSize, position.x, position.y, line);
         }
 
         public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in ImTextLayout layout)
@@ -312,8 +325,8 @@ namespace Imui.Core
             }
             
             Resources.UnloadAsset(shader);
-            UnityEngine.Object.Destroy(material);
-            UnityEngine.Object.Destroy(defaultTexture);
+            ImObjectUtility.Destroy(material);
+            ImObjectUtility.Destroy(defaultTexture);
             
             disposed = true;
         }

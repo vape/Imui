@@ -50,10 +50,9 @@ namespace Imui.Controls
             
             var id = gui.WindowManager.EndWindow();
             ref var state = ref gui.WindowManager.GetWindowState(id);
-            
-            gui.Canvas.PushOrder(gui.Canvas.GetOrder() + WINDOW_FRONT_ORDER_OFFSET);
-            
-            Front(gui, state.Rect);
+
+            var frontOrder = gui.Canvas.GetOrder() + WINDOW_FRONT_ORDER_OFFSET;
+            gui.Canvas.PushOrder(frontOrder);
             
             var clicked = false;
             var activeRect = state.Rect;
@@ -77,6 +76,11 @@ namespace Imui.Controls
             
             gui.Canvas.PopRectMask();
             gui.Canvas.PopClipRect();
+            
+            gui.Canvas.PushOrder(frontOrder);
+            Outline(gui, activeRect);
+            gui.Canvas.PopOrder();
+            
             gui.Canvas.PopOrder();
             
             gui.PopId();
@@ -99,7 +103,7 @@ namespace Imui.Controls
             content.AddPadding(style.ContentPadding);
         }
 
-        public static void Front(ImGui gui, ImRect rect)
+        public static void Outline(ImGui gui, ImRect rect)
         {
             ref readonly var style = ref ImTheme.Active.Window;
             gui.Canvas.RectOutline(rect, style.Box.BorderColor, style.Box.BorderWidth, style.Box.BorderRadius);
