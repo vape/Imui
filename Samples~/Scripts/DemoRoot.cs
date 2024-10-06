@@ -1,3 +1,4 @@
+using System;
 using Imui.Controls.Windows;
 using Imui.Core;
 using Imui.IO.UGUI;
@@ -26,6 +27,10 @@ namespace Imui.Demo
             gui.BeginFrame();
             ImDemoWindow.Draw(gui);
             gui.EndFrame();
+        }
+
+        private void OnRenderObject()
+        {
             gui.Render();
         }
     }
