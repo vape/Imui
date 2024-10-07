@@ -265,7 +265,7 @@ namespace Imui.Controls
         public ImButtonStateStyle Normal;
         public ImButtonStateStyle Hovered;
         public ImButtonStateStyle Pressed;
-        public float BorderWidth;
+        public float BorderWidth; // TODO (artem-s): rename to BorderThickness
         public ImRectRadius BorderRadius;
         public ImPadding Padding;
         public ImTextAlignment Alignment;

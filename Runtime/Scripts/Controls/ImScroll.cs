@@ -188,7 +188,7 @@ namespace Imui.Controls
             
             var barStyle = pressed ? style.PressedState : hovered ? style.HoveredState : style.NormalState;
             gui.Canvas.Rect(rect, barStyle.BackColor, style.BorderRadius);
-            gui.Canvas.Rect(handleRect, barStyle.FrontColor, style.BorderRadius - style.Padding);
+            gui.Canvas.Rect(handleRect, barStyle.FrontColor, Mathf.Max(0, style.BorderRadius - style.Padding));
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
