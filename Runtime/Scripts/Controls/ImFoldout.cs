@@ -7,7 +7,8 @@ namespace Imui.Controls
 {
     public static class ImFoldout
     {
-        private const float ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
+        private const float VERTICAL_ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
+        private const float HORIZONTAL_ARROW_ASPECT_RATIO = 1 / VERTICAL_ARROW_ASPECT_RATIO;
         
         public static void BeginFoldout(this ImGui gui, out bool open, ReadOnlySpan<char> label, ImSize size = default)
         {
@@ -27,17 +28,14 @@ namespace Imui.Controls
         
         public static bool DrawFoldout(ImGui gui, uint id, bool open, ReadOnlySpan<char> label, ImRect rect)
         {
-            var arrowRect = ImButton.GetContentRect(rect);
-            var arrowSize = (arrowRect.H - ImTheme.Active.Controls.ExtraRowHeight) * ImTheme.Active.Foldout.ArrowOuterScale;
-            arrowRect.W = arrowSize;
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, ImTheme.Active.Foldout.Button);
 
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
+            var textSettings = ImButton.CreateTextSettings();
+            var arrowSize = ImTheme.Active.Controls.TextSize;
+            var contentRect = ImButton.CalculateContentRect(rect);
+            var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Controls.InnerSpacing, out var labelRect).WithAspect(1.0f);
 
-            ImTheme.Active.Button.BorderWidth = ImTheme.Active.Foldout.BorderWidth;
-            ImTheme.Active.Button.Alignment = ImTheme.Active.Foldout.TextAlignment;
-            ImTheme.Active.Button.Padding.Left += arrowRect.W + ImTheme.Active.Controls.InnerSpacing;
-
-            if (gui.Button(id, label, rect, out var state))
+            if (gui.Button(id, rect, out var state))
             {
                 open = !open;
             }
@@ -46,39 +44,51 @@ namespace Imui.Controls
             
             if (open)
             {
-                DrawOpenArrow(gui.Canvas, arrowRect, frontColor);
+                DrawOpenArrow(gui.Canvas, arrowRect, frontColor, ImTheme.Active.Foldout.ArrowScale);
             }
             else
             {
-                DrawClosedArrow(gui.Canvas, arrowRect, frontColor);
+                DrawClosedArrow(gui.Canvas, arrowRect, frontColor, ImTheme.Active.Foldout.ArrowScale);
             }
+            
+            gui.Text(label, in textSettings, labelRect);
 
             return open;
         }
         
-        public static void DrawClosedArrow(ImCanvas canvas, ImRect rect, Color32 color)
+        public static void DrawClosedArrow(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
         {
-            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Foldout.ArrowInnerScale).WithAspect(1.0f / ARROW_ASPECT_RATIO);
+            if (scale != 1.0f)
+            {
+                rect = rect.ScaleFromCenter(scale);
+            }
+            
+            rect = rect.WithAspect(HORIZONTAL_ARROW_ASPECT_RATIO);
             
             Span<Vector2> points = stackalloc Vector2[3]
             {
-                new Vector2(arrowRect.X + arrowRect.W, arrowRect.Y + arrowRect.H * 0.5f),
-                new Vector2(arrowRect.X, arrowRect.Y + arrowRect.H),
-                new Vector2(arrowRect.X, arrowRect.Y)
+                new Vector2(rect.X + rect.W, rect.Y + rect.H * 0.5f),
+                new Vector2(rect.X, rect.Y + rect.H),
+                new Vector2(rect.X, rect.Y)
             };
         
             canvas.ConvexFill(points, color);
         }
 
-        public static void DrawOpenArrow(ImCanvas canvas, ImRect rect, Color32 color)
+        public static void DrawOpenArrow(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
         {
-            var arrowRect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Foldout.ArrowInnerScale).WithAspect(ARROW_ASPECT_RATIO);
+            if (scale != 1.0f)
+            {
+                rect = rect.ScaleFromCenter(scale);
+            }
+
+            rect = rect.WithAspect(VERTICAL_ARROW_ASPECT_RATIO);
             
             Span<Vector2> points = stackalloc Vector2[3]
             {
-                new Vector2(arrowRect.X + arrowRect.W * 0.5f, arrowRect.Y),
-                new Vector2(arrowRect.X + arrowRect.W, arrowRect.Y + arrowRect.H),
-                new Vector2(arrowRect.X, arrowRect.Y + arrowRect.H),
+                new Vector2(rect.X + rect.W * 0.5f, rect.Y),
+                new Vector2(rect.X + rect.W, rect.Y + rect.H),
+                new Vector2(rect.X, rect.Y + rect.H),
             };
         
             canvas.ConvexFill(points, color);
@@ -88,9 +98,7 @@ namespace Imui.Controls
     [Serializable]
     public struct ImFoldoutStyle
     {
-        public float ArrowInnerScale;
-        public float ArrowOuterScale;
-        public float BorderWidth;
-        public ImTextAlignment TextAlignment;
+        public float ArrowScale;
+        public ImButtonStyle Button;
     }
 }

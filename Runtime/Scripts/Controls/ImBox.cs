@@ -11,8 +11,7 @@ namespace Imui.Controls
             gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderWidth, style.BorderRadius);
         }
     }
-    
-        
+
     [Serializable]
     public struct ImBoxStyle
     {

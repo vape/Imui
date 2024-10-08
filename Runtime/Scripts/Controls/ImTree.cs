@@ -36,8 +36,12 @@ namespace Imui.Controls
         public static bool BeginTreeNode(this ImGui gui, ReadOnlySpan<char> label, ImRect rect, ref ImTreeNodeState state, ImTreeNodeFlags flags)
         {
             gui.PushId(label);
+            
+            ref readonly var buttonStyle = ref ((state & ImTreeNodeState.Selected) != 0 ? ref ImTheme.Active.Tree.ItemSelected : ref ImTheme.Active.Tree.ItemNormal);
 
-            var arrowRect = rect.SplitLeft(rect.H * 0.7f, out var labelRect);
+            var arrowSize = ImTheme.Active.Controls.TextSize;
+            var contentRect = ImButton.CalculateContentRect(in buttonStyle, rect);
+            var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Controls.InnerSpacing, out var labelRect).WithAspect(1.0f);
             var changed = false;
             var buttonState = ImButtonState.Normal;
             var nonExpandable = (flags & ImTreeNodeFlags.NonExpandable) != 0;
@@ -56,31 +60,27 @@ namespace Imui.Controls
                 changed = true;
             }
             
-            ref readonly var style = ref ((state & ImTreeNodeState.Selected) != 0
-                ? ref ImButton.GetStateStyle(in ImTheme.Active.List.ItemSelected, buttonState)
-                : ref ImButton.GetStateStyle(in ImTheme.Active.List.ItemNormal, buttonState));
+            var boxStyle = ImButton.GetStateBoxStyle(in buttonStyle, buttonState);
 
-            if ((state & ImTreeNodeState.Selected) != 0)
+            if (boxStyle.BackColor.a > 0)
             {
-                gui.Canvas.Rect(rect, style.BackColor);
+                gui.Box(rect, boxStyle);
             }
 
             if ((flags & ImTreeNodeFlags.NonExpandable) == 0)
             {
-                arrowRect = arrowRect.ScaleFromCenter(ImTheme.Active.Foldout.ArrowOuterScale);
-
                 if ((state & ImTreeNodeState.Expanded) != 0)
                 {
-                    ImFoldout.DrawOpenArrow(gui.Canvas, arrowRect, style.FrontColor);
+                    ImFoldout.DrawOpenArrow(gui.Canvas, arrowRect, boxStyle.FrontColor, ImTheme.Active.Tree.ArrowScale);
                 }
                 else
                 {
-                    ImFoldout.DrawClosedArrow(gui.Canvas, arrowRect, style.FrontColor);
+                    ImFoldout.DrawClosedArrow(gui.Canvas, arrowRect, boxStyle.FrontColor, ImTheme.Active.Tree.ArrowScale);
                 }
             }
             
-            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Foldout.TextAlignment, ImTheme.Active.Button.TextWrap);
-            gui.Text(label, textSettings, style.FrontColor, labelRect);
+            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, buttonStyle.Alignment);
+            gui.Text(label, textSettings, boxStyle.FrontColor, labelRect);
 
             gui.BeginIndent();
 
@@ -92,5 +92,12 @@ namespace Imui.Controls
             gui.EndIndent();
             gui.PopId();
         }
+    }
+
+    public struct ImTreeStyle
+    {
+        public float ArrowScale;
+        public ImButtonStyle ItemNormal;
+        public ImButtonStyle ItemSelected;
     }
 }

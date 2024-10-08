@@ -51,7 +51,7 @@ namespace Imui
 
             // Button
             theme.Button.BorderRadius = style.BorderRadius;
-            theme.Button.BorderWidth = style.BorderWidth;
+            theme.Button.BorderThickness = style.BorderWidth;
             
             theme.Button.Normal.BackColor = style.ButtonColor;
             theme.Button.Normal.FrontColor = style.Foreground;
@@ -113,7 +113,7 @@ namespace Imui
             theme.List.Box.BorderWidth = style.BorderWidth;
             theme.List.Box.FrontColor = default;
 
-            theme.List.ItemNormal.BorderWidth = 0.0f;
+            theme.List.ItemNormal.BorderThickness = 0.0f;
             theme.List.ItemNormal.BorderRadius = style.BorderRadius;
             theme.List.ItemNormal.Alignment = new ImTextAlignment(0.0f, 0.5f);
             
@@ -129,7 +129,7 @@ namespace Imui
             theme.List.ItemNormal.Pressed.FrontColor = style.Foreground;
             theme.List.ItemNormal.Pressed.BorderColor = default;
             
-            theme.List.ItemSelected.BorderWidth = 0.0f;
+            theme.List.ItemSelected.BorderThickness = 0.0f;
             theme.List.ItemSelected.BorderRadius = style.BorderRadius;
             theme.List.ItemSelected.Alignment = new ImTextAlignment(0.0f, 0.5f);
 
@@ -145,6 +145,18 @@ namespace Imui
             theme.List.ItemSelected.Pressed.FrontColor = style.AccentForeground;
             theme.List.ItemSelected.Pressed.BorderColor = default;
             
+            // Foldout
+            theme.Foldout.ArrowScale = 0.6f;
+            theme.Foldout.Button = theme.Button;
+            theme.Foldout.Button.BorderThickness = 0.0f;
+            theme.Foldout.Button.Alignment = new ImTextAlignment(0.0f, 0.5f);
+            
+            // Tree
+            theme.Tree.ArrowScale = 0.6f;
+            theme.Tree.ItemNormal = theme.List.ItemNormal;
+            theme.Tree.ItemNormal.Normal.BackColor = default;
+            theme.Tree.ItemSelected = theme.List.ItemSelected;
+            
             return theme;
         }
 
@@ -155,7 +167,7 @@ namespace Imui
         {
             Color.RGBToHSV(color, out var h, out var s, out var v);
             v = Mathf.Clamp01(v * scale);
-            var result = Color.HSVToRGB(h, s, v);
+            var result = (Color32)Color.HSVToRGB(h, s, v);
             result.a = color.a;
             return result;
         }

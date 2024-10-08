@@ -9,7 +9,7 @@ namespace Imui.Controls.Styling.Themes
 
         public static ImTheme Create()
         {
-            return new ImTheme()
+            var theme = new ImTheme()
             {
                 Name = NAME,
                 Window = CreateWindowStyle(),
@@ -26,6 +26,11 @@ namespace Imui.Controls.Styling.Themes
                 Radio = CreateRadioStyle(),
                 Separator = CreateSeparatorStyle()
             };
+
+            theme.Foldout.ArrowScale = 1.0f;
+            theme.Tree.ArrowScale = 1.0f;
+
+            return theme;
         }
 
         private static ImSeparatorStyle CreateSeparatorStyle()
@@ -58,10 +63,9 @@ namespace Imui.Controls.Styling.Themes
             };
 
             style.ItemNormal = CreateButtonStyle();
-            style.ItemNormal.Padding = 0.0f;
-            style.ItemNormal.Padding.Left = 4.0f;
+            style.ItemNormal.HorizontalPadding = 4.0f;
             style.ItemNormal.Alignment.X = 0.0f;
-            style.ItemNormal.BorderWidth = 0.0f;
+            style.ItemNormal.BorderThickness = 0.0f;
 
             style.ItemSelected = style.ItemNormal;
 
@@ -120,11 +124,10 @@ namespace Imui.Controls.Styling.Themes
         {
             return new ImButtonStyle()
             {
-                Padding = new ImPadding(4.0f, 4.0f, 0.0f, 0.0f),
+                HorizontalPadding = 4.0f,
                 Alignment = new ImTextAlignment(0.5f, 0.5f),
-                TextWrap = false,
                 BorderRadius = 4.0f,
-                BorderWidth = 1.0f,
+                BorderThickness = 1.0f,
                 Normal = new ImButtonStateStyle()
                 {
                     BackColor = new Color32(215, 215, 215, 255),
@@ -158,13 +161,13 @@ namespace Imui.Controls.Styling.Themes
 
         public static ImFoldoutStyle CreateFoldoutStyle()
         {
-            var style = new ImFoldoutStyle()
-            {
-                ArrowInnerScale = 0.6f,
-                ArrowOuterScale = 0.7f,
-                BorderWidth = 0.0f,
-                TextAlignment = new ImTextAlignment(0.0f, 0.5f)
-            };
+            var style = new ImFoldoutStyle();
+            // {
+            //     ArrowInnerScale = 0.6f,
+            //     ArrowOuterScale = 0.7f,
+            //     BorderWidth = 0.0f,
+            //     TextAlignment = new ImTextAlignment(0.0f, 0.5f)
+            // };
 
             return style;
         }

@@ -6,6 +6,13 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    public enum ImButtonState
+    {
+        Normal,
+        Hovered,
+        Pressed
+    }
+    
     [Flags]
     public enum ImButtonFlag
     {
@@ -20,11 +27,11 @@ namespace Imui.Controls
         {
             if (size.Type == ImSizeType.Fit || (size.Type == ImSizeType.Auto && gui.Layout.Axis == ImAxis.Horizontal))
             {
-                var textSettings = GetTextSettings();
+                var textSettings = CreateTextSettings();
                 var textSize = gui.MeasureTextSize(label, in textSettings);
                 var rectSize = textSize;
 
-                rectSize.x += ImTheme.Active.Button.Padding.Horizontal;
+                rectSize.x += ImTheme.Active.Button.HorizontalPadding * 2;
                 rectSize.y += ImTheme.Active.Controls.ExtraRowHeight;
 
                 return gui.Layout.AddRect(rectSize);
@@ -59,9 +66,9 @@ namespace Imui.Controls
         public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
         {
             var clicked = Button(gui, id, rect, out state, flag);
-            var textSettings = GetTextSettings();
+            var textSettings = CreateTextSettings();
             var textColor = GetStateFontColor(state);
-            var textRect = GetContentRect(rect);
+            var textRect = CalculateContentRect(rect);
             
             gui.Canvas.Text(label, textColor, textRect, in textSettings);
             
@@ -181,48 +188,43 @@ namespace Imui.Controls
 
             return clicked;
         }
-
-        public static ImRect GetContentRect(ImRect rect)
-        { 
-            return rect.WithPadding(ImTheme.Active.Button.Padding);
-        }
-
+        
         public static Color32 GetStateFontColor(ImButtonState state)
         {
             ref readonly var stateStyle = ref GetStateStyle(state);
             return stateStyle.FrontColor;
         }
-
-        public static ImBoxStyle GetStateBoxStyle(ImButtonState state)
+        
+        public static ImTextSettings CreateTextSettings()
         {
-            ref readonly var style = ref ImTheme.Active.Button;
-            ref readonly var stateStyle = ref GetStateStyle(state);
+            return new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Button.Alignment, false);
+        }
+
+        public static ImRect CalculateContentRect(ImRect buttonRect) => CalculateContentRect(in ImTheme.Active.Button, buttonRect);
+        public static ImRect CalculateContentRect(in ImButtonStyle style, ImRect buttonRect)
+        {
+            buttonRect.X += style.HorizontalPadding;
+            buttonRect.W -= style.HorizontalPadding * 2;
+
+            return buttonRect;
+        }
+
+        public static ImBoxStyle GetStateBoxStyle(ImButtonState state) => GetStateBoxStyle(in ImTheme.Active.Button, state);
+        public static ImBoxStyle GetStateBoxStyle(in ImButtonStyle style, ImButtonState state)
+        {
+            ref readonly var stateStyle = ref GetStateStyle(in style, state);
             
             return new ImBoxStyle
             {
                 BackColor = stateStyle.BackColor,
                 FrontColor = stateStyle.FrontColor,
                 BorderColor = stateStyle.BorderColor,
-                BorderWidth = style.BorderWidth,
+                BorderWidth = style.BorderThickness,
                 BorderRadius = style.BorderRadius
             };
         }
-
-        public static ref readonly ImButtonStateStyle GetStateStyle(ImButtonState state)
-        {
-            ref readonly var style = ref ImTheme.Active.Button;
-
-            switch (state)
-            {
-                case ImButtonState.Hovered:
-                    return ref style.Hovered;
-                case ImButtonState.Pressed:
-                    return ref style.Pressed;
-                default:
-                    return ref style.Normal;
-            }
-        }
         
+        public static ref readonly ImButtonStateStyle GetStateStyle(ImButtonState state) => ref GetStateStyle(in ImTheme.Active.Button, state);
         public static ref readonly ImButtonStateStyle GetStateStyle(in ImButtonStyle style, ImButtonState state)
         {
             switch (state)
@@ -235,22 +237,8 @@ namespace Imui.Controls
                     return ref style.Normal;
             }
         }
-        
-        public static ImTextSettings GetTextSettings()
-        {
-            ref readonly var style = ref ImTheme.Active.Button;
-
-            return new ImTextSettings(ImTheme.Active.Controls.TextSize, style.Alignment, style.TextWrap);
-        }
     }
-
-    public enum ImButtonState
-    {
-        Normal,
-        Hovered,
-        Pressed
-    }
-
+    
     [Serializable]
     public struct ImButtonStateStyle
     {
@@ -265,10 +253,9 @@ namespace Imui.Controls
         public ImButtonStateStyle Normal;
         public ImButtonStateStyle Hovered;
         public ImButtonStateStyle Pressed;
-        public float BorderWidth; // TODO (artem-s): rename to BorderThickness
+        public float BorderThickness;
         public ImRectRadius BorderRadius;
-        public ImPadding Padding;
+        public float HorizontalPadding;
         public ImTextAlignment Alignment;
-        public bool TextWrap;
     }
 }
