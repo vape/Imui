@@ -85,7 +85,7 @@ namespace Imui.Controls
         public static bool Checkbox(this ImGui gui, uint id, ref bool value, ImRect rect)
         {
             var clicked = gui.Button(id, rect, out var state);
-            var frontColor = ImButton.GetStateFontColor(state);
+            var frontColor = ImButton.GetStateFrontColor(state);
 
             if (value)
             {

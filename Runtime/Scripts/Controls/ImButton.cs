@@ -67,7 +67,7 @@ namespace Imui.Controls
         {
             var clicked = Button(gui, id, rect, out state, flag);
             var textSettings = CreateTextSettings();
-            var textColor = GetStateFontColor(state);
+            var textColor = GetStateFrontColor(state);
             var textRect = CalculateContentRect(rect);
             
             gui.Canvas.Text(label, textColor, textRect, in textSettings);
@@ -188,16 +188,18 @@ namespace Imui.Controls
 
             return clicked;
         }
-        
-        public static Color32 GetStateFontColor(ImButtonState state)
+
+        public static Color32 GetStateFrontColor(ImButtonState state) => GetStateFrontColor(in ImTheme.Active.Button, state);
+        public static Color32 GetStateFrontColor(in ImButtonStyle style, ImButtonState state)
         {
-            ref readonly var stateStyle = ref GetStateStyle(state);
+            ref readonly var stateStyle = ref GetStateStyle(in style, state);
             return stateStyle.FrontColor;
         }
-        
-        public static ImTextSettings CreateTextSettings()
+
+        public static ImTextSettings CreateTextSettings() => CreateTextSettings(in ImTheme.Active.Button);
+        public static ImTextSettings CreateTextSettings(in ImButtonStyle style)
         {
-            return new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Button.Alignment, false);
+            return new ImTextSettings(ImTheme.Active.Controls.TextSize, style.Alignment, false);
         }
 
         public static ImRect CalculateContentRect(ImRect buttonRect) => CalculateContentRect(in ImTheme.Active.Button, buttonRect);
@@ -255,7 +257,7 @@ namespace Imui.Controls
         public ImButtonStateStyle Pressed;
         public float BorderThickness;
         public ImRectRadius BorderRadius;
-        public float HorizontalPadding;
+        public float HorizontalPadding; // TODO (artem-s): use inner spacing instead?
         public ImTextAlignment Alignment;
     }
 }

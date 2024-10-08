@@ -193,8 +193,7 @@ namespace Imui.Controls
         
         public static void PreviewButton(ImGui gui, uint id, ref bool open, ReadOnlySpan<char> label)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
-            ImTheme.Active.Button.Alignment = ImTheme.Active.Dropdown.Alignment;
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in ImTheme.Active.Dropdown.Button);
 
             if (gui.Button(id, label, gui.Layout.GetBoundsRect()))
             {
@@ -209,17 +208,15 @@ namespace Imui.Controls
 
         public static bool ArrowButton(ImGui gui, uint id, ImRect rect)
         {
-            var clicked = gui.Button(id, rect, out var state);
-
-            rect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Dropdown.ArrowScale).WithAspect(1.1547f);
-
-            Span<Vector2> points = stackalloc Vector2[3]
+            bool clicked;
+            
+            using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in ImTheme.Active.Dropdown.Button))
             {
-                new Vector2(rect.X + rect.W * 0.5f, rect.Y), new Vector2(rect.X + rect.W, rect.Y + rect.H), new Vector2(rect.X, rect.Y + rect.H),
-            };
-
-            gui.Canvas.ConvexFill(points, ImButton.GetStateFontColor(state));
-
+                clicked = gui.Button(id, rect, out var state);
+                
+                ImFoldout.DrawArrowDown(gui.Canvas, rect, ImButton.GetStateFrontColor(state), ImTheme.Active.Dropdown.ArrowScale);
+            }
+            
             return clicked;
         }
 
@@ -233,7 +230,7 @@ namespace Imui.Controls
     public struct ImDropdownStyle
     {
         public float ArrowScale;
-        public ImTextAlignment Alignment;
+        public ImButtonStyle Button;
         public float MaxListHeight;
         public float MinListWidth;
     }

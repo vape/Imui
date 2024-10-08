@@ -234,7 +234,6 @@ namespace Imui.Controls.Styling.Themes
         {
             var style = new ImDropdownStyle()
             {
-                Alignment = new ImTextAlignment(0.0f, 0.5f),
                 ArrowScale = 0.4f,
                 MinListWidth = 100.0f,
                 MaxListHeight = 300.0f

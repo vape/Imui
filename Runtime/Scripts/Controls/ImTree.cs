@@ -71,11 +71,11 @@ namespace Imui.Controls
             {
                 if ((state & ImTreeNodeState.Expanded) != 0)
                 {
-                    ImFoldout.DrawOpenArrow(gui.Canvas, arrowRect, boxStyle.FrontColor, ImTheme.Active.Tree.ArrowScale);
+                    ImFoldout.DrawArrowDown(gui.Canvas, arrowRect, boxStyle.FrontColor, ImTheme.Active.Tree.ArrowScale);
                 }
                 else
                 {
-                    ImFoldout.DrawClosedArrow(gui.Canvas, arrowRect, boxStyle.FrontColor, ImTheme.Active.Tree.ArrowScale);
+                    ImFoldout.DrawArrowRight(gui.Canvas, arrowRect, boxStyle.FrontColor, ImTheme.Active.Tree.ArrowScale);
                 }
             }
             

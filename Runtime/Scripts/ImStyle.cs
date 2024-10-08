@@ -157,6 +157,10 @@ namespace Imui
             theme.Tree.ItemNormal.Normal.BackColor = default;
             theme.Tree.ItemSelected = theme.List.ItemSelected;
             
+            // Dropdown
+            theme.Dropdown.Button = theme.Button;
+            theme.Dropdown.Button.Alignment = new ImTextAlignment(0.0f, 0.5f);
+            
             return theme;
         }
 

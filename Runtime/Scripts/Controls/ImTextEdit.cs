@@ -95,6 +95,7 @@ namespace Imui.Controls
         {
             var buffer = new ImTextEditBuffer(text);
 
+            // TODO (artem-s): in this case, readonly should not change styling
             gui.BeginReadOnly(true);
             TextEdit(gui, ref buffer, rect, multiline);
             gui.EndReadOnly();

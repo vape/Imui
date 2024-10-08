@@ -136,7 +136,7 @@ namespace Imui.Controls
             ImTheme.Active.Button.BorderRadius = 999.9f;
 
             var clicked = gui.Button(id, rect, out var state);
-            var frontColor = ImButton.GetStateFontColor(state);
+            var frontColor = ImButton.GetStateFrontColor(state);
 
             if (value)
             {

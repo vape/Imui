@@ -40,15 +40,15 @@ namespace Imui.Controls
                 open = !open;
             }
             
-            var frontColor = ImButton.GetStateFontColor(state);
+            var frontColor = ImButton.GetStateFrontColor(state);
             
             if (open)
             {
-                DrawOpenArrow(gui.Canvas, arrowRect, frontColor, ImTheme.Active.Foldout.ArrowScale);
+                DrawArrowDown(gui.Canvas, arrowRect, frontColor, ImTheme.Active.Foldout.ArrowScale);
             }
             else
             {
-                DrawClosedArrow(gui.Canvas, arrowRect, frontColor, ImTheme.Active.Foldout.ArrowScale);
+                DrawArrowRight(gui.Canvas, arrowRect, frontColor, ImTheme.Active.Foldout.ArrowScale);
             }
             
             gui.Text(label, in textSettings, labelRect);
@@ -56,7 +56,7 @@ namespace Imui.Controls
             return open;
         }
         
-        public static void DrawClosedArrow(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
+        public static void DrawArrowRight(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
         {
             if (scale != 1.0f)
             {
@@ -75,7 +75,7 @@ namespace Imui.Controls
             canvas.ConvexFill(points, color);
         }
 
-        public static void DrawOpenArrow(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
+        public static void DrawArrowDown(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
         {
             if (scale != 1.0f)
             {
