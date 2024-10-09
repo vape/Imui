@@ -31,7 +31,7 @@ namespace Imui.Controls
                 var textSize = gui.MeasureTextSize(label, in textSettings);
                 var rectSize = textSize;
 
-                rectSize.x += ImTheme.Active.Button.HorizontalPadding * 2;
+                rectSize.x += ImTheme.Active.Controls.InnerSpacing * 2;
                 rectSize.y += ImTheme.Active.Controls.ExtraRowHeight;
 
                 return gui.Layout.AddRect(rectSize);
@@ -202,11 +202,10 @@ namespace Imui.Controls
             return new ImTextSettings(ImTheme.Active.Controls.TextSize, style.Alignment, false);
         }
 
-        public static ImRect CalculateContentRect(ImRect buttonRect) => CalculateContentRect(in ImTheme.Active.Button, buttonRect);
-        public static ImRect CalculateContentRect(in ImButtonStyle style, ImRect buttonRect)
+        public static ImRect CalculateContentRect(ImRect buttonRect)
         {
-            buttonRect.X += style.HorizontalPadding;
-            buttonRect.W -= style.HorizontalPadding * 2;
+            buttonRect.X += ImTheme.Active.Controls.InnerSpacing;
+            buttonRect.W -= ImTheme.Active.Controls.InnerSpacing * 2;
 
             return buttonRect;
         }
@@ -257,7 +256,6 @@ namespace Imui.Controls
         public ImButtonStateStyle Pressed;
         public float BorderThickness;
         public ImRectRadius BorderRadius;
-        public float HorizontalPadding; // TODO (artem-s): use inner spacing instead?
         public ImTextAlignment Alignment;
     }
 }

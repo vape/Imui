@@ -226,7 +226,7 @@ namespace Imui.Controls
         {
             ref readonly var style = ref ImTheme.Active.Window;
             
-            var height = style.TitleBar.AdditionalPadding.Vertical + gui.GetRowHeight();
+            var height = ImTheme.Active.Controls.InnerSpacing + gui.GetRowHeight();
             var radiusTopLeft = style.Box.BorderRadius.TopLeft - style.Box.BorderWidth;
             var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderWidth;
             cornerRadius = new ImRectRadius(radiusTopLeft, radiusTopRight);
@@ -241,7 +241,6 @@ namespace Imui.Controls
         public Color32 BackColor;
         public Color32 FrontColor;
         public ImTextAlignment Alignment;
-        public ImPadding AdditionalPadding;
     }
         
     [Serializable]

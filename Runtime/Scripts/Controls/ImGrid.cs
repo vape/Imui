@@ -20,15 +20,15 @@ namespace Imui.Controls
         {
             var width = gui.GetLayoutWidth();
             var spacing = GetDefaultSpacing();
-            var cellWidth = (width + spacing.x) / columns - spacing.x;
+            var cellWidth = Mathf.Floor((width + spacing.x) / columns - spacing.x);
             cellHeight = cellHeight <= 0 ? cellWidth : cellHeight;
 
-            return BeginGrid(gui, new Vector2(cellWidth, cellHeight));
+            return BeginGrid(gui, new Vector2(cellWidth, cellHeight), spacing);
         }
         
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize)
         {
-            return BeginGrid(gui, cellSize, new Vector2(ImTheme.Active.Controls.InnerSpacing, ImTheme.Active.Controls.InnerSpacing));
+            return BeginGrid(gui, cellSize, GetDefaultSpacing());
         }
         
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize, Vector2 spacing)
@@ -73,7 +73,7 @@ namespace Imui.Controls
 
         public static Vector2 GetDefaultSpacing()
         {
-            return new Vector2(ImTheme.Active.Controls.InnerSpacing, ImTheme.Active.Controls.InnerSpacing);
+            return new Vector2(ImTheme.Active.Controls.ControlsSpacing, ImTheme.Active.Controls.ControlsSpacing);
         }
     }
 }

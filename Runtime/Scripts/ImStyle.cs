@@ -42,9 +42,6 @@ namespace Imui
             var theme = style.IsDark ? ImDarkTheme.Create() : ImLightTheme.Create();
 
             theme.Text.Color = style.Foreground;
-
-            var black = new Color32(0, 0, 0, 255);
-            var white = new Color32(255, 255, 255, 255);
             
             // Base
             theme.Controls.ControlsSpacing = style.Spacing;
@@ -70,11 +67,11 @@ namespace Imui
             theme.Button.Normal.FrontColor = style.Foreground;
             theme.Button.Normal.BorderColor = style.BorderColor;
 
-            theme.Button.Hovered.BackColor = L(style.ButtonColor, 0.05f);
+            theme.Button.Hovered.BackColor = style.IsDark ? L(style.ButtonColor, 0.3f) : L(style.ButtonColor, 0.05f);
             theme.Button.Hovered.FrontColor = L(style.Foreground, 0.05f);
             theme.Button.Hovered.BorderColor = L(style.BorderColor, 0.05f);
 
-            theme.Button.Pressed.BackColor = D(style.ButtonColor, 0.05f);
+            theme.Button.Pressed.BackColor = style.IsDark ? D(theme.Button.Hovered.BackColor, 0.4f) : D(theme.Button.Hovered.BackColor, 0.1f);
             theme.Button.Pressed.FrontColor = D(style.Foreground, 0.05f);
             theme.Button.Pressed.BorderColor = D(style.BorderColor, 0.05f);
             
@@ -115,9 +112,9 @@ namespace Imui
             theme.Slider.Box.FrontColor = style.Foreground;
             theme.Slider.Handle.BorderRadius = Mathf.Max(0, style.BorderRadius - style.BorderWidth);
 
-            theme.Slider.Handle.Normal.BackColor = L(style.Foreground, 3.0f); 
-            theme.Slider.Handle.Hovered.BackColor = L(style.Foreground, 3.5f);
-            theme.Slider.Handle.Pressed.BackColor = D(style.AccentBackground, 0.1f);
+            theme.Slider.Handle.Normal.BackColor = style.IsDark ? D(style.Foreground, 0.4f) : L(style.Foreground, 3.0f); 
+            theme.Slider.Handle.Hovered.BackColor = L(theme.Slider.Handle.Normal.BackColor, 0.2f);
+            theme.Slider.Handle.Pressed.BackColor = D(theme.Slider.Handle.Normal.BackColor, 0.1f);
             
             // List
             theme.List.Box.BorderColor = style.BorderColor;
@@ -139,7 +136,7 @@ namespace Imui
             theme.List.ItemNormal.Hovered.FrontColor = style.Foreground;
             theme.List.ItemNormal.Hovered.BorderColor = default;
 
-            theme.List.ItemNormal.Pressed.BackColor = style.Foreground.WithAlpha(48);
+            theme.List.ItemNormal.Pressed.BackColor = style.IsDark ? style.Foreground.WithAlpha(16) : style.Foreground.WithAlpha(48);
             theme.List.ItemNormal.Pressed.FrontColor = style.Foreground;
             theme.List.ItemNormal.Pressed.BorderColor = default;
             
@@ -162,6 +159,9 @@ namespace Imui
             // Foldout
             theme.Foldout.ArrowScale = 0.6f;
             theme.Foldout.Button = theme.Button;
+            theme.Foldout.Button.Normal.BackColor = Color.Lerp(theme.Window.Box.BackColor, theme.Button.Normal.BackColor, 0.5f);
+            theme.Foldout.Button.Hovered.BackColor = Color.Lerp(theme.Window.Box.BackColor, theme.Button.Hovered.BackColor, 0.5f);
+            theme.Foldout.Button.Pressed.BackColor = Color.Lerp(theme.Window.Box.BackColor, theme.Button.Pressed.BackColor, 0.5f);
             theme.Foldout.Button.BorderThickness = 0.0f;
             theme.Foldout.Button.Alignment = new ImTextAlignment(0.0f, 0.5f);
             

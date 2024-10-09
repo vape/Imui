@@ -40,7 +40,7 @@ namespace Imui.Controls
             ref readonly var buttonStyle = ref ((state & ImTreeNodeState.Selected) != 0 ? ref ImTheme.Active.Tree.ItemSelected : ref ImTheme.Active.Tree.ItemNormal);
 
             var arrowSize = ImTheme.Active.Controls.TextSize;
-            var contentRect = ImButton.CalculateContentRect(in buttonStyle, rect);
+            var contentRect = ImButton.CalculateContentRect(rect);
             var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Controls.InnerSpacing, out var labelRect).WithAspect(1.0f);
             var changed = false;
             var buttonState = ImButtonState.Normal;

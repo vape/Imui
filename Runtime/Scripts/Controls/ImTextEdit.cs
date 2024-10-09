@@ -195,9 +195,10 @@ namespace Imui.Controls
             }
 
             gui.Box(rect, stateStyle.Box.Apply(adjacency));
+
+            ImPadding textPadding = ImTheme.Active.Controls.InnerSpacing;
             
             var textSize = ImTheme.Active.Controls.TextSize;
-            var textPadding = ImTheme.Active.TextEdit.Padding;
             var textAlignment = ImTheme.Active.TextEdit.Alignment;
 
             if (!multiline)
@@ -1012,7 +1013,6 @@ namespace Imui.Controls
         public ImTextEditStateStyle Selected;
         public float CaretWidth;
         public ImTextAlignment Alignment;
-        public ImPadding Padding;
         public bool TextWrap;
     }
 }
