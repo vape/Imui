@@ -199,6 +199,10 @@ namespace Imui
             theme.Radiobox.Checked = theme.Checkbox.Checked;
             theme.Radiobox.Checked.BorderRadius = 999.9f;
             
+            // Separator
+            theme.Separator.Thickness = style.TextSize * 0.15f;
+            theme.Separator.Color = style.BorderColor;
+            
             Profiler.EndSample();
             
             return theme;

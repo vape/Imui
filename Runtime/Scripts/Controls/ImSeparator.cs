@@ -48,13 +48,13 @@ namespace Imui.Controls
             }
 
             Span<Vector2> path = stackalloc Vector2[2] { p0, p1 };
-            gui.Canvas.Line(path, ImTheme.Active.Separator.FrontColor, false, ImTheme.Active.Separator.Thickness);
+            gui.Canvas.Line(path, ImTheme.Active.Separator.Color, false, ImTheme.Active.Separator.Thickness);
         }
     }
 
     public struct ImSeparatorStyle
     {
         public float Thickness;
-        public Color32 FrontColor;
+        public Color32 Color;
     }
 }
