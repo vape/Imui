@@ -192,6 +192,13 @@ namespace Imui
             theme.Checkbox.Checked.Pressed.FrontColor = style.AccentForeground;
             theme.Checkbox.Checked.Pressed.BorderColor = D(style.AccentBackground, 0.15f);
             
+            // Radiobox
+            theme.Radiobox.KnobScale = 0.5f;
+            theme.Radiobox.Normal = theme.Checkbox.Normal;
+            theme.Radiobox.Normal.BorderRadius = 999.9f;
+            theme.Radiobox.Checked = theme.Checkbox.Checked;
+            theme.Radiobox.Checked.BorderRadius = 999.9f;
+            
             Profiler.EndSample();
             
             return theme;

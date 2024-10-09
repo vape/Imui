@@ -105,7 +105,7 @@ namespace Imui.Controls
         public static bool Radio(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var boxSize = ImCheckbox.GetBoxSize(gui);
+            var boxSize = ImTheme.Active.Controls.TextSize;
             var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Radio(gui, id, ref value, boxRect);
 
@@ -131,16 +131,16 @@ namespace Imui.Controls
         
         public static bool Radio(this ImGui gui, uint id, ref bool value, ImRect rect)
         {
-            using var _ = new ImStyleScope<ImRectRadius>(ref ImTheme.Active.Button.BorderRadius);
-
-            ImTheme.Active.Button.BorderRadius = 999.9f;
+            ref readonly var style = ref (value ? ref ImTheme.Active.Radiobox.Checked : ref ImTheme.Active.Radiobox.Normal);
+            
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in style);
 
             var clicked = gui.Button(id, rect, out var state);
             var frontColor = ImButton.GetStateFrontColor(state);
 
             if (value)
             {
-                var circleRect = rect.ScaleFromCenter(ImTheme.Active.Radio.IndicatorScale);
+                var circleRect = rect.ScaleFromCenter(ImTheme.Active.Radiobox.KnobScale);
                 gui.Canvas.Ellipse(circleRect, frontColor);
             }
 
@@ -154,15 +154,15 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Radio.TextAlignment, ImTheme.Active.Radio.WrapText);
+            return new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f, false);
         }
     }
 
     [Serializable]
     public struct ImRadioStyle
     {
-        public float IndicatorScale;
-        public ImTextAlignment TextAlignment;
-        public bool WrapText;
+        public float KnobScale;
+        public ImButtonStyle Normal;
+        public ImButtonStyle Checked;
     }
 }

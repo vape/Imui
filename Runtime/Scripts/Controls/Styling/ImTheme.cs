@@ -20,7 +20,7 @@ namespace Imui.Controls.Styling
         public ImDropdownStyle Dropdown;
         public ImSliderStyle Slider;
         public ImListStyle List;
-        public ImRadioStyle Radio;
+        public ImRadioStyle Radiobox;
         public ImSeparatorStyle Separator;
         public ImTreeStyle Tree;
     }

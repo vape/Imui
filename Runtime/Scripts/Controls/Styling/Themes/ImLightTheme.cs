@@ -23,7 +23,7 @@ namespace Imui.Controls.Styling.Themes
                 Slider = CreateSliderStyle(),
                 Controls = CreateControlsStyle(),
                 List = CreateListStyle(),
-                Radio = CreateRadioStyle(),
+                Radiobox = CreateRadioStyle(),
                 Separator = CreateSeparatorStyle()
             };
 
@@ -42,9 +42,7 @@ namespace Imui.Controls.Styling.Themes
         {
             return new ImRadioStyle
             {
-                IndicatorScale = 0.6f,
-                TextAlignment = new ImTextAlignment(0.0f, 0.5f),
-                WrapText = false
+                KnobScale = 0.6f,
             };
         }
 

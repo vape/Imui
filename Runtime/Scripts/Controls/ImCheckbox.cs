@@ -14,7 +14,7 @@ namespace Imui.Controls
                 case ImSizeType.Fixed:
                     return gui.Layout.AddRect(size.Width, size.Height);
                 default:
-                    var boxSize = GetBoxSize(gui);
+                    var boxSize = ImTheme.Active.Controls.TextSize;
                     
                     if (label.IsEmpty)
                     {
@@ -58,7 +58,7 @@ namespace Imui.Controls
         public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var boxSize = GetBoxSize(gui);
+            var boxSize = ImTheme.Active.Controls.TextSize;
             var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Checkbox(gui, id, ref value, boxRect);
 
@@ -117,11 +117,6 @@ namespace Imui.Controls
             };
 
             canvas.LineMiter(path, color, false, thickness);
-        }
-
-        public static float GetBoxSize(ImGui gui)
-        {
-            return ImTheme.Active.Controls.TextSize;
         }
         
         public static ImTextSettings GetTextSettings()
