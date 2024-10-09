@@ -22,6 +22,8 @@ namespace Imui
         public float BorderRadius;
         public float BorderWidth;
 
+        public float ReadOnlyColorMultiplier;
+        
         public Color32 Background;
         public Color32 Foreground;
 
@@ -47,6 +49,7 @@ namespace Imui
             theme.Controls.ControlsSpacing = style.Spacing;
             theme.Controls.InnerSpacing = style.InnerSpacing;
             theme.Controls.TextSize = style.TextSize;
+            theme.Controls.ReadOnlyColorMultiplier = style.ReadOnlyColorMultiplier;
             
             // Window
             theme.Window.ContentPadding = style.Spacing;

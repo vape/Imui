@@ -34,12 +34,12 @@ namespace Imui.Core
             PushSettings(in prop);
         }
 
-        public void PopContrast() => PopSettings();
-        public void PushDefaultContrast() => PushContrast(0.0f);
-        public void PushContrast(float contrast)
+        public void PopInvColorMul() => PopSettings();
+        public void PushDefaultInvColorMul() => PushInvColorMul(0.0f);
+        public void PushInvColorMul(float value)
         {
             var prop = GetActiveSettingsCopy();
-            prop.Contrast = contrast;
+            prop.InvColorMul = Mathf.Clamp01(value);
             PushSettings(in prop);
         }
 

@@ -17,8 +17,6 @@ namespace Imui.Core
         private const float UI_SCALE_MIN = 0.05f;
         private const float UI_SCALE_MAX = 16.0f;
 
-        private const float READONLY_SCOPE_CONTRAST = 0.3f;
-
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
         private const int SCROLL_RECT_STACK_CAPACITY = 8;
@@ -189,18 +187,19 @@ namespace Imui.Core
 
             if (isReadOnly)
             {
-                Canvas.PushContrast(READONLY_SCOPE_CONTRAST);
+                // TODO (artem-s): temporary, ImTheme will go into ImGui
+                Canvas.PushInvColorMul(1 - Imui.Controls.Styling.ImTheme.Active.Controls.ReadOnlyColorMultiplier);
             }
             else
             {
-                Canvas.PushDefaultContrast();
+                Canvas.PushDefaultInvColorMul();
             }
         }
 
         public void EndReadOnly()
         {
             readOnlyStack.Pop();
-            Canvas.PopContrast();
+            Canvas.PopInvColorMul();
         }
         
         internal ref ImDynamicArray<uint> GetScrollRectStack()

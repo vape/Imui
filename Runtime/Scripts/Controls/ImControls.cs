@@ -66,5 +66,6 @@ namespace Imui.Controls
         public float InnerSpacing;
         public float ScrollSpeedScale;
         public float Indent;
+        public float ReadOnlyColorMultiplier;
     }
 }
