@@ -63,9 +63,10 @@ namespace Imui.Controls
             step = Mathf.Abs(step);
 
             var normValue = Mathf.InverseLerp(min, max, value);
-
+            
             gui.Box(rect, in ImTheme.Active.Slider.Box);
 
+            // TODO (artem-s): fix drawing with 0 border width
             var rectPadded = rect.WithPadding(ImTheme.Active.Slider.Padding);
 
             var handleW = rectPadded.H * ImTheme.Active.Slider.HandleAspectRatio;

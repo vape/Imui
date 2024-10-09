@@ -84,6 +84,10 @@ namespace Imui.Controls
         
         public static bool Checkbox(this ImGui gui, uint id, ref bool value, ImRect rect)
         {
+            ref readonly var style = ref (value ? ref ImTheme.Active.Checkbox.Checked : ref ImTheme.Active.Checkbox.Normal);
+            
+            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in style);
+            
             var clicked = gui.Button(id, rect, out var state);
             var frontColor = ImButton.GetStateFrontColor(state);
 
@@ -117,12 +121,12 @@ namespace Imui.Controls
 
         public static float GetBoxSize(ImGui gui)
         {
-            return gui.GetRowHeight();
+            return ImTheme.Active.Controls.TextSize;
         }
         
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Checkbox.TextAlignment, ImTheme.Active.Checkbox.WrapText);
+            return new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f, false);
         }
     }
 
@@ -130,7 +134,7 @@ namespace Imui.Controls
     public struct ImCheckboxStyle
     {
         public float CheckmarkScale;
-        public ImTextAlignment TextAlignment;
-        public bool WrapText;
+        public ImButtonStyle Normal;
+        public ImButtonStyle Checked;
     }
 }

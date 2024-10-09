@@ -154,8 +154,8 @@ namespace Imui.Controls.Styling.Themes
             return new ImCheckboxStyle()
             {
                 CheckmarkScale = 0.6f,
-                TextAlignment = new ImTextAlignment(0.0f, 0.5f),
-                WrapText = false
+                // TextAlignment = new ImTextAlignment(0.0f, 0.5f),
+                // WrapText = false
             };
         }
 

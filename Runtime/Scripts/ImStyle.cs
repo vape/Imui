@@ -3,6 +3,7 @@ using Imui.Controls.Styling;
 using Imui.Controls.Styling.Themes;
 using Imui.Core;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Imui
 {
@@ -10,6 +11,10 @@ namespace Imui
     public class ImStyle
     {
         public bool IsDark;
+
+        public float TextSize;
+        public float Spacing;
+        public float InnerSpacing;
 
         public float WindowBorderRadius;
         public float WindowBorderThickness;
@@ -32,6 +37,8 @@ namespace Imui
     {
         public static ImTheme Build(ImStyle style)
         {
+            Profiler.BeginSample("ImThemeBuilder.Build");
+            
             var theme = style.IsDark ? ImDarkTheme.Create() : ImLightTheme.Create();
 
             theme.Text.Color = style.Foreground;
@@ -39,7 +46,13 @@ namespace Imui
             var black = new Color32(0, 0, 0, 255);
             var white = new Color32(255, 255, 255, 255);
             
+            // Base
+            theme.Controls.ControlsSpacing = style.Spacing;
+            theme.Controls.InnerSpacing = style.InnerSpacing;
+            theme.Controls.TextSize = style.TextSize;
+            
             // Window
+            theme.Window.ContentPadding = style.Spacing;
             theme.Window.Box.BackColor = style.Background;
             theme.Window.Box.FrontColor = style.Foreground;
             theme.Window.TitleBar.BackColor = D(style.Background, 0.15f);
@@ -112,6 +125,7 @@ namespace Imui
             theme.List.Box.BorderRadius = style.BorderRadius;
             theme.List.Box.BorderWidth = style.BorderWidth;
             theme.List.Box.FrontColor = default;
+            theme.List.Padding = style.Spacing;
 
             theme.List.ItemNormal.BorderThickness = 0.0f;
             theme.List.ItemNormal.BorderRadius = style.BorderRadius;
@@ -160,6 +174,25 @@ namespace Imui
             // Dropdown
             theme.Dropdown.Button = theme.Button;
             theme.Dropdown.Button.Alignment = new ImTextAlignment(0.0f, 0.5f);
+            
+            // Checkbox
+            theme.Checkbox.Normal = theme.Button;
+            theme.Checkbox.CheckmarkScale = 0.6f;
+            
+            theme.Checkbox.Checked = theme.Button;
+            theme.Checkbox.Checked.Normal.BackColor = style.AccentBackground;
+            theme.Checkbox.Checked.Normal.FrontColor = style.AccentForeground;
+            theme.Checkbox.Checked.Normal.BorderColor = D(style.AccentBackground, 0.1f);
+
+            theme.Checkbox.Checked.Hovered.BackColor = L(style.AccentBackground, 0.1f);
+            theme.Checkbox.Checked.Hovered.FrontColor = style.AccentForeground;
+            theme.Checkbox.Checked.Hovered.BorderColor = D(style.AccentBackground, 0.05f);
+
+            theme.Checkbox.Checked.Pressed.BackColor = D(style.AccentBackground, 0.05f);
+            theme.Checkbox.Checked.Pressed.FrontColor = style.AccentForeground;
+            theme.Checkbox.Checked.Pressed.BorderColor = D(style.AccentBackground, 0.15f);
+            
+            Profiler.EndSample();
             
             return theme;
         }
