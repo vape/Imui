@@ -113,11 +113,11 @@ namespace Imui
             theme.Slider.Box.BorderWidth = style.BorderWidth;
             theme.Slider.Box.BorderRadius = style.BorderRadius;
             theme.Slider.Box.FrontColor = style.Foreground;
-            theme.Slider.Handle.BorderRadius = style.BorderRadius - style.BorderWidth;
-            
-            theme.Slider.Handle.Normal.BackColor = D(style.Background, 0.4f);
-            theme.Slider.Handle.Hovered.BackColor = D(style.Background, 0.3f);
-            theme.Slider.Handle.Pressed.BackColor = D(style.Background, 0.5f);
+            theme.Slider.Handle.BorderRadius = Mathf.Max(0, style.BorderRadius - style.BorderWidth);
+
+            theme.Slider.Handle.Normal.BackColor = L(style.Foreground, 3.0f); 
+            theme.Slider.Handle.Hovered.BackColor = L(style.Foreground, 3.5f);
+            theme.Slider.Handle.Pressed.BackColor = D(style.AccentBackground, 0.1f);
             
             // List
             theme.List.Box.BorderColor = style.BorderColor;

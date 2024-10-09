@@ -252,9 +252,7 @@ namespace Imui.Controls.Styling.Themes
                     BorderRadius = 4.0f,
                     FrontColor = new Color32(0, 0, 0, 255)
                 },
-                Handle = CreateButtonStyle(),
-                Padding = 1.0f,
-                HandleAspectRatio = 1.0f,
+                Handle = CreateButtonStyle()
             };
 
             style.Handle.Normal.BackColor = new Color32(110, 110, 110, 255);

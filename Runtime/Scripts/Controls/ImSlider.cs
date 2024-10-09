@@ -66,10 +66,9 @@ namespace Imui.Controls
             
             gui.Box(rect, in ImTheme.Active.Slider.Box);
 
-            // TODO (artem-s): fix drawing with 0 border width
-            var rectPadded = rect.WithPadding(ImTheme.Active.Slider.Padding);
+            var rectPadded = rect.WithPadding(ImTheme.Active.Slider.Box.BorderWidth);
 
-            var handleW = rectPadded.H * ImTheme.Active.Slider.HandleAspectRatio;
+            var handleW = step == 0 ? 0.5f * rectPadded.H : Mathf.Max(0.5f * rectPadded.H, rectPadded.W / (max - min));
             var handleH = rectPadded.H;
 
             var xmin = rectPadded.X + handleW / 2.0f;
@@ -158,7 +157,5 @@ namespace Imui.Controls
     {
         public ImBoxStyle Box;
         public ImButtonStyle Handle;
-        public ImPadding Padding;
-        public float HandleAspectRatio;
     }
 }
