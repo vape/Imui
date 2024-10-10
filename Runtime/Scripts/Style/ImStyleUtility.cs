@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace Imui.Controls.Styling
+namespace Imui.Style
 {
-    public static class ImColors
+    public static class ImStyleUtility
     {
         public static readonly Color32 Black = new Color32(0, 0, 0, 255);
         public static readonly Color32 White = new Color32(255, 255, 255, 255);

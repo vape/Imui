@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -14,7 +14,7 @@ namespace Imui.Controls
                 case ImSizeType.Fixed:
                     return gui.Layout.AddRect(size.Width, size.Height);
                 default:
-                    var boxSize = ImTheme.Active.Controls.TextSize;
+                    var boxSize = ImTheme.Active.Layout.TextSize;
                     
                     if (label.IsEmpty)
                     {
@@ -23,7 +23,7 @@ namespace Imui.Controls
 
                     var textSettings = GetTextSettings();
                     var textSize = gui.MeasureTextSize(label, in textSettings);
-                    var width = boxSize + ImTheme.Active.Controls.InnerSpacing + textSize.x;
+                    var width = boxSize + ImTheme.Active.Layout.InnerSpacing + textSize.x;
                     var height = Mathf.Max(boxSize, textSize.y);
                     
                     if (size.Type != ImSizeType.Fit && gui.Layout.Axis != ImAxis.Horizontal)
@@ -58,7 +58,7 @@ namespace Imui.Controls
         public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var boxSize = ImTheme.Active.Controls.TextSize;
+            var boxSize = ImTheme.Active.Layout.TextSize;
             var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Checkbox(gui, id, ref value, boxRect);
 
@@ -69,8 +69,8 @@ namespace Imui.Controls
 
             var textSettings = GetTextSettings();
             
-            textRect.X += ImTheme.Active.Controls.InnerSpacing;
-            textRect.W -= ImTheme.Active.Controls.InnerSpacing;
+            textRect.X += ImTheme.Active.Layout.InnerSpacing;
+            textRect.W -= ImTheme.Active.Layout.InnerSpacing;
             gui.Canvas.Text(label, ImTheme.Active.Text.Color, textRect, textSettings);
             
             if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPress))
@@ -121,15 +121,7 @@ namespace Imui.Controls
         
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f, false);
+            return new ImTextSettings(ImTheme.Active.Layout.TextSize, 0.0f, 0.5f, false);
         }
-    }
-
-    [Serializable]
-    public struct ImCheckboxStyle
-    {
-        public float CheckmarkScale;
-        public ImButtonStyle Normal;
-        public ImButtonStyle Checked;
     }
 }

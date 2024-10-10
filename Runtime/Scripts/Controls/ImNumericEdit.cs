@@ -1,8 +1,8 @@
 using System;
 using System.Globalization;
-using Imui.Controls.Styling;
 using Imui.Core;
 using Imui.IO.Utility;
+using Imui.Style;
 
 // ReSharper disable BuiltInTypeReferenceStyle
 

@@ -1,5 +1,5 @@
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 // ReSharper disable once CheckNamespace

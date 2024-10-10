@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -75,7 +75,7 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings(bool wrap)
         {
-            return new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Text.Alignment, wrap);
+            return new ImTextSettings(ImTheme.Active.Layout.TextSize, ImTheme.Active.Text.Alignment, wrap);
         }
 
         // TODO (artem-s): Got to come up with better solution instead of just brute forcing the fuck of it every time
@@ -109,12 +109,5 @@ namespace Imui.Controls
 
             return new Vector2(textLayout.Width, textLayout.Height);
         }
-    }
-    
-    [Serializable]
-    public struct ImTextStyle
-    {
-        public Color32 Color;
-        public ImTextAlignment Alignment;
     }
 }

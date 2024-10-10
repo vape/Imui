@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -135,7 +135,7 @@ namespace Imui.Controls
         public static ImRect GetListRect(ImGui gui, ImRect controlRect, int itemsCount = 0)
         {
             var width = Mathf.Max(controlRect.W, ImTheme.Active.Dropdown.MinListWidth);
-            var itemsHeight = gui.GetRowHeight() * itemsCount + (ImTheme.Active.Controls.ControlsSpacing * Mathf.Max(0, itemsCount - 1));
+            var itemsHeight = gui.GetRowHeight() * itemsCount + (ImTheme.Active.Layout.ControlsSpacing * Mathf.Max(0, itemsCount - 1));
             var height = Mathf.Min(ImTheme.Active.Dropdown.MaxListHeight, ImList.GetEnclosingHeight(itemsHeight));
             var x = controlRect.X;
             var y = controlRect.Y - height;
@@ -224,14 +224,5 @@ namespace Imui.Controls
         {
             return Mathf.Min(controlWidth * 0.5f, controlHeight);
         }
-    }
-
-    [Serializable]
-    public struct ImDropdownStyle
-    {
-        public float ArrowScale;
-        public ImButtonStyle Button;
-        public float MaxListHeight;
-        public float MinListWidth;
     }
 }

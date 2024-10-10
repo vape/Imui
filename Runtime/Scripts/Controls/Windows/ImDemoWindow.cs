@@ -1,10 +1,8 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
-using Imui.Controls.Styling;
-using Imui.Controls.Styling.Themes;
 using Imui.Core;
-using Imui.IO.Events;
+using Imui.Style;
+using Imui.Style.Themes;
 using UnityEngine;
 
 namespace Imui.Controls.Windows
@@ -46,7 +44,7 @@ namespace Imui.Controls.Windows
         private static int bouncingBallTrail = 32;
         private static float bouncingBallTime;
         private static int selectedTheme;
-        private static string[] themes = { ImLightTheme.NAME, ImDarkTheme.NAME };
+        private static string[] themes = { "Light", "Dark" };
 
         private static string[] values =
         {
@@ -69,13 +67,11 @@ namespace Imui.Controls.Windows
         private static ImDemoEnumFlags demoFlags;
 
         private static int selectedNode = -1;
+
         private static ImDemoTreeNode[] treeNodes = new[]
         {
-            new ImDemoTreeNode("Node 0", true, 1, 2),
-            new ImDemoTreeNode("Node 1", false),
-            new ImDemoTreeNode("Node 2", false, 3),
-            new ImDemoTreeNode("Node 3", false),
-            new ImDemoTreeNode("Node 4", true)
+            new ImDemoTreeNode("Node 0", true, 1, 2), new ImDemoTreeNode("Node 1", false), new ImDemoTreeNode("Node 2", false, 3),
+            new ImDemoTreeNode("Node 3", false), new ImDemoTreeNode("Node 4", true)
         };
 
         private static HashSet<int> selectedValues = new HashSet<int>(values.Length);
@@ -241,13 +237,13 @@ namespace Imui.Controls.Windows
                 if (changed)
                 {
                     node.Expanded = state.HasFlag(ImTreeNodeState.Expanded);
-                    
+
                     if ((state & ImTreeNodeState.Selected) != 0)
                     {
                         selectedNode = index;
                     }
                 }
-                
+
                 if (node is { Expanded: true, Nodes: not null })
                 {
                     for (int i = 0; i < node.Nodes.Length; ++i)
@@ -255,6 +251,7 @@ namespace Imui.Controls.Windows
                         Node(gui, node.Nodes[i], nodes);
                     }
                 }
+
                 gui.EndTreeNode();
             }
 
@@ -313,25 +310,23 @@ namespace Imui.Controls.Windows
 
         private static void DrawStylePage(ImGui gui)
         {
-            selectedTheme = GetThemeIndex(ImTheme.Active.Name);
-
             gui.Text("Theme");
             if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
             {
                 ImTheme.Active = CreateTheme(selectedTheme);
             }
 
-            gui.Text(Format("Text Size: ", ImTheme.Active.Controls.TextSize));
-            gui.Slider(ref ImTheme.Active.Controls.TextSize, 6, 128);
+            gui.Text(Format("Text Size: ", ImTheme.Active.Layout.TextSize));
+            gui.Slider(ref ImTheme.Active.Layout.TextSize, 6, 128);
 
-            gui.Text(Format("Spacing: ", ImTheme.Active.Controls.ControlsSpacing));
-            gui.Slider(ref ImTheme.Active.Controls.ControlsSpacing, 0, 32);
+            gui.Text(Format("Spacing: ", ImTheme.Active.Layout.ControlsSpacing));
+            gui.Slider(ref ImTheme.Active.Layout.ControlsSpacing, 0, 32);
 
-            gui.Text(Format("Extra Row Size: ", ImTheme.Active.Controls.ExtraRowHeight));
-            gui.Slider(ref ImTheme.Active.Controls.ExtraRowHeight, 0, 32);
+            gui.Text(Format("Extra Row Size: ", ImTheme.Active.Layout.ExtraRowHeight));
+            gui.Slider(ref ImTheme.Active.Layout.ExtraRowHeight, 0, 32);
 
-            gui.Text(Format("Indent: ", ImTheme.Active.Controls.Indent));
-            gui.Slider(ref ImTheme.Active.Controls.Indent, 0, 32);
+            gui.Text(Format("Indent: ", ImTheme.Active.Layout.Indent));
+            gui.Slider(ref ImTheme.Active.Layout.Indent, 0, 32);
 
             if (gui.Button("Reset"))
             {
@@ -376,7 +371,7 @@ namespace Imui.Controls.Windows
 
             gui.BeginDropdown(controlId, ref customDropdownOpen, default);
             {
-                var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f);
+                var textSettings = new ImTextSettings(ImTheme.Active.Layout.TextSize, 0.0f, 0.5f);
 
                 gui.Text("Boxes ticked: ", textSettings);
 
@@ -423,7 +418,7 @@ namespace Imui.Controls.Windows
 
             gui.BeginFoldout(out var nestedFoldoutOpen, label);
             gui.BeginIndent();
-            
+
             if (nestedFoldoutOpen)
             {
                 if (current < total)
@@ -449,19 +444,6 @@ namespace Imui.Controls.Windows
 
             gui.EndIndent();
             gui.EndFoldout();
-        }
-
-        private static int GetThemeIndex(string name)
-        {
-            for (int i = 0; i < themes.Length; ++i)
-            {
-                if (themes[i] == name)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
         }
 
         private static ImTheme CreateTheme(int index)

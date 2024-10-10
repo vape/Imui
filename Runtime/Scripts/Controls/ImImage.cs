@@ -1,5 +1,5 @@
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -33,7 +33,7 @@ namespace Imui.Controls
             }
             
             gui.Canvas.PushTexture(texture);
-            gui.Canvas.Rect(rect, ImColors.White);
+            gui.Canvas.Rect(rect, ImStyleUtility.White);
             gui.Canvas.PopTexture();
         }
     }

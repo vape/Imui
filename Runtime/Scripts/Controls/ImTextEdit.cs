@@ -2,9 +2,9 @@ using System;
 using System.Runtime.InteropServices;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Rendering;
-using Imui.Controls.Styling;
 using Imui.IO.Utility;
+using Imui.Rendering;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -196,9 +196,9 @@ namespace Imui.Controls
 
             gui.Box(rect, stateStyle.Box.Apply(adjacency));
 
-            ImPadding textPadding = ImTheme.Active.Controls.InnerSpacing;
+            ImPadding textPadding = ImTheme.Active.Layout.InnerSpacing;
             
-            var textSize = ImTheme.Active.Controls.TextSize;
+            var textSize = ImTheme.Active.Layout.TextSize;
             var textAlignment = ImTheme.Active.TextEdit.Alignment;
 
             if (!multiline)
@@ -997,22 +997,5 @@ namespace Imui.Controls
         
         public abstract bool IsValid(ReadOnlySpan<char> buffer);
         public abstract string GetFallbackString();
-    }
-
-    [Serializable]
-    public struct ImTextEditStateStyle
-    {
-        public ImBoxStyle Box;
-        public Color32 SelectionColor;
-    }
-    
-    [Serializable]
-    public struct ImTextEditStyle
-    {
-        public ImTextEditStateStyle Normal;
-        public ImTextEditStateStyle Selected;
-        public float CaretWidth;
-        public ImTextAlignment Alignment;
-        public bool TextWrap;
     }
 }

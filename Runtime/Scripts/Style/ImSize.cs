@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Imui.Controls.Styling
+namespace Imui.Style
 {
     public enum ImSizeType
     {

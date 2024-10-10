@@ -1,7 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -119,7 +119,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
             var rect = GetTitleBarRect(gui, windowRect, out var radius);
-            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, style.TitleBar.Alignment);
+            var textSettings = new ImTextSettings(ImTheme.Active.Layout.TextSize, style.TitleBar.Alignment);
             var movable = (state.Flags & ImWindowFlag.DisableMoving) == 0;
             
             gui.Canvas.Rect(rect, style.TitleBar.BackColor, radius);
@@ -226,30 +226,12 @@ namespace Imui.Controls
         {
             ref readonly var style = ref ImTheme.Active.Window;
             
-            var height = ImTheme.Active.Controls.InnerSpacing + gui.GetRowHeight();
+            var height = ImTheme.Active.Layout.InnerSpacing + gui.GetRowHeight();
             var radiusTopLeft = style.Box.BorderRadius.TopLeft - style.Box.BorderWidth;
             var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderWidth;
             cornerRadius = new ImRectRadius(radiusTopLeft, radiusTopRight);
             
             return rect.WithPadding(style.Box.BorderWidth).SplitTop(height);
         }
-    }
-    
-    [Serializable]
-    public struct ImWindowTitleBarStyle
-    {
-        public Color32 BackColor;
-        public Color32 FrontColor;
-        public ImTextAlignment Alignment;
-    }
-        
-    [Serializable]
-    public struct ImWindowStyle
-    {
-        public ImBoxStyle Box;
-        public Color32 ResizeHandleColor;
-        public float ResizeHandleSize;
-        public ImPadding ContentPadding;
-        public ImWindowTitleBarStyle TitleBar;
     }
 }

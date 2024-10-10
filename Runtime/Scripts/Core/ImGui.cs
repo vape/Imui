@@ -1,6 +1,7 @@
 using System;
 using Imui.IO;
 using Imui.Rendering;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
@@ -188,7 +189,7 @@ namespace Imui.Core
             if (isReadOnly)
             {
                 // TODO (artem-s): temporary, ImTheme will go into ImGui
-                Canvas.PushInvColorMul(1 - Imui.Controls.Styling.ImTheme.Active.Controls.ReadOnlyColorMultiplier);
+                Canvas.PushInvColorMul(1 - ImTheme.Active.Layout.ReadOnlyColorMultiplier);
             }
             else
             {
@@ -432,5 +433,17 @@ namespace Imui.Core
             
             disposed = true;
         }
+    }
+    
+    [Flags]
+    public enum ImControlFlag
+    {
+        None      = 0,
+        Draggable = 1 << 0
+    }
+    
+    public struct ImControlSettings
+    {
+        public ImAdjacency Adjacency;
     }
 }

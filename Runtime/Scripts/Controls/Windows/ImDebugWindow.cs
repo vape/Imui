@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 

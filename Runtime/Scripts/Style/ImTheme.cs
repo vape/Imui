@@ -1,15 +1,14 @@
 using System;
-using Imui.Controls.Styling.Themes;
+using Imui.Style.Themes;
 
-namespace Imui.Controls.Styling
+namespace Imui.Style
 {
     [Serializable]
     public struct ImTheme
     {
         public static ImTheme Active = ImLightTheme.Create();
 
-        public string Name;
-        public ImControlsStyle Controls;
+        public ImLayoutStyle Layout;
         public ImWindowStyle Window;
         public ImTextStyle Text;
         public ImButtonStyle Button;
@@ -20,7 +19,7 @@ namespace Imui.Controls.Styling
         public ImDropdownStyle Dropdown;
         public ImSliderStyle Slider;
         public ImListStyle List;
-        public ImRadioStyle Radiobox;
+        public ImRadioboxStyle Radiobox;
         public ImSeparatorStyle Separator;
         public ImTreeStyle Tree;
     }

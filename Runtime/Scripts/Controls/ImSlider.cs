@@ -1,7 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -98,7 +98,7 @@ namespace Imui.Controls
                 format = GetFormatForStep(gui, step);
             }
 
-            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.5f, 0.5f);
+            var textSettings = new ImTextSettings(ImTheme.Active.Layout.TextSize, 0.5f, 0.5f);
             gui.Text(gui.Formatter.Format(value, format), in textSettings, ImTheme.Active.Slider.Box.FrontColor, rect);
 
             if (gui.IsReadOnly)
@@ -150,12 +150,5 @@ namespace Imui.Controls
 
             return gui.Formatter.JoinDuplicate("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
         }
-    }
-
-    [Serializable]
-    public struct ImSliderStyle
-    {
-        public ImBoxStyle Box;
-        public ImButtonStyle Handle;
     }
 }

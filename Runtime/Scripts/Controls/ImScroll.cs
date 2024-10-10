@@ -1,7 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -128,7 +128,7 @@ namespace Imui.Controls
             switch (evt.Type)
             {
                 case ImMouseEventType.Scroll when groupHovered:
-                    var scale = ImTheme.Active.Controls.ScrollSpeedScale;
+                    var scale = ImTheme.Active.Layout.ScrollSpeedScale;
                     dx += evt.Delta.x * scale;
                     dy += evt.Delta.y * scale;
                     deferredUseMouseEvent = true;
@@ -283,26 +283,5 @@ namespace Imui.Controls
         {
             return (int)(ImTheme.Active.Scroll.Size + (axis == 0 ? ImTheme.Active.Scroll.HMargin.Vertical : ImTheme.Active.Scroll.VMargin.Horizontal));
         }
-    }
-    
-            
-    [Serializable]
-    public struct ImScrollBarStateStyle
-    {
-        public Color32 BackColor;
-        public Color32 FrontColor;
-    }
-
-    [Serializable]
-    public struct ImScrollStyle
-    {
-        public float Size;
-        public float Padding;
-        public float BorderRadius;
-        public ImPadding VMargin;
-        public ImPadding HMargin;
-        public ImScrollBarStateStyle NormalState;
-        public ImScrollBarStateStyle HoveredState;
-        public ImScrollBarStateStyle PressedState;
     }
 }

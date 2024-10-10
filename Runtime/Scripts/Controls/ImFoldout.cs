@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -31,9 +31,9 @@ namespace Imui.Controls
             using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, ImTheme.Active.Foldout.Button);
 
             var textSettings = ImButton.CreateTextSettings();
-            var arrowSize = ImTheme.Active.Controls.TextSize;
+            var arrowSize = ImTheme.Active.Layout.TextSize;
             var contentRect = ImButton.CalculateContentRect(rect);
-            var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Controls.InnerSpacing, out var labelRect).WithAspect(1.0f);
+            var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
 
             if (gui.Button(id, rect, out var state))
             {
@@ -98,12 +98,5 @@ namespace Imui.Controls
         
             canvas.ConvexFill(points, color);
         }
-    }
-
-    [Serializable]
-    public struct ImFoldoutStyle
-    {
-        public float ArrowScale;
-        public ImButtonStyle Button;
     }
 }

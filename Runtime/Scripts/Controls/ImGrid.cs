@@ -1,5 +1,5 @@
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -73,7 +73,7 @@ namespace Imui.Controls
 
         public static Vector2 GetDefaultSpacing()
         {
-            return new Vector2(ImTheme.Active.Controls.ControlsSpacing, ImTheme.Active.Controls.ControlsSpacing);
+            return new Vector2(ImTheme.Active.Layout.ControlsSpacing, ImTheme.Active.Layout.ControlsSpacing);
         }
     }
 }

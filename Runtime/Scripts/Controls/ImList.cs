@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 
 namespace Imui.Controls
 {
@@ -76,13 +76,5 @@ namespace Imui.Controls
         {
             return contentHeight + ImTheme.Active.List.Padding.Vertical;
         }
-    }
-
-    public struct ImListStyle
-    {
-        public ImBoxStyle Box;
-        public ImPadding Padding;
-        public ImButtonStyle ItemNormal;
-        public ImButtonStyle ItemSelected;
     }
 }

@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 using Imui.Utility;
 
 namespace Imui.Controls
@@ -105,7 +105,7 @@ namespace Imui.Controls
         public static bool Radio(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var boxSize = ImTheme.Active.Controls.TextSize;
+            var boxSize = ImTheme.Active.Layout.TextSize;
             var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Radio(gui, id, ref value, boxRect);
 
@@ -116,8 +116,8 @@ namespace Imui.Controls
 
             var textSettings = GetTextSettings();
 
-            textRect.X += ImTheme.Active.Controls.InnerSpacing;
-            textRect.W -= ImTheme.Active.Controls.InnerSpacing;
+            textRect.X += ImTheme.Active.Layout.InnerSpacing;
+            textRect.W -= ImTheme.Active.Layout.InnerSpacing;
             gui.Canvas.Text(label, ImTheme.Active.Text.Color, textRect, textSettings);
 
             if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPress))
@@ -154,15 +154,7 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings()
         {
-            return new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f, false);
+            return new ImTextSettings(ImTheme.Active.Layout.TextSize, 0.0f, 0.5f, false);
         }
-    }
-
-    [Serializable]
-    public struct ImRadioStyle
-    {
-        public float KnobScale;
-        public ImButtonStyle Normal;
-        public ImButtonStyle Checked;
     }
 }

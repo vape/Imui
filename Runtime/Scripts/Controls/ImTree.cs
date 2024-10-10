@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 
 namespace Imui.Controls
 {
@@ -39,9 +39,9 @@ namespace Imui.Controls
             
             ref readonly var buttonStyle = ref ((state & ImTreeNodeState.Selected) != 0 ? ref ImTheme.Active.Tree.ItemSelected : ref ImTheme.Active.Tree.ItemNormal);
 
-            var arrowSize = ImTheme.Active.Controls.TextSize;
+            var arrowSize = ImTheme.Active.Layout.TextSize;
             var contentRect = ImButton.CalculateContentRect(rect);
-            var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Controls.InnerSpacing, out var labelRect).WithAspect(1.0f);
+            var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
             var changed = false;
             var buttonState = ImButtonState.Normal;
             var nonExpandable = (flags & ImTreeNodeFlags.NonExpandable) != 0;
@@ -79,7 +79,7 @@ namespace Imui.Controls
                 }
             }
             
-            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, buttonStyle.Alignment);
+            var textSettings = new ImTextSettings(ImTheme.Active.Layout.TextSize, buttonStyle.Alignment);
             gui.Text(label, textSettings, boxStyle.FrontColor, labelRect);
 
             gui.BeginIndent();
@@ -92,12 +92,5 @@ namespace Imui.Controls
             gui.EndIndent();
             gui.PopId();
         }
-    }
-
-    public struct ImTreeStyle
-    {
-        public float ArrowScale;
-        public ImButtonStyle ItemNormal;
-        public ImButtonStyle ItemSelected;
     }
 }

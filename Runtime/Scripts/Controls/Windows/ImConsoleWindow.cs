@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
@@ -103,7 +103,7 @@ namespace Imui.Controls.Windows
                         : (isErro ? erroColor1 : isWarn ? warnColor1 : infoColor1);
 
                     gui.Canvas.Rect(rect, color);
-                    gui.Canvas.Text(msg.Text, ImTheme.Active.Text.Color, rect.TopLeft, ImTheme.Active.Controls.TextSize);
+                    gui.Canvas.Text(msg.Text, ImTheme.Active.Text.Color, rect.TopLeft, ImTheme.Active.Layout.TextSize);
 
                     if (gui.InvisibleButton(rect))
                     {
