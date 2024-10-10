@@ -34,6 +34,23 @@ namespace Imui.Controls.Windows
 
     public static class ImDemoWindow
     {
+        private static string[] themes =
+        {
+            nameof(ImThemeBuiltin.Light), 
+            nameof(ImThemeBuiltin.Dark), 
+            nameof(ImThemeBuiltin.Dear)
+        };
+
+        private static ImTheme CreateTheme(int index)
+        {
+            return index switch
+            {
+                2 => ImThemeBuiltin.Dear(),
+                1 => ImThemeBuiltin.Dark(),
+                _ => ImThemeBuiltin.Light()
+            };
+        }
+        
         private static char[] formatBuffer = new char[256];
 
         private static bool checkboxValue;
@@ -43,7 +60,6 @@ namespace Imui.Controls.Windows
         private static int bouncingBallTrail = 32;
         private static float bouncingBallTime;
         private static int selectedTheme;
-        private static string[] themes = { "Light", "Dark" };
 
         private static string[] values =
         {
@@ -312,7 +328,7 @@ namespace Imui.Controls.Windows
             gui.Text("Theme");
             if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
             {
-                gui.SetTheme(GetTheme(selectedTheme));
+                gui.SetTheme(CreateTheme(selectedTheme));
             }
 
             gui.Text(Format("Text Size: ", gui.Style.Layout.TextSize));
@@ -329,7 +345,7 @@ namespace Imui.Controls.Windows
 
             if (gui.Button("Reset"))
             {
-                gui.SetTheme(GetTheme(selectedTheme));
+                gui.SetTheme(CreateTheme(selectedTheme));
             }
         }
 
@@ -444,16 +460,7 @@ namespace Imui.Controls.Windows
             gui.EndIndent();
             gui.EndFoldout();
         }
-
-        private static ImTheme GetTheme(int index)
-        {
-            return index switch
-            {
-                1 => ImThemeBuiltin.Dark(),
-                _ => ImThemeBuiltin.Light()
-            };
-        }
-
+        
         private static ReadOnlySpan<char> Format(ReadOnlySpan<char> prefix, float value, ReadOnlySpan<char> format = default)
         {
             var dst = new Span<char>(formatBuffer);

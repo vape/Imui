@@ -214,6 +214,9 @@ namespace Imui.Controls
             {
                 clicked = gui.Button(id, rect, out var state);
                 
+                rect = rect.WithAspect(1.0f);
+                rect = rect.ScaleFromCenter(gui.Style.Layout.TextSize / rect.W);
+                
                 ImFoldout.DrawArrowDown(gui.Canvas, rect, ImButton.GetStateFrontColor(gui, state), gui.Style.Dropdown.ArrowScale);
             }
             
