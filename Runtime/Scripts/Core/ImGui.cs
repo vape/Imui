@@ -191,7 +191,6 @@ namespace Imui.Core
 
             if (isReadOnly)
             {
-                // TODO (artem-s): temporary, ImTheme will go into ImGui
                 Canvas.PushInvColorMul(1 - Style.Theme.ReadOnlyColorMultiplier);
             }
             else

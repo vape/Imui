@@ -9,8 +9,7 @@
   - Add support for (basic subset of) rich text
   - Optimize layout and rendering
 - Fix touch keyboard in webgl
-- In code documentation
-- Simplify styling and fix the current themes as they look kinda ugly
+- ~~Simplify styling and fix the current themes as they look kinda ugly~~
 - Implement slider inside numeric editor
 - Show min/max value inside slider
 - Make slider looking similar to sliders in other GUI libraries, dearimgui look seems off
@@ -24,6 +23,7 @@
 
 ### Later
 - Plotting control
+- In code documentation
 
 ### Maybe
 - Reorder demo controls from basic to more advanced

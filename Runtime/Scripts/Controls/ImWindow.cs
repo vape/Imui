@@ -40,7 +40,6 @@ namespace Imui.Controls
             
             gui.Layout.Push(ImAxis.Vertical, contentRect);
             
-            // TODO (artem-s): do not apply padding to scorll bar, specifically in windows
             gui.BeginScrollable();
         }
 
