@@ -12,27 +12,27 @@ namespace Imui.Controls
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, bool wrap = false)
         {
-            Text(gui, text, GetTextSettings(wrap));
+            Text(gui, text, GetTextSettings(gui, wrap));
         }
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, Color32 color, bool wrap = false)
         {
-            Text(gui, text, GetTextSettings(wrap), color);
+            Text(gui, text, GetTextSettings(gui, wrap), color);
         }
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool wrap = false)
         {
-            Text(gui, text, GetTextSettings(wrap), rect);
+            Text(gui, text, GetTextSettings(gui, wrap), rect);
         }
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, Color32 color, ImRect rect, bool wrap = false)
         {
-            Text(gui, text, GetTextSettings(wrap), color, rect);
+            Text(gui, text, GetTextSettings(gui, wrap), color, rect);
         }
 
         public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool wrap = false)
         {
-            TextAutoSize(gui, text, ImTheme.Active.Text.Color, rect, wrap);
+            TextAutoSize(gui, text, gui.Style.Text.Color, rect, wrap);
         }
         
         public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, Color32 color, ImRect rect, bool wrap = false)
@@ -43,14 +43,14 @@ namespace Imui.Controls
                 return;
             }
             
-            var settings = GetTextSettings(wrap);
+            var settings = GetTextSettings(gui, wrap);
             settings.Size = AutoSizeTextSlow(gui, text, settings, rect.Size);
             Text(gui, text, settings, color, rect);
         }
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings)
         {
-            Text(gui, text, in settings, ImTheme.Active.Text.Color);
+            Text(gui, text, in settings, gui.Style.Text.Color);
         }
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings, Color32 color)
@@ -65,7 +65,7 @@ namespace Imui.Controls
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings, ImRect rect)
         {
-            gui.Canvas.Text(text, ImTheme.Active.Text.Color, rect, in settings);
+            gui.Canvas.Text(text, gui.Style.Text.Color, rect, in settings);
         }
         
         public static void Text(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings, Color32 color, ImRect rect)
@@ -73,9 +73,9 @@ namespace Imui.Controls
             gui.Canvas.Text(text, color, rect, in settings);
         }
 
-        public static ImTextSettings GetTextSettings(bool wrap)
+        public static ImTextSettings GetTextSettings(ImGui gui, bool wrap)
         {
-            return new ImTextSettings(ImTheme.Active.Layout.TextSize, ImTheme.Active.Text.Alignment, wrap);
+            return new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.Text.Alignment, wrap);
         }
 
         // TODO (artem-s): Got to come up with better solution instead of just brute forcing the fuck of it every time

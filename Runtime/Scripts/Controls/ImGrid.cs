@@ -1,5 +1,4 @@
 using Imui.Core;
-using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -19,7 +18,7 @@ namespace Imui.Controls
         public static ImGridState BeginGrid(this ImGui gui, int columns, float cellHeight = 0)
         {
             var width = gui.GetLayoutWidth();
-            var spacing = GetDefaultSpacing();
+            var spacing = GetDefaultSpacing(gui);
             var cellWidth = Mathf.Floor((width + spacing.x) / columns - spacing.x);
             cellHeight = cellHeight <= 0 ? cellWidth : cellHeight;
 
@@ -28,7 +27,7 @@ namespace Imui.Controls
         
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize)
         {
-            return BeginGrid(gui, cellSize, GetDefaultSpacing());
+            return BeginGrid(gui, cellSize, GetDefaultSpacing(gui));
         }
         
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize, Vector2 spacing)
@@ -71,9 +70,9 @@ namespace Imui.Controls
             return new ImRect(x, y - state.CellSize.y, state.CellSize.x, state.CellSize.y);
         }
 
-        public static Vector2 GetDefaultSpacing()
+        public static Vector2 GetDefaultSpacing(ImGui gui)
         {
-            return new Vector2(ImTheme.Active.Layout.ControlsSpacing, ImTheme.Active.Layout.ControlsSpacing);
+            return new Vector2(gui.Style.Layout.ControlsSpacing, gui.Style.Layout.ControlsSpacing);
         }
     }
 }

@@ -110,7 +110,7 @@ namespace Imui.Controls.Windows
             }
 
             gui.BeginList(rect);
-            gui.Canvas.Line(points, ImTheme.Active.Text.Color, false, 1);
+            gui.Canvas.Line(points, gui.Style.Text.Color, false, 1);
             gui.EndList();
         }
     }

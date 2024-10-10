@@ -18,14 +18,14 @@ namespace Imui.Controls
             if (gui.Layout.Axis == ImAxis.Horizontal)
             {
                 vertical = true;
-                width = ImTheme.Active.Separator.Thickness;
+                width = gui.Style.Separator.Thickness;
                 height = gui.Layout.GetContentRect().H;
             }
             else
             {
                 vertical = false;
                 width = gui.GetLayoutWidth();
-                height = ImTheme.Active.Separator.Thickness;
+                height = gui.Style.Separator.Thickness;
             }
             
             Separator(gui, gui.AddLayoutRect(width, height), vertical);
@@ -48,7 +48,7 @@ namespace Imui.Controls
             }
 
             Span<Vector2> path = stackalloc Vector2[2] { p0, p1 };
-            gui.Canvas.Line(path, ImTheme.Active.Separator.Color, false, ImTheme.Active.Separator.Thickness);
+            gui.Canvas.Line(path, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
         }
     }
 }

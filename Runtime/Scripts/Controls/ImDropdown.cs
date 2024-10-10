@@ -134,9 +134,9 @@ namespace Imui.Controls
 
         public static ImRect GetListRect(ImGui gui, ImRect controlRect, int itemsCount = 0)
         {
-            var width = Mathf.Max(controlRect.W, ImTheme.Active.Dropdown.MinListWidth);
-            var itemsHeight = gui.GetRowHeight() * itemsCount + (ImTheme.Active.Layout.ControlsSpacing * Mathf.Max(0, itemsCount - 1));
-            var height = Mathf.Min(ImTheme.Active.Dropdown.MaxListHeight, ImList.GetEnclosingHeight(itemsHeight));
+            var width = Mathf.Max(controlRect.W, gui.Style.Dropdown.MinListWidth);
+            var itemsHeight = gui.GetRowHeight() * itemsCount + (gui.Style.Layout.ControlsSpacing * Mathf.Max(0, itemsCount - 1));
+            var height = Mathf.Min(gui.Style.Dropdown.MaxListHeight, ImList.GetEnclosingHeight(gui, itemsHeight));
             var x = controlRect.X;
             var y = controlRect.Y - height;
 
@@ -193,7 +193,7 @@ namespace Imui.Controls
         
         public static void PreviewButton(ImGui gui, uint id, ref bool open, ReadOnlySpan<char> label)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in ImTheme.Active.Dropdown.Button);
+            using var _ = new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, in gui.Style.Dropdown.Button);
 
             if (gui.Button(id, label, gui.Layout.GetBoundsRect()))
             {
@@ -210,11 +210,11 @@ namespace Imui.Controls
         {
             bool clicked;
             
-            using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in ImTheme.Active.Dropdown.Button))
+            using (new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
             {
                 clicked = gui.Button(id, rect, out var state);
                 
-                ImFoldout.DrawArrowDown(gui.Canvas, rect, ImButton.GetStateFrontColor(state), ImTheme.Active.Dropdown.ArrowScale);
+                ImFoldout.DrawArrowDown(gui.Canvas, rect, ImButton.GetStateFrontColor(gui, state), gui.Style.Dropdown.ArrowScale);
             }
             
             return clicked;

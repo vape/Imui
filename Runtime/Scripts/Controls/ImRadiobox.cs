@@ -105,7 +105,7 @@ namespace Imui.Controls
         public static bool Radio(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var boxSize = ImTheme.Active.Layout.TextSize;
+            var boxSize = gui.Style.Layout.TextSize;
             var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Radio(gui, id, ref value, boxRect);
 
@@ -114,11 +114,11 @@ namespace Imui.Controls
                 return changed;
             }
 
-            var textSettings = GetTextSettings();
+            var textSettings = GetTextSettings(gui);
 
-            textRect.X += ImTheme.Active.Layout.InnerSpacing;
-            textRect.W -= ImTheme.Active.Layout.InnerSpacing;
-            gui.Canvas.Text(label, ImTheme.Active.Text.Color, textRect, textSettings);
+            textRect.X += gui.Style.Layout.InnerSpacing;
+            textRect.W -= gui.Style.Layout.InnerSpacing;
+            gui.Canvas.Text(label, gui.Style.Text.Color, textRect, textSettings);
 
             if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPress))
             {
@@ -131,16 +131,16 @@ namespace Imui.Controls
         
         public static bool Radio(this ImGui gui, uint id, ref bool value, ImRect rect)
         {
-            ref readonly var style = ref (value ? ref ImTheme.Active.Radiobox.Checked : ref ImTheme.Active.Radiobox.Normal);
+            ref readonly var style = ref (value ? ref gui.Style.Radiobox.Checked : ref gui.Style.Radiobox.Normal);
             
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in style);
+            using var _ = new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, in style);
 
             var clicked = gui.Button(id, rect, out var state);
-            var frontColor = ImButton.GetStateFrontColor(state);
+            var frontColor = ImButton.GetStateFrontColor(gui, state);
 
             if (value)
             {
-                var circleRect = rect.ScaleFromCenter(ImTheme.Active.Radiobox.KnobScale);
+                var circleRect = rect.ScaleFromCenter(gui.Style.Radiobox.KnobScale);
                 gui.Canvas.Ellipse(circleRect, frontColor);
             }
 
@@ -152,9 +152,9 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static ImTextSettings GetTextSettings()
+        public static ImTextSettings GetTextSettings(ImGui gui)
         {
-            return new ImTextSettings(ImTheme.Active.Layout.TextSize, 0.0f, 0.5f, false);
+            return new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f, false);
         }
     }
 }

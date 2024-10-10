@@ -28,27 +28,27 @@ namespace Imui.Controls
         
         public static bool DrawFoldout(ImGui gui, uint id, bool open, ReadOnlySpan<char> label, ImRect rect)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, ImTheme.Active.Foldout.Button);
+            using var _ = new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, gui.Style.Foldout.Button);
 
-            var textSettings = ImButton.CreateTextSettings();
-            var arrowSize = ImTheme.Active.Layout.TextSize;
-            var contentRect = ImButton.CalculateContentRect(rect);
-            var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
+            var textSettings = ImButton.CreateTextSettings(gui);
+            var arrowSize = gui.Style.Layout.TextSize;
+            var contentRect = ImButton.CalculateContentRect(gui, rect);
+            var arrowRect = contentRect.SplitLeft(arrowSize, gui.Style.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
 
             if (gui.Button(id, rect, out var state))
             {
                 open = !open;
             }
             
-            var frontColor = ImButton.GetStateFrontColor(state);
+            var frontColor = ImButton.GetStateFrontColor(gui, state);
             
             if (open)
             {
-                DrawArrowDown(gui.Canvas, arrowRect, frontColor, ImTheme.Active.Foldout.ArrowScale);
+                DrawArrowDown(gui.Canvas, arrowRect, frontColor, gui.Style.Foldout.ArrowScale);
             }
             else
             {
-                DrawArrowRight(gui.Canvas, arrowRect, frontColor, ImTheme.Active.Foldout.ArrowScale);
+                DrawArrowRight(gui.Canvas, arrowRect, frontColor, gui.Style.Foldout.ArrowScale);
             }
             
             gui.Text(label, in textSettings, labelRect);

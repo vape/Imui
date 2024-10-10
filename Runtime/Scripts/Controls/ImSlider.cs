@@ -64,9 +64,9 @@ namespace Imui.Controls
 
             var normValue = Mathf.InverseLerp(min, max, value);
             
-            gui.Box(rect, in ImTheme.Active.Slider.Box);
+            gui.Box(rect, in gui.Style.Slider.Box);
 
-            var rectPadded = rect.WithPadding(ImTheme.Active.Slider.Box.BorderWidth);
+            var rectPadded = rect.WithPadding(gui.Style.Slider.Box.BorderWidth);
 
             var handleW = step == 0 ? 0.5f * rectPadded.H : Mathf.Max(0.5f * rectPadded.H, rectPadded.W / (max - min));
             var handleH = rectPadded.H;
@@ -82,7 +82,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
 
-            using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, ImTheme.Active.Slider.Handle))
+            using (new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
                 if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPress))
                 {
@@ -98,8 +98,8 @@ namespace Imui.Controls
                 format = GetFormatForStep(gui, step);
             }
 
-            var textSettings = new ImTextSettings(ImTheme.Active.Layout.TextSize, 0.5f, 0.5f);
-            gui.Text(gui.Formatter.Format(value, format), in textSettings, ImTheme.Active.Slider.Box.FrontColor, rect);
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, 0.5f, 0.5f);
+            gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Box.FrontColor, rect);
 
             if (gui.IsReadOnly)
             {

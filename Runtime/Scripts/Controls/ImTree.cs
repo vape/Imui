@@ -37,11 +37,11 @@ namespace Imui.Controls
         {
             gui.PushId(label);
             
-            ref readonly var buttonStyle = ref ((state & ImTreeNodeState.Selected) != 0 ? ref ImTheme.Active.Tree.ItemSelected : ref ImTheme.Active.Tree.ItemNormal);
+            ref readonly var buttonStyle = ref ((state & ImTreeNodeState.Selected) != 0 ? ref gui.Style.Tree.ItemSelected : ref gui.Style.Tree.ItemNormal);
 
-            var arrowSize = ImTheme.Active.Layout.TextSize;
-            var contentRect = ImButton.CalculateContentRect(rect);
-            var arrowRect = contentRect.SplitLeft(arrowSize, ImTheme.Active.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
+            var arrowSize = gui.Style.Layout.TextSize;
+            var contentRect = ImButton.CalculateContentRect(gui, rect);
+            var arrowRect = contentRect.SplitLeft(arrowSize, gui.Style.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
             var changed = false;
             var buttonState = ImButtonState.Normal;
             var nonExpandable = (flags & ImTreeNodeFlags.NonExpandable) != 0;
@@ -71,15 +71,15 @@ namespace Imui.Controls
             {
                 if ((state & ImTreeNodeState.Expanded) != 0)
                 {
-                    ImFoldout.DrawArrowDown(gui.Canvas, arrowRect, boxStyle.FrontColor, ImTheme.Active.Tree.ArrowScale);
+                    ImFoldout.DrawArrowDown(gui.Canvas, arrowRect, boxStyle.FrontColor, gui.Style.Tree.ArrowScale);
                 }
                 else
                 {
-                    ImFoldout.DrawArrowRight(gui.Canvas, arrowRect, boxStyle.FrontColor, ImTheme.Active.Tree.ArrowScale);
+                    ImFoldout.DrawArrowRight(gui.Canvas, arrowRect, boxStyle.FrontColor, gui.Style.Tree.ArrowScale);
                 }
             }
             
-            var textSettings = new ImTextSettings(ImTheme.Active.Layout.TextSize, buttonStyle.Alignment);
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, buttonStyle.Alignment);
             gui.Text(label, textSettings, boxStyle.FrontColor, labelRect);
 
             gui.BeginIndent();

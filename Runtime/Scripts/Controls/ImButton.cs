@@ -27,12 +27,12 @@ namespace Imui.Controls
         {
             if (size.Type == ImSizeType.Fit || (size.Type == ImSizeType.Auto && gui.Layout.Axis == ImAxis.Horizontal))
             {
-                var textSettings = CreateTextSettings();
+                var textSettings = CreateTextSettings(gui);
                 var textSize = gui.MeasureTextSize(label, in textSettings);
                 var rectSize = textSize;
 
-                rectSize.x += ImTheme.Active.Layout.InnerSpacing * 2;
-                rectSize.y += ImTheme.Active.Layout.ExtraRowHeight;
+                rectSize.x += gui.Style.Layout.InnerSpacing * 2;
+                rectSize.y += gui.Style.Layout.ExtraRowHeight;
 
                 return gui.Layout.AddRect(rectSize);
             }
@@ -71,9 +71,9 @@ namespace Imui.Controls
                                   ImButtonFlag flag = ImButtonFlag.None)
         {
             var clicked = Button(gui, id, rect, out state, flag);
-            var textSettings = CreateTextSettings();
-            var textColor = GetStateFrontColor(state);
-            var textRect = CalculateContentRect(rect);
+            var textSettings = CreateTextSettings(gui);
+            var textColor = GetStateFrontColor(gui, state);
+            var textRect = CalculateContentRect(gui, rect);
 
             gui.Canvas.Text(label, textColor, textRect, in textSettings);
 
@@ -91,7 +91,7 @@ namespace Imui.Controls
 
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
 
-            gui.Box(rect, GetStateBoxStyle(state).Apply(adjacency));
+            gui.Box(rect, GetStateBoxStyle(gui, state).Apply(adjacency));
 
             if (gui.IsReadOnly)
             {
@@ -197,7 +197,7 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static Color32 GetStateFrontColor(ImButtonState state) => GetStateFrontColor(in ImTheme.Active.Button, state);
+        public static Color32 GetStateFrontColor(ImGui gui, ImButtonState state) => GetStateFrontColor(in gui.Style.Button, state);
 
         public static Color32 GetStateFrontColor(in ImButtonStyle style, ImButtonState state)
         {
@@ -205,22 +205,22 @@ namespace Imui.Controls
             return stateStyle.FrontColor;
         }
 
-        public static ImTextSettings CreateTextSettings() => CreateTextSettings(in ImTheme.Active.Button);
+        public static ImTextSettings CreateTextSettings(ImGui gui) => CreateTextSettings(gui, in gui.Style.Button);
 
-        public static ImTextSettings CreateTextSettings(in ImButtonStyle style)
+        public static ImTextSettings CreateTextSettings(ImGui gui, in ImButtonStyle style)
         {
-            return new ImTextSettings(ImTheme.Active.Layout.TextSize, style.Alignment, false);
+            return new ImTextSettings(gui.Style.Layout.TextSize, style.Alignment, false);
         }
 
-        public static ImRect CalculateContentRect(ImRect buttonRect)
+        public static ImRect CalculateContentRect(ImGui gui, ImRect buttonRect)
         {
-            buttonRect.X += ImTheme.Active.Layout.InnerSpacing;
-            buttonRect.W -= ImTheme.Active.Layout.InnerSpacing * 2;
+            buttonRect.X += gui.Style.Layout.InnerSpacing;
+            buttonRect.W -= gui.Style.Layout.InnerSpacing * 2;
 
             return buttonRect;
         }
 
-        public static ImBoxStyle GetStateBoxStyle(ImButtonState state) => GetStateBoxStyle(in ImTheme.Active.Button, state);
+        public static ImBoxStyle GetStateBoxStyle(ImGui gui, ImButtonState state) => GetStateBoxStyle(in gui.Style.Button, state);
 
         public static ImBoxStyle GetStateBoxStyle(in ImButtonStyle style, ImButtonState state)
         {
@@ -236,7 +236,7 @@ namespace Imui.Controls
             };
         }
 
-        public static ref readonly ImButtonStateStyle GetStateStyle(ImButtonState state) => ref GetStateStyle(in ImTheme.Active.Button, state);
+        public static ref readonly ImButtonStateStyle GetStateStyle(ImGui gui, ImButtonState state) => ref GetStateStyle(in gui.Style.Button, state);
 
         public static ref readonly ImButtonStateStyle GetStateStyle(in ImButtonStyle style, ImButtonState state)
         {

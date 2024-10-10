@@ -14,7 +14,7 @@ namespace Imui.Controls.Windows
         Flag1 = 1,
         Flag2 = 2,
         Flag3 = 4,
-        Flag1_And_3 = Flag1 | Flag3
+        Flag1And3 = Flag1 | Flag3
     }
 
     internal struct ImDemoTreeNode
@@ -183,7 +183,7 @@ namespace Imui.Controls.Windows
             gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
             gui.Slider(ref bouncingBallTrail, 1, 128, format: "0 trail length");
             gui.Text("Selection list (you can select multiple values)");
-            gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui.GetRowsHeightWithSpacing(3))));
+            gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
             {
                 var wasSelected = selectedValues.Contains(i);
@@ -313,24 +313,24 @@ namespace Imui.Controls.Windows
             gui.Text("Theme");
             if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
             {
-                ImTheme.Active = CreateTheme(selectedTheme);
+                gui.Style = CreateTheme(selectedTheme);
             }
 
-            gui.Text(Format("Text Size: ", ImTheme.Active.Layout.TextSize));
-            gui.Slider(ref ImTheme.Active.Layout.TextSize, 6, 128);
+            gui.Text(Format("Text Size: ", gui.Style.Layout.TextSize));
+            gui.Slider(ref gui.Style.Layout.TextSize, 6, 128);
 
-            gui.Text(Format("Spacing: ", ImTheme.Active.Layout.ControlsSpacing));
-            gui.Slider(ref ImTheme.Active.Layout.ControlsSpacing, 0, 32);
+            gui.Text(Format("Spacing: ", gui.Style.Layout.ControlsSpacing));
+            gui.Slider(ref gui.Style.Layout.ControlsSpacing, 0, 32);
 
-            gui.Text(Format("Extra Row Size: ", ImTheme.Active.Layout.ExtraRowHeight));
-            gui.Slider(ref ImTheme.Active.Layout.ExtraRowHeight, 0, 32);
+            gui.Text(Format("Extra Row Size: ", gui.Style.Layout.ExtraRowHeight));
+            gui.Slider(ref gui.Style.Layout.ExtraRowHeight, 0, 32);
 
-            gui.Text(Format("Indent: ", ImTheme.Active.Layout.Indent));
-            gui.Slider(ref ImTheme.Active.Layout.Indent, 0, 32);
+            gui.Text(Format("Indent: ", gui.Style.Layout.Indent));
+            gui.Slider(ref gui.Style.Layout.Indent, 0, 32);
 
             if (gui.Button("Reset"))
             {
-                ImTheme.Active = CreateTheme(selectedTheme);
+                gui.Style = CreateTheme(selectedTheme);
             }
         }
 
@@ -357,7 +357,7 @@ namespace Imui.Controls.Windows
                 var t = mod((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)), 2.0f);
                 var x = t <= 1.0f ? t : 1 - (t - 1);
                 var p = bounds.GetPointAtNormalPosition(x, 0.5f);
-                var c = ImTheme.Active.Text.Color.WithAlpha((byte)(255 * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2)));
+                var c = gui.Style.Text.Color.WithAlpha((byte)(255 * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2)));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }
@@ -371,7 +371,7 @@ namespace Imui.Controls.Windows
 
             gui.BeginDropdown(controlId, ref customDropdownOpen, default);
             {
-                var textSettings = new ImTextSettings(ImTheme.Active.Layout.TextSize, 0.0f, 0.5f);
+                var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f);
 
                 gui.Text("Boxes ticked: ", textSettings);
 

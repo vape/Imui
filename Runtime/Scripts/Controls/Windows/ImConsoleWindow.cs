@@ -103,7 +103,7 @@ namespace Imui.Controls.Windows
                         : (isErro ? erroColor1 : isWarn ? warnColor1 : infoColor1);
 
                     gui.Canvas.Rect(rect, color);
-                    gui.Canvas.Text(msg.Text, ImTheme.Active.Text.Color, rect.TopLeft, ImTheme.Active.Layout.TextSize);
+                    gui.Canvas.Text(msg.Text, gui.Style.Text.Color, rect.TopLeft, gui.Style.Layout.TextSize);
 
                     if (gui.InvisibleButton(rect))
                     {
@@ -131,9 +131,9 @@ namespace Imui.Controls.Windows
             var windowRect = gui.WindowManager.GetCurrentWindowRect();
             windowRect.SplitTop(windowRect.H * 0.4f, out var rect);
 
-            rect.AddPadding(ImTheme.Active.Window.ContentPadding);
-            gui.Box(rect, in ImTheme.Active.List.Box);
-            rect.AddPadding(ImTheme.Active.Window.ContentPadding);
+            rect.AddPadding(gui.Style.Window.ContentPadding);
+            gui.Box(rect, in gui.Style.List.Box);
+            rect.AddPadding(gui.Style.Window.ContentPadding);
             
             gui.Layout.Push(ImAxis.Vertical, rect);
             gui.BeginHorizontal();

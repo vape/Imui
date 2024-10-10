@@ -2,6 +2,7 @@ using System;
 using Imui.IO;
 using Imui.Rendering;
 using Imui.Style;
+using Imui.Style.Themes;
 using Imui.Utility;
 using UnityEngine;
 
@@ -106,6 +107,8 @@ namespace Imui.Core
         public readonly IImRenderingBackend Renderer;
         public readonly ImFormatter Formatter;
 
+        public ImTheme Style;
+        
         // ReSharper disable InconsistentNaming
         internal FrameData nextFrameData;
         internal FrameData frameData;
@@ -135,6 +138,7 @@ namespace Imui.Core
             Input = input;
             Renderer = renderer;
             Formatter = new ImFormatter(Arena);
+            Style = ImLightTheme.Create();
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
@@ -189,7 +193,7 @@ namespace Imui.Core
             if (isReadOnly)
             {
                 // TODO (artem-s): temporary, ImTheme will go into ImGui
-                Canvas.PushInvColorMul(1 - ImTheme.Active.Layout.ReadOnlyColorMultiplier);
+                Canvas.PushInvColorMul(1 - Style.ReadOnlyColorMultiplier);
             }
             else
             {

@@ -11,6 +11,9 @@ namespace Imui.Style
 
             var theme = new ImTheme();
             
+            // Theme
+            theme.ReadOnlyColorMultiplier = style.ReadOnlyColorMultiplier;
+            
             // Text
             theme.Text.Color = style.Foreground;
             theme.Text.Alignment = default;
@@ -20,7 +23,6 @@ namespace Imui.Style
             theme.Layout.ControlsSpacing = style.Spacing;
             theme.Layout.InnerSpacing = style.InnerSpacing;
             theme.Layout.TextSize = style.TextSize;
-            theme.Layout.ReadOnlyColorMultiplier = style.ReadOnlyColorMultiplier;
             theme.Layout.Indent = style.Indent;
             theme.Layout.ScrollSpeedScale = style.ScrollSpeed;
             

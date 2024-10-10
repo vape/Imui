@@ -40,7 +40,6 @@ namespace Imui.Style
         public float InnerSpacing;
         public float ScrollSpeedScale;
         public float Indent;
-        public float ReadOnlyColorMultiplier;
     }
     
     [Serializable]

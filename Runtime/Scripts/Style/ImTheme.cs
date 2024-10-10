@@ -1,13 +1,12 @@
 using System;
-using Imui.Style.Themes;
 
 namespace Imui.Style
 {
     [Serializable]
     public struct ImTheme
     {
-        public static ImTheme Active = ImLightTheme.Create();
-
+        public float ReadOnlyColorMultiplier;
+        
         public ImLayoutStyle Layout;
         public ImWindowStyle Window;
         public ImTextStyle Text;

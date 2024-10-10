@@ -156,7 +156,7 @@ namespace Imui.Controls
             bool multiline,
             ImTextEditFilter filter)
         {
-            ref readonly var style = ref ImTheme.Active.TextEdit;
+            ref readonly var style = ref gui.Style.TextEdit;
             
             var selected = gui.IsControlActive(id);
             var hovered = gui.IsControlHovered(id);
@@ -196,10 +196,10 @@ namespace Imui.Controls
 
             gui.Box(rect, stateStyle.Box.Apply(adjacency));
 
-            ImPadding textPadding = ImTheme.Active.Layout.InnerSpacing;
+            ImPadding textPadding = gui.Style.Layout.InnerSpacing;
             
-            var textSize = ImTheme.Active.Layout.TextSize;
-            var textAlignment = ImTheme.Active.TextEdit.Alignment;
+            var textSize = gui.Style.Layout.TextSize;
+            var textAlignment = gui.Style.TextEdit.Alignment;
 
             if (!multiline)
             {
@@ -796,7 +796,7 @@ namespace Imui.Controls
             var caretViewRect = new ImRect(
                 viewPosition.x, 
                 viewPosition.y - layout.LineHeight, 
-                ImTheme.Active.TextEdit.CaretWidth,
+                gui.Style.TextEdit.CaretWidth,
                 layout.LineHeight);
 
             if ((long)(Time.unscaledTime / CARET_BLINKING_TIME) % 2 == 0)
