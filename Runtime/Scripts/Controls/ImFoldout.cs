@@ -28,7 +28,7 @@ namespace Imui.Controls
         
         public static bool DrawFoldout(ImGui gui, uint id, bool open, ReadOnlySpan<char> label, ImRect rect)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, gui.Style.Foldout.Button);
+            using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, gui.Style.Foldout.Button);
 
             var textSettings = ImButton.CreateTextSettings(gui);
             var arrowSize = gui.Style.Layout.TextSize;

@@ -86,7 +86,7 @@ namespace Imui.Controls
         {
             ref readonly var style = ref (value ? ref gui.Style.Checkbox.Checked : ref gui.Style.Checkbox.Normal);
             
-            using var _ = new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, in style);
+            using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in style);
             
             var clicked = gui.Button(id, rect, out var state);
             var frontColor = ImButton.GetStateFrontColor(gui, state);

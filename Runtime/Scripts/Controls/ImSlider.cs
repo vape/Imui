@@ -82,7 +82,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
 
-            using (new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, gui.Style.Slider.Handle))
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
                 if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPress))
                 {

@@ -1,11 +1,11 @@
 using System;
-using Imui.Core; // TODO (artem-s): styling should not depent on Core module
+using Imui.Core; // TODO (artem-s): styling should not depend on Core module
 using UnityEngine;
 
 namespace Imui.Style
 {
     [Serializable]
-    public struct ImBoxStyle
+    public struct ImStyleBox
     {
         public Color32 BackColor;
         public Color32 FrontColor;
@@ -13,7 +13,7 @@ namespace Imui.Style
         public float BorderWidth;
         public ImRectRadius BorderRadius;
 
-        public ImBoxStyle Apply(ImAdjacency adjacency)
+        public ImStyleBox Apply(ImAdjacency adjacency)
         {
             if ((adjacency & ImAdjacency.Left) != 0)
             {
@@ -32,7 +32,7 @@ namespace Imui.Style
     }
     
     [Serializable]
-    public struct ImLayoutStyle
+    public struct ImStyleLayout
     {
         public float ExtraRowHeight;
         public float TextSize;
@@ -43,7 +43,7 @@ namespace Imui.Style
     }
     
     [Serializable]
-    public struct ImButtonStateStyle
+    public struct ImStyleButtonState
     {
         public Color32 BackColor;
         public Color32 FrontColor;
@@ -51,125 +51,125 @@ namespace Imui.Style
     }
     
     [Serializable]
-    public struct ImButtonStyle
+    public struct ImStyleButton
     {
-        public ImButtonStateStyle Normal;
-        public ImButtonStateStyle Hovered;
-        public ImButtonStateStyle Pressed;
+        public ImStyleButtonState Normal;
+        public ImStyleButtonState Hovered;
+        public ImStyleButtonState Pressed;
         public float BorderThickness;
         public float BorderRadius;
         public ImAlignment Alignment;
     }
     
     [Serializable]
-    public struct ImCheckboxStyle
+    public struct ImStyleCheckbox
     {
         public float CheckmarkScale;
-        public ImButtonStyle Normal;
-        public ImButtonStyle Checked;
+        public ImStyleButton Normal;
+        public ImStyleButton Checked;
     }
     
     [Serializable]
-    public struct ImDropdownStyle
+    public struct ImStyleDropdown
     {
         public float ArrowScale;
-        public ImButtonStyle Button;
+        public ImStyleButton Button;
         public float MaxListHeight;
         public float MinListWidth;
     }
     
     [Serializable]
-    public struct ImFoldoutStyle
+    public struct ImStyleFoldout
     {
         public float ArrowScale;
-        public ImButtonStyle Button;
+        public ImStyleButton Button;
     }
     
     [Serializable]
-    public struct ImListStyle
+    public struct ImStyleList
     {
-        public ImBoxStyle Box;
+        public ImStyleBox Box;
         public ImPadding Padding;
-        public ImButtonStyle ItemNormal;
-        public ImButtonStyle ItemSelected;
+        public ImStyleButton ItemNormal;
+        public ImStyleButton ItemSelected;
     }
     
     [Serializable]
-    public struct ImRadioboxStyle
+    public struct ImStyleRadiobox
     {
         public float KnobScale;
-        public ImButtonStyle Normal;
-        public ImButtonStyle Checked;
+        public ImStyleButton Normal;
+        public ImStyleButton Checked;
     }
     
     [Serializable]
-    public struct ImScrollBarStateStyle
+    public struct ImStyleScrollBarState
     {
         public Color32 BackColor;
         public Color32 FrontColor;
     }
 
     [Serializable]
-    public struct ImScrollStyle
+    public struct ImStyleScrollbar
     {
         public float Size;
         public float Padding;
         public float BorderRadius;
         public ImPadding VMargin;
         public ImPadding HMargin;
-        public ImScrollBarStateStyle NormalState;
-        public ImScrollBarStateStyle HoveredState;
-        public ImScrollBarStateStyle PressedState;
+        public ImStyleScrollBarState NormalState;
+        public ImStyleScrollBarState HoveredState;
+        public ImStyleScrollBarState PressedState;
     }
     
     [Serializable]
-    public struct ImSeparatorStyle
+    public struct ImStyleSeparator
     {
         public float Thickness;
         public Color32 Color;
     }
     
     [Serializable]
-    public struct ImSliderStyle
+    public struct ImStyleSlider
     {
-        public ImBoxStyle Box;
-        public ImButtonStyle Handle;
+        public ImStyleBox Box;
+        public ImStyleButton Handle;
     }
         
     [Serializable]
-    public struct ImTextStyle
+    public struct ImStyleText
     {
         public Color32 Color;
         public ImAlignment Alignment;
     }
     
     [Serializable]
-    public struct ImTextEditStateStyle
+    public struct ImStyleTextEditState
     {
-        public ImBoxStyle Box;
+        public ImStyleBox Box;
         public Color32 SelectionColor;
     }
     
     [Serializable]
-    public struct ImTextEditStyle
+    public struct ImStyleTextEdit
     {
-        public ImTextEditStateStyle Normal;
-        public ImTextEditStateStyle Selected;
+        public ImStyleTextEditState Normal;
+        public ImStyleTextEditState Selected;
         public float CaretWidth;
         public ImAlignment Alignment;
         public bool TextWrap;
     }
     
     [Serializable]
-    public struct ImTreeStyle
+    public struct ImStyleTree
     {
         public float ArrowScale;
-        public ImButtonStyle ItemNormal;
-        public ImButtonStyle ItemSelected;
+        public ImStyleButton ItemNormal;
+        public ImStyleButton ItemSelected;
     }
         
     [Serializable]
-    public struct ImWindowTitleBarStyle
+    public struct ImStyleWindowTitleBar
     {
         public Color32 BackColor;
         public Color32 FrontColor;
@@ -177,12 +177,12 @@ namespace Imui.Style
     }
         
     [Serializable]
-    public struct ImWindowStyle
+    public struct ImStyleWindow
     {
-        public ImBoxStyle Box;
+        public ImStyleBox Box;
         public Color32 ResizeHandleColor;
         public float ResizeHandleSize;
         public ImPadding ContentPadding;
-        public ImWindowTitleBarStyle TitleBar;
+        public ImStyleWindowTitleBar TitleBar;
     }
 }

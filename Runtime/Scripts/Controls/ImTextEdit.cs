@@ -789,7 +789,7 @@ namespace Imui.Controls
             int position,
             ImRect textRect, 
             in ImTextLayout layout, 
-            in ImTextEditStateStyle style, 
+            in ImStyleTextEditState style, 
             in ImTextEditBuffer buffer)
         {
             var viewPosition = CaretToViewPosition(position, gui.TextDrawer, textRect, in layout, in buffer);
@@ -810,7 +810,7 @@ namespace Imui.Controls
             int size,
             ImRect textRect, 
             in ImTextLayout layout, 
-            in ImTextEditStateStyle style,
+            in ImStyleTextEditState style,
             in ImTextEditBuffer buffer)
         {
             if (size == 0)

@@ -45,7 +45,7 @@ namespace Imui.Controls
         {
             ref readonly var style = ref (index == selectedIndex ? ref gui.Style.List.ItemSelected : ref gui.Style.List.ItemNormal);
 
-            using (new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, in style))
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in style))
             {
                 if (gui.Button(label))
                 {
@@ -61,7 +61,7 @@ namespace Imui.Controls
         {
             ref readonly var style = ref (isSelected ? ref gui.Style.List.ItemSelected : ref gui.Style.List.ItemNormal);
 
-            using (new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, in style))
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in style))
             {
                 if (gui.Button(label))
                 {

@@ -446,7 +446,7 @@ namespace Imui.Controls.Windows
             gui.EndFoldout();
         }
 
-        private static ImTheme CreateTheme(int index)
+        private static ImStyleSheet CreateTheme(int index)
         {
             return index switch
             {

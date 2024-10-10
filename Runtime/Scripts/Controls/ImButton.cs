@@ -199,7 +199,7 @@ namespace Imui.Controls
 
         public static Color32 GetStateFrontColor(ImGui gui, ImButtonState state) => GetStateFrontColor(in gui.Style.Button, state);
 
-        public static Color32 GetStateFrontColor(in ImButtonStyle style, ImButtonState state)
+        public static Color32 GetStateFrontColor(in ImStyleButton style, ImButtonState state)
         {
             ref readonly var stateStyle = ref GetStateStyle(in style, state);
             return stateStyle.FrontColor;
@@ -207,7 +207,7 @@ namespace Imui.Controls
 
         public static ImTextSettings CreateTextSettings(ImGui gui) => CreateTextSettings(gui, in gui.Style.Button);
 
-        public static ImTextSettings CreateTextSettings(ImGui gui, in ImButtonStyle style)
+        public static ImTextSettings CreateTextSettings(ImGui gui, in ImStyleButton style)
         {
             return new ImTextSettings(gui.Style.Layout.TextSize, style.Alignment, false);
         }
@@ -220,13 +220,13 @@ namespace Imui.Controls
             return buttonRect;
         }
 
-        public static ImBoxStyle GetStateBoxStyle(ImGui gui, ImButtonState state) => GetStateBoxStyle(in gui.Style.Button, state);
+        public static ImStyleBox GetStateBoxStyle(ImGui gui, ImButtonState state) => GetStateBoxStyle(in gui.Style.Button, state);
 
-        public static ImBoxStyle GetStateBoxStyle(in ImButtonStyle style, ImButtonState state)
+        public static ImStyleBox GetStateBoxStyle(in ImStyleButton style, ImButtonState state)
         {
             ref readonly var stateStyle = ref GetStateStyle(in style, state);
 
-            return new ImBoxStyle
+            return new ImStyleBox
             {
                 BackColor = stateStyle.BackColor,
                 FrontColor = stateStyle.FrontColor,
@@ -236,9 +236,9 @@ namespace Imui.Controls
             };
         }
 
-        public static ref readonly ImButtonStateStyle GetStateStyle(ImGui gui, ImButtonState state) => ref GetStateStyle(in gui.Style.Button, state);
+        public static ref readonly ImStyleButtonState GetStateStyle(ImGui gui, ImButtonState state) => ref GetStateStyle(in gui.Style.Button, state);
 
-        public static ref readonly ImButtonStateStyle GetStateStyle(in ImButtonStyle style, ImButtonState state)
+        public static ref readonly ImStyleButtonState GetStateStyle(in ImStyleButton style, ImButtonState state)
         {
             switch (state)
             {

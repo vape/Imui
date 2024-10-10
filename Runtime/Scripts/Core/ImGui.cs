@@ -107,7 +107,7 @@ namespace Imui.Core
         public readonly IImRenderingBackend Renderer;
         public readonly ImFormatter Formatter;
 
-        public ImTheme Style;
+        public ImStyleSheet Style;
         
         // ReSharper disable InconsistentNaming
         internal FrameData nextFrameData;

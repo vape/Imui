@@ -4,9 +4,9 @@ namespace Imui.Style.Themes
 {
     public static class ImLightTheme
     {
-        public static ImTheme Create()
+        public static ImStyleSheet Create()
         {
-            var style = new ImStyle();
+            var style = new ImTheme();
             style.IsDark = false;
             style.TextSize = 22f;
             style.Spacing = 4f;
@@ -27,7 +27,7 @@ namespace Imui.Style.Themes
             style.BorderColor = new Color32(179, 179, 179, 255);
             style.ButtonColor = new Color32(222, 222, 222, 255);
             style.FieldColor = new Color32(214, 214, 214, 255);
-            return ImStyleBuilder.Build(style);
+            return ImStyleSheetBuilder.Build(style);
         }
     }
 }

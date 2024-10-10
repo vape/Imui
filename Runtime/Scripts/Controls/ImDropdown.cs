@@ -193,7 +193,7 @@ namespace Imui.Controls
         
         public static void PreviewButton(ImGui gui, uint id, ref bool open, ReadOnlySpan<char> label)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, in gui.Style.Dropdown.Button);
+            using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button);
 
             if (gui.Button(id, label, gui.Layout.GetBoundsRect()))
             {
@@ -210,7 +210,7 @@ namespace Imui.Controls
         {
             bool clicked;
             
-            using (new ImStyleScope<ImButtonStyle>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
             {
                 clicked = gui.Button(id, rect, out var state);
                 
