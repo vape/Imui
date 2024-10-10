@@ -180,14 +180,14 @@ namespace Imui.Controls
             var handleRect = axis == 0 ? 
                 new ImRect(rect.X + position, rect.Y, size, rect.H) : 
                 new ImRect(rect.X, rect.Y + (rect.H - size) - position, rect.W, size);
-            handleRect = handleRect.WithPadding(style.Padding);
+            handleRect = handleRect.WithPadding(style.BorderThickness);
 
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             
             var barStyle = pressed ? style.PressedState : hovered ? style.HoveredState : style.NormalState;
             gui.Canvas.Rect(rect, barStyle.BackColor, style.BorderRadius);
-            gui.Canvas.Rect(handleRect, barStyle.FrontColor, Mathf.Max(0, style.BorderRadius - style.Padding));
+            gui.Canvas.Rect(handleRect, barStyle.FrontColor, Mathf.Max(0, style.BorderRadius - style.BorderThickness));
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)

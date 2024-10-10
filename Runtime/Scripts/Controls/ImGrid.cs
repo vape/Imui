@@ -72,7 +72,7 @@ namespace Imui.Controls
 
         public static Vector2 GetDefaultSpacing(ImGui gui)
         {
-            return new Vector2(gui.Style.Layout.ControlsSpacing, gui.Style.Layout.ControlsSpacing);
+            return new Vector2(gui.Style.Layout.Spacing, gui.Style.Layout.Spacing);
         }
     }
 }

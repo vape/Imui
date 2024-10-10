@@ -10,7 +10,7 @@ namespace Imui.Style
         public Color32 BackColor;
         public Color32 FrontColor;
         public Color32 BorderColor;
-        public float BorderWidth;
+        public float BorderThickness;
         public ImRectRadius BorderRadius;
 
         public ImStyleBox Apply(ImAdjacency adjacency)
@@ -36,7 +36,7 @@ namespace Imui.Style
     {
         public float ExtraRowHeight;
         public float TextSize;
-        public float ControlsSpacing;
+        public float Spacing;
         public float InnerSpacing;
         public float ScrollSpeedScale;
         public float Indent;
@@ -113,7 +113,7 @@ namespace Imui.Style
     public struct ImStyleScrollbar
     {
         public float Size;
-        public float Padding;
+        public float BorderThickness;
         public float BorderRadius;
         public ImPadding VMargin;
         public ImPadding HMargin;

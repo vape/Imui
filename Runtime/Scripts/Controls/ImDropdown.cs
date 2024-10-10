@@ -135,7 +135,7 @@ namespace Imui.Controls
         public static ImRect GetListRect(ImGui gui, ImRect controlRect, int itemsCount = 0)
         {
             var width = Mathf.Max(controlRect.W, gui.Style.Dropdown.MinListWidth);
-            var itemsHeight = gui.GetRowHeight() * itemsCount + (gui.Style.Layout.ControlsSpacing * Mathf.Max(0, itemsCount - 1));
+            var itemsHeight = gui.GetRowHeight() * itemsCount + (gui.Style.Layout.Spacing * Mathf.Max(0, itemsCount - 1));
             var height = Mathf.Min(gui.Style.Dropdown.MaxListHeight, ImList.GetEnclosingHeight(gui, itemsHeight));
             var x = controlRect.X;
             var y = controlRect.Y - height;

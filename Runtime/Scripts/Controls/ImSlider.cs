@@ -10,9 +10,9 @@ namespace Imui.Controls
     {
         public static ImRect GetRect(ImGui gui, ImSize size)
         {
-            return size.Type switch
+            return size.Mode switch
             {
-                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
             };
         }
@@ -66,7 +66,7 @@ namespace Imui.Controls
             
             gui.Box(rect, in gui.Style.Slider.Box);
 
-            var rectPadded = rect.WithPadding(gui.Style.Slider.Box.BorderWidth);
+            var rectPadded = rect.WithPadding(gui.Style.Slider.Box.BorderThickness);
 
             var handleW = step == 0 ? 0.5f * rectPadded.H : Mathf.Max(0.5f * rectPadded.H, rectPadded.W / (max - min));
             var handleH = rectPadded.H;

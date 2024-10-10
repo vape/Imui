@@ -25,7 +25,7 @@ namespace Imui.Controls
             gui.RegisterRaycastTarget(rect);
 
             var layoutRect = rect.WithPadding(gui.Style.List.Padding);
-            var maskRect = rect.WithPadding(gui.Style.List.Box.BorderWidth);
+            var maskRect = rect.WithPadding(gui.Style.List.Box.BorderThickness);
             
             gui.Layout.Push(ImAxis.Vertical, layoutRect);
             gui.Canvas.PushRectMask(maskRect, gui.Style.List.Box.BorderRadius);

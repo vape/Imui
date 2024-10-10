@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Imui.Core;
 using Imui.Style;
-using Imui.Style.Themes;
 using UnityEngine;
 
 namespace Imui.Controls.Windows
@@ -155,12 +154,12 @@ namespace Imui.Controls.Windows
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
-            if (gui.Button(Format("Clicks ", clicks, "0"), ImSizeType.Fit))
+            if (gui.Button(Format("Clicks ", clicks, "0"), ImSizeMode.Fit))
             {
                 clicks++;
             }
 
-            if (gui.Button("Reset Clicks", ImSizeType.Auto))
+            if (gui.Button("Reset Clicks", ImSizeMode.Auto))
             {
                 clicks = 0;
             }
@@ -282,7 +281,7 @@ namespace Imui.Controls.Windows
             gui.BeginHorizontal();
             for (int i = 0; i < 3; ++i)
             {
-                gui.Button("Horizontal", ImSizeType.Fit);
+                gui.Button("Horizontal", ImSizeMode.Fit);
             }
 
             gui.EndHorizontal();
@@ -292,7 +291,7 @@ namespace Imui.Controls.Windows
             gui.BeginVertical();
             for (int i = 0; i < 3; ++i)
             {
-                gui.Button("Vertical", ImSizeType.Fit);
+                gui.Button("Vertical", ImSizeMode.Fit);
             }
 
             gui.EndVertical();
@@ -313,14 +312,14 @@ namespace Imui.Controls.Windows
             gui.Text("Theme");
             if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
             {
-                gui.Style = CreateTheme(selectedTheme);
+                gui.SetTheme(GetTheme(selectedTheme));
             }
 
             gui.Text(Format("Text Size: ", gui.Style.Layout.TextSize));
             gui.Slider(ref gui.Style.Layout.TextSize, 6, 128);
 
-            gui.Text(Format("Spacing: ", gui.Style.Layout.ControlsSpacing));
-            gui.Slider(ref gui.Style.Layout.ControlsSpacing, 0, 32);
+            gui.Text(Format("Spacing: ", gui.Style.Layout.Spacing));
+            gui.Slider(ref gui.Style.Layout.Spacing, 0, 32);
 
             gui.Text(Format("Extra Row Size: ", gui.Style.Layout.ExtraRowHeight));
             gui.Slider(ref gui.Style.Layout.ExtraRowHeight, 0, 32);
@@ -330,7 +329,7 @@ namespace Imui.Controls.Windows
 
             if (gui.Button("Reset"))
             {
-                gui.Style = CreateTheme(selectedTheme);
+                gui.SetTheme(GetTheme(selectedTheme));
             }
         }
 
@@ -446,12 +445,12 @@ namespace Imui.Controls.Windows
             gui.EndFoldout();
         }
 
-        private static ImStyleSheet CreateTheme(int index)
+        private static ImTheme GetTheme(int index)
         {
             return index switch
             {
-                1 => ImDarkTheme.Create(),
-                _ => ImLightTheme.Create()
+                1 => ImThemeBuiltin.Dark(),
+                _ => ImThemeBuiltin.Light()
             };
         }
 

@@ -2,7 +2,6 @@ using System;
 using Imui.IO;
 using Imui.Rendering;
 using Imui.Style;
-using Imui.Style.Themes;
 using Imui.Utility;
 using UnityEngine;
 
@@ -138,7 +137,6 @@ namespace Imui.Core
             Input = input;
             Renderer = renderer;
             Formatter = new ImFormatter(Arena);
-            Style = ImLightTheme.Create();
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
@@ -147,6 +145,7 @@ namespace Imui.Core
             readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
             
             Input.SetRaycaster(Raycast);
+            SetTheme(ImThemeBuiltin.Light());
         }
         
         public void BeginFrame()
@@ -193,7 +192,7 @@ namespace Imui.Core
             if (isReadOnly)
             {
                 // TODO (artem-s): temporary, ImTheme will go into ImGui
-                Canvas.PushInvColorMul(1 - Style.ReadOnlyColorMultiplier);
+                Canvas.PushInvColorMul(1 - Style.Theme.ReadOnlyColorMultiplier);
             }
             else
             {
@@ -319,6 +318,11 @@ namespace Imui.Core
             }
 
             return false;
+        }
+
+        public void SetTheme(ImTheme theme)
+        {
+            Style = ImStyleSheetBuilder.Build(theme);
         }
 
         public void RegisterRaycastTarget(ImRect rect)

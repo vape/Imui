@@ -5,8 +5,6 @@ namespace Imui.Style
     [Serializable]
     public struct ImStyleSheet
     {
-        public float ReadOnlyColorMultiplier;
-
         public ImTheme Theme;
         public ImStyleLayout Layout;
         public ImStyleWindow Window;

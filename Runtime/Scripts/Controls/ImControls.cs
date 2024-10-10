@@ -9,9 +9,9 @@ namespace Imui.Controls
     {
         public static ImRect AddRowRect(ImGui gui, ImSize size)
         {
-            return size.Type switch
+            return size.Mode switch
             {
-                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
             };
         }
@@ -23,7 +23,7 @@ namespace Imui.Controls
 
         public static float GetRowsHeightWithSpacing(this ImGui gui, int rows)
         {
-            return Mathf.Max(0, gui.GetRowHeight() * rows + gui.Style.Layout.ControlsSpacing * (rows - 1));
+            return Mathf.Max(0, gui.GetRowHeight() * rows + gui.Style.Layout.Spacing * (rows - 1));
         }
         
         public static void AddSpacingIfLayoutFrameNotEmpty(this ImGui gui)
@@ -37,7 +37,7 @@ namespace Imui.Controls
         
         public static void AddSpacing(this ImGui gui)
         {
-            gui.Layout.AddSpace(gui.Style.Layout.ControlsSpacing);
+            gui.Layout.AddSpace(gui.Style.Layout.Spacing);
         }
         
         public static void AddSpacing(this ImGui gui, float space)

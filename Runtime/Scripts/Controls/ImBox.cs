@@ -9,7 +9,7 @@ namespace Imui.Controls
     {
         public static void Box(this ImGui gui, ImRect rect, in ImStyleBox style)
         {
-            gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderWidth, style.BorderRadius);
+            gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderThickness, style.BorderRadius);
         }
     }
 }

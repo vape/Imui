@@ -9,9 +9,9 @@ namespace Imui.Controls
     {
         public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label = default)
         {
-            switch (size.Type)
+            switch (size.Mode)
             {
-                case ImSizeType.Fixed:
+                case ImSizeMode.Fixed:
                     return gui.Layout.AddRect(size.Width, size.Height);
                 default:
                     var boxSize = gui.Style.Layout.TextSize;
@@ -26,7 +26,7 @@ namespace Imui.Controls
                     var width = boxSize + gui.Style.Layout.InnerSpacing + textSize.x;
                     var height = Mathf.Max(boxSize, textSize.y);
                     
-                    if (size.Type != ImSizeType.Fit && gui.Layout.Axis != ImAxis.Horizontal)
+                    if (size.Mode != ImSizeMode.Fit && gui.Layout.Axis != ImAxis.Horizontal)
                     {
                         width = Mathf.Max(gui.GetLayoutWidth(), width);
                     }

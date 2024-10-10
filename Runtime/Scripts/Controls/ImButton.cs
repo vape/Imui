@@ -25,7 +25,7 @@ namespace Imui.Controls
     {
         public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
         {
-            if (size.Type == ImSizeType.Fit || (size.Type == ImSizeType.Auto && gui.Layout.Axis == ImAxis.Horizontal))
+            if (size.Mode == ImSizeMode.Fit || (size.Mode == ImSizeMode.Auto && gui.Layout.Axis == ImAxis.Horizontal))
             {
                 var textSettings = CreateTextSettings(gui);
                 var textSize = gui.MeasureTextSize(label, in textSettings);
@@ -231,7 +231,7 @@ namespace Imui.Controls
                 BackColor = stateStyle.BackColor,
                 FrontColor = stateStyle.FrontColor,
                 BorderColor = stateStyle.BorderColor,
-                BorderWidth = style.BorderThickness,
+                BorderThickness = style.BorderThickness,
                 BorderRadius = style.BorderRadius
             };
         }

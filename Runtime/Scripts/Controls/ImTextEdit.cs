@@ -59,7 +59,7 @@ namespace Imui.Controls
 
             if (multiline == null)
             {
-                if (size.Type == ImSizeType.Fixed && size.Height > gui.GetRowHeight())
+                if (size.Mode == ImSizeMode.Fixed && size.Height > gui.GetRowHeight())
                 {
                     multiline = true;
                 }
@@ -76,9 +76,9 @@ namespace Imui.Controls
 
             isActuallyMultiline = multiline.Value;
             
-            return size.Type switch
+            return size.Mode switch
             {
-                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(
                     Mathf.Max(MIN_WIDTH, gui.GetLayoutWidth()), 
                     Mathf.Max(MIN_HEIGHT, minHeight))

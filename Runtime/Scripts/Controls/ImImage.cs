@@ -8,9 +8,9 @@ namespace Imui.Controls
     {
         public static ImRect GetRect(ImGui gui, Texture texture, ImSize size)
         {
-            return size.Type switch
+            return size.Mode switch
             {
-                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(texture.width, texture.height)
             };
         }

@@ -107,7 +107,7 @@ namespace Imui.Controls
         public static void Outline(ImGui gui, ImRect rect)
         {
             ref readonly var style = ref gui.Style.Window;
-            gui.Canvas.RectOutline(rect, style.Box.BorderColor, style.Box.BorderWidth, style.Box.BorderRadius);
+            gui.Canvas.RectOutline(rect, style.Box.BorderColor, style.Box.BorderThickness, style.Box.BorderRadius);
         }
 
         public static bool TitleBar(ImGui gui, ReadOnlySpan<char> text, ref ImWindowState state, ImRect windowRect)
@@ -224,11 +224,11 @@ namespace Imui.Controls
             ref readonly var style = ref gui.Style.Window;
             
             var height = gui.Style.Layout.InnerSpacing + gui.GetRowHeight();
-            var radiusTopLeft = style.Box.BorderRadius.TopLeft - style.Box.BorderWidth;
-            var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderWidth;
+            var radiusTopLeft = style.Box.BorderRadius.TopLeft - style.Box.BorderThickness;
+            var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderThickness;
             cornerRadius = new ImRectRadius(radiusTopLeft, radiusTopRight);
             
-            return rect.WithPadding(style.Box.BorderWidth).SplitTop(height);
+            return rect.WithPadding(style.Box.BorderThickness).SplitTop(height);
         }
     }
 }
