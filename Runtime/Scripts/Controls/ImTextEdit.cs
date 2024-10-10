@@ -2,9 +2,9 @@ using System;
 using System.Runtime.InteropServices;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Rendering;
-using Imui.Controls.Styling;
 using Imui.IO.Utility;
+using Imui.Rendering;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -59,7 +59,7 @@ namespace Imui.Controls
 
             if (multiline == null)
             {
-                if (size.Type == ImSizeType.Fixed && size.Height > gui.GetRowHeight())
+                if (size.Mode == ImSizeMode.Fixed && size.Height > gui.GetRowHeight())
                 {
                     multiline = true;
                 }
@@ -76,9 +76,9 @@ namespace Imui.Controls
 
             isActuallyMultiline = multiline.Value;
             
-            return size.Type switch
+            return size.Mode switch
             {
-                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(
                     Mathf.Max(MIN_WIDTH, gui.GetLayoutWidth()), 
                     Mathf.Max(MIN_HEIGHT, minHeight))
@@ -95,6 +95,7 @@ namespace Imui.Controls
         {
             var buffer = new ImTextEditBuffer(text);
 
+            // TODO (artem-s): in this case, readonly should not change styling
             gui.BeginReadOnly(true);
             TextEdit(gui, ref buffer, rect, multiline);
             gui.EndReadOnly();
@@ -155,7 +156,7 @@ namespace Imui.Controls
             bool multiline,
             ImTextEditFilter filter)
         {
-            ref readonly var style = ref ImTheme.Active.TextEdit;
+            ref readonly var style = ref gui.Style.TextEdit;
             
             var selected = gui.IsControlActive(id);
             var hovered = gui.IsControlHovered(id);
@@ -194,10 +195,11 @@ namespace Imui.Controls
             }
 
             gui.Box(rect, stateStyle.Box.Apply(adjacency));
+
+            ImPadding textPadding = gui.Style.Layout.InnerSpacing;
             
-            var textSize = ImTheme.Active.Controls.TextSize;
-            var textPadding = ImTheme.Active.TextEdit.Padding;
-            var textAlignment = ImTheme.Active.TextEdit.Alignment;
+            var textSize = gui.Style.Layout.TextSize;
+            var textAlignment = gui.Style.TextEdit.Alignment;
 
             if (!multiline)
             {
@@ -787,14 +789,14 @@ namespace Imui.Controls
             int position,
             ImRect textRect, 
             in ImTextLayout layout, 
-            in ImTextEditStateStyle style, 
+            in ImStyleTextEditState style, 
             in ImTextEditBuffer buffer)
         {
             var viewPosition = CaretToViewPosition(position, gui.TextDrawer, textRect, in layout, in buffer);
             var caretViewRect = new ImRect(
                 viewPosition.x, 
                 viewPosition.y - layout.LineHeight, 
-                ImTheme.Active.TextEdit.CaretWidth,
+                gui.Style.TextEdit.CaretWidth,
                 layout.LineHeight);
 
             if ((long)(Time.unscaledTime / CARET_BLINKING_TIME) % 2 == 0)
@@ -808,7 +810,7 @@ namespace Imui.Controls
             int size,
             ImRect textRect, 
             in ImTextLayout layout, 
-            in ImTextEditStateStyle style,
+            in ImStyleTextEditState style,
             in ImTextEditBuffer buffer)
         {
             if (size == 0)
@@ -995,23 +997,5 @@ namespace Imui.Controls
         
         public abstract bool IsValid(ReadOnlySpan<char> buffer);
         public abstract string GetFallbackString();
-    }
-
-    [Serializable]
-    public struct ImTextEditStateStyle
-    {
-        public ImBoxStyle Box;
-        public Color32 SelectionColor;
-    }
-    
-    [Serializable]
-    public struct ImTextEditStyle
-    {
-        public ImTextEditStateStyle Normal;
-        public ImTextEditStateStyle Selected;
-        public float CaretWidth;
-        public ImTextAlignment Alignment;
-        public ImPadding Padding;
-        public bool TextWrap;
     }
 }

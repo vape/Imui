@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
@@ -110,7 +110,7 @@ namespace Imui.Controls.Windows
             }
 
             gui.BeginList(rect);
-            gui.Canvas.Line(points, ImTheme.Active.Text.Color, false, 1);
+            gui.Canvas.Line(points, gui.Style.Text.Color, false, 1);
             gui.EndList();
         }
     }

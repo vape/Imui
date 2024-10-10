@@ -1,6 +1,6 @@
 using System;
 
-namespace Imui.Controls.Styling
+namespace Imui.Style
 {
     [Serializable]
     public struct ImPadding

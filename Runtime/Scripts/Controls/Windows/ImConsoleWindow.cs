@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
@@ -56,16 +56,16 @@ namespace Imui.Controls.Windows
             gui.AddSpacing();
             gui.BeginHorizontal();
             gui.Radio(ref typeMask);
-            if (gui.Button("Clear", ImSizeType.Fit))
+            if (gui.Button("Clear", ImSizeMode.Fit))
             {
                 Clear();
             }
             gui.EndHorizontal();
             gui.BeginHorizontal();
-            if (gui.Button("Info", ImSizeType.Fit, flags: ImButtonFlag.ReactToHeldDown)) { Debug.Log("Test Message"); }
-            if (gui.Button("Warning", ImSizeType.Fit, flags: ImButtonFlag.ReactToHeldDown)) { Debug.LogWarning("Test Warning"); }
-            if (gui.Button("Error", ImSizeType.Fit, flags: ImButtonFlag.ReactToHeldDown)) { Debug.LogError("Test Error"); }
-            if (gui.Button("Exception", ImSizeType.Fit, flags: ImButtonFlag.ReactToHeldDown)) { Debug.LogException(new Exception("Test Exception")); }
+            if (gui.Button("Info", ImSizeMode.Fit, flags: ImButtonFlag.ReactToHeldDown)) { Debug.Log("Test Message"); }
+            if (gui.Button("Warning", ImSizeMode.Fit, flags: ImButtonFlag.ReactToHeldDown)) { Debug.LogWarning("Test Warning"); }
+            if (gui.Button("Error", ImSizeMode.Fit, flags: ImButtonFlag.ReactToHeldDown)) { Debug.LogError("Test Error"); }
+            if (gui.Button("Exception", ImSizeMode.Fit, flags: ImButtonFlag.ReactToHeldDown)) { Debug.LogException(new Exception("Test Exception")); }
             gui.EndHorizontal();
             
             gui.Separator();
@@ -103,7 +103,7 @@ namespace Imui.Controls.Windows
                         : (isErro ? erroColor1 : isWarn ? warnColor1 : infoColor1);
 
                     gui.Canvas.Rect(rect, color);
-                    gui.Canvas.Text(msg.Text, ImTheme.Active.Text.Color, rect.TopLeft, ImTheme.Active.Controls.TextSize);
+                    gui.Canvas.Text(msg.Text, gui.Style.Text.Color, rect.TopLeft, gui.Style.Layout.TextSize);
 
                     if (gui.InvisibleButton(rect))
                     {
@@ -131,9 +131,9 @@ namespace Imui.Controls.Windows
             var windowRect = gui.WindowManager.GetCurrentWindowRect();
             windowRect.SplitTop(windowRect.H * 0.4f, out var rect);
 
-            rect.AddPadding(ImTheme.Active.Window.ContentPadding);
-            gui.Box(rect, in ImTheme.Active.List.Box);
-            rect.AddPadding(ImTheme.Active.Window.ContentPadding);
+            rect.AddPadding(gui.Style.Window.ContentPadding);
+            gui.Box(rect, in gui.Style.List.Box);
+            rect.AddPadding(gui.Style.Window.ContentPadding);
             
             gui.Layout.Push(ImAxis.Vertical, rect);
             gui.BeginHorizontal();

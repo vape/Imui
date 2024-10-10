@@ -1,6 +1,5 @@
-using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -10,21 +9,21 @@ namespace Imui.Controls
     {
         public static ImRect AddRowRect(ImGui gui, ImSize size)
         {
-            return size.Type switch
+            return size.Mode switch
             {
-                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
             };
         }
         
         public static float GetRowHeight(this ImGui gui)
         {
-            return gui.TextDrawer.GetLineHeight(ImTheme.Active.Controls.TextSize) + ImTheme.Active.Controls.ExtraRowHeight;
+            return gui.TextDrawer.GetLineHeight(gui.Style.Layout.TextSize) + gui.Style.Layout.ExtraRowHeight;
         }
 
         public static float GetRowsHeightWithSpacing(this ImGui gui, int rows)
         {
-            return Mathf.Max(0, gui.GetRowHeight() * rows + ImTheme.Active.Controls.ControlsSpacing * (rows - 1));
+            return Mathf.Max(0, gui.GetRowHeight() * rows + gui.Style.Layout.Spacing * (rows - 1));
         }
         
         public static void AddSpacingIfLayoutFrameNotEmpty(this ImGui gui)
@@ -38,7 +37,7 @@ namespace Imui.Controls
         
         public static void AddSpacing(this ImGui gui)
         {
-            gui.Layout.AddSpace(ImTheme.Active.Controls.ControlsSpacing);
+            gui.Layout.AddSpace(gui.Style.Layout.Spacing);
         }
         
         public static void AddSpacing(this ImGui gui, float space)
@@ -48,23 +47,12 @@ namespace Imui.Controls
 
         public static void BeginIndent(this ImGui gui)
         {
-            gui.Layout.AddIndent(ImTheme.Active.Controls.Indent);
+            gui.Layout.AddIndent(gui.Style.Layout.Indent);
         }
 
         public static void EndIndent(this ImGui gui)
         {
-            gui.Layout.AddIndent(-ImTheme.Active.Controls.Indent);
+            gui.Layout.AddIndent(-gui.Style.Layout.Indent);
         }
-    }
-    
-    [Serializable]
-    public struct ImControlsStyle
-    {
-        public float ExtraRowHeight;
-        public float TextSize;
-        public float ControlsSpacing;
-        public float InnerSpacing;
-        public float ScrollSpeedScale;
-        public float Indent;
     }
 }

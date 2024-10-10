@@ -1,10 +1,7 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
-using Imui.Controls.Styling;
-using Imui.Controls.Styling.Themes;
 using Imui.Core;
-using Imui.IO.Events;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls.Windows
@@ -16,7 +13,7 @@ namespace Imui.Controls.Windows
         Flag1 = 1,
         Flag2 = 2,
         Flag3 = 4,
-        Flag1_And_3 = Flag1 | Flag3
+        Flag1And3 = Flag1 | Flag3
     }
 
     internal struct ImDemoTreeNode
@@ -37,6 +34,23 @@ namespace Imui.Controls.Windows
 
     public static class ImDemoWindow
     {
+        private static string[] themes =
+        {
+            nameof(ImThemeBuiltin.Light), 
+            nameof(ImThemeBuiltin.Dark), 
+            nameof(ImThemeBuiltin.Dear)
+        };
+
+        private static ImTheme CreateTheme(int index)
+        {
+            return index switch
+            {
+                2 => ImThemeBuiltin.Dear(),
+                1 => ImThemeBuiltin.Dark(),
+                _ => ImThemeBuiltin.Light()
+            };
+        }
+        
         private static char[] formatBuffer = new char[256];
 
         private static bool checkboxValue;
@@ -46,7 +60,6 @@ namespace Imui.Controls.Windows
         private static int bouncingBallTrail = 32;
         private static float bouncingBallTime;
         private static int selectedTheme;
-        private static string[] themes = { ImLightTheme.NAME, ImDarkTheme.NAME };
 
         private static string[] values =
         {
@@ -69,13 +82,11 @@ namespace Imui.Controls.Windows
         private static ImDemoEnumFlags demoFlags;
 
         private static int selectedNode = -1;
+
         private static ImDemoTreeNode[] treeNodes = new[]
         {
-            new ImDemoTreeNode("Node 0", true, 1, 2),
-            new ImDemoTreeNode("Node 1", false),
-            new ImDemoTreeNode("Node 2", false, 3),
-            new ImDemoTreeNode("Node 3", false),
-            new ImDemoTreeNode("Node 4", true)
+            new ImDemoTreeNode("Node 0", true, 1, 2), new ImDemoTreeNode("Node 1", false), new ImDemoTreeNode("Node 2", false, 3),
+            new ImDemoTreeNode("Node 3", false), new ImDemoTreeNode("Node 4", true)
         };
 
         private static HashSet<int> selectedValues = new HashSet<int>(values.Length);
@@ -159,12 +170,12 @@ namespace Imui.Controls.Windows
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
-            if (gui.Button(Format("Clicks ", clicks, "0"), ImSizeType.Fit))
+            if (gui.Button(Format("Clicks ", clicks, "0"), ImSizeMode.Fit))
             {
                 clicks++;
             }
 
-            if (gui.Button("Reset Clicks", ImSizeType.Auto))
+            if (gui.Button("Reset Clicks", ImSizeMode.Auto))
             {
                 clicks = 0;
             }
@@ -187,7 +198,7 @@ namespace Imui.Controls.Windows
             gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
             gui.Slider(ref bouncingBallTrail, 1, 128, format: "0 trail length");
             gui.Text("Selection list (you can select multiple values)");
-            gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui.GetRowsHeightWithSpacing(3))));
+            gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
             {
                 var wasSelected = selectedValues.Contains(i);
@@ -241,13 +252,13 @@ namespace Imui.Controls.Windows
                 if (changed)
                 {
                     node.Expanded = state.HasFlag(ImTreeNodeState.Expanded);
-                    
+
                     if ((state & ImTreeNodeState.Selected) != 0)
                     {
                         selectedNode = index;
                     }
                 }
-                
+
                 if (node is { Expanded: true, Nodes: not null })
                 {
                     for (int i = 0; i < node.Nodes.Length; ++i)
@@ -255,6 +266,7 @@ namespace Imui.Controls.Windows
                         Node(gui, node.Nodes[i], nodes);
                     }
                 }
+
                 gui.EndTreeNode();
             }
 
@@ -285,7 +297,7 @@ namespace Imui.Controls.Windows
             gui.BeginHorizontal();
             for (int i = 0; i < 3; ++i)
             {
-                gui.Button("Horizontal", ImSizeType.Fit);
+                gui.Button("Horizontal", ImSizeMode.Fit);
             }
 
             gui.EndHorizontal();
@@ -295,7 +307,7 @@ namespace Imui.Controls.Windows
             gui.BeginVertical();
             for (int i = 0; i < 3; ++i)
             {
-                gui.Button("Vertical", ImSizeType.Fit);
+                gui.Button("Vertical", ImSizeMode.Fit);
             }
 
             gui.EndVertical();
@@ -313,29 +325,27 @@ namespace Imui.Controls.Windows
 
         private static void DrawStylePage(ImGui gui)
         {
-            selectedTheme = GetThemeIndex(ImTheme.Active.Name);
-
             gui.Text("Theme");
             if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
             {
-                ImTheme.Active = CreateTheme(selectedTheme);
+                gui.SetTheme(CreateTheme(selectedTheme));
             }
 
-            gui.Text(Format("Text Size: ", ImTheme.Active.Controls.TextSize));
-            gui.Slider(ref ImTheme.Active.Controls.TextSize, 6, 128);
+            gui.Text(Format("Text Size: ", gui.Style.Layout.TextSize));
+            gui.Slider(ref gui.Style.Layout.TextSize, 6, 128);
 
-            gui.Text(Format("Spacing: ", ImTheme.Active.Controls.ControlsSpacing));
-            gui.Slider(ref ImTheme.Active.Controls.ControlsSpacing, 0, 32);
+            gui.Text(Format("Spacing: ", gui.Style.Layout.Spacing));
+            gui.Slider(ref gui.Style.Layout.Spacing, 0, 32);
 
-            gui.Text(Format("Extra Row Size: ", ImTheme.Active.Controls.ExtraRowHeight));
-            gui.Slider(ref ImTheme.Active.Controls.ExtraRowHeight, 0, 32);
+            gui.Text(Format("Extra Row Size: ", gui.Style.Layout.ExtraRowHeight));
+            gui.Slider(ref gui.Style.Layout.ExtraRowHeight, 0, 32);
 
-            gui.Text(Format("Indent: ", ImTheme.Active.Controls.Indent));
-            gui.Slider(ref ImTheme.Active.Controls.Indent, 0, 32);
+            gui.Text(Format("Indent: ", gui.Style.Layout.Indent));
+            gui.Slider(ref gui.Style.Layout.Indent, 0, 32);
 
             if (gui.Button("Reset"))
             {
-                ImTheme.Active = CreateTheme(selectedTheme);
+                gui.SetTheme(CreateTheme(selectedTheme));
             }
         }
 
@@ -362,7 +372,7 @@ namespace Imui.Controls.Windows
                 var t = mod((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)), 2.0f);
                 var x = t <= 1.0f ? t : 1 - (t - 1);
                 var p = bounds.GetPointAtNormalPosition(x, 0.5f);
-                var c = ImTheme.Active.Text.Color.WithAlpha((byte)(255 * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2)));
+                var c = gui.Style.Text.Color.WithAlpha((byte)(255 * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2)));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }
@@ -376,7 +386,7 @@ namespace Imui.Controls.Windows
 
             gui.BeginDropdown(controlId, ref customDropdownOpen, default);
             {
-                var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f);
+                var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f);
 
                 gui.Text("Boxes ticked: ", textSettings);
 
@@ -423,7 +433,7 @@ namespace Imui.Controls.Windows
 
             gui.BeginFoldout(out var nestedFoldoutOpen, label);
             gui.BeginIndent();
-            
+
             if (nestedFoldoutOpen)
             {
                 if (current < total)
@@ -450,29 +460,7 @@ namespace Imui.Controls.Windows
             gui.EndIndent();
             gui.EndFoldout();
         }
-
-        private static int GetThemeIndex(string name)
-        {
-            for (int i = 0; i < themes.Length; ++i)
-            {
-                if (themes[i] == name)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        private static ImTheme CreateTheme(int index)
-        {
-            return index switch
-            {
-                1 => ImDarkTheme.Create(),
-                _ => ImLightTheme.Create()
-            };
-        }
-
+        
         private static ReadOnlySpan<char> Format(ReadOnlySpan<char> prefix, float value, ReadOnlySpan<char> format = default)
         {
             var dst = new Span<char>(formatBuffer);

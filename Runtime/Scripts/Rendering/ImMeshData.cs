@@ -28,7 +28,7 @@ namespace Imui.Rendering
         public int Order;
         public ImMeshClipRect ClipRect;
         public ImMeshMaskRect MaskRect;
-        public float Contrast;
+        public float InvColorMul;
         
         public void ClearOptions()
         {
@@ -39,7 +39,7 @@ namespace Imui.Rendering
             Order = 0;
             ClipRect = default;
             MaskRect = default;
-            Contrast = default;
+            InvColorMul = default;
         }
         
         public void Clear()

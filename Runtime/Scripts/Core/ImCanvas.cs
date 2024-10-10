@@ -13,7 +13,7 @@ namespace Imui.Core
         public Texture MainTex;
         public Texture FontTex;
         public int Order;
-        public float Contrast;
+        public float InvColorMul;
     }
     
     public partial class ImCanvas : IDisposable
@@ -136,7 +136,7 @@ namespace Imui.Core
             mesh.Order = settings.Order;
             mesh.ClipRect = settings.ClipRect;
             mesh.MaskRect = settings.MaskRect;
-            mesh.Contrast = settings.Contrast;
+            mesh.InvColorMul = settings.InvColorMul;
         }
 
         public bool Cull(ImRect rect)
@@ -257,6 +257,7 @@ namespace Imui.Core
             textDrawer.AddTextWithLayout(text, in layout, position.x, position.y);
         }
 
+        // TODO (artem-s): use few parameters instead of textsettings here and add extension that acceps text settings for convenience
         public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
             ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);

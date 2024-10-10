@@ -1,4 +1,4 @@
-namespace Imui.Controls.Styling
+namespace Imui.Style
 {
     public unsafe ref struct ImStyleScope<T> where T : unmanaged
     {

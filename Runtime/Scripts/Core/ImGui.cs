@@ -1,6 +1,7 @@
 using System;
 using Imui.IO;
 using Imui.Rendering;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
@@ -16,8 +17,6 @@ namespace Imui.Core
         
         private const float UI_SCALE_MIN = 0.05f;
         private const float UI_SCALE_MAX = 16.0f;
-
-        private const float READONLY_SCOPE_CONTRAST = 0.3f;
 
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
@@ -107,6 +106,8 @@ namespace Imui.Core
         public readonly IImRenderingBackend Renderer;
         public readonly ImFormatter Formatter;
 
+        public ImStyleSheet Style;
+        
         // ReSharper disable InconsistentNaming
         internal FrameData nextFrameData;
         internal FrameData frameData;
@@ -144,6 +145,7 @@ namespace Imui.Core
             readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
             
             Input.SetRaycaster(Raycast);
+            SetTheme(ImThemeBuiltin.Light());
         }
         
         public void BeginFrame()
@@ -189,18 +191,18 @@ namespace Imui.Core
 
             if (isReadOnly)
             {
-                Canvas.PushContrast(READONLY_SCOPE_CONTRAST);
+                Canvas.PushInvColorMul(1 - Style.Theme.ReadOnlyColorMultiplier);
             }
             else
             {
-                Canvas.PushDefaultContrast();
+                Canvas.PushDefaultInvColorMul();
             }
         }
 
         public void EndReadOnly()
         {
             readOnlyStack.Pop();
-            Canvas.PopContrast();
+            Canvas.PopInvColorMul();
         }
         
         internal ref ImDynamicArray<uint> GetScrollRectStack()
@@ -315,6 +317,11 @@ namespace Imui.Core
             }
 
             return false;
+        }
+
+        public void SetTheme(ImTheme theme)
+        {
+            Style = ImStyleSheetBuilder.Build(theme);
         }
 
         public void RegisterRaycastTarget(ImRect rect)
@@ -433,5 +440,17 @@ namespace Imui.Core
             
             disposed = true;
         }
+    }
+    
+    [Flags]
+    public enum ImControlFlag
+    {
+        None      = 0,
+        Draggable = 1 << 0
+    }
+    
+    public struct ImControlSettings
+    {
+        public ImAdjacency Adjacency;
     }
 }

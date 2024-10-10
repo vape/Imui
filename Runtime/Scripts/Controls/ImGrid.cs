@@ -1,4 +1,3 @@
-using Imui.Controls.Styling;
 using Imui.Core;
 using UnityEngine;
 
@@ -19,16 +18,16 @@ namespace Imui.Controls
         public static ImGridState BeginGrid(this ImGui gui, int columns, float cellHeight = 0)
         {
             var width = gui.GetLayoutWidth();
-            var spacing = GetDefaultSpacing();
-            var cellWidth = (width + spacing.x) / columns - spacing.x;
+            var spacing = GetDefaultSpacing(gui);
+            var cellWidth = Mathf.Floor((width + spacing.x) / columns - spacing.x);
             cellHeight = cellHeight <= 0 ? cellWidth : cellHeight;
 
-            return BeginGrid(gui, new Vector2(cellWidth, cellHeight));
+            return BeginGrid(gui, new Vector2(cellWidth, cellHeight), spacing);
         }
         
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize)
         {
-            return BeginGrid(gui, cellSize, new Vector2(ImTheme.Active.Controls.InnerSpacing, ImTheme.Active.Controls.InnerSpacing));
+            return BeginGrid(gui, cellSize, GetDefaultSpacing(gui));
         }
         
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize, Vector2 spacing)
@@ -71,9 +70,9 @@ namespace Imui.Controls
             return new ImRect(x, y - state.CellSize.y, state.CellSize.x, state.CellSize.y);
         }
 
-        public static Vector2 GetDefaultSpacing()
+        public static Vector2 GetDefaultSpacing(ImGui gui)
         {
-            return new Vector2(ImTheme.Active.Controls.InnerSpacing, ImTheme.Active.Controls.InnerSpacing);
+            return new Vector2(gui.Style.Layout.Spacing, gui.Style.Layout.Spacing);
         }
     }
 }

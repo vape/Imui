@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -134,9 +134,9 @@ namespace Imui.Controls
 
         public static ImRect GetListRect(ImGui gui, ImRect controlRect, int itemsCount = 0)
         {
-            var width = Mathf.Max(controlRect.W, ImTheme.Active.Dropdown.MinListWidth);
-            var itemsHeight = gui.GetRowHeight() * itemsCount + (ImTheme.Active.Controls.ControlsSpacing * Mathf.Max(0, itemsCount - 1));
-            var height = Mathf.Min(ImTheme.Active.Dropdown.MaxListHeight, ImList.GetEnclosingHeight(itemsHeight));
+            var width = Mathf.Max(controlRect.W, gui.Style.Dropdown.MinListWidth);
+            var itemsHeight = gui.GetRowHeight() * itemsCount + (gui.Style.Layout.Spacing * Mathf.Max(0, itemsCount - 1));
+            var height = Mathf.Min(gui.Style.Dropdown.MaxListHeight, ImList.GetEnclosingHeight(gui, itemsHeight));
             var x = controlRect.X;
             var y = controlRect.Y - height;
 
@@ -193,8 +193,7 @@ namespace Imui.Controls
         
         public static void PreviewButton(ImGui gui, uint id, ref bool open, ReadOnlySpan<char> label)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
-            ImTheme.Active.Button.Alignment = ImTheme.Active.Dropdown.Alignment;
+            using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button);
 
             if (gui.Button(id, label, gui.Layout.GetBoundsRect()))
             {
@@ -209,17 +208,18 @@ namespace Imui.Controls
 
         public static bool ArrowButton(ImGui gui, uint id, ImRect rect)
         {
-            var clicked = gui.Button(id, rect, out var state);
-
-            rect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Dropdown.ArrowScale).WithAspect(1.1547f);
-
-            Span<Vector2> points = stackalloc Vector2[3]
+            bool clicked;
+            
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
             {
-                new Vector2(rect.X + rect.W * 0.5f, rect.Y), new Vector2(rect.X + rect.W, rect.Y + rect.H), new Vector2(rect.X, rect.Y + rect.H),
-            };
-
-            gui.Canvas.ConvexFill(points, ImButton.GetStateFontColor(state));
-
+                clicked = gui.Button(id, rect, out var state);
+                
+                rect = rect.WithAspect(1.0f);
+                rect = rect.ScaleFromCenter(gui.Style.Layout.TextSize / rect.W);
+                
+                ImFoldout.DrawArrowDown(gui.Canvas, rect, ImButton.GetStateFrontColor(gui, state), gui.Style.Dropdown.ArrowScale);
+            }
+            
             return clicked;
         }
 
@@ -227,14 +227,5 @@ namespace Imui.Controls
         {
             return Mathf.Min(controlWidth * 0.5f, controlHeight);
         }
-    }
-
-    [Serializable]
-    public struct ImDropdownStyle
-    {
-        public float ArrowScale;
-        public ImTextAlignment Alignment;
-        public float MaxListHeight;
-        public float MinListWidth;
     }
 }

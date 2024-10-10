@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -9,24 +9,24 @@ namespace Imui.Controls
     {
         public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label = default)
         {
-            switch (size.Type)
+            switch (size.Mode)
             {
-                case ImSizeType.Fixed:
+                case ImSizeMode.Fixed:
                     return gui.Layout.AddRect(size.Width, size.Height);
                 default:
-                    var boxSize = GetBoxSize(gui);
+                    var boxSize = gui.Style.Layout.TextSize;
                     
                     if (label.IsEmpty)
                     {
-                        return gui.Layout.AddRect(boxSize, boxSize);
+                        return gui.Layout.AddRect(boxSize, gui.GetRowHeight());
                     }
 
-                    var textSettings = GetTextSettings();
+                    var textSettings = GetTextSettings(gui);
                     var textSize = gui.MeasureTextSize(label, in textSettings);
-                    var width = boxSize + ImTheme.Active.Controls.InnerSpacing + textSize.x;
+                    var width = boxSize + gui.Style.Layout.InnerSpacing + textSize.x;
                     var height = Mathf.Max(boxSize, textSize.y);
                     
-                    if (size.Type != ImSizeType.Fit && gui.Layout.Axis != ImAxis.Horizontal)
+                    if (size.Mode != ImSizeMode.Fit && gui.Layout.Axis != ImAxis.Horizontal)
                     {
                         width = Mathf.Max(gui.GetLayoutWidth(), width);
                     }
@@ -58,7 +58,7 @@ namespace Imui.Controls
         public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var boxSize = GetBoxSize(gui);
+            var boxSize = gui.Style.Layout.TextSize;
             var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Checkbox(gui, id, ref value, boxRect);
 
@@ -67,11 +67,11 @@ namespace Imui.Controls
                 return changed;
             }
 
-            var textSettings = GetTextSettings();
+            var textSettings = GetTextSettings(gui);
             
-            textRect.X += ImTheme.Active.Controls.InnerSpacing;
-            textRect.W -= ImTheme.Active.Controls.InnerSpacing;
-            gui.Canvas.Text(label, ImTheme.Active.Text.Color, textRect, textSettings);
+            textRect.X += gui.Style.Layout.InnerSpacing;
+            textRect.W -= gui.Style.Layout.InnerSpacing;
+            gui.Canvas.Text(label, gui.Style.Text.Color, textRect, textSettings);
             
             if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPress))
             {
@@ -84,12 +84,16 @@ namespace Imui.Controls
         
         public static bool Checkbox(this ImGui gui, uint id, ref bool value, ImRect rect)
         {
+            ref readonly var style = ref (value ? ref gui.Style.Checkbox.Checked : ref gui.Style.Checkbox.Normal);
+            
+            using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in style);
+            
             var clicked = gui.Button(id, rect, out var state);
-            var frontColor = ImButton.GetStateFontColor(state);
+            var frontColor = ImButton.GetStateFrontColor(gui, state);
 
             if (value)
             {
-                var checkmarkRect = rect.ScaleFromCenter(ImTheme.Active.Checkbox.CheckmarkScale);
+                var checkmarkRect = rect.ScaleFromCenter(gui.Style.Checkbox.CheckmarkScale);
                 var checkmarkStrokeWidth = checkmarkRect.W * 0.2f;
                 
                 DrawCheckmark(gui.Canvas, checkmarkRect, frontColor, checkmarkStrokeWidth);
@@ -114,23 +118,10 @@ namespace Imui.Controls
 
             canvas.LineMiter(path, color, false, thickness);
         }
-
-        public static float GetBoxSize(ImGui gui)
-        {
-            return gui.GetRowHeight();
-        }
         
-        public static ImTextSettings GetTextSettings()
+        public static ImTextSettings GetTextSettings(ImGui gui)
         {
-            return new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Checkbox.TextAlignment, ImTheme.Active.Checkbox.WrapText);
+            return new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f, false);
         }
-    }
-
-    [Serializable]
-    public struct ImCheckboxStyle
-    {
-        public float CheckmarkScale;
-        public ImTextAlignment TextAlignment;
-        public bool WrapText;
     }
 }

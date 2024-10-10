@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 
 namespace Imui.Controls
 {
@@ -21,14 +21,14 @@ namespace Imui.Controls
 
         public static void BeginList(this ImGui gui, ImRect rect)
         {
-            gui.Box(rect, ImTheme.Active.List.Box);
+            gui.Box(rect, gui.Style.List.Box);
             gui.RegisterRaycastTarget(rect);
 
-            var layoutRect = rect.WithPadding(ImTheme.Active.List.Padding);
-            var maskRect = rect.WithPadding(ImTheme.Active.List.Box.BorderWidth);
+            var layoutRect = rect.WithPadding(gui.Style.List.Padding);
+            var maskRect = rect.WithPadding(gui.Style.List.Box.BorderThickness);
             
             gui.Layout.Push(ImAxis.Vertical, layoutRect);
-            gui.Canvas.PushRectMask(maskRect, ImTheme.Active.List.Box.BorderRadius);
+            gui.Canvas.PushRectMask(maskRect, gui.Style.List.Box.BorderRadius);
             gui.Canvas.PushClipRect(maskRect); // need this to properly handle clicking outside drawing area
             gui.BeginScrollable();
         }
@@ -43,9 +43,9 @@ namespace Imui.Controls
 
         public static bool ListItem(this ImGui gui, ref int selectedIndex, int index, ReadOnlySpan<char> label)
         {
-            ref readonly var style = ref (index == selectedIndex ? ref ImTheme.Active.List.ItemSelected : ref ImTheme.Active.List.ItemNormal);
+            ref readonly var style = ref (index == selectedIndex ? ref gui.Style.List.ItemSelected : ref gui.Style.List.ItemNormal);
 
-            using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in style))
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in style))
             {
                 if (gui.Button(label))
                 {
@@ -59,9 +59,9 @@ namespace Imui.Controls
 
         public static bool ListItem(this ImGui gui, bool isSelected, ReadOnlySpan<char> label)
         {
-            ref readonly var style = ref (isSelected ? ref ImTheme.Active.List.ItemSelected : ref ImTheme.Active.List.ItemNormal);
+            ref readonly var style = ref (isSelected ? ref gui.Style.List.ItemSelected : ref gui.Style.List.ItemNormal);
 
-            using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, in style))
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in style))
             {
                 if (gui.Button(label))
                 {
@@ -72,17 +72,9 @@ namespace Imui.Controls
             return false;
         }
 
-        public static float GetEnclosingHeight(float contentHeight)
+        public static float GetEnclosingHeight(ImGui gui, float contentHeight)
         {
-            return contentHeight + ImTheme.Active.List.Padding.Vertical;
+            return contentHeight + gui.Style.List.Padding.Vertical;
         }
-    }
-
-    public struct ImListStyle
-    {
-        public ImBoxStyle Box;
-        public ImPadding Padding;
-        public ImButtonStyle ItemNormal;
-        public ImButtonStyle ItemSelected;
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -10,9 +10,9 @@ namespace Imui.Controls
     {
         public static ImRect GetRect(ImGui gui, ImSize size)
         {
-            return size.Type switch
+            return size.Mode switch
             {
-                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
             };
         }
@@ -63,12 +63,12 @@ namespace Imui.Controls
             step = Mathf.Abs(step);
 
             var normValue = Mathf.InverseLerp(min, max, value);
+            
+            gui.Box(rect, in gui.Style.Slider.Box);
 
-            gui.Box(rect, in ImTheme.Active.Slider.Box);
+            var rectPadded = rect.WithPadding(gui.Style.Slider.Box.BorderThickness);
 
-            var rectPadded = rect.WithPadding(ImTheme.Active.Slider.Padding);
-
-            var handleW = rectPadded.H * ImTheme.Active.Slider.HandleAspectRatio;
+            var handleW = step == 0 ? 0.5f * rectPadded.H : Mathf.Max(0.5f * rectPadded.H, rectPadded.W / (max - min));
             var handleH = rectPadded.H;
 
             var xmin = rectPadded.X + handleW / 2.0f;
@@ -82,7 +82,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
 
-            using (new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button, ImTheme.Active.Slider.Handle))
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
                 if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPress))
                 {
@@ -98,8 +98,8 @@ namespace Imui.Controls
                 format = GetFormatForStep(gui, step);
             }
 
-            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.5f, 0.5f);
-            gui.Text(gui.Formatter.Format(value, format), in textSettings, ImTheme.Active.Slider.Box.FrontColor, rect);
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, 0.5f, 0.5f);
+            gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Box.FrontColor, rect);
 
             if (gui.IsReadOnly)
             {
@@ -150,14 +150,5 @@ namespace Imui.Controls
 
             return gui.Formatter.JoinDuplicate("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
         }
-    }
-
-    [Serializable]
-    public struct ImSliderStyle
-    {
-        public ImBoxStyle Box;
-        public ImButtonStyle Handle;
-        public ImPadding Padding;
-        public float HandleAspectRatio;
     }
 }
