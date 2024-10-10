@@ -77,6 +77,11 @@ namespace Imui.Controls
 
         public static void DrawArrowDown(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
         {
+            if (scale <= 0.0f)
+            {
+                return;
+            }
+            
             if (scale != 1.0f)
             {
                 rect = rect.ScaleFromCenter(scale);

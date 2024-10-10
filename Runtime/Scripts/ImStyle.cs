@@ -15,6 +15,10 @@ namespace Imui
         public float TextSize;
         public float Spacing;
         public float InnerSpacing;
+        public float Indent;
+        public float ExtraRowSize;
+        public float ScrollSpeed;
+        public float ScrollBarSize;
 
         public float WindowBorderRadius;
         public float WindowBorderThickness;
@@ -40,16 +44,21 @@ namespace Imui
         public static ImTheme Build(ImStyle style)
         {
             Profiler.BeginSample("ImThemeBuilder.Build");
-            
-            var theme = style.IsDark ? ImDarkTheme.Create() : ImLightTheme.Create();
 
+            var theme = new ImTheme();
+            
+            // Text
             theme.Text.Color = style.Foreground;
+            theme.Text.Alignment = default;
             
             // Base
+            theme.Controls.ExtraRowHeight = style.ExtraRowSize;
             theme.Controls.ControlsSpacing = style.Spacing;
             theme.Controls.InnerSpacing = style.InnerSpacing;
             theme.Controls.TextSize = style.TextSize;
             theme.Controls.ReadOnlyColorMultiplier = style.ReadOnlyColorMultiplier;
+            theme.Controls.Indent = style.Indent;
+            theme.Controls.ScrollSpeedScale = style.ScrollSpeed;
             
             // Window
             theme.Window.ContentPadding = style.Spacing;
@@ -57,12 +66,15 @@ namespace Imui
             theme.Window.Box.FrontColor = style.Foreground;
             theme.Window.TitleBar.BackColor = D(style.Background, 0.15f);
             theme.Window.TitleBar.FrontColor = style.Foreground;
+            theme.Window.TitleBar.Alignment = new ImTextAlignment(0.5f, 0.5f);
             theme.Window.ResizeHandleColor = D(style.Background, 0.15f);
+            theme.Window.ResizeHandleSize = style.ScrollBarSize * 1.3f;
             theme.Window.Box.BorderRadius = style.WindowBorderRadius;
             theme.Window.Box.BorderWidth = style.WindowBorderThickness;
             theme.Window.Box.BorderColor = style.BorderColor;
 
             // Button
+            theme.Button.Alignment = new ImTextAlignment(0.5f, 0.5f);
             theme.Button.BorderRadius = style.BorderRadius;
             theme.Button.BorderThickness = style.BorderWidth;
             
@@ -81,9 +93,6 @@ namespace Imui
             // Text Edit
             var textSelection = style.AccentBackground.WithAlpha((byte)(255 * 0.25f));
 
-            theme.TextEdit.Normal.Box.BorderRadius = style.BorderRadius;
-            theme.TextEdit.Normal.Box.BorderWidth = style.BorderWidth;
-            
             theme.TextEdit.Normal.SelectionColor = textSelection;
             theme.TextEdit.Normal.Box.BackColor = style.FieldColor;
             theme.TextEdit.Normal.Box.FrontColor = style.Foreground;
@@ -97,15 +106,24 @@ namespace Imui
             theme.TextEdit.Selected.Box.BorderColor = style.AccentBackground;
             theme.TextEdit.Selected.Box.BorderRadius = style.BorderRadius;
             theme.TextEdit.Selected.Box.BorderWidth = style.BorderWidth;
+
+            theme.TextEdit.CaretWidth = 2.0f;
+            theme.TextEdit.Alignment = new ImTextAlignment(0.0f, 0.0f);
+            theme.TextEdit.TextWrap = false;
             
             // Scroll
+            theme.Scroll.Size = (int)style.ScrollBarSize;
+            theme.Scroll.Padding = style.BorderWidth;
+            theme.Scroll.VMargin = new ImPadding(style.Spacing, 0, 0, 0);
+            theme.Scroll.HMargin = new ImPadding(0, 0, style.Spacing, 0);
             theme.Scroll.BorderRadius = style.BorderRadius;
-            theme.Scroll.NormalState.BackColor = style.ButtonColor.WithAlpha(196);
-            theme.Scroll.NormalState.FrontColor = style.Foreground.WithAlpha(64);
-            theme.Scroll.HoveredState.BackColor = style.ButtonColor.WithAlpha(255);
-            theme.Scroll.HoveredState.FrontColor = style.Foreground.WithAlpha(128);
-            theme.Scroll.PressedState.BackColor = style.ButtonColor.WithAlpha(255);
-            theme.Scroll.PressedState.FrontColor = style.Foreground;
+
+            theme.Scroll.NormalState.BackColor = Color32.Lerp(style.Background, style.Foreground, 0.15f);
+            theme.Scroll.NormalState.FrontColor = Color32.Lerp(style.Background, style.Foreground, 0.25f);
+            theme.Scroll.HoveredState.BackColor = theme.Scroll.NormalState.BackColor;
+            theme.Scroll.HoveredState.FrontColor = style.IsDark ? L(theme.Scroll.NormalState.FrontColor, 0.1f) : D(theme.Scroll.NormalState.FrontColor, 0.1f);
+            theme.Scroll.PressedState.BackColor = theme.Scroll.HoveredState.BackColor;
+            theme.Scroll.PressedState.FrontColor = style.IsDark ? style.AccentBackground : D(style.AccentBackground, 0.1f);
             
             // Slider
             theme.Slider.Box.BackColor = style.FieldColor;
@@ -175,6 +193,9 @@ namespace Imui
             theme.Tree.ItemSelected = theme.List.ItemSelected;
             
             // Dropdown
+            theme.Dropdown.ArrowScale = 0.6f;
+            theme.Dropdown.MaxListHeight = 300.0f;
+            theme.Dropdown.MinListWidth = 150.0f;
             theme.Dropdown.Button = theme.Button;
             theme.Dropdown.Button.Alignment = new ImTextAlignment(0.0f, 0.5f);
             
@@ -196,7 +217,7 @@ namespace Imui
             theme.Checkbox.Checked.Pressed.BorderColor = D(style.AccentBackground, 0.15f);
             
             // Radiobox
-            theme.Radiobox.KnobScale = 0.5f;
+            theme.Radiobox.KnobScale = 0.6f;
             theme.Radiobox.Normal = theme.Checkbox.Normal;
             theme.Radiobox.Normal.BorderRadius = 999.9f;
             theme.Radiobox.Checked = theme.Checkbox.Checked;

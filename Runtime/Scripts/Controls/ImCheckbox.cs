@@ -18,7 +18,7 @@ namespace Imui.Controls
                     
                     if (label.IsEmpty)
                     {
-                        return gui.Layout.AddRect(boxSize, boxSize);
+                        return gui.Layout.AddRect(boxSize, gui.GetRowHeight());
                     }
 
                     var textSettings = GetTextSettings();

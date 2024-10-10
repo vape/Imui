@@ -171,7 +171,7 @@ namespace Imui.Controls
         {
             ref readonly var style = ref ImTheme.Active.Scroll;
                 
-            rect = rect.WithPadding(style.Margin);
+            rect = rect.WithPadding(axis == 0 ? style.HMargin : style.VMargin);
 
             var delta = 0f;
             var absoluteSize = axis == 0 ? rect.W : rect.H;
@@ -217,13 +217,15 @@ namespace Imui.Controls
         {
             if ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0)
             {
-                view.Y += ImTheme.Active.Scroll.Size;
-                view.H -= ImTheme.Active.Scroll.Size;
+                var size = GetScrollBarSize(0);
+                
+                view.Y += size;
+                view.H -= size;
             }
 
             if ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0)
             {
-                view.W -= ImTheme.Active.Scroll.Size;
+                view.W -= GetScrollBarSize(1);
             }
 
             return view;
@@ -231,11 +233,11 @@ namespace Imui.Controls
         
         public static ImRect GetHorizontalBarRect(ImRect view, bool verBarVisible)
         {
-            view.H = ImTheme.Active.Scroll.Size;
+            view.H = GetScrollBarSize(0);
 
             if (verBarVisible)
             {
-                view.W -= ImTheme.Active.Scroll.Size;
+                view.W -= GetScrollBarSize(1);
             }
             
             return view;
@@ -243,15 +245,18 @@ namespace Imui.Controls
 
         public static ImRect GetVerticalBarRect(ImRect view)
         {
-            view.X += view.W - ImTheme.Active.Scroll.Size;
-            view.W = ImTheme.Active.Scroll.Size;
+            var size = GetScrollBarSize(1);
+            
+            view.X += view.W - size;
+            view.W = size;
 
             return view;
         }
         
         private static void Layout(ref ImScrollState state, ImRect view, Vector2 size, out Vector2 adjust, ImScrollFlag flags)
         {
-            var styleSize = ImTheme.Active.Scroll.Size;
+            var styleSizeVer = GetScrollBarSize(1);
+            var styleSizeHor = GetScrollBarSize(0);
             
             state.Layout = default;
 
@@ -259,19 +264,24 @@ namespace Imui.Controls
             for (int i = 0; i < 2; ++i)
             {
                 state.Layout =
-                    (flags & ImScrollFlag.NoVerticalBar) == 0 && size.y > (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSize : 0f))
+                    (flags & ImScrollFlag.NoVerticalBar) == 0 && size.y > (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeVer : 0f))
                         ? (state.Layout | ImScrollLayoutFlag.VerBarVisible)
                         : (state.Layout & ~ImScrollLayoutFlag.VerBarVisible);
 
                 state.Layout =
-                    (flags & ImScrollFlag.NoHorizontalBar) == 0 && size.x > (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSize : 0f))
+                    (flags & ImScrollFlag.NoHorizontalBar) == 0 && size.x > (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeHor : 0f))
                         ? (state.Layout | ImScrollLayoutFlag.HorBarVisible)
                         : (state.Layout & ~ImScrollLayoutFlag.HorBarVisible);
             }
 
             adjust = new Vector2(
-                (state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSize : 0f, 
-                (state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSize : 0f);
+                (state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeVer : 0f, 
+                (state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeHor : 0f);
+        }
+
+        private static float GetScrollBarSize(int axis)
+        {
+            return (int)(ImTheme.Active.Scroll.Size + (axis == 0 ? ImTheme.Active.Scroll.HMargin.Vertical : ImTheme.Active.Scroll.VMargin.Horizontal));
         }
     }
     
@@ -287,9 +297,10 @@ namespace Imui.Controls
     public struct ImScrollStyle
     {
         public float Size;
-        public float Margin;
         public float Padding;
         public float BorderRadius;
+        public ImPadding VMargin;
+        public ImPadding HMargin;
         public ImScrollBarStateStyle NormalState;
         public ImScrollBarStateStyle HoveredState;
         public ImScrollBarStateStyle PressedState;
