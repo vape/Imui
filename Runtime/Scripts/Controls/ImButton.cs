@@ -126,7 +126,7 @@ namespace Imui.Controls
 
                     break;
 
-                case ImMouseEventType.Held when pressed && (flag & ImButtonFlag.ReactToHeldDown) != 0:
+                case ImMouseEventType.Hold when pressed && (flag & ImButtonFlag.ReactToHeldDown) != 0:
                     clicked = true;
                     gui.Input.UseMouseEvent();
                     break;

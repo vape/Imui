@@ -121,6 +121,11 @@ namespace Imui.Controls
             return text;
         }
         
+        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = default)
+        {
+            TextEdit(gui, ref text, rect, true, filter);
+        }
+        
         public static void TextEdit(this ImGui gui, ref string text, ImRect rect, bool multiline, ImTextEditFilter filter = default)
         {
             var id = gui.GetNextControlId();
@@ -229,6 +234,21 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
+                                
+                case ImMouseEventType.Down when selected && hovered && evt.Count > 1:
+                    state.Selection = 0;
+                    state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, textRect, in layout, in buffer);
+                    
+                    if (evt.Count == 2)
+                    {
+                        SelectWordOnTheSameLineAtCaret(ref state, in layout, buffer);
+                    }
+                    else
+                    {
+                        SelectLineAtCaret(ref state, in layout, buffer);
+                    } 
+                    break;
+                
                 case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
                     if (!selected)
                     {
@@ -597,17 +617,16 @@ namespace Imui.Controls
                     ? Mathf.Min(state.Caret + state.Selection, state.Caret)
                     : Mathf.Max(state.Caret + state.Selection, state.Caret);
             }
+            else if (cmd.HasFlag(ImKeyboardCommandFlag.NextWord))
+            {
+                state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, dir, buffer);
+            }
             else
             {
                 state.Caret = Mathf.Max(state.Caret + dir, 0);
             }
 
             state.Caret = Mathf.Clamp(state.Caret, 0, buffer.Length);
-
-            if (cmd.HasFlag(ImKeyboardCommandFlag.NextWord))
-            {
-                state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, dir, buffer);
-            }
 
             if (cmd.HasFlag(ImKeyboardCommandFlag.Selection))
             {
@@ -619,6 +638,39 @@ namespace Imui.Controls
             }
 
             return state.Caret != prevCaret || state.Selection != prevSelection;
+        }
+        
+        public static void SelectWordOnTheSameLineAtCaret(ref ImTextEditState state, in ImTextLayout layout, ReadOnlySpan<char> buffer)
+        {
+            var line = FindLineAtCaretPosition(state.Caret, in layout, out _);
+            var maxLeft = layout.Lines[line].Start;
+            var maxRight = maxLeft + layout.Lines[line].Count;
+
+            if (line < layout.LinesCount - 1)
+            {
+                maxRight -= 1;
+            }
+
+            var right = Mathf.Min(maxRight, FindEndOfWordOrSpacesSequence(state.Caret, 1, buffer));
+            var left = Mathf.Max(maxLeft, FindEndOfWordOrSpacesSequence(state.Caret, -1, buffer));
+
+            state.Caret = right;
+            state.Selection = left - right;
+        }
+
+        public static void SelectLineAtCaret(ref ImTextEditState state, in ImTextLayout layout, ReadOnlySpan<char> buffer)
+        {
+            if (layout.LinesCount <= 0)
+            {
+                return;
+            }
+            
+            var line = FindLineAtCaretPosition(state.Caret, in layout, out _);
+            var left = layout.Lines[line].Start;
+            var right = left + layout.Lines[line].Count;
+            
+            state.Caret = right;
+            state.Selection = left - right;
         }
 
         // TODO: doesn't work when caret is horizontally outside of the scope

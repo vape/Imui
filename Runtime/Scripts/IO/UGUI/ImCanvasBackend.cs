@@ -25,6 +25,8 @@ namespace Imui.IO.UGUI
         private const int KEYBOARD_EVENTS_QUEUE_SIZE = 16;
         
         private const float HELD_DOWN_DELAY = 0.2f;
+        private const float MULTI_CLICK_TIME_THRESHOLD = 0.2f;
+        private const float MULTI_CLICK_POS_THRESHOLD = 20.0f;
         
         private static Texture2D ClearTexture;
         private static readonly Vector3[] TempBuffer = new Vector3[4];
@@ -50,7 +52,9 @@ namespace Imui.IO.UGUI
         private bool elementHovered;
         
         private bool mouseHeldDown;
-        private float mouseDownTime;
+        private float[] mouseDownTime = new float[3];
+        private int[] mouseDownCount = new int[3];
+        private Vector2[] mouseDownPos = new Vector2[3];
         
         protected override void Awake()
         {
@@ -173,15 +177,20 @@ namespace Imui.IO.UGUI
                 return;
             }
 #endif
+            var mouseBtnLeft = (int)PointerEventData.InputButton.Left;
+            
             mousePosition = GetMousePosition();
             
             if (mouseEventsQueue.TryPopBack(out var queuedMouseEvent))
             {
                 mouseEvent = queuedMouseEvent;
             }
-            else if (mouseHeldDown && (Time.unscaledTime - mouseDownTime) > HELD_DOWN_DELAY)
+            else if (mouseHeldDown && (Time.unscaledTime - mouseDownTime[mouseBtnLeft]) > HELD_DOWN_DELAY)
             {
-                mouseEvent = new ImMouseEvent(ImMouseEventType.Held, 0, EventModifiers.None, new Vector2(Time.unscaledTime - mouseDownTime, 0));
+                var delta = new Vector2(Time.unscaledTime - mouseDownTime[mouseBtnLeft], 0);
+                var count = mouseDownCount[mouseBtnLeft];
+                
+                mouseEvent = new ImMouseEvent(ImMouseEventType.Hold, mouseBtnLeft, EventModifiers.None, delta, count);
             }
             else
             {
@@ -226,13 +235,24 @@ namespace Imui.IO.UGUI
                 mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
             }
 
+            var btn = (int)eventData.button;
+            var pos = GetMousePosition();
+            
+            if (Time.unscaledTime - mouseDownTime[btn] >= MULTI_CLICK_TIME_THRESHOLD || (pos - mouseDownPos[btn]).magnitude >= MULTI_CLICK_POS_THRESHOLD)
+            {
+                mouseDownCount[btn] = 0;
+            }
+
+            mouseDownPos[btn] = pos;
+            mouseDownCount[btn] += 1;
+            mouseDownTime[btn] = Time.unscaledTime;
+            
             if (eventData.button == PointerEventData.InputButton.Left)
             {
                 mouseHeldDown = true;
-                mouseDownTime = Time.unscaledTime;
             }
-            
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
+
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale, mouseDownCount[btn]));
         }
 
         public void OnPointerUp(PointerEventData eventData)

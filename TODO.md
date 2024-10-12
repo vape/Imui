@@ -1,5 +1,5 @@
 ### 0.4
-- Handle double clicks in ImTextEdit to select words
+- ~~Handle double clicks in ImTextEdit to select words~~
 - Implement table layout
 - Implement tabs
   - Vertical tabs
