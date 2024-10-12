@@ -132,8 +132,10 @@ namespace Imui.Style
     [Serializable]
     public struct ImStyleSlider
     {
-        public ImStyleBox Box;
+        public ImStyleBox Normal;
+        public ImStyleBox Selected;
         public ImStyleButton Handle;
+        public float BackScale;
     }
         
     [Serializable]

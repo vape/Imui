@@ -196,7 +196,7 @@ namespace Imui.Controls.Windows
             DrawBouncingBall(gui);
             gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
             gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
-            gui.Slider(ref bouncingBallTrail, 1, 128, format: "0 trail length");
+            gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
             gui.Text("Selection list (you can select multiple values)");
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)

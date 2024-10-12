@@ -99,6 +99,11 @@ namespace Imui.Rendering
             return FontLineHeight * (size / FontRenderSize);
         }
 
+        public float GetTextSize(float height)
+        {
+            return FontRenderSize * (height / FontLineHeight);
+        }
+
         public float GetCharacterWidth(char c, float size)
         {
             if (!fontAsset.characterLookupTable.TryGetValue(c, out var character))

@@ -6,6 +6,13 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    [Flags]
+    public enum ImSliderFlag
+    {
+        None,
+        DynamicHandle
+    }
+
     public static class ImSlider
     {
         public static ImRect GetRect(ImGui gui, ImSize size)
@@ -17,16 +24,30 @@ namespace Imui.Controls
             };
         }
 
-        public static int Slider(this ImGui gui, int value, int min, int max, ImSize size = default, ReadOnlySpan<char> format = default)
+        public static int Slider(this ImGui gui,
+                                 int value,
+                                 int min,
+                                 int max,
+                                 ImSize size = default,
+                                 ReadOnlySpan<char> format = default,
+                                 int step = 1,
+                                 ImSliderFlag flags = ImSliderFlag.None)
         {
-            Slider(gui, ref value, min, max, size, format);
+            Slider(gui, ref value, min, max, size, format, step, flags);
             return value;
         }
 
-        public static bool Slider(this ImGui gui, ref int value, int min, int max, ImSize size = default, ReadOnlySpan<char> format = default)
+        public static bool Slider(this ImGui gui,
+                                  ref int value,
+                                  int min,
+                                  int max,
+                                  ImSize size = default,
+                                  ReadOnlySpan<char> format = default,
+                                  int step = 1,
+                                  ImSliderFlag flags = ImSliderFlag.None)
         {
             var floatValue = (float)value;
-            var changed = Slider(gui, ref floatValue, min, max, size, format, 1);
+            var changed = Slider(gui, ref floatValue, min, max, size, format, step, flags);
             value = (int)floatValue;
             return changed;
         }
@@ -37,9 +58,10 @@ namespace Imui.Controls
                                    float max,
                                    ImSize size = default,
                                    ReadOnlySpan<char> format = default,
-                                   float step = 0)
+                                   float step = 0,
+                                   ImSliderFlag flags = ImSliderFlag.None)
         {
-            Slider(gui, ref value, min, max, size, format, step);
+            Slider(gui, ref value, min, max, size, format, step, flags);
             return value;
         }
 
@@ -49,38 +71,53 @@ namespace Imui.Controls
                                   float max,
                                   ImSize size = default,
                                   ReadOnlySpan<char> format = default,
-                                  float step = 0)
+                                  float step = 0,
+                                  ImSliderFlag flags = ImSliderFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            return Slider(gui, ref value, min, max, GetRect(gui, size), format, step);
+            return Slider(gui, ref value, min, max, GetRect(gui, size), format, step, flags);
         }
 
-        public static bool Slider(this ImGui gui, ref float value, float min, float max, ImRect rect, ReadOnlySpan<char> format = default, float step = 0)
+        public static bool Slider(this ImGui gui,
+                                  ref float value,
+                                  float min,
+                                  float max,
+                                  ImRect rect,
+                                  ReadOnlySpan<char> format = default,
+                                  float step = 0,
+                                  ImSliderFlag flags = ImSliderFlag.None)
         {
             const float EPSILON = 0.000001f;
-
-            step = Mathf.Abs(step);
-
-            var normValue = Mathf.InverseLerp(min, max, value);
-            
-            gui.Box(rect, in gui.Style.Slider.Box);
-
-            var rectPadded = rect.WithPadding(gui.Style.Slider.Box.BorderThickness);
-
-            var handleW = step == 0 ? 0.5f * rectPadded.H : Mathf.Max(0.5f * rectPadded.H, rectPadded.W / (max - min));
-            var handleH = rectPadded.H;
-
-            var xmin = rectPadded.X + handleW / 2.0f;
-            var xmax = rectPadded.X + rectPadded.W - handleW / 2.0f;
-
-            var handleX = Mathf.Lerp(xmin, xmax, normValue) - (handleW / 2.0f);
-            var handleY = rectPadded.Y + (rectPadded.H / 2.0f) - (handleH / 2.0f);
-            var handleRect = new ImRect(handleX, handleY, handleW, handleH);
 
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
+            
+            step = Mathf.Abs(step);
+
+            var normValue = Mathf.InverseLerp(min, max, value);
+
+            var backgroundRect = rect;
+            backgroundRect.H *= gui.Style.Slider.BackScale;
+            backgroundRect.Y += (rect.H - backgroundRect.H) * 0.5f;
+            backgroundRect.W -= (rect.H - backgroundRect.H);
+            backgroundRect.X += (rect.H - backgroundRect.H) * 0.5f;
+            
+            ref readonly var style = ref (active ? ref gui.Style.Slider.Selected : ref gui.Style.Slider.Normal);
+            gui.Box(backgroundRect, in style);
+
+            var handleBounds = rect;
+
+            var handleW = (flags & ImSliderFlag.DynamicHandle) == 0 ? handleBounds.H : Mathf.Max(handleBounds.H, handleBounds.W / ((max - min) / step));
+            var handleH = handleBounds.H;
+
+            var xmin = handleBounds.X + handleW / 2.0f;
+            var xmax = handleBounds.X + handleBounds.W - handleW / 2.0f;
+
+            var handleX = Mathf.Lerp(xmin, xmax, normValue) - (handleW / 2.0f);
+            var handleY = handleBounds.Y + (handleBounds.H / 2.0f) - (handleH / 2.0f);
+            var handleRect = new ImRect(handleX, handleY, handleW, handleH);
 
             using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
@@ -98,8 +135,10 @@ namespace Imui.Controls
                 format = GetFormatForStep(gui, step);
             }
 
-            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, 0.5f, 0.5f);
-            gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Box.FrontColor, rect);
+            var textSize = gui.TextDrawer.GetTextSize(backgroundRect.H);
+            var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f);
+            
+            gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Normal.FrontColor, backgroundRect);
 
             if (gui.IsReadOnly)
             {

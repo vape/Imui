@@ -90,19 +90,58 @@ namespace Imui.Style
             sheet.Scroll.PressedState.BackColor = sheet.Scroll.HoveredState.BackColor;
             sheet.Scroll.PressedState.FrontColor = isDark ? theme.AccentBackground : D(theme.AccentBackground, 0.1f);
             
-            // Slider
-            sheet.Slider.Box.BackColor = theme.FieldColor;
-            sheet.Slider.Box.BorderColor = theme.BorderColor;
-            sheet.Slider.Box.BorderThickness = theme.BorderThickness;
-            sheet.Slider.Box.BorderRadius = theme.BorderRadius;
-            sheet.Slider.Box.FrontColor = theme.Foreground;
-
-            sheet.Slider.Handle.BorderThickness = 0;
-            sheet.Slider.Handle.BorderRadius = Mathf.Max(0, theme.BorderRadius - theme.BorderThickness);
+            // Checkbox
+            sheet.Checkbox.Normal = sheet.Button;
+            sheet.Checkbox.CheckmarkScale = 0.6f;
             
-            sheet.Slider.Handle.Normal.BackColor = isDark ? D(theme.Foreground, 0.4f) : L(theme.Foreground, 3.0f); 
+            sheet.Checkbox.Checked = sheet.Button;
+            sheet.Checkbox.Checked.Normal.BackColor = theme.AccentBackground;
+            sheet.Checkbox.Checked.Normal.FrontColor = theme.AccentForeground;
+            sheet.Checkbox.Checked.Normal.BorderColor = D(theme.AccentBackground, 0.1f);
+
+            sheet.Checkbox.Checked.Hovered.BackColor = L(theme.AccentBackground, 0.1f);
+            sheet.Checkbox.Checked.Hovered.FrontColor = theme.AccentForeground;
+            sheet.Checkbox.Checked.Hovered.BorderColor = D(theme.AccentBackground, 0.05f);
+
+            sheet.Checkbox.Checked.Pressed.BackColor = D(theme.AccentBackground, 0.05f);
+            sheet.Checkbox.Checked.Pressed.FrontColor = theme.AccentForeground;
+            sheet.Checkbox.Checked.Pressed.BorderColor = D(theme.AccentBackground, 0.15f);
+            
+            // Radiobox
+            sheet.Radiobox.KnobScale = 0.5f;
+            
+            sheet.Radiobox.Normal = sheet.Checkbox.Normal;
+            sheet.Radiobox.Normal.BorderRadius = 999.9f;
+            sheet.Radiobox.Checked = sheet.Checkbox.Checked;
+            sheet.Radiobox.Checked.BorderRadius = 999.9f;
+            
+            // Slider
+            var sliderRadius = theme.BorderRadius;
+            
+            sheet.Slider.BackScale = 0.75f;
+            
+            sheet.Slider.Normal.BackColor = theme.FieldColor;
+            sheet.Slider.Normal.BorderColor = theme.BorderColor;
+            sheet.Slider.Normal.BorderThickness = theme.BorderThickness;
+            sheet.Slider.Normal.BorderRadius = sliderRadius;
+            sheet.Slider.Normal.FrontColor = theme.Foreground;
+            
+            sheet.Slider.Selected.BackColor = theme.FieldColor;
+            sheet.Slider.Selected.BorderColor = sheet.TextEdit.Selected.Box.BorderColor;
+            sheet.Slider.Selected.BorderThickness = theme.BorderThickness;
+            sheet.Slider.Selected.BorderRadius = sliderRadius;
+            sheet.Slider.Selected.FrontColor = theme.Foreground;
+
+            sheet.Slider.Handle.BorderThickness = theme.BorderThickness;
+            sheet.Slider.Handle.BorderRadius = sliderRadius;
+
+            sheet.Slider.Handle.Normal.BackColor = isDark ? D(theme.Foreground, 0.4f) : L(theme.Foreground, 3.0f);
+            sheet.Slider.Handle.Normal.BorderColor = D(sheet.Slider.Handle.Normal.BackColor, 0.1f);
+            
             sheet.Slider.Handle.Hovered.BackColor = L(sheet.Slider.Handle.Normal.BackColor, 0.2f);
-            sheet.Slider.Handle.Pressed.BackColor = D(sheet.Slider.Handle.Normal.BackColor, 0.1f);
+            sheet.Slider.Handle.Hovered.BorderColor = D(sheet.Slider.Handle.Hovered.BackColor, 0.1f);
+            
+            sheet.Slider.Handle.Pressed = sheet.Radiobox.Checked.Pressed;
             
             // List
             sheet.List.Box.BorderColor = theme.BorderColor;
@@ -165,31 +204,6 @@ namespace Imui.Style
             sheet.Dropdown.MinListWidth = 150.0f;
             sheet.Dropdown.Button = sheet.Button;
             sheet.Dropdown.Button.Alignment = new ImAlignment(0.0f, 0.5f);
-            
-            // Checkbox
-            sheet.Checkbox.Normal = sheet.Button;
-            sheet.Checkbox.CheckmarkScale = 0.6f;
-            
-            sheet.Checkbox.Checked = sheet.Button;
-            sheet.Checkbox.Checked.Normal.BackColor = theme.AccentBackground;
-            sheet.Checkbox.Checked.Normal.FrontColor = theme.AccentForeground;
-            sheet.Checkbox.Checked.Normal.BorderColor = D(theme.AccentBackground, 0.1f);
-
-            sheet.Checkbox.Checked.Hovered.BackColor = L(theme.AccentBackground, 0.1f);
-            sheet.Checkbox.Checked.Hovered.FrontColor = theme.AccentForeground;
-            sheet.Checkbox.Checked.Hovered.BorderColor = D(theme.AccentBackground, 0.05f);
-
-            sheet.Checkbox.Checked.Pressed.BackColor = D(theme.AccentBackground, 0.05f);
-            sheet.Checkbox.Checked.Pressed.FrontColor = theme.AccentForeground;
-            sheet.Checkbox.Checked.Pressed.BorderColor = D(theme.AccentBackground, 0.15f);
-            
-            // Radiobox
-            sheet.Radiobox.KnobScale = 0.5f;
-            
-            sheet.Radiobox.Normal = sheet.Checkbox.Normal;
-            sheet.Radiobox.Normal.BorderRadius = 999.9f;
-            sheet.Radiobox.Checked = sheet.Checkbox.Checked;
-            sheet.Radiobox.Checked.BorderRadius = 999.9f;
             
             // Separator
             sheet.Separator.Thickness = Mathf.Max(1, theme.TextSize * 0.15f);
