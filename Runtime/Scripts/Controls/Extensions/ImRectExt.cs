@@ -56,6 +56,15 @@ namespace Imui.Controls
             return rect;
         }
         
+        public static ImRect SplitRight(this ImRect rect, float width, float space, out ImRect left)
+        {
+            left = rect;
+            left.W -= width + space;
+            rect.W = width;
+            rect.X += left.W + space;
+            return rect;
+        }
+        
         public static ImRect WithAspect(this ImRect rect, float aspect)
         {
             var rectAspect = rect.W / rect.H;

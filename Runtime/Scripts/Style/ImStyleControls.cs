@@ -13,7 +13,7 @@ namespace Imui.Style
         public float BorderThickness;
         public ImRectRadius BorderRadius;
 
-        public ImStyleBox Apply(ImAdjacency adjacency)
+        public ImStyleBox MakeAdjacent(ImAdjacency adjacency)
         {
             if ((adjacency & ImAdjacency.Left) != 0)
             {

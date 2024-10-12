@@ -199,7 +199,7 @@ namespace Imui.Controls
                 buffer.Insert(0, tempBuffer->AsSpan());
             }
 
-            gui.Box(rect, stateStyle.Box.Apply(adjacency));
+            gui.Box(rect, stateStyle.Box.MakeAdjacent(adjacency));
 
             ImPadding textPadding = gui.Style.Layout.InnerSpacing;
             

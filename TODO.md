@@ -2,8 +2,6 @@
 - ~~Handle double clicks in ImTextEdit to select words~~
 - Implement table layout
 - Implement tabs
-  - Vertical tabs
-  - Horizontal tabs
 - Text drawing overhaul
   - __Word__ wrapping
   - Add support for (basic subset of) rich text
@@ -14,7 +12,7 @@
 - Show min/max value inside slider
 - Make slider looking similar to sliders in other GUI libraries, dearimgui look seems off
 - Implement tooltips on mouse hover
-- Fix that 2px border in adjacent controls
+- ~~Fix that 2px border in adjacent controls~~
 - Property drawers, like in Unity's IMGUI
 - Foldable/Closeable windows
 - No control should not modify passed value unless user interacts with it

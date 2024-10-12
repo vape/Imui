@@ -56,7 +56,7 @@ namespace Imui.Controls
             }
             else
             {
-                BeginPreview(gui);
+                BeginPreview(gui, id, ref open);
 
                 if (preview == ImDropdownPreviewType.Text)
                 {
@@ -67,7 +67,7 @@ namespace Imui.Controls
                     PreviewButton(gui, id, ref open, label);
                 }
 
-                EndPreview(gui, id, ref open);
+                EndPreview(gui);
             }
 
             return open != prev;
@@ -158,29 +158,26 @@ namespace Imui.Controls
             gui.EndPopup(out closeClicked);
         }
 
-        public static void BeginPreview(ImGui gui)
+        public static void BeginPreview(ImGui gui, uint id, ref bool open)
         {
+            var borderWidth = gui.Style.Dropdown.Button.BorderThickness;
             var wholeRect = gui.Layout.GetBoundsRect();
             var arrowWidth = GetArrowWidth(wholeRect.W, wholeRect.H);
-            wholeRect.SplitRight(arrowWidth, out var previewRect);
-
-            gui.Layout.Push(ImAxis.Horizontal, previewRect);
-            gui.SetNextAdjacency(ImAdjacency.Left);
-        }
-
-        public static void EndPreview(ImGui gui, uint id, ref bool open)
-        {
-            gui.Layout.Pop();
-
-            var wholeRect = gui.Layout.GetBoundsRect();
-            var buttonRect = wholeRect.SplitRight(GetArrowWidth(wholeRect.W, wholeRect.H), out _);
+            var buttonRect = wholeRect.SplitRight(arrowWidth, -borderWidth, out var previewRect);
 
             gui.SetNextAdjacency(ImAdjacency.Right);
-
             if (ArrowButton(gui, id, buttonRect))
             {
                 open = !open;
             }
+            
+            gui.Layout.Push(ImAxis.Horizontal, previewRect);
+            gui.SetNextAdjacency(ImAdjacency.Left);
+        }
+
+        public static void EndPreview(ImGui gui)
+        {
+            gui.Layout.Pop();
         }
 
         public static void NoPreview(ImGui gui, uint id, ref bool open)

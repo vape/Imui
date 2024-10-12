@@ -91,7 +91,7 @@ namespace Imui.Controls
 
             state = pressed ? ImButtonState.Pressed : hovered ? ImButtonState.Hovered : ImButtonState.Normal;
 
-            gui.Box(rect, GetStateBoxStyle(gui, state).Apply(adjacency));
+            gui.Box(rect, GetStateBoxStyle(gui, state).MakeAdjacent(adjacency));
 
             if (gui.IsReadOnly)
             {
