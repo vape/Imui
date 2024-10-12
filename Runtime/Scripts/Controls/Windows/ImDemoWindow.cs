@@ -192,11 +192,14 @@ namespace Imui.Controls.Windows
             gui.Text("Text editors");
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, multiline: true);
-            gui.Text("Sliders");
+            gui.Text("Sliders (with tooltips)");
             DrawBouncingBall(gui);
             gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
+            gui.TooltipAtControl("Size of the circles in pixels");
             gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
+            gui.TooltipAtControl("Speed for circles moving");
             gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
+            gui.TooltipAtControl("Number of circles drawn");
             gui.Text("Selection list (you can select multiple values)");
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)

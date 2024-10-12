@@ -209,6 +209,15 @@ namespace Imui.Style
             sheet.Separator.Thickness = Mathf.Max(1, theme.TextSize * 0.15f);
             sheet.Separator.Color = theme.BorderColor;
             
+            // Tooltip
+            sheet.Tooltip.Offset = new Vector2(10, 10);
+            sheet.Tooltip.Padding = theme.InnerSpacing;
+            sheet.Tooltip.Box.BackColor = theme.Background;
+            sheet.Tooltip.Box.BorderColor = theme.BorderColor;
+            sheet.Tooltip.Box.BorderRadius = theme.BorderRadius;
+            sheet.Tooltip.Box.BorderThickness = theme.BorderThickness;
+            sheet.Tooltip.Box.FrontColor = theme.Foreground;
+            
             return sheet;
         }
 

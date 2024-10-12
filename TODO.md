@@ -11,7 +11,7 @@
 - Implement slider inside numeric editor
 - Show min/max value inside slider
 - ~~Make slider looking similar to sliders in other GUI libraries, dearimgui look seems off~~
-- Implement tooltips on mouse hover
+- ~~Implement tooltips on mouse hover~~
 - ~~Fix that 2px border in adjacent controls~~
 - Property drawers, like in Unity's IMGUI
 - Foldable/Closeable windows

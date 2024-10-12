@@ -155,7 +155,7 @@ namespace Imui.Controls
         public static void EndList(ImGui gui, out bool closeClicked)
         {
             gui.EndList();
-            gui.EndPopup(out closeClicked);
+            gui.EndPopupWithCloseButton(out closeClicked);
         }
 
         public static void BeginPreview(ImGui gui, uint id, ref bool open)

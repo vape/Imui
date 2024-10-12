@@ -187,4 +187,12 @@ namespace Imui.Style
         public ImPadding ContentPadding;
         public ImStyleWindowTitleBar TitleBar;
     }
+
+    [Serializable]
+    public struct ImStyleTooltip
+    {
+        public ImStyleBox Box;
+        public ImPadding Padding;
+        public Vector2 Offset;
+    }
 }

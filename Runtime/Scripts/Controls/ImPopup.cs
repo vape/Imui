@@ -15,7 +15,14 @@ namespace Imui.Controls
             gui.Canvas.PushOrder(ORDER_CONTENT);
         }
 
-        public static void EndPopup(this ImGui gui, out bool close)
+        public static void EndPopup(this ImGui gui)
+        {
+            gui.Canvas.PopOrder();
+            gui.Canvas.PopClipRect();
+            gui.Canvas.PopRectMask();
+        }
+        
+        public static void EndPopupWithCloseButton(this ImGui gui, out bool close)
         {
             gui.Canvas.PopOrder();
             gui.Canvas.PopClipRect();

@@ -92,6 +92,14 @@ namespace Imui.Core
                 return readOnlyStack.TryPeek(@default: false);
             }
         }
+
+        public uint LastControl
+        {
+            get
+            {
+                return lastControl;
+            }
+        }
         
         public readonly ImMeshBuffer MeshBuffer;
         public readonly ImMeshRenderer MeshRenderer;
@@ -120,6 +128,7 @@ namespace Imui.Core
         private uint activeControl;
         private ImControlFlag activeControlFlag;
         private ImControlSettings nextControlSettings;
+        private uint lastControl;
         
         private bool disposed;
         
@@ -332,6 +341,7 @@ namespace Imui.Core
         public void RegisterControl(uint controlId, ImRect rect)
         {
             nextControlSettings = default;
+            lastControl = controlId;
             
             ref readonly var meshProperties = ref Canvas.GetActiveSettings();
             

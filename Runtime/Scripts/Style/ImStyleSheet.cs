@@ -20,5 +20,6 @@ namespace Imui.Style
         public ImStyleRadiobox Radiobox;
         public ImStyleSeparator Separator;
         public ImStyleTree Tree;
+        public ImStyleTooltip Tooltip;
     }
 }
