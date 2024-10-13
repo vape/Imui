@@ -7,25 +7,23 @@ namespace Imui.Core
     [Flags]
     public enum ImWindowFlag : ulong
     {
-        None            = 0,
-        DisableResize   = 1 << 0,
-        DisableMoving   = 1 << 1,
-        DisableTitleBar = 1 << 2
+        None = 0,
+        NoResize = 1 << 0,
+        NoDrag = 1 << 1,
+        NoTitleBar = 1 << 2,
+        NoCloseButton = 1 << 3
     }
-    
+
     public class ImWindowManager
     {
         private const int DRAWING_STACK_CAPACITY = 8;
         private const int WINDOWS_CAPACITY = 32;
 
-        public const int DEFAULT_WIDTH = 500;
-        public const int DEFAULT_HEIGHT = 500;
-        
         private ImDynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
         private ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
         private Vector2 screenSize;
-        
-        public ref ImWindowState BeginWindow(uint id, string title, float width = DEFAULT_WIDTH, float height = DEFAULT_HEIGHT, ImWindowFlag flags = ImWindowFlag.None)
+
+        public ref ImWindowState BeginWindow(uint id, string title, float width, float height, ImWindowFlag flags)
         {
             drawingStack.Push(id);
 
@@ -37,28 +35,36 @@ namespace Imui.Core
                 return ref window;
             }
 
+            var rect = GetNewWindowRect(width, height);
+
             windows.Add(new ImWindowState
             {
                 Id = id,
                 Order = windows.Count,
                 Title = title,
-                Rect = GetNewWindowRect(width, height),
+                Rect = rect,
+                NextRect = rect,
                 Flags = flags
             });
-            
+
             return ref windows.Array[windows.Count - 1];
         }
 
         public uint EndWindow()
         {
-            return drawingStack.Pop();
+            var id = drawingStack.Pop();
+
+            ref var state = ref GetWindowState(id);
+            state.Rect = state.NextRect;
+
+            return id;
         }
 
         public bool IsDrawingWindow()
         {
             return drawingStack.Count > 0;
         }
-        
+
         public ImRect GetCurrentWindowRect()
         {
             if (!IsDrawingWindow())
@@ -98,7 +104,7 @@ namespace Imui.Core
         {
             this.screenSize = screenSize;
         }
-        
+
         public ref ImWindowState GetWindowState(uint id)
         {
             return ref windows.Array[TryFindWindow(id)];
@@ -111,7 +117,7 @@ namespace Imui.Core
             {
                 return;
             }
-            
+
             MoveToTop(index);
         }
 
@@ -120,7 +126,7 @@ namespace Imui.Core
             var state = windows.Array[index];
             windows.RemoveAt(index);
             windows.Add(state);
-            
+
             for (int i = 0; i < windows.Count; ++i)
             {
                 windows.Array[i].Order = i;
@@ -155,6 +161,7 @@ namespace Imui.Core
         public int Order;
         public string Title;
         public ImRect Rect;
+        public ImRect NextRect;
         public ImWindowFlag Flags;
     }
 }

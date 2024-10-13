@@ -19,9 +19,12 @@ namespace Imui.Controls.Windows
         private static float maxFrameTime;
         private static float avgFrameTime;
         
-        public static void Draw(ImGui gui)
+        public static void Draw(ImGui gui, ref bool open)
         {
-            gui.BeginWindow("Imui Debug", width: 350, 415);
+            if (!gui.BeginWindow("Imui Debug", ref open, (350, 415)))
+            {
+                return;
+            }
             
             var storageRatio = gui.Formatter.Join(gui.Formatter.Format(gui.Storage.OccupiedSize)," / ", gui.Formatter.Format(gui.Storage.Capacity));
             var fpsValue = gui.Formatter.Format(avgFrameTime <= 0 ? 0 : 1 / avgFrameTime, "0");

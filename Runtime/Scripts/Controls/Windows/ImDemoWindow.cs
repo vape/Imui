@@ -92,10 +92,13 @@ namespace Imui.Controls.Windows
         private static HashSet<int> selectedValues = new HashSet<int>(values.Length);
         private static ImConsoleWindow consoleWindow;
 
-        public static void Draw(ImGui gui)
+        public static void Draw(ImGui gui, ref bool open)
         {
-            gui.BeginWindow("Demo", width: 700, height: 700);
-
+            if (!gui.BeginWindow("Demo", ref open, (700, 700)))
+            {
+                return;
+            }
+            
             gui.BeginFoldout(out var controlsOpen, "Controls");
             gui.BeginIndent();
             if (controlsOpen)
@@ -142,22 +145,19 @@ namespace Imui.Controls.Windows
 
             gui.EndWindow();
 
-            if (showDebugWindow)
+            gui.PushId("DemoDebugWindow");
+            ImDebugWindow.Draw(gui, ref showDebugWindow);
+            gui.PopId();
+            
+            if (showLogWindow && consoleWindow == null)
             {
-                gui.PushId("DemoDebugWindow");
-                ImDebugWindow.Draw(gui);
-                gui.PopId();
+                consoleWindow = new ImConsoleWindow();
             }
 
-            if (showLogWindow)
+            if (consoleWindow != null)
             {
-                if (consoleWindow == null)
-                {
-                    consoleWindow = new ImConsoleWindow();
-                }
-
                 gui.PushId("DemoLogWindow");
-                consoleWindow.Draw(gui);
+                consoleWindow.Draw(gui, ref showLogWindow);
                 gui.PopId();
             }
         }

@@ -18,7 +18,6 @@ namespace Imui.Controls
             rect.H = height;
             return rect;
         }
-
         
         public static ImRect SplitTop(this ImRect rect, float height, out ImRect bottom)
         {
@@ -29,6 +28,7 @@ namespace Imui.Controls
             return rect;
         }
 
+        public static ImRect SplitLeft(this ImRect rect, float width) => SplitLeft(rect, width, out _);
         public static ImRect SplitLeft(this ImRect rect, float width, out ImRect right)
         {
             right = rect;
@@ -38,6 +38,7 @@ namespace Imui.Controls
             return rect;
         }
 
+        public static ImRect SplitRight(this ImRect rect, float width) => SplitRight(rect, width, out _);
         public static ImRect SplitRight(this ImRect rect, float width, out ImRect left)
         {
             left = rect;

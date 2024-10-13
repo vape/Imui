@@ -176,6 +176,7 @@ namespace Imui.Style
         public Color32 BackColor;
         public Color32 FrontColor;
         public ImAlignment Alignment;
+        public ImStyleButton CloseButton;
     }
         
     [Serializable]

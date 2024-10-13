@@ -22,22 +22,6 @@ namespace Imui.Style
             sheet.Layout.Indent = theme.Indent;
             sheet.Layout.ScrollSpeedScale = theme.ScrollSpeed;
             
-            // Window
-            sheet.Window.ContentPadding = theme.Spacing;
-            
-            sheet.Window.TitleBar.BackColor = D(theme.Background, 0.15f);
-            sheet.Window.TitleBar.FrontColor = theme.Foreground;
-            sheet.Window.TitleBar.Alignment = new ImAlignment(0.5f, 0.5f);
-
-            sheet.Window.ResizeHandleColor = isDark ? D(theme.Foreground, 0.2f) : L(theme.Foreground, 0.3f);
-            sheet.Window.ResizeHandleSize = Mathf.Max(theme.BorderRadius * 1.2f, theme.TextSize);
-            
-            sheet.Window.Box.BackColor = theme.Background;
-            sheet.Window.Box.FrontColor = theme.Foreground;
-            sheet.Window.Box.BorderRadius = theme.WindowBorderRadius;
-            sheet.Window.Box.BorderThickness = theme.WindowBorderThickness;
-            sheet.Window.Box.BorderColor = theme.BorderColor;
-
             // Button
             sheet.Button.Alignment = new ImAlignment(0.5f, 0.5f);
             sheet.Button.BorderRadius = theme.BorderRadius;
@@ -54,6 +38,33 @@ namespace Imui.Style
             sheet.Button.Pressed.BackColor = isDark ? D(sheet.Button.Hovered.BackColor, 0.4f) : D(sheet.Button.Hovered.BackColor, 0.1f);
             sheet.Button.Pressed.FrontColor = D(theme.Foreground, 0.05f);
             sheet.Button.Pressed.BorderColor = D(theme.BorderColor, 0.05f);
+            
+            // Window
+            sheet.Window.ContentPadding = theme.Spacing;
+
+            sheet.Window.ResizeHandleColor = isDark ? D(theme.Foreground, 0.2f) : D(theme.Background, 0.3f);
+            sheet.Window.ResizeHandleSize = Mathf.Max(theme.BorderRadius * 1.2f, theme.TextSize);
+            
+            sheet.Window.Box.BackColor = theme.Background;
+            sheet.Window.Box.FrontColor = theme.Foreground;
+            sheet.Window.Box.BorderRadius = theme.WindowBorderRadius;
+            sheet.Window.Box.BorderThickness = theme.WindowBorderThickness;
+            sheet.Window.Box.BorderColor = theme.BorderColor;
+
+            sheet.Window.TitleBar.BackColor = D(theme.Background, 0.15f);
+            sheet.Window.TitleBar.FrontColor = theme.Foreground;
+            sheet.Window.TitleBar.Alignment = new ImAlignment(0.5f, 0.5f);
+            
+            sheet.Window.TitleBar.CloseButton = sheet.Button;
+            sheet.Window.TitleBar.CloseButton.BorderRadius = 999.9f;
+
+            sheet.Window.TitleBar.CloseButton.Hovered.BackColor = L(theme.AccentBackground, 0.1f);
+            sheet.Window.TitleBar.CloseButton.Hovered.FrontColor = theme.AccentForeground;
+            sheet.Window.TitleBar.CloseButton.Hovered.BorderColor = D(theme.AccentBackground, 0.05f);
+
+            sheet.Window.TitleBar.CloseButton.Pressed.BackColor = D(theme.AccentBackground, 0.05f);
+            sheet.Window.TitleBar.CloseButton.Pressed.FrontColor = theme.AccentForeground;
+            sheet.Window.TitleBar.CloseButton.Pressed.BorderColor = D(theme.AccentBackground, 0.15f);
             
             // Text Edit
             sheet.TextEdit.Normal.SelectionColor = theme.AccentBackground.WithAlpha((byte)(255 * 0.25f));;

@@ -42,16 +42,19 @@ namespace Imui.Controls.Windows
             messages = new ImCircularBuffer<Message>(512);
         }
 
-        public void Draw(ImGui gui)
+        public void Draw(ImGui gui, ref bool open)
         {
+            if (!gui.BeginWindow("Console", ref open, (768, 512)))
+            {
+                return;
+            }
+         
             var infoColor0 = new Color32(96, 96, 128, 32);
             var infoColor1 = new Color32(96, 96, 128, 48);
             var warnColor0 = new Color32(255, 160, 32, 32);
             var warnColor1 = new Color32(255, 160, 32, 48);
             var erroColor0 = new Color32(255, 0, 0, 32);
             var erroColor1 = new Color32(255, 0, 0, 48);
-            
-            gui.BeginWindow("Console", width: 768, 512);
             
             gui.AddSpacing();
             gui.BeginHorizontal();

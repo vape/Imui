@@ -14,7 +14,8 @@
 - ~~Implement tooltips on mouse hover~~
 - ~~Fix that 2px border in adjacent controls~~
 - Property drawers, like in Unity's IMGUI
-- Foldable/Closeable windows
+- ~~Closeable windows~~
+- Pushing same InvColorMul as current should not result in additional draw call 
 - No control should not modify passed value unless user interacts with it
   - Slider
   - ?
