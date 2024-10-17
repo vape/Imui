@@ -109,6 +109,11 @@ namespace Imui.Controls
 
         public static void DrawCheckmark(ImCanvas canvas, ImRect rect, Color32 color, float thickness)
         {
+            if (canvas.Cull(rect))
+            {
+                return;
+            }
+            
             ReadOnlySpan<Vector2> path = stackalloc Vector2[3]
             {
                 rect.GetPointAtNormalPosition(0.00f, 0.60f), 

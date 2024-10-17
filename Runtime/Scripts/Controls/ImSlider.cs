@@ -135,7 +135,7 @@ namespace Imui.Controls
                 format = GetFormatForStep(gui, step);
             }
 
-            var textSize = gui.TextDrawer.GetTextSize(backgroundRect.H);
+            var textSize = gui.TextDrawer.GetFontSizeFromLineHeight(backgroundRect.H);
             var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f);
             
             gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Normal.FrontColor, backgroundRect);

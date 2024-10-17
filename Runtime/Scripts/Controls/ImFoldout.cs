@@ -58,9 +58,19 @@ namespace Imui.Controls
         
         public static void DrawArrowRight(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
         {
+            if (scale <= 0.0f)
+            {
+                return;
+            }
+            
             if (scale != 1.0f)
             {
                 rect = rect.ScaleFromCenter(scale);
+            }
+
+            if (canvas.Cull(rect))
+            {
+                return;
             }
             
             rect = rect.WithAspect(HORIZONTAL_ARROW_ASPECT_RATIO);
@@ -85,6 +95,11 @@ namespace Imui.Controls
             if (scale != 1.0f)
             {
                 rect = rect.ScaleFromCenter(scale);
+            }
+
+            if (canvas.Cull(rect))
+            {
+                return;
             }
 
             rect = rect.WithAspect(VERTICAL_ARROW_ASPECT_RATIO);

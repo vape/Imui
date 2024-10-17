@@ -26,6 +26,13 @@ namespace Imui.Controls
             return gui.Layout.GetBoundsRect();
         }
 
+        public static Vector2 GetLayoutPosition(this ImGui gui, float height = 0.0f)
+        {
+            ref readonly var frame = ref gui.Layout.GetFrame();
+            
+            return ImLayout.GetNextPosition(in frame, height);
+        }
+
         public static ImRect AddLayoutRect(this ImGui gui, Vector2 size)
         {
             return gui.Layout.AddRect(size);

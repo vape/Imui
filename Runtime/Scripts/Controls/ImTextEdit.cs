@@ -209,7 +209,7 @@ namespace Imui.Controls
             if (!multiline)
             {
                 // single-line text is always drawn at vertical center
-                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeight(textSize), 0.0f) / 2.0f;
+                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(textSize), 0.0f) / 2.0f;
 
                 textPadding.Top = halfVertPadding;
                 textPadding.Bottom = halfVertPadding;
@@ -700,7 +700,7 @@ namespace Imui.Controls
             
             var charWidth = state.Caret >= buffer.Length
                 ? 0
-                : gui.TextDrawer.GetCharacterWidth(buffer.At(state.Caret), layout.Size);
+                : gui.TextDrawer.GetCharacterAdvance(buffer.At(state.Caret), layout.Size);
             var caretLeft = caretTop.x;
             var caretRight = caretTop.x + charWidth;
             
@@ -777,7 +777,7 @@ namespace Imui.Controls
             
             for (int i = start; i < end; ++i)
             {
-                var characterWidth = drawer.GetCharacterWidth(span[i], layout.Size);
+                var characterWidth = drawer.GetCharacterAdvance(span[i], layout.Size);
                 
                 if (px > position.x || (px + characterWidth) < position.x)
                 {
@@ -817,7 +817,7 @@ namespace Imui.Controls
                 
                 for (int i = 0; i < slice.Length; ++i)
                 {
-                    xOffset += drawer.GetCharacterWidth(slice[i], layout.Size);
+                    xOffset += drawer.GetCharacterAdvance(slice[i], layout.Size);
                 }
             }
 

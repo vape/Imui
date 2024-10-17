@@ -17,7 +17,7 @@ namespace Imui.Rendering
         public float OffsetX;
         public float Width;
     }
-    
+
     public struct ImTextLayout
     {
         public float Size;
@@ -30,21 +30,78 @@ namespace Imui.Rendering
         public int LinesCount;
         public float LineHeight;
     }
-    
+
+    public readonly struct ImTextClipRect
+    {
+        public readonly float Left;
+        public readonly float Right;
+        public readonly float Top;
+        public readonly float Bottom;
+
+        public ImTextClipRect(float left, float right, float top, float bottom)
+        {
+            Left = left;
+            Right = right;
+            Top = top;
+            Bottom = bottom;
+        }
+    }
+
     public class ImTextDrawer : IDisposable
     {
-        private const string ASCII = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-        private const char NEW_LINE = '\n';
+        [Flags]
+        public enum GlyphFlag : int
+        {
+            None = 0,
+            Empty = 1
+        }
 
+        public struct GlyphData
+        {
+            public int x;
+            public int y;
+            public int w;
+            public int h;
+            public float bearingX;
+            public float bearingY;
+            public float advance;
+            public GlyphFlag flag;
+            public float uv0x;
+            public float uv0y;
+            public float uv1x;
+            public float uv1y;
+
+            public GlyphData(Glyph g)
+            {
+                var rect = g.glyphRect;
+                var metrics = g.metrics;
+
+                x = rect.x;
+                y = rect.y;
+                w = rect.width;
+                h = rect.height;
+                bearingX = metrics.horizontalBearingX;
+                bearingY = metrics.horizontalBearingY;
+                advance = metrics.horizontalAdvance;
+                flag = GlyphFlag.None;
+                uv0x = x / FONT_ATLAS_W;
+                uv0y = y / FONT_ATLAS_H;
+                uv1x = (x + w) / FONT_ATLAS_W;
+                uv1y = (y + h) / FONT_ATLAS_H;
+            }
+        }
+
+        private const char NEW_LINE = '\n';
+        private const char SPACE = ' ';
+        private const char TAB = '\t';
+        private const int TAB_SPACES = 4;
+
+        private const int GLYPH_LOOKUP_CAPACITY = 256;
         private const float FONT_ATLAS_W = 1024;
         private const float FONT_ATLAS_H = 1024;
-        
         private const int FONT_ATLAS_PADDING = 2;
 
-        private static ImTextLayout sharedLayout = new()
-        {
-            Lines = new ImTextLine[128]
-        };
+        private static ImTextLayout sharedLayout = new() { Lines = new ImTextLine[128] };
 
         public Texture2D FontAtlas => fontAsset.atlasTexture;
         public FontAsset FontAsset => fontAsset;
@@ -54,33 +111,50 @@ namespace Imui.Rendering
 
         public float FontRenderSize => renderSize;
         public float FontLineHeight => lineHeight;
-        
+
         private FontAsset fontAsset;
         private float lineHeight;
         private float renderSize;
         private float descentLine;
-        
+        private GlyphData[] glyphsLookup;
+
         private readonly ImMeshBuffer buffer;
-        
+
         private bool disposed;
 
         public ImTextDrawer(ImMeshBuffer buffer)
         {
             this.buffer = buffer;
+            this.glyphsLookup = new GlyphData[256];
         }
-        
+
         public void LoadFont(Font font, float? size = null)
         {
             UnloadFont();
-            
-            fontAsset = FontAsset.CreateFontAsset(font, (int)(size ?? font.fontSize), FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED,
-                (int)FONT_ATLAS_W, (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
-            fontAsset.TryAddCharacters(ASCII);
-            fontAsset.atlasTexture.Apply();
+
+            fontAsset = FontAsset.CreateFontAsset(font, (int)(size ?? font.fontSize), FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
+                (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
 
             renderSize = fontAsset.faceInfo.pointSize;
             lineHeight = fontAsset.faceInfo.lineHeight;
             descentLine = fontAsset.faceInfo.descentLine;
+
+            for (uint i = 0; i < glyphsLookup.Length; ++i)
+            {
+                if (!fontAsset.HasCharacter(i, tryAddCharacter: true))
+                {
+                    glyphsLookup[i] = default;
+                    continue;
+                }
+
+                glyphsLookup[i] = new GlyphData(fontAsset.characterLookupTable[i].glyph);
+            }
+
+            glyphsLookup[SPACE].flag |= GlyphFlag.Empty;
+            glyphsLookup[TAB].flag |= GlyphFlag.Empty;
+            glyphsLookup[TAB].advance = glyphsLookup[SPACE].advance * TAB_SPACES;
+
+            fontAsset.atlasTexture.Apply();
         }
 
         public void UnloadFont()
@@ -89,112 +163,117 @@ namespace Imui.Rendering
             {
                 return;
             }
-            
+
             UnityEngine.Object.Destroy(fontAsset);
             fontAsset = null;
         }
 
-        public float GetLineHeight(float size)
+        public float GetLineHeightFromFontSize(float size)
         {
             return FontLineHeight * (size / FontRenderSize);
         }
 
-        public float GetTextSize(float height)
+        public float GetFontSizeFromLineHeight(float height)
         {
             return FontRenderSize * (height / FontLineHeight);
         }
 
-        public float GetCharacterWidth(char c, float size)
+        public float GetCharacterAdvance(char c, float size)
         {
-            if (!fontAsset.characterLookupTable.TryGetValue(c, out var character))
-            {
-                return 0f;
-            }
-            
             var scale = size / FontRenderSize;
-            return character.glyph.metrics.horizontalAdvance * scale;
-        }
 
-        // (artem-s): well that's kinda stupid API, but it works for console window so for now I'll just keep it
-        public void AddTextLine(ReadOnlySpan<char> text, float scale, float x, float y, int line)
-        {
-            Profiler.BeginSample("TextDrawer.AddText");
-            
-            var ct = fontAsset.characterLookupTable;
-            var lh = lineHeight * scale;
-            
-            y -= lh;
-            
-            buffer.EnsureVerticesCapacity(buffer.VerticesCount + text.Length * 4);
-            buffer.EnsureIndicesCapacity(buffer.IndicesCount + text.Length * 6);
-
-            for (int i = 0; i < text.Length; ++i)
+            if (c < GLYPH_LOOKUP_CAPACITY)
             {
-                var c = text[i];
-                if (c == NEW_LINE)
-                {
-                    line--;
-                }
-
-                if (line > 0)
-                {
-                    continue;
-                }
-                else if (line < 0)
-                {
-                    break;
-                }
-                
-                if (!ct.TryGetValue(c, out var info))
-                {
-                    continue;
-                }
-                
-                x += AddGlyphQuad(info.glyph, x , y, scale);
+                return glyphsLookup[c].advance * scale;
             }
-            
-            Profiler.EndSample();
+
+            if (fontAsset.characterLookupTable.TryGetValue(c, out var character))
+            {
+                return character.glyph.metrics.horizontalAdvance * scale;
+            }
+
+            return 0.0f;
         }
-        
-        public void AddTextWithLayout(ReadOnlySpan<char> text, in ImTextLayout layout, float x, float y)
+
+        public float GetCharacterAdvance(char c)
+        {
+            if (c < GLYPH_LOOKUP_CAPACITY)
+            {
+                return glyphsLookup[c].advance;
+            }
+
+            if (fontAsset.characterLookupTable.TryGetValue(c, out var character))
+            {
+                return character.glyph.metrics.horizontalAdvance;
+            }
+
+            return 0.0f;
+        }
+
+        public void AddTextWithLayout(ReadOnlySpan<char> text, in ImTextLayout layout, float x, float y, in ImTextClipRect clipRect)
         {
             Profiler.BeginSample("TextDrawer.AddTextWithLayout");
-            
+
             var ct = fontAsset.characterLookupTable;
             var lh = lineHeight * layout.Scale;
             var sx = x;
 
             y -= lh;
-            
+
             buffer.EnsureVerticesCapacity(buffer.VerticesCount + text.Length * 4);
             buffer.EnsureIndicesCapacity(buffer.IndicesCount + text.Length * 6);
-            
+
             for (int i = 0; i < layout.LinesCount; ++i)
             {
                 ref var line = ref layout.Lines[i];
-                
+
                 for (int k = 0; k < line.Count; ++k)
                 {
                     var c = text[line.Start + k];
 #if IMUI_DEBUG
                     AddControlGlyphQuad(c, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
 #endif
-                    // TODO (artem-s): handle tabs
-                    if (!ct.TryGetValue(c, out var charInfo))
+
+                    if (x > clipRect.Right)
                     {
-                        continue;
+                        break;
                     }
 
-                    x += AddGlyphQuad(charInfo.glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                    if (c < GLYPH_LOOKUP_CAPACITY)
+                    {
+                        ref var glyph = ref glyphsLookup[c];
+                        if ((glyph.flag & GlyphFlag.Empty) != 0)
+                        {
+                            x += glyph.advance * layout.Scale;
+                            continue;
+                        }
+
+                        x += AddGlyphQuad(ref glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                    }
+                    else
+                    {
+                        if (!ct.TryGetValue(c, out var character))
+                        {
+                            continue;
+                        }
+
+                        var glyph = new GlyphData(character.glyph);
+                        x += AddGlyphQuad(ref glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                    }
+                }
+
+                if (y < clipRect.Bottom)
+                {
+                    break;
                 }
 
                 y -= lh;
                 x = sx;
             }
-            
+
             Profiler.EndSample();
         }
-        
+
 #if IMUI_DEBUG
         private void AddControlGlyphQuad(char c, float px, float py, float scale)
         {
@@ -214,29 +293,15 @@ namespace Imui.Rendering
             }
         }
 #endif
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [SuppressMessage("ReSharper", "InconsistentNaming")]
-        private float AddGlyphQuad(Glyph glyph, float px, float py, float scale)
+        private float AddGlyphQuad(ref GlyphData glyph, float px, float py, float scale)
         {
-            var rect = glyph.glyphRect;
-            var x = rect.x;
-            var y = rect.y;
-            var h = rect.height;
-            var w = rect.width;
-            var metrics = glyph.metrics;
-            var by = metrics.horizontalBearingY;
-            var bx = metrics.horizontalBearingX;
-            
-            var uv0x = x / FONT_ATLAS_W;
-            var uv0y = y / FONT_ATLAS_H;
-            var uv1x = (x + w) / FONT_ATLAS_W;
-            var uv1y = (y + h) / FONT_ATLAS_H;
-            
-            var gw = scale * w;
-            var gh = scale * h;
-            var ox = scale * bx;
-            var oy = scale * (by - h - descentLine);
+            var gw = scale * glyph.w;
+            var gh = scale * glyph.h;
+            var ox = scale * glyph.bearingX;
+            var oy = scale * (glyph.bearingY - glyph.h - descentLine);
 
             var p0x = px + ox;
             var p0y = py + oy;
@@ -245,14 +310,14 @@ namespace Imui.Rendering
 
             var vc = buffer.VerticesCount;
             var ic = buffer.IndicesCount;
-            
+
             ref var v0 = ref buffer.Vertices[vc + 0];
             v0.Position.x = p0x;
             v0.Position.y = p0y;
             v0.Position.z = Depth;
             v0.Color = Color;
-            v0.UV.x = uv0x;
-            v0.UV.y = uv0y;
+            v0.UV.x = glyph.uv0x;
+            v0.UV.y = glyph.uv0y;
             v0.Atlas = ImMeshDrawer.FONT_TEX_ID;
 
             ref var v1 = ref buffer.Vertices[vc + 1];
@@ -260,17 +325,17 @@ namespace Imui.Rendering
             v1.Position.y = p1y;
             v1.Position.z = Depth;
             v1.Color = Color;
-            v1.UV.x = uv0x;
-            v1.UV.y = uv1y;
+            v1.UV.x = glyph.uv0x;
+            v1.UV.y = glyph.uv1y;
             v1.Atlas = ImMeshDrawer.FONT_TEX_ID;
-            
+
             ref var v2 = ref buffer.Vertices[vc + 2];
             v2.Position.x = p1x;
             v2.Position.y = p1y;
             v2.Position.z = Depth;
             v2.Color = Color;
-            v2.UV.x = uv1x;
-            v2.UV.y = uv1y;
+            v2.UV.x = glyph.uv1x;
+            v2.UV.y = glyph.uv1y;
             v2.Atlas = ImMeshDrawer.FONT_TEX_ID;
 
             ref var v3 = ref buffer.Vertices[vc + 3];
@@ -278,10 +343,10 @@ namespace Imui.Rendering
             v3.Position.y = p0y;
             v3.Position.z = Depth;
             v3.Color = Color;
-            v3.UV.x = uv1x;
-            v3.UV.y = uv0y;
+            v3.UV.x = glyph.uv1x;
+            v3.UV.y = glyph.uv0y;
             v3.Atlas = ImMeshDrawer.FONT_TEX_ID;
-            
+
             buffer.Indices[ic + 0] = vc + 0;
             buffer.Indices[ic + 1] = vc + 1;
             buffer.Indices[ic + 2] = vc + 2;
@@ -291,32 +356,48 @@ namespace Imui.Rendering
 
             buffer.AddVertices(4);
             buffer.AddIndices(6);
-            
-            return metrics.horizontalAdvance * scale;
+
+            return glyph.advance * scale;
         }
-        
-        public ref readonly ImTextLayout BuildTempLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, bool wrap)
+
+        public ref readonly ImTextLayout BuildTempLayout(ReadOnlySpan<char> text,
+                                                         float boundsWidth,
+                                                         float boundsHeight,
+                                                         float alignX,
+                                                         float alignY,
+                                                         float size,
+                                                         bool wrap)
         {
-            FillLayout(text, width, height, alignX, alignY, size, wrap, ref sharedLayout);
+            FillLayout(text, boundsWidth, boundsHeight, alignX, alignY, size, wrap, ref sharedLayout);
             return ref sharedLayout;
         }
-        
-        public void FillLayout(ReadOnlySpan<char> text, float width, float height, float alignX, float alignY, float size, bool wrap, ref ImTextLayout layout)
+
+        public void FillLayout(ReadOnlySpan<char> text,
+                               float boundsWidth,
+                               float boundsHeight,
+                               float alignX,
+                               float alignY,
+                               float size,
+                               bool wrap,
+                               ref ImTextLayout layout)
         {
             const float NEXT_LINE_WIDTH_THRESHOLD = 0.0001f;
-            
+            const int NO_LINE_BREAK = -1;
+
             layout.LinesCount = 0;
             layout.Scale = size / FontRenderSize;
-            layout.OffsetX = width * alignX;
+            layout.OffsetX = boundsWidth * alignX;
             layout.Width = 0;
             layout.Height = 0;
             layout.Size = size;
             layout.LineHeight = lineHeight * layout.Scale;
-            
+
             if (text.IsEmpty)
             {
                 return;
             }
+
+            wrap &= boundsWidth > 0;
 
             var maxLineWidth = 0f;
             var lineWidth = 0f;
@@ -324,33 +405,64 @@ namespace Imui.Rendering
             var textLength = text.Length;
             var charsTable = fontAsset.characterLookupTable;
 
+            var lastLineBreak = NO_LINE_BREAK;
+            var lineWidthAtLineBreak = 0.0f;
+            var wasBreakingChar = false;
+
             for (int i = 0; i < textLength; ++i)
             {
                 var c = text[i];
 
-                if (!charsTable.TryGetValue(c, out var charInfo))
+                float a;
+
+                if (c < GLYPH_LOOKUP_CAPACITY)
                 {
-                    if (fontAsset.HasCharacter(c, tryAddCharacter: true))
-                    {
-                        charInfo = charsTable[c];
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    a = glyphsLookup[c].advance;
+                }
+                else if (charsTable.TryGetValue(c, out var character))
+                {
+                    a = character.glyph.metrics.horizontalAdvance;
+                }
+                else if (fontAsset.HasCharacter(c, tryAddCharacter: true))
+                {
+                    a = charsTable[c].glyph.metrics.horizontalAdvance;
+                }
+                else
+                {
+                    continue;
                 }
 
-                var advance = charInfo.glyph.metrics.horizontalAdvance * layout.Scale;
+                if (wasBreakingChar && c != SPACE)
+                {
+                    lastLineBreak = i;
+                    lineWidthAtLineBreak = lineWidth;
+                }
+
+                wasBreakingChar = c == SPACE;
+
+                var advance = a * layout.Scale;
                 var newLine = c == NEW_LINE;
-                
-                if (newLine || (wrap && width > 0 && lineWidth > 0 && (lineWidth + advance) > (width + NEXT_LINE_WIDTH_THRESHOLD)))
+                var jumpToNextLine = newLine;
+
+                if (!jumpToNextLine && wrap && lineWidth > 0 && (lineWidth + advance) > (boundsWidth + NEXT_LINE_WIDTH_THRESHOLD))
+                {
+                    if (lastLineBreak != NO_LINE_BREAK)
+                    {
+                        lineWidth = lineWidthAtLineBreak;
+                        i = lastLineBreak;
+                    }
+
+                    jumpToNextLine = true;
+                }
+
+                if (jumpToNextLine)
                 {
                     ref var line = ref layout.Lines[layout.LinesCount];
-                    
+
                     line.Width = lineWidth;
                     line.Start = lineStart;
                     line.Count = i - lineStart + (newLine ? 1 : 0);
-                    line.OffsetX = (width - lineWidth) * alignX;
+                    line.OffsetX = (boundsWidth - lineWidth) * alignX;
 
                     if (line.Width > maxLineWidth)
                     {
@@ -367,6 +479,8 @@ namespace Imui.Rendering
                     {
                         Array.Resize(ref layout.Lines, layout.Lines.Length * 2);
                     }
+
+                    lastLineBreak = NO_LINE_BREAK;
                 }
                 else
                 {
@@ -374,7 +488,6 @@ namespace Imui.Rendering
                 }
             }
 
-            // TODO (artem-s): merge with rest of the loop
             if (text.Length > lineStart || text[lineStart - 1] == NEW_LINE)
             {
                 ref var line = ref layout.Lines[layout.LinesCount];
@@ -382,7 +495,7 @@ namespace Imui.Rendering
                 line.Width = lineWidth;
                 line.Start = lineStart;
                 line.Count = textLength - lineStart;
-                line.OffsetX = (width - lineWidth) * alignX;
+                line.OffsetX = (boundsWidth - lineWidth) * alignX;
 
                 if (line.Width > maxLineWidth)
                 {
@@ -395,7 +508,7 @@ namespace Imui.Rendering
 
             layout.Width = maxLineWidth;
             layout.Height = layout.LineHeight * layout.LinesCount;
-            layout.OffsetY = -(height - layout.LinesCount * layout.LineHeight) * alignY;
+            layout.OffsetY = -(boundsHeight - layout.LinesCount * layout.LineHeight) * alignY;
         }
 
         public void Dispose()
@@ -404,10 +517,10 @@ namespace Imui.Rendering
             {
                 return;
             }
-            
+
             ImObjectUtility.Destroy(fontAsset);
             fontAsset = null;
-            
+
             disposed = true;
         }
     }
