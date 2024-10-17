@@ -99,7 +99,7 @@ namespace Imui.Rendering
                 properties.SetTexture(FontTexId, meshData.FontTex);
                 properties.SetFloat(InvColorMul, meshData.InvColorMul);
                 
-                if (false) // meshData.MaskRect.Enabled)
+                if (meshData.MaskRect.Enabled)
                 {
                     var radius = meshData.MaskRect.Radius * maskRadiusScale;
                     var rect = meshData.MaskRect.Rect;
@@ -116,7 +116,7 @@ namespace Imui.Rendering
                     properties.SetInteger(MaskEnabledId, 0);
                 }
                 
-                if (false) // meshData.ClipRect.Enabled)
+                if (meshData.ClipRect.Enabled)
                 {
                     var x = meshData.ClipRect.Rect.xMin * maskScale.x;
                     var y = meshData.ClipRect.Rect.yMin * maskScale.y;
