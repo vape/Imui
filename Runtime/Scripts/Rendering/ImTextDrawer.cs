@@ -30,6 +30,22 @@ namespace Imui.Rendering
         public int LinesCount;
         public float LineHeight;
     }
+
+    public readonly struct ImTextClipRect
+    {
+        public readonly float Left;
+        public readonly float Right;
+        public readonly float Top;
+        public readonly float Bottom;
+
+        public ImTextClipRect(float left, float right, float top, float bottom)
+        {
+            Left = left;
+            Right = right;
+            Top = top;
+            Bottom = bottom;
+        }
+    }
     
     public class ImTextDrawer : IDisposable
     {
@@ -225,14 +241,14 @@ namespace Imui.Rendering
             Profiler.EndSample();
         }
         
-        public void AddTextWithLayout(ReadOnlySpan<char> text, in ImTextLayout layout, float x, float y)
+        public void AddTextWithLayout(ReadOnlySpan<char> text, in ImTextLayout layout, float x, float y, in ImTextClipRect clipRect)
         {
             Profiler.BeginSample("TextDrawer.AddTextWithLayout");
             
             var ct = fontAsset.characterLookupTable;
             var lh = lineHeight * layout.Scale;
             var sx = x;
-
+            
             y -= lh;
             
             buffer.EnsureVerticesCapacity(buffer.VerticesCount + text.Length * 4);
@@ -248,6 +264,11 @@ namespace Imui.Rendering
 #if IMUI_DEBUG
                     AddControlGlyphQuad(c, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
 #endif
+
+                    if (x > clipRect.Right)
+                    {
+                        break;
+                    }
                     
                     if (c < GLYPH_LOOKUP_CAPACITY)
                     {
@@ -270,6 +291,11 @@ namespace Imui.Rendering
                         var glyph = new GlyphData(character.glyph);
                         x += AddGlyphQuad(ref glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                     }
+                }
+
+                if (y < clipRect.Bottom)
+                {
+                    break;
                 }
 
                 y -= lh;
