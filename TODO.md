@@ -5,7 +5,7 @@
 - Text drawing overhaul
   - __Word__ wrapping
   - Add support for (basic subset of) rich text
-  - Optimize layout and rendering
+  - ~~Optimize layout and rendering~~
 - Fix touch keyboard in webgl
 - ~~Simplify styling and fix the current themes as they look kinda ugly~~
 - Implement slider inside numeric editor

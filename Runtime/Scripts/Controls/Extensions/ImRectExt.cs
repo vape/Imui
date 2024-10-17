@@ -76,6 +76,16 @@ namespace Imui.Controls
             
             return new ImRect(x, y, w, h);
         }
+
+        public static ImRect WithPadding(this ImRect rect, float left = 0, float right = 0, float top = 0, float bottom = 0)
+        {
+            rect.X += left;
+            rect.Y += bottom;
+            rect.W -= left + right;
+            rect.H -= top + bottom;
+
+            return rect;
+        }
         
         public static ImRect WithPadding(this ImRect rect, float size)
         {

@@ -209,7 +209,7 @@ namespace Imui.Controls
             if (!multiline)
             {
                 // single-line text is always drawn at vertical center
-                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeight(textSize), 0.0f) / 2.0f;
+                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(textSize), 0.0f) / 2.0f;
 
                 textPadding.Top = halfVertPadding;
                 textPadding.Bottom = halfVertPadding;

@@ -24,6 +24,7 @@ namespace Imui.Controls.Windows
             public LogType Type;
             public string Text;
             public string Stacktrace;
+            public int OneLineLength;
 
             public string GetWholeMessage()
             {
@@ -97,16 +98,20 @@ namespace Imui.Controls.Windows
                 {
                     continue;
                 }
-                
+
+                var settings = new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f, false);
                 var rect = gui.AddLayoutRect(lw, rh);
+                var textRect = rect.WithPadding(left: gui.Style.Layout.InnerSpacing);
+                
                 if (!gui.Canvas.Cull(rect))
                 {
+                    var text = ((ReadOnlySpan<char>)msg.Text)[..msg.OneLineLength];
                     var color = i % 2 == 0
                         ? (isErro ? erroColor0 : isWarn ? warnColor0 : infoColor0)
                         : (isErro ? erroColor1 : isWarn ? warnColor1 : infoColor1);
 
                     gui.Canvas.Rect(rect, color);
-                    gui.Canvas.Text(msg.Text, gui.Style.Text.Color, rect.TopLeft, gui.Style.Layout.TextSize);
+                    gui.Canvas.Text(text, gui.Style.Text.Color, textRect, in settings);
 
                     if (gui.InvisibleButton(rect))
                     {
@@ -158,12 +163,19 @@ namespace Imui.Controls.Windows
 
         private void OnLogMessageReceived(string condition, string stacktrace, LogType type)
         {
+            var oneLineLength = condition.IndexOf('\n');
+            if (oneLineLength < 0)
+            {
+                oneLineLength = condition.Length;
+            }
+            
             messages.PushFront(new Message
             {
                 Time = DateTime.UtcNow,
                 Type = type,
                 Text = condition,
-                Stacktrace = stacktrace
+                Stacktrace = stacktrace,
+                OneLineLength = oneLineLength
             });
         }
 

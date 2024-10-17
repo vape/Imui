@@ -172,12 +172,12 @@ namespace Imui.Rendering
             fontAsset = null;
         }
 
-        public float GetLineHeight(float size)
+        public float GetLineHeightFromFontSize(float size)
         {
             return FontLineHeight * (size / FontRenderSize);
         }
 
-        public float GetTextSize(float height)
+        public float GetFontSizeFromLineHeight(float height)
         {
             return FontRenderSize * (height / FontLineHeight);
         }
@@ -197,48 +197,6 @@ namespace Imui.Rendering
             }
 
             return 0.0f;
-        }
-
-        [Obsolete("Will be removed soon")]
-        public void AddTextLine(ReadOnlySpan<char> text, float scale, float x, float y, int line)
-        {
-            Profiler.BeginSample("TextDrawer.AddText");
-            
-            var ct = fontAsset.characterLookupTable;
-            var lh = lineHeight * scale;
-            
-            y -= lh;
-            
-            buffer.EnsureVerticesCapacity(buffer.VerticesCount + text.Length * 4);
-            buffer.EnsureIndicesCapacity(buffer.IndicesCount + text.Length * 6);
-
-            for (int i = 0; i < text.Length; ++i)
-            {
-                var c = text[i];
-                if (c == NEW_LINE)
-                {
-                    line--;
-                }
-
-                if (line > 0)
-                {
-                    continue;
-                }
-                else if (line < 0)
-                {
-                    break;
-                }
-                
-                if (!ct.TryGetValue(c, out var info))
-                {
-                    continue;
-                }
-
-                var glyph = new GlyphData(info.glyph);
-                x += AddGlyphQuad(ref glyph, x , y, scale);
-            }
-            
-            Profiler.EndSample();
         }
         
         public void AddTextWithLayout(ReadOnlySpan<char> text, in ImTextLayout layout, float x, float y, in ImTextClipRect clipRect)
