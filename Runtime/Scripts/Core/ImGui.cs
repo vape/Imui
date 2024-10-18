@@ -218,19 +218,10 @@ namespace Imui.Core
         {
             return ref scrollRectsStack;
         }
-
-        public uint PushId()
+        
+        public void PushId(uint id)
         {
-            var id = GetNextControlId();
             idsStack.Push(new ControlId(id));
-            return id;
-        }
-
-        public uint PushId(uint id)
-        {
-            var newId = GetControlId(id);
-            idsStack.Push(new ControlId(newId));
-            return newId;
         }
         
         public uint PushId(ReadOnlySpan<char> name)
@@ -243,6 +234,23 @@ namespace Imui.Core
         public uint PopId()
         {
             return idsStack.Pop().Id;
+        }
+
+        public uint PeekId()
+        {
+            return idsStack.Peek().Id;
+        }
+
+        public bool TryPeekId(out uint id)
+        {
+            if (idsStack.TryPeek(out var controlId))
+            {
+                id = controlId.Id;
+                return true;
+            }
+
+            id = default;
+            return false;
         }
 
         public uint GetNextControlId()
