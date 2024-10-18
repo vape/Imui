@@ -18,6 +18,7 @@
 - No control should not modify passed value unless user interacts with it
   - Slider
   - ?
+- BeginX functions that return boolean must be named TryBeginX
 
 ### Later
 - Plotting control
