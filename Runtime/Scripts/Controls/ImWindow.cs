@@ -294,6 +294,7 @@ namespace Imui.Controls
             return contentRect;
         }
 
+        // TODO (artem-s): this breaks swipe-scrolling
         public static void SetCurrentWindowContentRect(this ImGui gui, ImRect rect)
         {
             if (!gui.WindowManager.IsDrawingWindow())

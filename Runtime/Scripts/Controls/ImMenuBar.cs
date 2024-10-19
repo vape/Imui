@@ -51,7 +51,6 @@ namespace Imui.Controls
             gui.PopId();
         }
         
-        // TODO (artem-s): clicking on item again should close the menu
         public static bool TryBeginMenuBarItem(this ImGui gui, ReadOnlySpan<char> label)
         {
             ref var barState = ref gui.Storage.Get<ImMenuBarState>(gui.PeekId());

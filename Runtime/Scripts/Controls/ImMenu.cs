@@ -295,7 +295,7 @@ namespace Imui.Controls
             return state->Depth == 0;
         }
 
-        // TODO (artem-s): assumes we only opening sub-menu to the right
+        // TODO (artem-s): assumes we only opening sub-menu to the right, which will be wrong in future (i hope)
         private static bool ShouldFixSelection(ImGui gui, ImRect buttonRect)
         {
             if (gui.Input.MousePosition.x > buttonRect.Right)

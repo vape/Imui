@@ -242,7 +242,6 @@ namespace Imui.Style
             sheet.Menu.MinHeight = 10.0f;
             
             // Menu Bar
-            // TODO (artem-s): border should be the same thickness and color as window's ones
             sheet.MenuBar.ItemExtraWidth = theme.InnerSpacing * 6.0f;
             sheet.MenuBar.Box = sheet.Menu.Box;
             sheet.MenuBar.Box.BackColor = Color32.Lerp(sheet.Window.TitleBar.BackColor, sheet.Window.Box.BackColor, 0.5f);
