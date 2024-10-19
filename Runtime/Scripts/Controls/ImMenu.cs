@@ -12,19 +12,19 @@ namespace Imui.Controls
         Dismissed = 1,
         LayoutBuilt = 2
     }
-    
+
     public struct ImMenuState
     {
         public uint Selected;
         public uint Fixed;
         public uint Clicked;
         public uint Depth;
-        
+
         public ImMenuStateFlag Flags;
-        
+
         public Vector2 Size;
     }
-    
+
     public static unsafe class ImMenu
     {
         public static bool TryBeginMenu(this ImGui gui, ReadOnlySpan<char> name, ref bool open)
@@ -33,7 +33,7 @@ namespace Imui.Controls
             {
                 return false;
             }
-            
+
             var id = gui.PushId(name);
             var state = gui.Storage.GetRef<ImMenuState>(id);
             var rect = gui.AddLayoutRect(state->Size);
@@ -43,7 +43,7 @@ namespace Imui.Controls
                 open = false;
                 state->Flags &= ~ImMenuStateFlag.Dismissed;
             }
-            
+
             BeginMenu(gui, state, rect);
 
             return true;
@@ -51,7 +51,7 @@ namespace Imui.Controls
 
         public static void EndMenu(this ImGui gui)
         {
-            if (!TryGetMenuState(gui, out var state))
+            if (!TryGetActiveMenuState(gui, out var state))
             {
                 return;
             }
@@ -60,18 +60,18 @@ namespace Imui.Controls
 
             gui.PopId();
         }
-        
+
         public static void BeginMenu(ImGui gui, ImMenuState* state, ImRect rect)
         {
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(gui.Style.Menu.Padding));
             gui.BeginPopup((int)(state->Depth * 2));
-            
+
             if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
             {
                 gui.Canvas.PushClipEverything();
             }
         }
-        
+
         public static void EndMenu(ImGui gui, ImMenuState* state)
         {
             if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
@@ -80,18 +80,18 @@ namespace Imui.Controls
             }
 
             var contentRect = gui.Layout.GetContentRect().WithPadding(-gui.Style.Menu.Padding);
-            
+
             state->Size = contentRect.Size;
-            
+
             gui.Canvas.PushOrder(gui.Canvas.GetOrder() - 1);
             gui.Box(contentRect, gui.Style.Menu.Box);
             gui.Canvas.PopOrder();
-            
+
             gui.EndPopupWithCloseButton(out var popupCloseButtonClicked);
 
             state->Flags |= ImMenuStateFlag.LayoutBuilt;
             state->Flags |= popupCloseButtonClicked | state->Clicked != default ? ImMenuStateFlag.Dismissed : ImMenuStateFlag.None;
-            
+
             if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
             {
                 state->Selected = default;
@@ -101,20 +101,20 @@ namespace Imui.Controls
 
             gui.Layout.Pop();
         }
-        
+
         public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
         {
-            if (!TryGetMenuState(gui, out var containerState))
+            if (!TryGetActiveMenuState(gui, out var containerState))
             {
                 return false;
             }
 
-            gui.GetNextControlId();
-            
+            // TODO (artem-s): will fail miserably when we'll try to make two sub menus with the same name under the same root menu
+            // TODO (artem-s): it will also fail when we try to wrap it with PushId/PopId calls, because we won't find containerState, duh
             var id = gui.PushId(label);
             var state = gui.Storage.GetRef<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
-            
+
             MenuItem(gui, id, containerState, label, true, out var active);
 
             if (!active)
@@ -126,7 +126,7 @@ namespace Imui.Controls
             }
 
             state->Depth = containerState->Depth + 1;
-            
+
             BeginMenu(gui, state, GetMenuRectAt(position, state->Size));
 
             return true;
@@ -134,17 +134,17 @@ namespace Imui.Controls
 
         public static void EndSubMenu(this ImGui gui)
         {
-            if (!TryGetMenuState(gui, out var state))
+            if (!TryGetActiveMenuState(gui, out var state))
             {
                 return;
             }
 
             var clicked = state->Clicked;
-            
+
             EndMenu(gui, state);
             gui.PopId();
 
-            if (clicked != default && TryGetMenuState(gui, out var parentsState, fail: false))
+            if (clicked != default && TryGetActiveMenuState(gui, out var parentsState, fail: false))
             {
                 parentsState->Clicked = clicked;
             }
@@ -152,20 +152,20 @@ namespace Imui.Controls
 
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label)
         {
-            if (!TryGetMenuState(gui, out var state))
+            if (!TryGetActiveMenuState(gui, out var state))
             {
                 return false;
             }
-            
+
             var id = gui.GetNextControlId();
 
             return MenuItem(gui, id, state, label, false, out _);
         }
-        
+
         public static bool MenuItem(ImGui gui, uint id, ImMenuState* state, ReadOnlySpan<char> label, bool expandable, out bool active)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             var arrowSize = gui.Style.Layout.TextSize;
             var textSettings = new ImTextSettings(gui.Style.Layout.TextSize);
             var textSize = gui.MeasureTextSize(label, textSettings);
@@ -175,7 +175,7 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
 
             gui.RegisterControl(id, contentRect);
-            
+
             var shouldFix = expandable && ShouldFixSelection(gui, contentRect);
             if (shouldFix && !hovered && state->Selected == id && state->Fixed != id)
             {
@@ -185,7 +185,7 @@ namespace Imui.Controls
             {
                 state->Fixed = default;
             }
-            
+
             if (hovered)
             {
                 state->Selected = id;
@@ -199,17 +199,17 @@ namespace Imui.Controls
 
             ref var buttonStyle = ref (active ? ref gui.Style.Menu.ItemActive : ref gui.Style.Menu.ItemNormal);
             using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in buttonStyle);
-            
+
             var clicked = gui.Button(id, contentRect, out var buttonState, ImButtonFlag.ActOnPress) && !expandable;
             var frontColor = ImButton.GetStateFrontColor(gui, buttonState);
             var labelRect = contentRect.WithPadding(left: gui.Style.Layout.InnerSpacing);
-            
+
             if (expandable)
             {
                 var arrowRect = labelRect.SplitRight(arrowSize, gui.Style.Layout.InnerSpacing, out labelRect).WithAspect(1.0f);
                 ImFoldout.DrawArrowRight(gui.Canvas, arrowRect, frontColor, gui.Style.Menu.ArrowScale);
             }
-            
+
             gui.Text(label, in textSettings, frontColor, labelRect);
 
             if (clicked)
@@ -220,13 +220,14 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static ImRect GetMenuRectAt(Vector2 position, Vector2 size)
+        // TODO (artem-s): should clamp at the screen borders and switch to opening left when there is no space on the right
+        private static ImRect GetMenuRectAt(Vector2 position, Vector2 size)
         {
             var rect = new ImRect(position.x, position.y - size.y, size.x, size.y);
             return rect;
         }
-        
-        private static bool TryGetMenuState(ImGui gui, out ImMenuState* state, bool fail = true)
+
+        private static bool TryGetActiveMenuState(ImGui gui, out ImMenuState* state, bool fail = true)
         {
             if (gui.TryPeekId(out var menuId) && gui.Storage.TryGetRef(menuId, out state))
             {
@@ -238,11 +239,12 @@ namespace Imui.Controls
                 ImAssert.Error($"{nameof(ImMenuState)} is missing. {nameof(BeginMenu)} and corresponding {nameof(EndMenu)} must be called before and after " +
                                $"any {nameof(MenuItem)} accordingly");
             }
-            
+
             state = default;
             return false;
         }
-        
+
+        // TODO (artem-s): assumes we only opening sub-menu to the right
         private static bool ShouldFixSelection(ImGui gui, ImRect buttonRect)
         {
             if (gui.Input.MousePosition.x > buttonRect.Right)
@@ -251,9 +253,8 @@ namespace Imui.Controls
             }
 
             Span<Vector2> hoveringArea = stackalloc Vector2[]
-            {                
-                new Vector2(buttonRect.Right, buttonRect.Bottom),
-                new Vector2(buttonRect.Center.x, buttonRect.Bottom),
+            {
+                new Vector2(buttonRect.Right, buttonRect.Bottom), new Vector2(buttonRect.Center.x, buttonRect.Bottom),
                 new Vector2(buttonRect.Right, buttonRect.Bottom - buttonRect.H)
             };
 
