@@ -57,7 +57,9 @@ namespace Imui.Controls
             ref var barState = ref gui.Storage.Get<ImMenuBarState>(gui.PeekId());
             
             var id = gui.PushId(label);
-            var rect = ImButton.GetRect(gui, ImSizeMode.Fit, label);
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.MenuBar.ItemNormal.Alignment);
+            var textWidth = gui.MeasureTextSize(label, in textSettings).x;
+            var rect = gui.AddLayoutRect(textWidth + gui.Style.MenuBar.ItemExtraWidth, gui.GetRowHeight());
             var clicked = false;
             
             ref var buttonStyle = ref (barState.Selected == id ? ref gui.Style.MenuBar.ItemActive : ref gui.Style.MenuBar.ItemNormal);
@@ -65,10 +67,15 @@ namespace Imui.Controls
             {
                 clicked = gui.Button(id, label, rect);
             }
-            
-            if (clicked || (barState.Selected != default && gui.IsControlHovered(id)))
+
+            if (barState.Selected != default && gui.IsControlHovered(id))
             {
                 barState.Selected = id;
+            }
+            
+            if (clicked)
+            {
+                barState.Selected = barState.Selected == id ? default : id;
             }
 
             var open = barState.Selected == id;

@@ -205,6 +205,7 @@ namespace Imui.Style
         public ImStyleButton ItemNormal;
         public ImStyleButton ItemActive;
         public float ArrowScale;
+        public float CheckmarkScale;
         public float MinWidth;
         public float MinHeight;
     }
@@ -215,5 +216,6 @@ namespace Imui.Style
         public ImStyleBox Box;
         public ImStyleButton ItemNormal;
         public ImStyleButton ItemActive;
+        public float ItemExtraWidth;
     }
 }

@@ -237,20 +237,26 @@ namespace Imui.Style
             sheet.Menu.ItemActive = sheet.List.ItemSelected;
             sheet.Menu.ItemActive.Normal.BackColor.SetAlphaF(0.8f);
             sheet.Menu.ArrowScale = 0.6f;
-            sheet.Menu.MinWidth = 150.0f;
+            sheet.Menu.CheckmarkScale = 0.6f;
+            sheet.Menu.MinWidth = 50.0f;
             sheet.Menu.MinHeight = 10.0f;
             
             // Menu Bar
             // TODO (artem-s): border should be the same thickness and color as window's ones
+            sheet.MenuBar.ItemExtraWidth = theme.InnerSpacing * 6.0f;
             sheet.MenuBar.Box = sheet.Menu.Box;
             sheet.MenuBar.Box.BackColor = Color32.Lerp(sheet.Window.TitleBar.BackColor, sheet.Window.Box.BackColor, 0.5f);
             sheet.MenuBar.Box.BorderRadius = 0.0f;
+            sheet.MenuBar.Box.BorderThickness = sheet.Window.Box.BorderThickness;
+            sheet.MenuBar.Box.BorderColor = sheet.Window.Box.BorderColor;
             sheet.MenuBar.ItemNormal = sheet.Menu.ItemNormal;
+            sheet.MenuBar.ItemNormal.Alignment = new ImAlignment(0.5f, 0.5f);
             sheet.MenuBar.ItemNormal.BorderRadius = 0.0f;
             sheet.MenuBar.ItemNormal.BorderThickness = 0.0f;
             sheet.MenuBar.ItemActive = sheet.Menu.ItemActive;
             sheet.MenuBar.ItemActive.BorderRadius = 0.0f;
             sheet.MenuBar.ItemActive.BorderThickness = 0.0f;
+            sheet.MenuBar.ItemActive.Alignment = new ImAlignment(0.5f, 0.5f);
             sheet.MenuBar.ItemActive.Normal.BackColor.SetAlphaF(1.0f);
             
             return sheet;

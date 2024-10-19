@@ -132,7 +132,7 @@ namespace Imui.Controls
             var state = gui.Storage.GetRef<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
 
-            MenuItem(gui, id, containerState, label, true, out var active);
+            MenuItem(gui, id, containerState, label, true, false, out var active, false);
 
             if (!active)
             {
@@ -167,7 +167,30 @@ namespace Imui.Controls
             }
         }
 
-        // TODO (artem-s): add menu item with checkmark
+        public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, bool enabled)
+        {
+            MenuItem(gui, label, ref enabled);
+            return enabled;
+        }
+        
+        public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, ref bool enabled)
+        {
+            if (!TryGetActiveMenuState(gui, out var state))
+            {
+                return false;
+            }
+
+            var id = gui.GetNextControlId();
+            var clicked = MenuItem(gui, id, state, label, false, true, out _, enabled);
+
+            if (clicked)
+            {
+                enabled = !enabled;
+            }
+
+            return clicked;
+        }
+        
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label)
         {
             if (!TryGetActiveMenuState(gui, out var state))
@@ -177,17 +200,16 @@ namespace Imui.Controls
 
             var id = gui.GetNextControlId();
 
-            return MenuItem(gui, id, state, label, false, out _);
+            return MenuItem(gui, id, state, label, false, false, out _, false);
         }
 
-        public static bool MenuItem(ImGui gui, uint id, ImMenuState* state, ReadOnlySpan<char> label, bool expandable, out bool active)
+        public static bool MenuItem(ImGui gui, uint id, ImMenuState* state, ReadOnlySpan<char> label, bool isExpandable, bool isToggleable, out bool active, bool toggleIsOn)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var arrowSize = gui.Style.Layout.TextSize;
+            var extraWidth = gui.Style.Layout.TextSize;
             var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.Menu.ItemNormal.Alignment);
             var textSize = gui.MeasureTextSize(label, textSettings);
-            var extraWidth = arrowSize;
             var minWidth = Mathf.Max(gui.GetLayoutWidth(), gui.Style.Menu.MinWidth);
             var contentWidth = Mathf.Max(minWidth, gui.Style.Layout.InnerSpacing + textSize.x + extraWidth);
             var contentRect = gui.AddLayoutRect(new Vector2(contentWidth, gui.GetRowHeight()));
@@ -195,7 +217,7 @@ namespace Imui.Controls
 
             gui.RegisterControl(id, contentRect);
 
-            var shouldFix = expandable && ShouldFixSelection(gui, contentRect);
+            var shouldFix = isExpandable && ShouldFixSelection(gui, contentRect);
             if (shouldFix && !hovered && state->Selected == id && state->Fixed != id)
             {
                 state->Fixed = id;
@@ -214,19 +236,24 @@ namespace Imui.Controls
                 state->Selected = default;
             }
 
-            active = (state->Selected == id && (!expandable || state->Fixed == default)) || state->Fixed == id;
+            active = (state->Selected == id && (!isExpandable || state->Fixed == default)) || state->Fixed == id;
 
             ref var buttonStyle = ref (active ? ref gui.Style.Menu.ItemActive : ref gui.Style.Menu.ItemNormal);
             using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in buttonStyle);
 
-            var clicked = gui.Button(id, contentRect, out var buttonState, ImButtonFlag.ActOnPress) && !expandable;
+            var clicked = gui.Button(id, contentRect, out var buttonState, ImButtonFlag.ActOnPress) && !isExpandable;
             var frontColor = ImButton.GetStateFrontColor(gui, buttonState);
             var labelRect = contentRect.WithPadding(left: gui.Style.Layout.InnerSpacing);
-
-            if (expandable)
+            var extraRect = labelRect.SplitRight(extraWidth, gui.Style.Layout.InnerSpacing, out labelRect).WithAspect(1.0f);
+            
+            if (isExpandable)
             {
-                var arrowRect = labelRect.SplitRight(arrowSize, gui.Style.Layout.InnerSpacing, out labelRect).WithAspect(1.0f);
-                ImFoldout.DrawArrowRight(gui.Canvas, arrowRect, frontColor, gui.Style.Menu.ArrowScale);
+                ImFoldout.DrawArrowRight(gui.Canvas, extraRect, frontColor, gui.Style.Menu.ArrowScale);
+            }
+            
+            if (isToggleable && toggleIsOn)
+            {
+                ImCheckbox.DrawCheckmark(gui.Canvas, extraRect, frontColor, gui.Style.Menu.CheckmarkScale);
             }
 
             gui.Text(label, in textSettings, frontColor, labelRect);

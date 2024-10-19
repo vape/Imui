@@ -93,10 +93,7 @@ namespace Imui.Controls
 
             if (value)
             {
-                var checkmarkRect = rect.ScaleFromCenter(gui.Style.Checkbox.CheckmarkScale);
-                var checkmarkStrokeWidth = checkmarkRect.W * 0.2f;
-                
-                DrawCheckmark(gui.Canvas, checkmarkRect, frontColor, checkmarkStrokeWidth);
+                DrawCheckmark(gui.Canvas, rect, frontColor, gui.Style.Checkbox.CheckmarkScale);
             }
             
             if (clicked)
@@ -107,12 +104,24 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static void DrawCheckmark(ImCanvas canvas, ImRect rect, Color32 color, float thickness)
+        public static void DrawCheckmark(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)
         {
+            if (scale == 0)
+            {
+                return;
+            }
+
+            if (scale != 1.0)
+            {
+                rect = rect.ScaleFromCenter(scale);
+            }
+            
             if (canvas.Cull(rect))
             {
                 return;
             }
+
+            var thickness = rect.W * 0.2f;
             
             ReadOnlySpan<Vector2> path = stackalloc Vector2[3]
             {
