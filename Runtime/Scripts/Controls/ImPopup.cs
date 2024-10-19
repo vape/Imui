@@ -3,6 +3,7 @@ using Imui.IO.Events;
 
 namespace Imui.Controls
 {
+    // TODO (artem-s): add support for popups inside popups
     public static class ImPopup
     {
         public const int ORDER_CONTENT = 1024 * 1024 * 16;

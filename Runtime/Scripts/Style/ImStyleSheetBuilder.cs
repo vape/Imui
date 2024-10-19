@@ -238,6 +238,20 @@ namespace Imui.Style
             sheet.Menu.ItemActive.Normal.BackColor.SetAlphaF(0.8f);
             sheet.Menu.ArrowScale = 0.6f;
             
+            // Menu Bar
+            // TODO (artem-s): border should be the same thickness and color as window's ones
+            sheet.MenuBar.Box = sheet.Menu.Box;
+            sheet.MenuBar.Box.BackColor = Color32.Lerp(sheet.Window.TitleBar.BackColor, sheet.Window.Box.BackColor, 0.5f);
+            sheet.MenuBar.Box.BorderRadius = 0.0f;
+            sheet.MenuBar.ItemNormal = sheet.Menu.ItemNormal;
+            sheet.MenuBar.ItemNormal.BorderRadius = 0.0f;
+            sheet.MenuBar.ItemNormal.BorderThickness = 0.0f;
+            sheet.MenuBar.ItemActive = sheet.Menu.ItemActive;
+            sheet.MenuBar.ItemActive.BorderRadius = 0.0f;
+            sheet.MenuBar.ItemActive.BorderThickness = 0.0f;
+            sheet.MenuBar.ItemActive.Normal.BackColor.SetAlphaF(1.0f);
+            sheet.MenuBar.Padding = sheet.Menu.Padding;
+            
             return sheet;
         }
 

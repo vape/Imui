@@ -121,6 +121,14 @@ namespace Imui.Controls
             rect.H -= padding.Top + padding.Bottom;
         }
         
+        public static void AddPadding(this ref ImRect rect, float left = 0, float right = 0, float top = 0, float bottom = 0)
+        {
+            rect.X += left;
+            rect.Y += bottom;
+            rect.W -= left + right;
+            rect.H -= top + bottom;
+        }
+        
         public static ImRect ScaleFromCenter(this ImRect rect, float scale)
         {
             var w = rect.W;

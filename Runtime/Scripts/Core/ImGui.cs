@@ -100,6 +100,14 @@ namespace Imui.Core
                 return lastControl;
             }
         }
+
+        public ImRect LastControlRect
+        {
+            get
+            {
+                return lastControlRect;
+            }
+        }
         
         public readonly ImMeshBuffer MeshBuffer;
         public readonly ImMeshRenderer MeshRenderer;
@@ -129,6 +137,7 @@ namespace Imui.Core
         private ImControlFlag activeControlFlag;
         private ImControlSettings nextControlSettings;
         private uint lastControl;
+        private ImRect lastControlRect;
         
         private bool disposed;
         
@@ -350,6 +359,7 @@ namespace Imui.Core
         {
             nextControlSettings = default;
             lastControl = controlId;
+            lastControlRect = rect;
             
             ref readonly var meshProperties = ref Canvas.GetActiveSettings();
             

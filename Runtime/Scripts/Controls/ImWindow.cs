@@ -280,5 +280,32 @@ namespace Imui.Controls
             
             return rect.WithPadding(style.Box.BorderThickness).SplitTop(height);
         }
+
+        public static ImRect GetCurrentWindowContentRect(this ImGui gui)
+        {
+            if (!gui.WindowManager.IsDrawingWindow())
+            {
+                return default;
+            }
+
+            var windowRect = gui.WindowManager.GetCurrentWindowRect();
+            windowRect.SplitTop(GetTitleBarRect(gui, windowRect, out _).H, out var contentRect);
+
+            return contentRect;
+        }
+
+        public static void SetCurrentWindowContentRect(this ImGui gui, ImRect rect)
+        {
+            if (!gui.WindowManager.IsDrawingWindow())
+            {
+                return;
+            }
+            
+            gui.EndScrollable();
+            gui.Layout.Pop();
+            
+            gui.Layout.Push(ImAxis.Vertical, rect);
+            gui.BeginScrollable();
+        }
     }
 }

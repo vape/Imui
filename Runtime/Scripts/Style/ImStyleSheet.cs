@@ -22,5 +22,6 @@ namespace Imui.Style
         public ImStyleTree Tree;
         public ImStyleTooltip Tooltip;
         public ImStyleMenu Menu;
+        public ImStyleMenuBar MenuBar;
     }
 }

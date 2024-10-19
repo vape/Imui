@@ -102,7 +102,7 @@ namespace Imui.Controls
             gui.Layout.Pop();
         }
 
-        public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool TryBeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
         {
             if (!TryGetActiveMenuState(gui, out var containerState))
             {
@@ -167,11 +167,11 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var arrowSize = gui.Style.Layout.TextSize;
-            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize);
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.Menu.ItemNormal.Alignment);
             var textSize = gui.MeasureTextSize(label, textSettings);
             var extraWidth = arrowSize;
             var contentWidth = Mathf.Max(gui.GetLayoutWidth(), gui.Style.Layout.InnerSpacing + textSize.x + extraWidth);
-            var contentRect = gui.AddLayoutRect(new Vector2(contentWidth, textSize.y));
+            var contentRect = gui.AddLayoutRect(new Vector2(contentWidth, gui.GetRowHeight()));
             var hovered = gui.IsControlHovered(id);
 
             gui.RegisterControl(id, contentRect);

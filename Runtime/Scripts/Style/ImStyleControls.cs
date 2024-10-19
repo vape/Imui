@@ -206,4 +206,13 @@ namespace Imui.Style
         public ImStyleButton ItemActive;
         public float ArrowScale;
     }
+
+    [Serializable]
+    public struct ImStyleMenuBar
+    {
+        public ImStyleBox Box;
+        public ImPadding Padding;
+        public ImStyleButton ItemNormal;
+        public ImStyleButton ItemActive;
+    }
 }
