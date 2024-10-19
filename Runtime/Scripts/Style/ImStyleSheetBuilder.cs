@@ -67,7 +67,7 @@ namespace Imui.Style
             sheet.Window.TitleBar.CloseButton.Pressed.BorderColor = D(theme.AccentBackground, 0.15f);
             
             // Text Edit
-            sheet.TextEdit.Normal.SelectionColor = theme.AccentBackground.WithAlpha((byte)(255 * 0.25f));;
+            sheet.TextEdit.Normal.SelectionColor = theme.AccentBackground.WithAlphaF(0.25f);
             sheet.TextEdit.Normal.Box.BackColor = theme.FieldColor;
             sheet.TextEdit.Normal.Box.FrontColor = theme.Foreground;
             sheet.TextEdit.Normal.Box.BorderColor = theme.BorderColor;
@@ -235,6 +235,7 @@ namespace Imui.Style
             sheet.Menu.ItemNormal = sheet.List.ItemNormal;
             sheet.Menu.ItemNormal.Normal.BackColor = Color.clear;
             sheet.Menu.ItemActive = sheet.List.ItemSelected;
+            sheet.Menu.ItemActive.Normal.BackColor.SetAlphaF(0.8f);
             sheet.Menu.ArrowScale = 0.6f;
             
             return sheet;

@@ -375,7 +375,7 @@ namespace Imui.Controls.Windows
                 var t = mod((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)), 2.0f);
                 var x = t <= 1.0f ? t : 1 - (t - 1);
                 var p = bounds.GetPointAtNormalPosition(x, 0.5f);
-                var c = gui.Style.Text.Color.WithAlpha((byte)(255 * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2)));
+                var c = gui.Style.Text.Color.WithAlphaF(Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }

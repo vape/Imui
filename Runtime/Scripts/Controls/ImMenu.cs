@@ -176,25 +176,25 @@ namespace Imui.Controls
 
             gui.RegisterControl(id, contentRect);
             
-            if (expandable && !hovered && state->Selected == id && state->Fixed != id && ShouldFixate(contentRect, gui.Input.MousePosition))
+            var shouldFix = expandable && ShouldFixSelection(gui, contentRect);
+            if (shouldFix && !hovered && state->Selected == id && state->Fixed != id)
             {
                 state->Fixed = id;
+            }
+            else if (!shouldFix && state->Selected != default && state->Fixed == id)
+            {
+                state->Fixed = default;
             }
             
             if (hovered)
             {
-                if (state->Fixed != id)
-                {
-                    state->Fixed = default;
-                }
-                
                 state->Selected = id;
             }
             else if (state->Selected == id)
             {
                 state->Selected = default;
             }
-            
+
             active = state->Selected == id || state->Fixed == id;
 
             ref var buttonStyle = ref (active ? ref gui.Style.Menu.ItemActive : ref gui.Style.Menu.ItemNormal);
@@ -235,16 +235,46 @@ namespace Imui.Controls
 
             if (fail)
             {
-                ImAssert.Error($"Menu state is missing. BeginMenu and corresponding EndMenu must be called before and after MenuItem accordingly");
+                ImAssert.Error($"{nameof(ImMenuState)} is missing. {nameof(BeginMenu)} and corresponding {nameof(EndMenu)} must be called before and after " +
+                               $"any {nameof(MenuItem)} accordingly");
             }
             
             state = default;
             return false;
         }
         
-        private static bool ShouldFixate(ImRect rect, Vector2 mousePosition)
+        private static bool ShouldFixSelection(ImGui gui, ImRect buttonRect)
         {
-            return mousePosition.x > rect.Right;
+            if (gui.Input.MousePosition.x > buttonRect.Right)
+            {
+                return true;
+            }
+
+            Span<Vector2> hoveringArea = stackalloc Vector2[]
+            {                
+                new Vector2(buttonRect.Right, buttonRect.Bottom),
+                new Vector2(buttonRect.Center.x, buttonRect.Bottom),
+                new Vector2(buttonRect.Right, buttonRect.Bottom - buttonRect.H)
+            };
+
+            return ConvexIntersect(hoveringArea, gui.Input.MousePosition);
+        }
+
+        private static bool ConvexIntersect(Span<Vector2> shape, Vector2 point)
+        {
+            for (int i = 0; i < shape.Length; ++i)
+            {
+                var s = (shape[(i + 1) % shape.Length] - shape[i]);
+                s = new Vector2(-s.y, s.x);
+                var p = (point - shape[i]);
+
+                if (Vector2.Dot(p, s) < 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
