@@ -5,12 +5,22 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    [Flags]
+    public enum ImMenuStateFlag
+    {
+        None = 0,
+        Dismissed = 1,
+        LayoutBuilt = 2
+    }
+    
     public struct ImMenuState
     {
         public uint Selected;
         public uint Fixed;
         public uint Clicked;
-        public bool Dismissed;
+        
+        public ImMenuStateFlag Flags;
+        
         public Vector2 Size;
     }
     
@@ -31,10 +41,10 @@ namespace Imui.Controls
             var state = gui.Storage.GetRef<ImMenuState>(id);
             var rect = gui.AddLayoutRect(state->Size);
 
-            if (state->Dismissed)
+            if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
             {
                 open = false;
-                state->Dismissed = false;
+                state->Flags &= ~ImMenuStateFlag.Dismissed;
             }
             
             BeginMenu(gui, id, rect);
@@ -60,21 +70,31 @@ namespace Imui.Controls
             gui.Layout.Push(ImAxis.Vertical, rect);
             gui.BeginPopup();
 
-            gui.Storage.Get<ImMenuState>(id);
+            var state = gui.Storage.GetRef<ImMenuState>(id);
+            if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
+            {
+                gui.Canvas.PushClipRect(new ImRect(0, 0, 1, 1));
+            }
         }
         
         public static void EndMenu(ImGui gui, ImMenuState* state)
         {
+            if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
+            {
+                gui.Canvas.PopClipRect();
+            }
+            
             state->Size = gui.Layout.GetContentRect().Size;
             
             gui.Canvas.PushOrder(gui.Canvas.GetOrder() - 1);
             gui.Canvas.Rect(gui.Layout.GetContentRect(), BackColor);
             
             gui.EndPopupWithCloseButton(out var popupCloseButtonClicked);
+
+            state->Flags |= ImMenuStateFlag.LayoutBuilt;
+            state->Flags |= popupCloseButtonClicked | state->Clicked != default ? ImMenuStateFlag.Dismissed : ImMenuStateFlag.None;
             
-            state->Dismissed = popupCloseButtonClicked | state->Clicked != default;
-            
-            if (state->Dismissed)
+            if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
             {
                 state->Selected = default;
                 state->Fixed = default;
@@ -96,10 +116,13 @@ namespace Imui.Controls
             var state = gui.Storage.GetRef<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
             
-            MenuItem(gui, id, containerState, label, true, out var selected);
+            MenuItem(gui, id, containerState, label, true, out var active);
 
-            if (!selected)
+            if (!active)
             {
+                state->Size = default;
+                state->Flags &= ~ImMenuStateFlag.LayoutBuilt;
+                
                 return false;
             }
             
@@ -115,13 +138,13 @@ namespace Imui.Controls
                 return;
             }
 
-            var itemClicked = state->Clicked;
+            var clicked = state->Clicked;
             
             EndMenu(gui, state);
 
-            if (itemClicked != default && TryGetMenuState(gui, out var parentsState, fail: false))
+            if (clicked != default && TryGetMenuState(gui, out var parentsState, fail: false))
             {
-                parentsState->Clicked = itemClicked;
+                parentsState->Clicked = clicked;
             }
         }
 
@@ -179,7 +202,7 @@ namespace Imui.Controls
                 DrawButtonBox(gui, contentRect, in gui.Style.List.ItemNormal, ImButtonState.Normal);
             }
 
-            var clicked = gui.InvisibleButton(id, contentRect, ImButtonFlag.ActOnPress);
+            var clicked = !expandable && gui.InvisibleButton(id, contentRect, ImButtonFlag.ActOnPress);
             var labelRect = contentRect;
             
             if (expandable)
