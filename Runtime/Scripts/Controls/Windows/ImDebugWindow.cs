@@ -21,7 +21,7 @@ namespace Imui.Controls.Windows
         
         public static void Draw(ImGui gui, ref bool open)
         {
-            if (!gui.BeginWindow("Imui Debug", ref open, (350, 415)))
+            if (!gui.BeginWindow("Imui Debug", ref open, (350, 450)))
             {
                 return;
             }
@@ -31,6 +31,7 @@ namespace Imui.Controls.Windows
             var msValue = gui.Formatter.Format(avgFrameTime * 1000, "0.0");
 
             gui.Text(gui.Formatter.Join("Hovered: ", gui.Formatter.Format(gui.frameData.HoveredControl.Id)));
+            gui.Text(gui.Formatter.Join("Hovered Order: ", gui.Formatter.Format(gui.frameData.HoveredControl.Order)));
             gui.Text(gui.Formatter.Join("Active: ", gui.Formatter.Format(gui.GetActiveControl())));
             gui.Text(gui.Formatter.Join("Storage: ", storageRatio, " bytes"));
             gui.Text(gui.Formatter.Join("Arena: ", gui.Formatter.Format(gui.frameData.ArenaSize), " bytes"));

@@ -64,7 +64,15 @@ namespace Imui.Controls
         public static void BeginMenu(ImGui gui, ImMenuState* state, ImRect rect)
         {
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(gui.Style.Menu.Padding));
-            gui.BeginPopup((int)(state->Depth * 2));
+
+            if (IsRootMenu(state))
+            {
+                gui.BeginPopup();
+            }
+            else
+            {
+                gui.Canvas.PushOrder(gui.Canvas.GetOrder() + 2);
+            }
 
             if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
             {
@@ -87,10 +95,19 @@ namespace Imui.Controls
             gui.Box(contentRect, gui.Style.Menu.Box);
             gui.Canvas.PopOrder();
 
-            gui.EndPopupWithCloseButton(out var popupCloseButtonClicked);
+            var closeButtonClicked = false;
+            
+            if (IsRootMenu(state))
+            {
+                gui.EndPopupWithCloseButton(out closeButtonClicked);
+            }
+            else
+            {
+                gui.Canvas.PopOrder();
+            }
 
             state->Flags |= ImMenuStateFlag.LayoutBuilt;
-            state->Flags |= popupCloseButtonClicked | state->Clicked != default ? ImMenuStateFlag.Dismissed : ImMenuStateFlag.None;
+            state->Flags |= closeButtonClicked | state->Clicked != default ? ImMenuStateFlag.Dismissed : ImMenuStateFlag.None;
 
             if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
             {
@@ -150,6 +167,7 @@ namespace Imui.Controls
             }
         }
 
+        // TODO (artem-s): add menu item with checkmark
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label)
         {
             if (!TryGetActiveMenuState(gui, out var state))
@@ -196,7 +214,7 @@ namespace Imui.Controls
                 state->Selected = default;
             }
 
-            active = state->Selected == id || state->Fixed == id;
+            active = (state->Selected == id && (!expandable || state->Fixed == default)) || state->Fixed == id;
 
             ref var buttonStyle = ref (active ? ref gui.Style.Menu.ItemActive : ref gui.Style.Menu.ItemNormal);
             using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in buttonStyle);
@@ -243,6 +261,11 @@ namespace Imui.Controls
 
             state = default;
             return false;
+        }
+
+        private static bool IsRootMenu(ImMenuState* state)
+        {
+            return state->Depth == 0;
         }
 
         // TODO (artem-s): assumes we only opening sub-menu to the right
