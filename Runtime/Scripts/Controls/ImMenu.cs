@@ -26,10 +26,6 @@ namespace Imui.Controls
     
     public static unsafe class ImMenu
     {
-        public static readonly Color32 FrontColor = Color.white;
-        public static readonly Color32 BackColor = Color.black;
-        public static readonly float ArrowScale = 0.6f;
-
         public static bool TryBeginMenu(this ImGui gui, ReadOnlySpan<char> name, ref bool open)
         {
             if (!open)
@@ -67,13 +63,13 @@ namespace Imui.Controls
         public static void BeginMenu(ImGui gui, uint id, ImRect rect)
         {
             gui.PushId(id);
-            gui.Layout.Push(ImAxis.Vertical, rect);
+            gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(gui.Style.Menu.Padding));
             gui.BeginPopup();
 
             var state = gui.Storage.GetRef<ImMenuState>(id);
             if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
             {
-                gui.Canvas.PushClipRect(new ImRect(0, 0, 1, 1));
+                gui.Canvas.PushClipEverything();
             }
         }
         
@@ -83,11 +79,13 @@ namespace Imui.Controls
             {
                 gui.Canvas.PopClipRect();
             }
+
+            var contentRect = gui.Layout.GetContentRect().WithPadding(-gui.Style.Menu.Padding);
             
-            state->Size = gui.Layout.GetContentRect().Size;
+            state->Size = contentRect.Size;
             
             gui.Canvas.PushOrder(gui.Canvas.GetOrder() - 1);
-            gui.Canvas.Rect(gui.Layout.GetContentRect(), BackColor);
+            gui.Box(contentRect, gui.Style.Menu.Box);
             
             gui.EndPopupWithCloseButton(out var popupCloseButtonClicked);
 
@@ -162,11 +160,13 @@ namespace Imui.Controls
         
         public static bool MenuItem(ImGui gui, uint id, ImMenuState* state, ReadOnlySpan<char> label, bool expandable, out bool active)
         {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
             var arrowSize = gui.Style.Layout.TextSize;
             var textSettings = new ImTextSettings(gui.Style.Layout.TextSize);
             var textSize = gui.MeasureTextSize(label, textSettings);
             var extraWidth = arrowSize;
-            var contentWidth = Mathf.Max(gui.GetLayoutWidth(), textSize.x + extraWidth);
+            var contentWidth = Mathf.Max(gui.GetLayoutWidth(), gui.Style.Layout.InnerSpacing + textSize.x + extraWidth);
             var contentRect = gui.AddLayoutRect(new Vector2(contentWidth, textSize.y));
             var hovered = gui.IsControlHovered(id);
 
@@ -192,26 +192,21 @@ namespace Imui.Controls
             }
             
             active = state->Selected == id || state->Fixed == id;
-            
-            if (active)
-            {
-                DrawButtonBox(gui, contentRect, in gui.Style.List.ItemSelected, ImButtonState.Hovered);
-            }
-            else
-            {
-                DrawButtonBox(gui, contentRect, in gui.Style.List.ItemNormal, ImButtonState.Normal);
-            }
 
-            var clicked = !expandable && gui.InvisibleButton(id, contentRect, ImButtonFlag.ActOnPress);
-            var labelRect = contentRect;
+            ref var buttonStyle = ref (active ? ref gui.Style.Menu.ItemActive : ref gui.Style.Menu.ItemNormal);
+            using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in buttonStyle);
+            
+            var clicked = gui.Button(id, contentRect, out var buttonState, ImButtonFlag.ActOnPress) && !expandable;
+            var frontColor = ImButton.GetStateFrontColor(gui, buttonState);
+            var labelRect = contentRect.WithPadding(left: gui.Style.Layout.InnerSpacing);
             
             if (expandable)
             {
-                var arrowRect = contentRect.SplitRight(arrowSize, gui.Style.Layout.InnerSpacing, out labelRect).WithAspect(1.0f);
-                ImFoldout.DrawArrowRight(gui.Canvas, arrowRect, FrontColor, ArrowScale);
+                var arrowRect = labelRect.SplitRight(arrowSize, gui.Style.Layout.InnerSpacing, out labelRect).WithAspect(1.0f);
+                ImFoldout.DrawArrowRight(gui.Canvas, arrowRect, frontColor, gui.Style.Menu.ArrowScale);
             }
             
-            gui.Text(label, in textSettings, FrontColor, labelRect);
+            gui.Text(label, in textSettings, frontColor, labelRect);
 
             if (clicked)
             {
@@ -227,12 +222,6 @@ namespace Imui.Controls
             return rect;
         }
         
-        public static void DrawButtonBox(ImGui gui, ImRect rect, in ImStyleButton style, ImButtonState state)
-        {
-            var boxStyle = ImButton.GetStateBoxStyle(in style, state);
-            gui.Box(rect, in boxStyle);
-        }
-
         private static bool TryGetMenuState(ImGui gui, out ImMenuState* state, bool fail = true)
         {
             if (gui.TryPeekId(out var menuId) && gui.Storage.TryGetRef(menuId, out state))

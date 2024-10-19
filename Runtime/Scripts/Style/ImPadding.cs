@@ -45,5 +45,14 @@ namespace Imui.Style
             padding.Add(-value);
             return padding;
         }
+        
+        public static ImPadding operator -(ImPadding padding)
+        {
+            padding.Left = -padding.Left;
+            padding.Right = -padding.Right;
+            padding.Top = -padding.Top;
+            padding.Bottom = -padding.Bottom;
+            return padding;
+        }
     }
 }

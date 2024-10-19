@@ -217,7 +217,7 @@ namespace Imui.Style
             sheet.Dropdown.Button.Alignment = new ImAlignment(0.0f, 0.5f);
             
             // Separator
-            sheet.Separator.Thickness = Mathf.Max(1, theme.TextSize * 0.15f);
+            sheet.Separator.Thickness = Mathf.Max(1, theme.BorderThickness);
             sheet.Separator.Color = theme.BorderColor;
             
             // Tooltip
@@ -228,6 +228,14 @@ namespace Imui.Style
             sheet.Tooltip.Box.BorderRadius = theme.BorderRadius;
             sheet.Tooltip.Box.BorderThickness = theme.BorderThickness;
             sheet.Tooltip.Box.FrontColor = theme.Foreground;
+            
+            // Menu
+            sheet.Menu.Box = sheet.List.Box;
+            sheet.Menu.Padding = sheet.List.Padding;
+            sheet.Menu.ItemNormal = sheet.List.ItemNormal;
+            sheet.Menu.ItemNormal.Normal.BackColor = Color.clear;
+            sheet.Menu.ItemActive = sheet.List.ItemSelected;
+            sheet.Menu.ArrowScale = 0.6f;
             
             return sheet;
         }

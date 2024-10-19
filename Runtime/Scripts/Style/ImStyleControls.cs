@@ -196,4 +196,14 @@ namespace Imui.Style
         public ImPadding Padding;
         public Vector2 Offset;
     }
+
+    [Serializable]
+    public struct ImStyleMenu
+    {
+        public ImStyleBox Box;
+        public ImPadding Padding;
+        public ImStyleButton ItemNormal;
+        public ImStyleButton ItemActive;
+        public float ArrowScale;
+    }
 }
