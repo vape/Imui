@@ -7,12 +7,12 @@ namespace Imui.Controls
     {
         public const int ORDER_CONTENT = 1024 * 1024 * 16;
         public const int ORDER_CLOSE_BUTTON = ORDER_CONTENT - 16;
-        
-        public static void BeginPopup(this ImGui gui)
+
+        public static void BeginPopup(this ImGui gui, int extraOrderOffset = 0)
         {
             gui.Canvas.PushNoClipRect();
             gui.Canvas.PushNoRectMask();
-            gui.Canvas.PushOrder(ORDER_CONTENT);
+            gui.Canvas.PushOrder(ORDER_CONTENT + extraOrderOffset);
         }
 
         public static void EndPopup(this ImGui gui)

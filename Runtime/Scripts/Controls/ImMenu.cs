@@ -18,6 +18,7 @@ namespace Imui.Controls
         public uint Selected;
         public uint Fixed;
         public uint Clicked;
+        public uint Depth;
         
         public ImMenuStateFlag Flags;
         
@@ -43,7 +44,7 @@ namespace Imui.Controls
                 state->Flags &= ~ImMenuStateFlag.Dismissed;
             }
             
-            BeginMenu(gui, id, rect);
+            BeginMenu(gui, state, rect);
 
             return true;
         }
@@ -60,13 +61,11 @@ namespace Imui.Controls
             gui.PopId();
         }
         
-        public static void BeginMenu(ImGui gui, uint id, ImRect rect)
+        public static void BeginMenu(ImGui gui, ImMenuState* state, ImRect rect)
         {
-            gui.PushId(id);
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(gui.Style.Menu.Padding));
-            gui.BeginPopup();
-
-            var state = gui.Storage.GetRef<ImMenuState>(id);
+            gui.BeginPopup((int)(state->Depth * 2));
+            
             if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
             {
                 gui.Canvas.PushClipEverything();
@@ -86,6 +85,7 @@ namespace Imui.Controls
             
             gui.Canvas.PushOrder(gui.Canvas.GetOrder() - 1);
             gui.Box(contentRect, gui.Style.Menu.Box);
+            gui.Canvas.PopOrder();
             
             gui.EndPopupWithCloseButton(out var popupCloseButtonClicked);
 
@@ -100,7 +100,6 @@ namespace Imui.Controls
             }
 
             gui.Layout.Pop();
-            gui.PopId();
         }
         
         public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
@@ -109,8 +108,10 @@ namespace Imui.Controls
             {
                 return false;
             }
+
+            gui.GetNextControlId();
             
-            var id = gui.GetNextControlId();
+            var id = gui.PushId(label);
             var state = gui.Storage.GetRef<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
             
@@ -120,11 +121,13 @@ namespace Imui.Controls
             {
                 state->Size = default;
                 state->Flags &= ~ImMenuStateFlag.LayoutBuilt;
-                
+                gui.PopId();
                 return false;
             }
+
+            state->Depth = containerState->Depth + 1;
             
-            BeginMenu(gui, id, GetMenuRectAt(position, state->Size));
+            BeginMenu(gui, state, GetMenuRectAt(position, state->Size));
 
             return true;
         }
@@ -139,6 +142,7 @@ namespace Imui.Controls
             var clicked = state->Clicked;
             
             EndMenu(gui, state);
+            gui.PopId();
 
             if (clicked != default && TryGetMenuState(gui, out var parentsState, fail: false))
             {
