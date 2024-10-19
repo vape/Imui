@@ -81,7 +81,7 @@ namespace Imui.Controls
 
             var contentRect = gui.Layout.GetContentRect().WithPadding(-gui.Style.Menu.Padding);
 
-            state->Size = contentRect.Size;
+            state->Size = contentRect.Size.Max(gui.Style.Menu.MinWidth, gui.Style.Menu.MinHeight);
 
             gui.Canvas.PushOrder(gui.Canvas.GetOrder() - 1);
             gui.Box(contentRect, gui.Style.Menu.Box);
@@ -170,7 +170,8 @@ namespace Imui.Controls
             var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.Menu.ItemNormal.Alignment);
             var textSize = gui.MeasureTextSize(label, textSettings);
             var extraWidth = arrowSize;
-            var contentWidth = Mathf.Max(gui.GetLayoutWidth(), gui.Style.Layout.InnerSpacing + textSize.x + extraWidth);
+            var minWidth = Mathf.Max(gui.GetLayoutWidth(), gui.Style.Menu.MinWidth);
+            var contentWidth = Mathf.Max(minWidth, gui.Style.Layout.InnerSpacing + textSize.x + extraWidth);
             var contentRect = gui.AddLayoutRect(new Vector2(contentWidth, gui.GetRowHeight()));
             var hovered = gui.IsControlHovered(id);
 

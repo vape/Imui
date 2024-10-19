@@ -205,13 +205,14 @@ namespace Imui.Style
         public ImStyleButton ItemNormal;
         public ImStyleButton ItemActive;
         public float ArrowScale;
+        public float MinWidth;
+        public float MinHeight;
     }
 
     [Serializable]
     public struct ImStyleMenuBar
     {
         public ImStyleBox Box;
-        public ImPadding Padding;
         public ImStyleButton ItemNormal;
         public ImStyleButton ItemActive;
     }

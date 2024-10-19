@@ -237,6 +237,8 @@ namespace Imui.Style
             sheet.Menu.ItemActive = sheet.List.ItemSelected;
             sheet.Menu.ItemActive.Normal.BackColor.SetAlphaF(0.8f);
             sheet.Menu.ArrowScale = 0.6f;
+            sheet.Menu.MinWidth = 150.0f;
+            sheet.Menu.MinHeight = 10.0f;
             
             // Menu Bar
             // TODO (artem-s): border should be the same thickness and color as window's ones
@@ -250,7 +252,6 @@ namespace Imui.Style
             sheet.MenuBar.ItemActive.BorderRadius = 0.0f;
             sheet.MenuBar.ItemActive.BorderThickness = 0.0f;
             sheet.MenuBar.ItemActive.Normal.BackColor.SetAlphaF(1.0f);
-            sheet.MenuBar.Padding = sheet.Menu.Padding;
             
             return sheet;
         }
