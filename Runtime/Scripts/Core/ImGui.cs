@@ -429,49 +429,44 @@ namespace Imui.Core
             }
         }
 
-        public unsafe ref TState PushControlScope<TState>(uint id, TState @default = default) where TState : unmanaged
-        {
-            return ref *PushControlScopeRef(id, @default);
-        }
-
-        public unsafe TState* PushControlScopeRef<TState>(uint id, TState @default = default) where TState : unmanaged
+        public unsafe ref TState PushControlScope<TState>(uint id, TState @default = default) where TState : unmanaged => ref *PushControlScopePtr(id, @default);
+        
+        public unsafe TState* PushControlScopePtr<TState>(uint id, TState @default = default) where TState : unmanaged
         {
             var stateReference = new ImControlScope() { Id = id, Type = typeof(TState).GetHashCode() };
 
             controlScopesStack.Push(in stateReference);
 
-            return Storage.GetRef(id, @default);
+            return Storage.GetPtr(id, @default);
         }
 
-        public unsafe ref TState PopControlScope<TState>(out uint id) where TState : unmanaged
-        {
-            return ref *PopControlScopeRef<TState>(out id);
-        }
+        public unsafe ref TState PopControlScope<TState>() where TState : unmanaged => ref *PopControlScopePtr<TState>(out _);
+        public unsafe ref TState PopControlScope<TState>(out uint id) where TState : unmanaged => ref *PopControlScopePtr<TState>(out id);
 
-        public unsafe TState* PopControlScopeRef<TState>(out uint id) where TState : unmanaged
+        public unsafe TState* PopControlScopePtr<TState>() where TState : unmanaged => PopControlScopePtr<TState>(out _);
+        public unsafe TState* PopControlScopePtr<TState>(out uint id) where TState : unmanaged
         {
             ref var reference = ref FindControlScopeOrFail<TState>(out var index);
 
             id = reference.Id;
             controlScopesStack.RemoveAtFast(index);
 
-            return Storage.GetRef<TState>(id);
+            return Storage.GetPtr<TState>(id);
         }
 
-        public unsafe ref TState PeekControlScope<TState>(out uint id) where TState : unmanaged
-        {
-            return ref *PeekControlScopeRef<TState>(out id);
-        }
+        public unsafe ref TState PeekControlScope<TState>() where TState : unmanaged => ref *PeekControlScopePtr<TState>(out _);
+        public unsafe ref TState PeekControlScope<TState>(out uint id) where TState : unmanaged => ref *PeekControlScopePtr<TState>(out id);
         
-        public unsafe TState* PeekControlScopeRef<TState>(out uint id) where TState : unmanaged
+        public unsafe TState* PeekControlScopePtr<TState>() where TState : unmanaged => PeekControlScopePtr<TState>(out _);
+        public unsafe TState* PeekControlScopePtr<TState>(out uint id) where TState : unmanaged
         {
             ref var reference = ref FindControlScopeOrFail<TState>(out _);
 
             id = reference.Id;
-            return Storage.GetRef<TState>(id);
+            return Storage.GetPtr<TState>(id);
         }
 
-        public unsafe bool TryPeekControlScopeRef<TState>(out TState* state) where TState : unmanaged
+        public unsafe bool TryPeekControlScopePtr<TState>(out TState* state) where TState : unmanaged
         {
             if (!TryFindControlScope<TState>(out var index))
             {
@@ -479,7 +474,7 @@ namespace Imui.Core
                 return false;
             }
 
-            state = Storage.GetRef<TState>(controlScopesStack.Array[index].Id);
+            state = Storage.GetPtr<TState>(controlScopesStack.Array[index].Id);
             return true;
         }
 

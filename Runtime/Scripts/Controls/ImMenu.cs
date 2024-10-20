@@ -36,7 +36,7 @@ namespace Imui.Controls
 
             var id = gui.PushId(name);
             
-            var state = gui.PushControlScopeRef<ImMenuState>(id);
+            var state = gui.PushControlScopePtr<ImMenuState>(id);
             var rect = gui.AddLayoutRect(state->Size);
 
             if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
@@ -52,7 +52,7 @@ namespace Imui.Controls
 
         public static void EndMenu(this ImGui gui)
         {
-            EndMenu(gui, gui.PopControlScopeRef<ImMenuState>(out _));
+            EndMenu(gui, gui.PopControlScopePtr<ImMenuState>());
 
             gui.PopId();
         }
@@ -117,10 +117,10 @@ namespace Imui.Controls
 
         public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
         {
-            var parentState = gui.PeekControlScopeRef<ImMenuState>(out _);
+            var parentState = gui.PeekControlScopePtr<ImMenuState>();
             
             var id = gui.PushId(label);
-            var state = gui.PushControlScopeRef<ImMenuState>(id);
+            var state = gui.PushControlScopePtr<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
 
             MenuItem(gui, id, parentState, label, true, false, out var active, false);
@@ -129,7 +129,7 @@ namespace Imui.Controls
             {
                 state->Size = default;
                 state->Flags &= ~ImMenuStateFlag.LayoutBuilt;
-                gui.PopControlScopeRef<ImMenuState>(out _);
+                gui.PopControlScopePtr<ImMenuState>();
                 gui.PopId();
                 return false;
             }
@@ -143,13 +143,13 @@ namespace Imui.Controls
 
         public static void EndSubMenu(this ImGui gui)
         {
-            var state = gui.PopControlScopeRef<ImMenuState>(out _);
+            var state = gui.PopControlScopePtr<ImMenuState>();
             var clicked = state->Clicked;
 
             EndMenu(gui, state);
             gui.PopId();
 
-            if (clicked != default && gui.TryPeekControlScopeRef<ImMenuState>(out var parentsState))
+            if (clicked != default && gui.TryPeekControlScopePtr<ImMenuState>(out var parentsState))
             {
                 parentsState->Clicked = clicked;
             }
@@ -164,7 +164,7 @@ namespace Imui.Controls
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, ref bool enabled)
         {
             var id = gui.GetNextControlId();
-            var state = gui.PeekControlScopeRef<ImMenuState>(out _);
+            var state = gui.PeekControlScopePtr<ImMenuState>();
             var clicked = MenuItem(gui, id, state, label, false, true, out _, enabled);
 
             if (clicked)
@@ -178,7 +178,7 @@ namespace Imui.Controls
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label)
         {
             var id = gui.GetNextControlId();
-            var state = gui.PeekControlScopeRef<ImMenuState>(out _);
+            var state = gui.PeekControlScopePtr<ImMenuState>();
             
             return MenuItem(gui, id, state, label, false, false, out _, false);
         }

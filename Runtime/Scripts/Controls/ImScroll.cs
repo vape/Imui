@@ -54,12 +54,12 @@ namespace Imui.Controls
 
         public static Vector2 GetScrollOffset(this ImGui gui)
         {
-            return gui.PeekControlScope<ImScrollState>(out _).Offset;
+            return gui.PeekControlScope<ImScrollState>().Offset;
         }
 
         public static void SetScrollOffset(this ImGui gui, Vector2 offset)
         {
-            ref var state = ref gui.PeekControlScope<ImScrollState>(out _);
+            ref var state = ref gui.PeekControlScope<ImScrollState>();
             state.Offset = offset;
         }
         
