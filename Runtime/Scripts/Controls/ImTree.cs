@@ -20,6 +20,7 @@ namespace Imui.Controls
         NonExpandable = 2
     }
 
+    // TODO (artem-s): needs better api, like menus
     public static class ImTree
     {
         public static bool BeginTreeNode(this ImGui gui,

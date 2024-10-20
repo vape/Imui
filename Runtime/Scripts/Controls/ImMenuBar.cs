@@ -30,6 +30,8 @@ namespace Imui.Controls
 
         public static void BeginMenuBar(this ImGui gui, ImSize size = default)
         {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
             var rect = ImControls.AddRowRect(gui, size);
 
             BeginMenuBar(gui, rect);

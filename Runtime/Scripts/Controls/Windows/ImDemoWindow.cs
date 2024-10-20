@@ -102,48 +102,43 @@ namespace Imui.Controls.Windows
             gui.BeginWindowMenuBar();
             DrawMenuBarItems(gui, ref open);
             gui.EndWindowMenuBar();
-            
-            gui.BeginFoldout(out var controlsOpen, "Controls");
-            gui.BeginIndent();
-            if (controlsOpen)
-            {
-                DrawControlsPage(gui, ref open);
-            }
 
-            gui.EndIndent();
-            gui.EndFoldout();
+            if (gui.BeginFoldout("Controls"))
+            {
+                gui.BeginIndent();
+                DrawControlsPage(gui, ref open);
+                gui.EndIndent();
+                
+                gui.EndFoldout();
+            }
 
             gui.BeginReadOnly(isReadOnly);
 
-            gui.BeginFoldout(out var layoutOpen, "Layout");
-            gui.BeginIndent();
-            if (layoutOpen)
+            if (gui.BeginFoldout("Layout"))
             {
+                gui.BeginIndent();
                 DrawLayoutPage(gui);
+                gui.EndIndent();
+                
+                gui.EndFoldout();
             }
 
-            gui.EndIndent();
-            gui.EndFoldout();
-
-            gui.BeginFoldout(out var styleOpen, "Style");
-            gui.BeginIndent();
-            if (styleOpen)
+            if (gui.BeginFoldout("Style"))
             {
+                gui.BeginIndent();
                 DrawStylePage(gui);
+                gui.EndIndent();
+                
+                gui.EndFoldout();
             }
 
-            gui.EndIndent();
-            gui.EndFoldout();
-
-            gui.BeginFoldout(out var otherOpen, "Other");
-            gui.BeginIndent();
-            if (otherOpen)
+            if (gui.BeginFoldout("Other"))
             {
+                gui.BeginIndent();
                 DrawOtherPage(gui);
+                gui.EndIndent();
+                gui.EndFoldout();
             }
-
-            gui.EndIndent();
-            gui.EndFoldout();
 
             gui.EndReadOnly();
 
@@ -278,14 +273,11 @@ namespace Imui.Controls.Windows
                     Node(gui, i, treeNodes);
                 }
             }
-
-            if (selectedNode >= 0 && selectedNode < treeNodes.Length)
-            {
-                gui.Text(gui.Formatter.Join("Selected node: ", treeNodes[selectedNode].Name));
-            }
-
-            gui.Text("Some custom controls");
-            CustomDropdown(gui);
+            
+            var nodeName = selectedNode >= 0 && selectedNode < treeNodes.Length ? treeNodes[selectedNode].Name : "None";
+            gui.Text(gui.Formatter.Join("Selected node: ", nodeName));
+                
+            gui.Text("Nested Foldout");
             NestedFoldout(gui, 0, ref nestedFoldouts);
 
             gui.Text("Floating menu");
@@ -467,87 +459,40 @@ namespace Imui.Controls.Windows
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }
         }
-
-        public static void CustomDropdown(ImGui gui)
-        {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            var controlId = gui.GetNextControlId();
-
-            gui.BeginDropdown(controlId, ref customDropdownOpen, default);
-            {
-                var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f);
-
-                gui.Text("Boxes ticked: ", textSettings);
-
-                for (int i = 0; i < checkboxes.Length; ++i)
-                {
-                    gui.Text(checkboxes[i] ? "X" : "-", textSettings);
-                }
-
-                if (customDropdownOpen)
-                {
-                    ImDropdown.BeginList(gui, 1);
-                    var allTrue = true;
-
-                    gui.BeginHorizontal();
-                    for (int i = 0; i < checkboxes.Length; ++i)
-                    {
-                        gui.Checkbox(ref checkboxes[i]);
-                        allTrue &= checkboxes[i];
-                    }
-
-                    if (allTrue)
-                    {
-                        gui.Text("Bingo!", textSettings);
-                    }
-
-                    gui.EndHorizontal();
-
-                    ImDropdown.EndList(gui, out var closeClicked);
-
-                    if (closeClicked)
-                    {
-                        customDropdownOpen = false;
-                    }
-                }
-            }
-            gui.EndDropdown();
-        }
-
+        
         public static void NestedFoldout(ImGui gui, int current, ref int total)
         {
             const int MAX = 8;
 
             var label = current == 0 ? "Nested Foldout" : Format("Nested Foldout ", current, "0");
 
-            gui.BeginFoldout(out var nestedFoldoutOpen, label);
-            gui.BeginIndent();
-
-            if (nestedFoldoutOpen)
+            if (!gui.BeginFoldout(label))
             {
-                if (current < total)
+                return;
+            }
+            
+            gui.BeginIndent();
+            if (current < total)
+            {
+                NestedFoldout(gui, current + 1, ref total);
+            }
+            else if (current == total)
+            {
+                if (total == MAX)
                 {
-                    NestedFoldout(gui, current + 1, ref total);
+                    gui.Text("Let's just stop here");
+                    if (gui.Button("Reset"))
+                    {
+                        total = 0;
+                    }
                 }
-                else if (current == total)
+                else if (gui.Button("Add one more"))
                 {
-                    if (total == MAX)
-                    {
-                        gui.Text("Let's just stop here");
-                        if (gui.Button("Reset"))
-                        {
-                            total = 0;
-                        }
-                    }
-                    else if (gui.Button("Add one more"))
-                    {
-                        total++;
-                    }
+                    total++;
                 }
             }
-
             gui.EndIndent();
+                
             gui.EndFoldout();
         }
         
