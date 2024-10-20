@@ -311,7 +311,7 @@ namespace Imui.Controls.Windows
         {
             if (gui.BeginMenuBarItem("Demo"))
             {
-                DrawFileMenu(gui, ref windowOpen);
+                DrawDemoMenu(gui, ref windowOpen);
                 gui.EndMenuBarItem();
             }
 
@@ -322,7 +322,7 @@ namespace Imui.Controls.Windows
             }
         }
 
-        private static void DrawFileMenu(ImGui gui, ref bool windowOpen)
+        private static void DrawDemoMenu(ImGui gui, ref bool windowOpen)
         {
             if (gui.BeginSubMenu("Custom Menus"))
             {
@@ -334,7 +334,26 @@ namespace Imui.Controls.Windows
             }
             if (gui.BeginSubMenu("Recursive"))
             {
-                DrawFileMenu(gui, ref windowOpen);
+                DrawDemoMenu(gui, ref windowOpen);
+                gui.EndSubMenu();
+            }
+            gui.Separator();
+            if (gui.BeginSubMenu("Test"))
+            {           
+                if (gui.BeginSubMenu("Same name submenu"))
+                {
+                    gui.MenuItem("Item");
+                    gui.EndSubMenu();
+                }
+
+                gui.PushId("Next Menu");
+                if (gui.BeginSubMenu("Same name submenu"))
+                {
+                    gui.MenuItem("Item");
+                    gui.EndSubMenu();
+                }
+                gui.PopId();
+                
                 gui.EndSubMenu();
             }
             gui.Separator();

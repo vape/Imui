@@ -35,7 +35,8 @@ namespace Imui.Controls
             }
 
             var id = gui.PushId(name);
-            var state = gui.Storage.GetRef<ImMenuState>(id);
+            
+            var state = gui.PushControlScopeRef<ImMenuState>(id);
             var rect = gui.AddLayoutRect(state->Size);
 
             if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
@@ -51,12 +52,7 @@ namespace Imui.Controls
 
         public static void EndMenu(this ImGui gui)
         {
-            if (!TryGetActiveMenuState(gui, out var state))
-            {
-                return;
-            }
-
-            EndMenu(gui, state);
+            EndMenu(gui, gui.PopControlScopeRef<ImMenuState>(out _));
 
             gui.PopId();
         }
@@ -121,28 +117,24 @@ namespace Imui.Controls
 
         public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
         {
-            if (!TryGetActiveMenuState(gui, out var containerState))
-            {
-                return false;
-            }
-
-            // TODO (artem-s): will fail miserably when we'll try to make two sub menus with the same name under the same root menu
-            // TODO (artem-s): it will also fail when we try to wrap it with PushId/PopId calls, because we won't find containerState, duh
+            var parentState = gui.PeekControlScopeRef<ImMenuState>(out _);
+            
             var id = gui.PushId(label);
-            var state = gui.Storage.GetRef<ImMenuState>(id);
+            var state = gui.PushControlScopeRef<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
 
-            MenuItem(gui, id, containerState, label, true, false, out var active, false);
+            MenuItem(gui, id, parentState, label, true, false, out var active, false);
 
             if (!active)
             {
                 state->Size = default;
                 state->Flags &= ~ImMenuStateFlag.LayoutBuilt;
+                gui.PopControlScopeRef<ImMenuState>(out _);
                 gui.PopId();
                 return false;
             }
 
-            state->Depth = containerState->Depth + 1;
+            state->Depth = parentState->Depth + 1;
 
             BeginMenu(gui, state, GetMenuRectAt(position, state->Size));
 
@@ -151,17 +143,13 @@ namespace Imui.Controls
 
         public static void EndSubMenu(this ImGui gui)
         {
-            if (!TryGetActiveMenuState(gui, out var state))
-            {
-                return;
-            }
-
+            var state = gui.PopControlScopeRef<ImMenuState>(out _);
             var clicked = state->Clicked;
 
             EndMenu(gui, state);
             gui.PopId();
 
-            if (clicked != default && TryGetActiveMenuState(gui, out var parentsState, fail: false))
+            if (clicked != default && gui.TryPeekControlScopeRef<ImMenuState>(out var parentsState))
             {
                 parentsState->Clicked = clicked;
             }
@@ -175,12 +163,8 @@ namespace Imui.Controls
         
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, ref bool enabled)
         {
-            if (!TryGetActiveMenuState(gui, out var state))
-            {
-                return false;
-            }
-
             var id = gui.GetNextControlId();
+            var state = gui.PeekControlScopeRef<ImMenuState>(out _);
             var clicked = MenuItem(gui, id, state, label, false, true, out _, enabled);
 
             if (clicked)
@@ -193,13 +177,9 @@ namespace Imui.Controls
         
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label)
         {
-            if (!TryGetActiveMenuState(gui, out var state))
-            {
-                return false;
-            }
-
             var id = gui.GetNextControlId();
-
+            var state = gui.PeekControlScopeRef<ImMenuState>(out _);
+            
             return MenuItem(gui, id, state, label, false, false, out _, false);
         }
 
@@ -272,24 +252,7 @@ namespace Imui.Controls
             var rect = new ImRect(position.x, position.y - size.y, size.x, size.y);
             return rect;
         }
-
-        private static bool TryGetActiveMenuState(ImGui gui, out ImMenuState* state, bool fail = true)
-        {
-            if (gui.TryPeekId(out var menuId) && gui.Storage.TryGetRef(menuId, out state))
-            {
-                return true;
-            }
-
-            if (fail)
-            {
-                ImAssert.Error($"{nameof(ImMenuState)} is missing. {nameof(BeginMenu)} and corresponding {nameof(EndMenu)} must be called before and after " +
-                               $"any {nameof(MenuItem)} accordingly");
-            }
-
-            state = default;
-            return false;
-        }
-
+        
         private static bool IsRootMenu(ImMenuState* state)
         {
             return state->Depth == 0;
