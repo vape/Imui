@@ -45,7 +45,7 @@ namespace Imui.Controls.Windows
 
         public void Draw(ImGui gui, ref bool open)
         {
-            if (!gui.BeginWindow("Console", ref open, (768, 512)))
+            if (!gui.BeginWindow("Console", ref open, (768, 512), ImWindowFlag.HasMenuBar))
             {
                 return;
             }
@@ -120,7 +120,7 @@ namespace Imui.Controls.Windows
 
         private void DrawMenu(ImGui gui, ref bool open)
         {
-            gui.BeginMenuBar();
+            gui.BeginWindowMenuBar();
             if (gui.BeginMenuBarItem("Console"))
             {
                 if (gui.MenuItem("Close"))
@@ -166,7 +166,7 @@ namespace Imui.Controls.Windows
                 gui.EndMenuBarItem();
             }
 
-            gui.EndMenuBar();
+            gui.EndWindowMenuBar();
         }
 
         private void DrawDetails(ImGui gui)
@@ -176,7 +176,7 @@ namespace Imui.Controls.Windows
                 return;
             }
 
-            var windowRect = gui.WindowManager.GetCurrentWindowRect();
+            var windowRect = gui.GetWindowContentRect();
             windowRect.SplitTop(windowRect.H * 0.4f, out var rect);
 
             rect.AddPadding(gui.Style.Window.ContentPadding);

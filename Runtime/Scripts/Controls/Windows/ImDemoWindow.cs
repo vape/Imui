@@ -94,12 +94,14 @@ namespace Imui.Controls.Windows
 
         public static void Draw(ImGui gui, ref bool open)
         {
-            if (!gui.BeginWindow("Demo", ref open, (700, 700)))
+            if (!gui.BeginWindow("Demo", ref open, (700, 700), ImWindowFlag.HasMenuBar))
             {
                 return;
             }
 
-            DrawMenuBar(gui, ref open);
+            gui.BeginWindowMenuBar();
+            DrawMenuBarItems(gui, ref open);
+            gui.EndWindowMenuBar();
             
             gui.BeginFoldout(out var controlsOpen, "Controls");
             gui.BeginIndent();
@@ -287,7 +289,9 @@ namespace Imui.Controls.Windows
             NestedFoldout(gui, 0, ref nestedFoldouts);
 
             gui.Text("Floating menu");
-            DrawMenuBar(gui, ref open);
+            gui.BeginMenuBar();
+            DrawMenuBarItems(gui, ref open);
+            gui.EndMenuBar();
 
             gui.EndReadOnly();
         }
@@ -303,9 +307,8 @@ namespace Imui.Controls.Windows
             gui.TooltipAtControl("Number of circles drawn");
         }
 
-        private static void DrawMenuBar(ImGui gui, ref bool windowOpen)
+        private static void DrawMenuBarItems(ImGui gui, ref bool windowOpen)
         {
-            gui.BeginMenuBar();
             if (gui.BeginMenuBarItem("Demo"))
             {
                 DrawFileMenu(gui, ref windowOpen);
@@ -317,7 +320,6 @@ namespace Imui.Controls.Windows
                 DrawExamplesMenu(gui);
                 gui.EndMenuBarItem();
             }
-            gui.EndMenuBar();
         }
 
         private static void DrawFileMenu(ImGui gui, ref bool windowOpen)

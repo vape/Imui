@@ -11,21 +11,28 @@ namespace Imui.Controls
     
     public static class ImMenuBar
     {
-        public static void BeginMenuBar(this ImGui gui)
+        public static float GetMenuBarHeight(ImGui gui) => gui.GetRowHeight();
+        
+        public static void BeginWindowMenuBar(this ImGui gui)
         {
+            ImAssert.True(gui.WindowManager.IsDrawingWindow(), "Called outside window scope");
+
             var id = gui.GetNextControlId();
-            
-            if (!gui.WindowManager.IsDrawingWindow() || !gui.IsLayoutEmpty())
-            {
-                BeginMenuBar(gui, id, gui.AddLayoutRect(gui.GetLayoutWidth(), gui.GetRowHeight()), gui.Canvas.GetOrder());
-                return;
-            }
-            
-            var rect = gui.GetCurrentWindowContentRect().SplitTop(gui.GetRowHeight(), out var newContentRect);
-            newContentRect.AddPadding(gui.Style.Window.ContentPadding);
-            gui.SetCurrentWindowContentRect(newContentRect);
+            var rect = gui.GetWindowMenuBarRect();
             
             BeginMenuBar(gui, id, rect, gui.Canvas.GetOrder() + ImWindow.WINDOW_FRONT_ORDER_OFFSET);
+        }
+
+        public static void EndWindowMenuBar(this ImGui gui)
+        {
+            EndMenuBar(gui);
+        }
+
+        public static void BeginMenuBar(this ImGui gui, ImSize size = default)
+        {
+            var rect = ImControls.AddRowRect(gui, size);
+
+            BeginMenuBar(gui, rect);
         }
         
         public static void BeginMenuBar(this ImGui gui, ImRect rect)
