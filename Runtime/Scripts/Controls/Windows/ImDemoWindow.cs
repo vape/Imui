@@ -306,13 +306,13 @@ namespace Imui.Controls.Windows
         private static void DrawMenuBar(ImGui gui, ref bool windowOpen)
         {
             gui.BeginMenuBar();
-            if (gui.TryBeginMenuBarItem("Demo"))
+            if (gui.BeginMenuBarItem("Demo"))
             {
                 DrawFileMenu(gui, ref windowOpen);
                 gui.EndMenuBarItem();
             }
 
-            if (gui.TryBeginMenuBarItem("Windows"))
+            if (gui.BeginMenuBarItem("Windows"))
             {
                 DrawExamplesMenu(gui);
                 gui.EndMenuBarItem();
@@ -322,7 +322,7 @@ namespace Imui.Controls.Windows
 
         private static void DrawFileMenu(ImGui gui, ref bool windowOpen)
         {
-            if (gui.TryBeginSubMenu("Custom Menus"))
+            if (gui.BeginSubMenu("Custom Menus"))
             {
                 gui.BeginVertical(width: 300);
                 DrawSlidersDemo(gui);
@@ -330,7 +330,7 @@ namespace Imui.Controls.Windows
                 
                 gui.EndSubMenu();
             }
-            if (gui.TryBeginSubMenu("Recursive"))
+            if (gui.BeginSubMenu("Recursive"))
             {
                 DrawFileMenu(gui, ref windowOpen);
                 gui.EndSubMenu();

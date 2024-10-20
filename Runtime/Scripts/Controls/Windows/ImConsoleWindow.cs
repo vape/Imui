@@ -121,7 +121,7 @@ namespace Imui.Controls.Windows
         private void DrawMenu(ImGui gui, ref bool open)
         {
             gui.BeginMenuBar();
-            if (gui.TryBeginMenuBarItem("Console"))
+            if (gui.BeginMenuBarItem("Console"))
             {
                 if (gui.MenuItem("Close"))
                 {
@@ -131,7 +131,7 @@ namespace Imui.Controls.Windows
                 gui.EndMenuBarItem();
             }
             
-            if (gui.TryBeginMenuBarItem("View"))
+            if (gui.BeginMenuBarItem("View"))
             {
                 if (gui.MenuItem("Clear Messages"))
                 {
@@ -141,7 +141,7 @@ namespace Imui.Controls.Windows
                 gui.EndMenuBarItem();
             }
 
-            if (gui.TryBeginMenuBarItem("Test"))
+            if (gui.BeginMenuBarItem("Test"))
             {
                 if (gui.MenuItem("Send Info"))
                 {

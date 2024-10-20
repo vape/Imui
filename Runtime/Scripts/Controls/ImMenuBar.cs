@@ -51,7 +51,7 @@ namespace Imui.Controls
             gui.PopId();
         }
         
-        public static bool TryBeginMenuBarItem(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool BeginMenuBarItem(this ImGui gui, ReadOnlySpan<char> label)
         {
             ref var barState = ref gui.Storage.Get<ImMenuBarState>(gui.PeekId());
             
@@ -97,7 +97,7 @@ namespace Imui.Controls
             buttonRect.H = 0;
             gui.Layout.Push(ImAxis.Vertical, buttonRect);
 
-            gui.TryBeginMenu(label, ref open);
+            gui.BeginMenu(label, ref open);
 
             if (!open && barState.Selected == id)
             {

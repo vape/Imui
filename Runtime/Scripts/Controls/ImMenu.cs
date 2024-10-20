@@ -27,7 +27,7 @@ namespace Imui.Controls
 
     public static unsafe class ImMenu
     {
-        public static bool TryBeginMenu(this ImGui gui, ReadOnlySpan<char> name, ref bool open)
+        public static bool BeginMenu(this ImGui gui, ReadOnlySpan<char> name, ref bool open)
         {
             if (!open)
             {
@@ -119,7 +119,7 @@ namespace Imui.Controls
             gui.Layout.Pop();
         }
 
-        public static bool TryBeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
         {
             if (!TryGetActiveMenuState(gui, out var containerState))
             {
