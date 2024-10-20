@@ -32,52 +32,39 @@ namespace Imui.Controls
         public static void BeginScrollable(this ImGui gui)
         {
             var id = gui.GetNextControlId();
-            var state = gui.Storage.Get<ImScrollState>(id);
+            ref var state = ref gui.PushControlScope<ImScrollState>(id);
             
             ref readonly var frame = ref gui.Layout.GetFrame();
             var visibleRect = GetVisibleRect(gui, frame.Bounds, state);
             
             gui.Layout.Push(frame.Axis, visibleRect, ImLayoutFlag.None);
             gui.Layout.SetOffset(state.Offset);
-
-            ref var scrollRectStack = ref gui.GetScrollRectStack();
-            scrollRectStack.Push(id);
         }
         
         public static void EndScrollable(this ImGui gui, ImScrollFlag flags = ImScrollFlag.None)
         {
-            ref var scrollRectStack = ref gui.GetScrollRectStack();
-            var id = scrollRectStack.Pop();
+            ref var state = ref gui.PopControlScope<ImScrollState>(out var id);
             
             gui.Layout.Pop(out var contentFrame);
 
             var bounds = gui.Layout.GetBoundsRect();
             
-            Scroll(gui, id, bounds, contentFrame.Size, flags);
+            Scroll(gui, id, ref state, bounds, contentFrame.Size, flags);
         }
 
         public static Vector2 GetScrollOffset(this ImGui gui)
         {
-            ref var scrollRectStack = ref gui.GetScrollRectStack();
-            var id = scrollRectStack.Peek();
-            
-            return gui.Storage.Get<ImScrollState>(id).Offset;
+            return gui.PeekControlScope<ImScrollState>(out _).Offset;
         }
 
         public static void SetScrollOffset(this ImGui gui, Vector2 offset)
         {
-            ref var scrollRectStack = ref gui.GetScrollRectStack();
-            var id = scrollRectStack.Peek();
-            
-            ref var state = ref gui.Storage.Get<ImScrollState>(id);
-            
+            ref var state = ref gui.PeekControlScope<ImScrollState>(out _);
             state.Offset = offset;
         }
         
-        public static void Scroll(ImGui gui, uint id, ImRect view, Vector2 size, ImScrollFlag flags)
+        public static void Scroll(ImGui gui, uint id, ref ImScrollState state, ImRect view, Vector2 size, ImScrollFlag flags)
         {
-            ref var state = ref gui.Storage.Get<ImScrollState>(id);
-            
             Layout(gui, ref state, view, size, out var adjust, flags);
 
             var dx = 0f;

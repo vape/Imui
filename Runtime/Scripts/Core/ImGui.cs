@@ -26,7 +26,6 @@ namespace Imui.Core
 
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
-        private const int SCROLL_RECT_STACK_CAPACITY = 8;
         private const int READONLY_STACK_CAPACITY = 4;
         private const int CONTROL_SCOPE_STACK_CAPACITY = 64;
 
@@ -138,7 +137,6 @@ namespace Imui.Core
 
         private float uiScale = 1.0f;
         private ImDynamicArray<ControlId> idsStack;
-        private ImDynamicArray<uint> scrollRectsStack;
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
         private ImControlFlag activeControlFlag;
@@ -167,7 +165,6 @@ namespace Imui.Core
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             idsStack = new ImDynamicArray<ControlId>(CONTROL_IDS_CAPACITY);
-            scrollRectsStack = new ImDynamicArray<uint>(SCROLL_RECT_STACK_CAPACITY);
             readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
             controlScopesStack = new ImDynamicArray<ImControlScope>(CONTROL_SCOPE_STACK_CAPACITY);
 
@@ -242,11 +239,6 @@ namespace Imui.Core
         {
             readOnlyStack.Pop();
             Canvas.PopInvColorMul();
-        }
-        
-        internal ref ImDynamicArray<uint> GetScrollRectStack()
-        {
-            return ref scrollRectsStack;
         }
         
         public void PushId(uint id)
@@ -466,6 +458,11 @@ namespace Imui.Core
             return Storage.GetRef<TState>(id);
         }
 
+        public unsafe ref TState PeekControlScope<TState>(out uint id) where TState : unmanaged
+        {
+            return ref *PeekControlScopeRef<TState>(out id);
+        }
+        
         public unsafe TState* PeekControlScopeRef<TState>(out uint id) where TState : unmanaged
         {
             ref var reference = ref FindControlScopeOrFail<TState>(out _);
