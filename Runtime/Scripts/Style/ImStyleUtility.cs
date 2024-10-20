@@ -12,5 +12,21 @@ namespace Imui.Style
             color.a = alpha;
             return color;
         }
+        
+        public static void SetAlpha(this ref Color32 color, byte alpha)
+        {
+            color.a = alpha;
+        }
+        
+        public static Color32 WithAlphaF(this Color32 color, float alpha)
+        {
+            color.a = (byte)(255 * Mathf.Clamp01(alpha));
+            return color;
+        }
+        
+        public static void SetAlphaF(this ref Color32 color, float alpha)
+        {
+            color.a = (byte)(255 * Mathf.Clamp01(alpha));
+        }
     }
 }

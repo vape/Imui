@@ -11,7 +11,7 @@ namespace Imui.Core
         public ImAlignment Align;
         public bool Wrap;
 
-        public ImTextSettings(float size, float alignX = 0.0f, float alignY = 0.0f, bool wrap = true)
+        public ImTextSettings(float size, float alignX = 0.0f, float alignY = 0.0f, bool wrap = false)
         {
             Size = size;
             Align.X = alignX;
@@ -19,7 +19,7 @@ namespace Imui.Core
             Wrap = wrap;
         }
 
-        public ImTextSettings(float size, ImAlignment alignment, bool wrap = true)
+        public ImTextSettings(float size, ImAlignment alignment, bool wrap = false)
         {
             Size = size;
             Align = alignment;

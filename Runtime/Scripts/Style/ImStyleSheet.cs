@@ -21,5 +21,7 @@ namespace Imui.Style
         public ImStyleSeparator Separator;
         public ImStyleTree Tree;
         public ImStyleTooltip Tooltip;
+        public ImStyleMenu Menu;
+        public ImStyleMenuBar MenuBar;
     }
 }

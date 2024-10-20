@@ -28,11 +28,16 @@ namespace Imui.Controls
         
         public static void AddSpacingIfLayoutFrameNotEmpty(this ImGui gui)
         {
-            ref readonly var frame = ref gui.Layout.GetFrame();
-            if (frame.Size.x != 0 || frame.Size.y != 0)
+            if (!IsLayoutEmpty(gui))
             {
                 gui.AddSpacing();
             }
+        }
+
+        public static bool IsLayoutEmpty(this ImGui gui)
+        {
+            ref readonly var frame = ref gui.Layout.GetFrame();
+            return frame.Size.x == 0 && frame.Size.y == 0;
         }
         
         public static void AddSpacing(this ImGui gui)

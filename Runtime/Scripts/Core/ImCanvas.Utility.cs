@@ -63,6 +63,11 @@ namespace Imui.Core
             PushSettings(in prop);
         }
 
+        public void PushClipEverything()
+        {
+            PushClipRect(new ImRect(0, 0, 1, 1));
+        }
+
         public void PopRectMask() => PopSettings();
         // TODO (artem-s): probably should implement masking with different radii, if I'm making this API...
         public void PushRectMask(ImRect rect, ImRectRadius radius) => PushRectMask(rect, radius.RadiusForMask());

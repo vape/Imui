@@ -61,8 +61,10 @@ namespace Imui.Controls
             gui.Canvas.PushOrder(state.Order * WINDOW_ORDER_OFFSET);
             gui.Canvas.PushRectMask(state.Rect, style.Box.BorderRadius);
             gui.Canvas.PushClipRect(state.Rect);
-            Background(gui, in state, out var contentRect);
+            Background(gui, in state);
 
+            var contentRect = GetContentRect(gui, in state);
+            
             if (closeClicked)
             {
                 open = false;
@@ -90,22 +92,32 @@ namespace Imui.Controls
             
             gui.PopId();
         }
-        
-        public static void Background(ImGui gui, in ImWindowState state, out ImRect content)
-        {
-            ref readonly var style = ref gui.Style.Window;
-            
-            gui.Canvas.Rect(state.Rect, style.Box.BackColor, style.Box.BorderRadius);
 
-            if ((state.Flags & ImWindowFlag.NoTitleBar) != 0)
+        public static ImRect GetWindowMenuBarRect(this ImGui gui)
+        {
+            if (!gui.WindowManager.TryGetDrawingWindowId(out var windowId))
             {
-                content = state.Rect;
-                return;
+                return default;
+            }
+
+            ref var state = ref gui.WindowManager.GetWindowState(windowId);
+            return GetMenuBarRect(gui, in state);
+        }
+
+        public static ImRect GetWindowContentRect(this ImGui gui)
+        {
+            if (!gui.WindowManager.TryGetDrawingWindowId(out var windowId))
+            {
+                return default;
             }
             
-            var titleBarRect = GetTitleBarRect(gui, state.Rect, out _);
-            state.Rect.SplitTop(titleBarRect.H, out content);
-            content.AddPadding(style.ContentPadding);
+            ref var state = ref gui.WindowManager.GetWindowState(windowId);
+            return GetContentRect(gui, in state);
+        }
+        
+        public static void Background(ImGui gui, in ImWindowState state)
+        {
+            gui.Canvas.Rect(state.Rect, gui.Style.Window.Box.BackColor, gui.Style.Window.Box.BorderRadius);
         }
 
         public static void Foreground(ImGui gui, ref ImWindowState state, out bool closeClicked)
@@ -256,12 +268,12 @@ namespace Imui.Controls
             gui.RegisterControl(id, handleRect);
         }
 
-        public static ImRect GetResizeHandleRect(ImGui gui, ImRect rect, out float cornerRadius)
+        public static ImRect GetResizeHandleRect(ImGui gui, ImRect window, out float cornerRadius)
         {
             cornerRadius = Mathf.Max(gui.Style.Window.Box.BorderRadius.BottomRight, 0);
             
             var handleSize = gui.Style.Window.ResizeHandleSize;
-            var handleRect = rect;
+            var handleRect = window;
             handleRect.X += handleRect.W - handleSize;
             handleRect.W = handleSize;
             handleRect.H = handleSize;
@@ -269,16 +281,48 @@ namespace Imui.Controls
             return handleRect;
         }
         
-        public static ImRect GetTitleBarRect(ImGui gui, ImRect rect, out ImRectRadius cornerRadius)
+        public static ImRect GetTitleBarRect(ImGui gui, ImRect window, out ImRectRadius cornerRadius)
         {
             ref readonly var style = ref gui.Style.Window;
-            
-            var height = gui.Style.Layout.InnerSpacing + gui.GetRowHeight();
+
+            var height = GetTitleBarHeight(gui);
             var radiusTopLeft = style.Box.BorderRadius.TopLeft - style.Box.BorderThickness;
             var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderThickness;
             cornerRadius = new ImRectRadius(radiusTopLeft, radiusTopRight);
             
-            return rect.WithPadding(style.Box.BorderThickness).SplitTop(height);
+            return window.WithPadding(style.Box.BorderThickness).SplitTop(height);
         }
+
+        public static ImRect GetMenuBarRect(ImGui gui, in ImWindowState state)
+        {
+            var rect = state.Rect;
+            
+            if ((state.Flags & ImWindowFlag.NoTitleBar) == 0)
+            {
+                rect.SplitTop(GetTitleBarHeight(gui), out rect);
+            }
+            
+            return rect.SplitTop(GetMenuBarHeight(gui));
+        }
+
+        public static ImRect GetContentRect(ImGui gui, in ImWindowState state)
+        {
+            var content = state.Rect;
+            
+            if ((state.Flags & ImWindowFlag.NoTitleBar) == 0)
+            {
+                content.SplitTop(GetTitleBarHeight(gui), out content);
+            }
+            
+            if ((state.Flags & ImWindowFlag.HasMenuBar) != 0)
+            {
+                content.SplitTop(GetMenuBarHeight(gui), out content);
+            }
+            
+            return content.WithPadding(gui.Style.Window.ContentPadding);
+        }
+
+        public static float GetTitleBarHeight(ImGui gui) => gui.Style.Layout.InnerSpacing * 2.0f + gui.GetRowHeight();
+        public static float GetMenuBarHeight(ImGui gui) => ImMenuBar.GetMenuBarHeight(gui);
     }
 }

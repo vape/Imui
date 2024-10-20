@@ -94,16 +94,20 @@ namespace Imui.Controls.Windows
 
         public static void Draw(ImGui gui, ref bool open)
         {
-            if (!gui.BeginWindow("Demo", ref open, (700, 700)))
+            if (!gui.BeginWindow("Demo", ref open, (700, 700), ImWindowFlag.HasMenuBar))
             {
                 return;
             }
+
+            gui.BeginWindowMenuBar();
+            DrawMenuBarItems(gui, ref open);
+            gui.EndWindowMenuBar();
             
             gui.BeginFoldout(out var controlsOpen, "Controls");
             gui.BeginIndent();
             if (controlsOpen)
             {
-                DrawControlsPage(gui);
+                DrawControlsPage(gui, ref open);
             }
 
             gui.EndIndent();
@@ -162,7 +166,7 @@ namespace Imui.Controls.Windows
             }
         }
 
-        private static void DrawControlsPage(ImGui gui)
+        private static void DrawControlsPage(ImGui gui, ref bool open)
         {
             gui.Checkbox(ref isReadOnly, "Read Only");
 
@@ -193,13 +197,7 @@ namespace Imui.Controls.Windows
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, multiline: true);
             gui.Text("Sliders (with tooltips)");
-            DrawBouncingBall(gui);
-            gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
-            gui.TooltipAtControl("Size of the circles in pixels");
-            gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
-            gui.TooltipAtControl("Speed for circles moving");
-            gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
-            gui.TooltipAtControl("Number of circles drawn");
+            DrawSlidersDemo(gui);
             gui.Text("Selection list (you can select multiple values)");
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
@@ -290,9 +288,75 @@ namespace Imui.Controls.Windows
             CustomDropdown(gui);
             NestedFoldout(gui, 0, ref nestedFoldouts);
 
+            gui.Text("Floating menu");
+            gui.BeginMenuBar();
+            DrawMenuBarItems(gui, ref open);
+            gui.EndMenuBar();
+
             gui.EndReadOnly();
         }
 
+        private static void DrawSlidersDemo(ImGui gui)
+        {
+            DrawBouncingBall(gui);
+            gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
+            gui.TooltipAtControl("Size of the circles in pixels");
+            gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
+            gui.TooltipAtControl("Speed for circles moving");
+            gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
+            gui.TooltipAtControl("Number of circles drawn");
+        }
+
+        private static void DrawMenuBarItems(ImGui gui, ref bool windowOpen)
+        {
+            if (gui.BeginMenuBarItem("Demo"))
+            {
+                DrawFileMenu(gui, ref windowOpen);
+                gui.EndMenuBarItem();
+            }
+
+            if (gui.BeginMenuBarItem("Windows"))
+            {
+                DrawExamplesMenu(gui);
+                gui.EndMenuBarItem();
+            }
+        }
+
+        private static void DrawFileMenu(ImGui gui, ref bool windowOpen)
+        {
+            if (gui.BeginSubMenu("Custom Menus"))
+            {
+                gui.BeginVertical(width: 300);
+                DrawSlidersDemo(gui);
+                gui.EndVertical();
+                
+                gui.EndSubMenu();
+            }
+            if (gui.BeginSubMenu("Recursive"))
+            {
+                DrawFileMenu(gui, ref windowOpen);
+                gui.EndSubMenu();
+            }
+            gui.Separator();
+            if (gui.MenuItem("Close"))
+            {
+                windowOpen = false;
+            }
+        }
+
+        private static void DrawExamplesMenu(ImGui gui)
+        {
+            if (gui.MenuItem("Console"))
+            {
+                showLogWindow = true;
+            }
+
+            if (gui.MenuItem("Debug"))
+            {
+                showDebugWindow = true;
+            }
+        }
+        
         private static void DrawLayoutPage(ImGui gui)
         {
             gui.AddSpacing();
@@ -326,6 +390,7 @@ namespace Imui.Controls.Windows
             gui.EndGrid(in grid);
         }
 
+        // TODO (artem-s): this does not reflect actual changes in theme
         private static void DrawStylePage(ImGui gui)
         {
             gui.Text("Theme");
@@ -365,7 +430,9 @@ namespace Imui.Controls.Windows
                 return ((x % y) + y) % y;
             }
 
-            var bounds = gui.AddLayoutRectWithSpacing(gui.GetLayoutWidth(), gui.GetRowHeight());
+            var bounds = gui
+                         .AddLayoutRectWithSpacing(gui.GetLayoutWidth(), gui.GetRowHeight() * 1.25f)
+                         .WithPadding(left: bouncingBallSize / 2.0f, right: bouncingBallSize / 2.0f);
             var dt = Time.deltaTime * bouncingBallSpeed;
 
             bouncingBallTime += dt;
@@ -374,8 +441,9 @@ namespace Imui.Controls.Windows
             {
                 var t = mod((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)), 2.0f);
                 var x = t <= 1.0f ? t : 1 - (t - 1);
-                var p = bounds.GetPointAtNormalPosition(x, 0.5f);
-                var c = gui.Style.Text.Color.WithAlpha((byte)(255 * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2)));
+                var y = 0.5f + Mathf.Sin((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)) * Mathf.PI * 2) * 0.25f;
+                var p = bounds.GetPointAtNormalPosition(x, y);
+                var c = gui.Style.Text.Color.WithAlphaF(Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }

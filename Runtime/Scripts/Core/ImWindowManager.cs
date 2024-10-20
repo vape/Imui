@@ -11,7 +11,8 @@ namespace Imui.Core
         NoResize = 1 << 0,
         NoDrag = 1 << 1,
         NoTitleBar = 1 << 2,
-        NoCloseButton = 1 << 3
+        NoCloseButton = 1 << 3,
+        HasMenuBar = 1 << 4
     }
 
     public class ImWindowManager
@@ -35,7 +36,7 @@ namespace Imui.Core
                 return ref window;
             }
 
-            var rect = GetNewWindowRect(width, height);
+            var rect = GetRectForNewWindow(width, height);
 
             windows.Add(new ImWindowState
             {
@@ -65,28 +66,18 @@ namespace Imui.Core
             return drawingStack.Count > 0;
         }
 
-        public ImRect GetCurrentWindowRect()
+        public bool TryGetDrawingWindowId(out uint id)
         {
-            if (!IsDrawingWindow())
+            if (drawingStack.Count == 0)
             {
-                return default;
+                id = default;
+                return false;
             }
 
-            ref var state = ref GetWindowState(drawingStack.Peek());
-            return state.Rect;
+            id = drawingStack.Peek();
+            return true;
         }
-
-        public void SetCurrentWindowRect(ImRect rect)
-        {
-            if (!IsDrawingWindow())
-            {
-                return;
-            }
-
-            ref var state = ref GetWindowState(drawingStack.Peek());
-            state.Rect = rect;
-        }
-
+        
         public bool Raycast(float x, float y)
         {
             for (int i = 0; i < windows.Count; ++i)
@@ -98,11 +89,6 @@ namespace Imui.Core
             }
 
             return false;
-        }
-
-        public void SetScreenSize(Vector2 screenSize)
-        {
-            this.screenSize = screenSize;
         }
 
         public ref ImWindowState GetWindowState(uint id)
@@ -119,6 +105,11 @@ namespace Imui.Core
             }
 
             MoveToTop(index);
+        }
+        
+        internal void SetScreenSize(Vector2 size)
+        {
+            screenSize = size;
         }
 
         private void MoveToTop(int index)
@@ -146,7 +137,7 @@ namespace Imui.Core
             return -1;
         }
 
-        private ImRect GetNewWindowRect(float width, float height)
+        private ImRect GetRectForNewWindow(float width, float height)
         {
             var size = new Vector2(width, height);
             var position = new Vector2((screenSize.x - width) / 2f, (screenSize.y - height) / 2f);

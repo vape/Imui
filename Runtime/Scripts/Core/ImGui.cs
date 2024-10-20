@@ -100,6 +100,14 @@ namespace Imui.Core
                 return lastControl;
             }
         }
+
+        public ImRect LastControlRect
+        {
+            get
+            {
+                return lastControlRect;
+            }
+        }
         
         public readonly ImMeshBuffer MeshBuffer;
         public readonly ImMeshRenderer MeshRenderer;
@@ -129,6 +137,7 @@ namespace Imui.Core
         private ImControlFlag activeControlFlag;
         private ImControlSettings nextControlSettings;
         private uint lastControl;
+        private ImRect lastControlRect;
         
         private bool disposed;
         
@@ -218,19 +227,10 @@ namespace Imui.Core
         {
             return ref scrollRectsStack;
         }
-
-        public uint PushId()
+        
+        public void PushId(uint id)
         {
-            var id = GetNextControlId();
             idsStack.Push(new ControlId(id));
-            return id;
-        }
-
-        public uint PushId(uint id)
-        {
-            var newId = GetControlId(id);
-            idsStack.Push(new ControlId(newId));
-            return newId;
         }
         
         public uint PushId(ReadOnlySpan<char> name)
@@ -243,6 +243,23 @@ namespace Imui.Core
         public uint PopId()
         {
             return idsStack.Pop().Id;
+        }
+
+        public uint PeekId()
+        {
+            return idsStack.Peek().Id;
+        }
+
+        public bool TryPeekId(out uint id)
+        {
+            if (idsStack.TryPeek(out var controlId))
+            {
+                id = controlId.Id;
+                return true;
+            }
+
+            id = default;
+            return false;
         }
 
         public uint GetNextControlId()
@@ -342,6 +359,7 @@ namespace Imui.Core
         {
             nextControlSettings = default;
             lastControl = controlId;
+            lastControlRect = rect;
             
             ref readonly var meshProperties = ref Canvas.GetActiveSettings();
             

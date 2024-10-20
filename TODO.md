@@ -14,6 +14,7 @@
 - ~~Fix that 2px border in adjacent controls~~
 - Property drawers, like in Unity's IMGUI
 - ~~Closeable windows~~
+- ~~Menu Control~~
 - Pushing same InvColorMul as current should not result in additional draw call 
 - No control should not modify passed value unless user interacts with it
   - Slider

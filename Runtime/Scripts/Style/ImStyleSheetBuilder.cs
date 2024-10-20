@@ -67,7 +67,7 @@ namespace Imui.Style
             sheet.Window.TitleBar.CloseButton.Pressed.BorderColor = D(theme.AccentBackground, 0.15f);
             
             // Text Edit
-            sheet.TextEdit.Normal.SelectionColor = theme.AccentBackground.WithAlpha((byte)(255 * 0.25f));;
+            sheet.TextEdit.Normal.SelectionColor = theme.AccentBackground.WithAlphaF(0.25f);
             sheet.TextEdit.Normal.Box.BackColor = theme.FieldColor;
             sheet.TextEdit.Normal.Box.FrontColor = theme.Foreground;
             sheet.TextEdit.Normal.Box.BorderColor = theme.BorderColor;
@@ -217,7 +217,7 @@ namespace Imui.Style
             sheet.Dropdown.Button.Alignment = new ImAlignment(0.0f, 0.5f);
             
             // Separator
-            sheet.Separator.Thickness = Mathf.Max(1, theme.TextSize * 0.15f);
+            sheet.Separator.Thickness = Mathf.Max(1, theme.BorderThickness);
             sheet.Separator.Color = theme.BorderColor;
             
             // Tooltip
@@ -228,6 +228,35 @@ namespace Imui.Style
             sheet.Tooltip.Box.BorderRadius = theme.BorderRadius;
             sheet.Tooltip.Box.BorderThickness = theme.BorderThickness;
             sheet.Tooltip.Box.FrontColor = theme.Foreground;
+            
+            // Menu
+            sheet.Menu.Box = sheet.List.Box;
+            sheet.Menu.Padding = sheet.List.Padding;
+            sheet.Menu.ItemNormal = sheet.List.ItemNormal;
+            sheet.Menu.ItemNormal.Normal.BackColor = Color.clear;
+            sheet.Menu.ItemActive = sheet.List.ItemSelected;
+            sheet.Menu.ItemActive.Normal.BackColor.SetAlphaF(0.8f);
+            sheet.Menu.ArrowScale = 0.6f;
+            sheet.Menu.CheckmarkScale = 0.6f;
+            sheet.Menu.MinWidth = 50.0f;
+            sheet.Menu.MinHeight = 10.0f;
+            
+            // Menu Bar
+            sheet.MenuBar.ItemExtraWidth = theme.InnerSpacing * 6.0f;
+            sheet.MenuBar.Box = sheet.Menu.Box;
+            sheet.MenuBar.Box.BackColor = Color32.Lerp(sheet.Window.TitleBar.BackColor, sheet.Window.Box.BackColor, 0.5f);
+            sheet.MenuBar.Box.BorderRadius = 0.0f;
+            sheet.MenuBar.Box.BorderThickness = sheet.Window.Box.BorderThickness;
+            sheet.MenuBar.Box.BorderColor = sheet.Window.Box.BorderColor;
+            sheet.MenuBar.ItemNormal = sheet.Menu.ItemNormal;
+            sheet.MenuBar.ItemNormal.Alignment = new ImAlignment(0.5f, 0.5f);
+            sheet.MenuBar.ItemNormal.BorderRadius = 0.0f;
+            sheet.MenuBar.ItemNormal.BorderThickness = 0.0f;
+            sheet.MenuBar.ItemActive = sheet.Menu.ItemActive;
+            sheet.MenuBar.ItemActive.BorderRadius = 0.0f;
+            sheet.MenuBar.ItemActive.BorderThickness = 0.0f;
+            sheet.MenuBar.ItemActive.Alignment = new ImAlignment(0.5f, 0.5f);
+            sheet.MenuBar.ItemActive.Normal.BackColor.SetAlphaF(1.0f);
             
             return sheet;
         }

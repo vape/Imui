@@ -70,10 +70,22 @@ namespace Imui.Utility
         {
             if (Count == 0)
             {
-                return default;
+                return @default;
             }
 
             return Peek();
+        }
+        
+        public bool TryPeek(out T value)
+        {
+            if (Count == 0)
+            {
+                value = default;
+                return false;
+            }
+
+            value = Peek();
+            return true;
         }
         
         public ref T Peek()
