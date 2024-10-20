@@ -5,6 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Imui.Core
 {
+    // TODO (artem-s): memory alignment
     public class ImArena
     {
         public int Capacity => capacity;

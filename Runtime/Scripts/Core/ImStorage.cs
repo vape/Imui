@@ -74,7 +74,7 @@ namespace Imui.Core
             while ((int)ptr < (int)tail)
             {
                 var metadata = (Metadata*)ptr;
-                var blockSize = sizeof(Metadata) + metadata->Size;
+                var blockSize = sizeof(Metadata) + Align(metadata->Size);
                 
                 if ((metadata->Flag & Flag.Used) != 0)
                 {
@@ -101,7 +101,7 @@ namespace Imui.Core
             Assert.IsTrue(sizeof(T) <= byte.MaxValue);
             
             var size = (byte)sizeof(T);
-            if (((int)tail - (int)data + size + sizeof(Metadata)) >= capacity)
+            if (((int)tail - (int)data + Align(size) + sizeof(Metadata)) >= capacity)
             {
                 Grow();
             }
@@ -116,7 +116,7 @@ namespace Imui.Core
             var ptr = (void*)tail;
             
             SetMetaAndValue(ptr, ref metadata, ref value);
-            tail += size + sizeof(Metadata);
+            tail += sizeof(Metadata) + Align(size);
             
             return GetValueRef<T>(ptr);
         }
@@ -132,7 +132,7 @@ namespace Imui.Core
 
                 if (metadata->Id != id || metadata->Size != size)
                 {
-                    ptr += sizeof(Metadata) + metadata->Size;
+                    ptr += sizeof(Metadata) + Align(metadata->Size);
                     continue;
                 }
 
@@ -175,6 +175,11 @@ namespace Imui.Core
         {
             *(Metadata*)ptr = metadata;
             *(T*)((byte*)ptr + sizeof(Metadata)) = value;
+        }
+        
+        private static byte Align(byte size)
+        {
+            return (byte)(sizeof(IntPtr) * ((size + sizeof(IntPtr) - 1) / sizeof(IntPtr)));
         }
         
         public void Dispose()

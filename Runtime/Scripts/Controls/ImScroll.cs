@@ -21,7 +21,6 @@ namespace Imui.Controls
         HorBarVisible = 1 << 1
     }
     
-    [Serializable]
     public struct ImScrollState
     {
         public Vector2 Offset;
