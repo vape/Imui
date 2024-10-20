@@ -294,7 +294,6 @@ namespace Imui.Controls
             return contentRect;
         }
 
-        // TODO (artem-s): this breaks swipe-scrolling
         public static void SetCurrentWindowContentRect(this ImGui gui, ImRect rect)
         {
             if (!gui.WindowManager.IsDrawingWindow())
@@ -302,7 +301,7 @@ namespace Imui.Controls
                 return;
             }
             
-            gui.EndScrollable();
+            gui.EndScrollable(flags: ImScrollFlag.SkipProcessing);
             gui.Layout.Pop();
             
             gui.Layout.Push(ImAxis.Vertical, rect);

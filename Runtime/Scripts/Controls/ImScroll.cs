@@ -10,7 +10,8 @@ namespace Imui.Controls
     {
         None            = 0,
         NoVerticalBar   = 1 << 0,
-        NoHorizontalBar = 1 << 1
+        NoHorizontalBar = 1 << 1,
+        SkipProcessing  = 1 << 2
     }
     
     [Flags]
@@ -52,6 +53,11 @@ namespace Imui.Controls
             gui.Layout.Pop(out var contentFrame);
 
             var bounds = gui.Layout.GetBoundsRect();
+
+            if ((flags & ImScrollFlag.SkipProcessing) != 0)
+            {
+                return;
+            }
             
             Scroll(gui, id, bounds, contentFrame.Size, flags);
         }
