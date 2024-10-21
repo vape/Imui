@@ -282,6 +282,22 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
 
+        public void Line(Vector2 p0, Vector2 p1, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        {
+            if (thickness <= 0)
+            {
+                return;
+            }
+            
+            bias = Mathf.Clamp01(bias);
+            
+            meshDrawer.Color = color;
+            meshDrawer.ScaleOffset = TexScaleOffset;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Depth = DrawingDepth;
+            meshDrawer.AddLine(stackalloc Vector2[2] { p0, p1 }, closed, thickness, bias, 1.0f - bias);
+        }
+        
         public void Line(ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)

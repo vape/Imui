@@ -127,6 +127,9 @@ namespace Imui.Style
     {
         public float Thickness;
         public Color32 Color;
+        public Color32 TextColor;
+        public ImAlignment TextAlignment;
+        public ImPadding TextMargin;
     }
     
     [Serializable]

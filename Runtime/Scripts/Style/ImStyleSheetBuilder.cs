@@ -219,6 +219,9 @@ namespace Imui.Style
             // Separator
             sheet.Separator.Thickness = Mathf.Max(1, theme.BorderThickness);
             sheet.Separator.Color = theme.BorderColor;
+            sheet.Separator.TextColor = Color.Lerp(theme.Foreground, theme.BorderColor, 0.5f);
+            sheet.Separator.TextAlignment = new ImAlignment(0.1f, 0.5f);
+            sheet.Separator.TextMargin = new ImPadding(theme.Spacing, theme.Spacing, 0, 0);
             
             // Tooltip
             sheet.Tooltip.Offset = new Vector2(10, 10);

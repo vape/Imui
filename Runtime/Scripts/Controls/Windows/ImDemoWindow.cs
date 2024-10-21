@@ -190,12 +190,12 @@ namespace Imui.Controls.Windows
             gui.Radio(ref dropdownPreview);
             gui.EndHorizontal();
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Dropdown without value selected", preview: dropdownPreview);
-            gui.Text("Text editors");
+            gui.Separator("Text editors");
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, multiline: true);
-            gui.Text("Sliders (with tooltips)");
+            gui.Separator("Sliders (with tooltips)");
             DrawSlidersDemo(gui);
-            gui.Text("Selection list (you can select multiple values)");
+            gui.Separator("Selection list (you can select multiple values)");
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
             {
@@ -215,7 +215,7 @@ namespace Imui.Controls.Windows
 
             gui.EndList();
 
-            gui.Text("Numeric editors");
+            gui.Separator("Numeric editors");
             gui.Checkbox(ref showPlusMinusButtons, "Show +/-");
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
@@ -235,16 +235,16 @@ namespace Imui.Controls.Windows
             gui.EndHorizontal();
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            gui.Text("Radio buttons (enum flags)");
+            gui.Separator("Radio buttons (enum flags)");
             gui.Radio(ref demoFlags);
 
-            gui.Text("Trees");
+            gui.Separator("Trees");
             DrawTreeDemo(gui);
 
-            gui.Text("Nested Foldout");
+            gui.Separator("Nested Foldout");
             NestedFoldout(gui, 0, ref nestedFoldouts);
 
-            gui.Text("Floating menu");
+            gui.Separator("Floating menu");
             gui.BeginMenuBar();
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
