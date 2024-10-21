@@ -97,6 +97,7 @@ namespace Imui.Controls
             step = Mathf.Abs(step);
 
             var normValue = Mathf.InverseLerp(min, max, value);
+            var changed = false;
 
             var backgroundRect = rect;
             backgroundRect.H *= gui.Style.Slider.BackScale;
@@ -150,12 +151,14 @@ namespace Imui.Controls
             {
                 case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
+                    changed = true;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     gui.Input.UseMouseEvent();
                     break;
 
                 case ImMouseEventType.Drag when active:
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
+                    changed = true;
                     gui.Input.UseMouseEvent();
                     break;
 
@@ -164,20 +167,20 @@ namespace Imui.Controls
                     break;
             }
 
-            var newValue = Mathf.Lerp(min, max, normValue);
+            if (!changed)
+            {
+                return false;
+            }
+
+            value = Mathf.Lerp(min, max, normValue);
+            
             if (step > 0)
             {
                 var precision = 1.0f / step;
-                newValue = Mathf.Round(newValue * precision) / precision;
+                value = Mathf.Round(value * precision) / precision;
             }
 
-            if (Mathf.Abs(newValue - value) > EPSILON)
-            {
-                value = newValue;
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
         public static ReadOnlySpan<char> GetFormatForStep(ImGui gui, float step)

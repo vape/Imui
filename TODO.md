@@ -10,16 +10,16 @@
 - ~~Closeable windows~~
 - ~~Menu Control~~
 - Pushing same InvColorMul as current should not result in additional draw call 
-- No control should not modify passed value unless user interacts with it
-  - Slider
-  - ?
+- ~~No control should not modify passed value unless user interacts with it~~
+  - ~~Slider~~
 - ~~Separator with label~~
 - ~~Control scopes~~
-- Fix memory alignment
+- ~~Fix memory alignment~~
   - ~~In ImStorage~~
   - ~~In ImArena~~
 
 ### 0.5
+- Implement style sheet generation using palettes which derived from theme
 - Implement table layout
 - Implement tabs
 - Rich text
