@@ -197,7 +197,7 @@ namespace Imui.Controls.Windows
 
             gui.EndHorizontal();
 
-            var wholeMessageSpan = gui.Formatter.Join(selectedMessage.Text, "\n", selectedMessage.Stacktrace);
+            var wholeMessageSpan = gui.Formatter.Concat(selectedMessage.Text, "\n", selectedMessage.Stacktrace);
             gui.TextEditReadonly(wholeMessageSpan, gui.AddLayoutRect(gui.GetLayoutSize()), multiline: true);
             gui.Layout.Pop();
         }
