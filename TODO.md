@@ -1,28 +1,37 @@
 ### 0.4
 - ~~Handle double clicks in ImTextEdit to select words~~
-- Implement table layout
-- Implement tabs
 - ~~__Word__ wrapping~~
 - ~~Optimize layout and rendering~~
-- Rich text
 - Fix touch keyboard in webgl
 - ~~Simplify styling and fix the current themes as they look kinda ugly~~
-- Implement slider inside numeric editor
-- Show min/max value inside slider
 - ~~Make slider looking similar to sliders in other GUI libraries, dearimgui look seems off~~
 - ~~Implement tooltips on mouse hover~~
 - ~~Fix that 2px border in adjacent controls~~
-- Property drawers, like in Unity's IMGUI
 - ~~Closeable windows~~
 - ~~Menu Control~~
 - Pushing same InvColorMul as current should not result in additional draw call 
 - No control should not modify passed value unless user interacts with it
   - Slider
   - ?
+- ~~Separator with label~~
+- ~~Control scopes~~
+- Fix memory alignment
+  - ~~In ImStorage~~
+  - In ImArena
 
-### Later
+### 0.5
+- Implement table layout
+- Implement tabs
+- Rich text
 - Plotting control
 - In code documentation
+- Handle windows moving/resizing better
+  - Do not allow to resize to negative values
+  - Text truncation
+  - Do not allow to move title bar outside screen rect
+  - Controls should have their own reasonable minimal size
+- Color picker
+- Theme editor
 
 ### Maybe
 - Reorder demo controls from basic to more advanced
@@ -30,3 +39,6 @@
 - More demo windows
   - Inspector
 - Text edit preview hint
+- Property drawers, like in Unity's IMGUI
+- Show min/max value inside slider
+- Implement slider inside numeric editor
