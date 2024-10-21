@@ -17,7 +17,7 @@
 - ~~Control scopes~~
 - Fix memory alignment
   - ~~In ImStorage~~
-  - In ImArena
+  - ~~In ImArena~~
 
 ### 0.5
 - Implement table layout

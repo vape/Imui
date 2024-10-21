@@ -5,8 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Imui.Core
 {
-    // TODO (artem-s): memory alignment
-    public class ImArena
+    public unsafe class ImArena
     {
         public int Capacity => capacity;
         public int Size => size;
@@ -29,85 +28,69 @@ namespace Imui.Core
             prevBuffers = new ImDynamicArray<IntPtr>(4);
         }
         
-        public unsafe ref T Alloc<T>() where T : unmanaged
+        public ref T Alloc<T>() where T : unmanaged
         {
-            var typeSize = sizeof(T);
-            if (size + typeSize > capacity)
-            {
-                GrowToFit(size + typeSize);
-            }
-            
-            return ref *(T*)Reserve(typeSize, false);
+            return ref *(T*)Reserve(sizeof(T), false);
         }
         
-        public unsafe Span<T> AllocArray<T>(int length) where T : unmanaged
+        public Span<T> AllocArray<T>(int length) where T : unmanaged
         {
-            var arraySize = sizeof(T) * length;
-            if (size + arraySize > capacity)
-            {
-                GrowToFit(size + arraySize);
-            }
-
-            return new Span<T>(Reserve(arraySize, true), length);
+            return new Span<T>(Reserve(sizeof(T) * length, false), length);
         }
 
-        public unsafe void ResizeArray<T>(ref Span<T> array, int length) where T : unmanaged
+        public void ReallocArray<T>(ref Span<T> array, int length) where T : unmanaged
         {
-            var currArraySize = array.Length * sizeof(T);
-            var nextArraySize = length * sizeof(T);
-            var arraySizeDelta = nextArraySize - currArraySize;
-            
-            fixed (void* currArrayPtr = array)
+            fixed (void* ptr = array)
             {
-                var currArrayTail = (byte*)currArrayPtr + currArraySize;
-                var bufferTail = (byte*)buffer + size;
+                var arraySize = Align(sizeof(T) * array.Length);
+                var bufferTail = (void*)(buffer + size);
                 
-                if (currArrayTail == bufferTail && capacity > (size + arraySizeDelta))
+                if ((byte*)ptr + arraySize == bufferTail)
                 {
-                    if (arraySizeDelta < 0)
-                    {
-                        array = new Span<T>(currArrayPtr, nextArraySize);
-                        size += arraySizeDelta;
-                    }
-                    else
-                    {
-                        Reserve(arraySizeDelta, true);
-                        array = new Span<T>(currArrayPtr, nextArraySize);
-                    }
-                    
-                    return;
+                    size -= arraySize;
                 }
             }
 
-            var nextArray = AllocArray<T>(length);
-
-            fixed (void* nextArrayPtr = nextArray)
-            fixed (void* currArrayPtr = array)
-            {
-                UnsafeUtility.MemCpy(nextArrayPtr, currArrayPtr, array.Length);
-            }
+            var newArray = AllocArray<T>(length);
             
-            array = nextArray;
+            fixed (void* oldPtr = array)
+            fixed (void* newPtr = newArray)
+            {
+                if (oldPtr != newPtr)
+                {
+                    UnsafeUtility.MemCpy(newPtr, oldPtr, sizeof(T) * array.Length);
+                }
+            }
+
+            array = newArray;
         }
         
         public void Clear()
         {
             while (prevBuffers.TryPop(out var ptr))
             {
+                // TODO (artem-s): linked list with all of the chunks maybe
                 Marshal.FreeHGlobal(ptr);
             }
 
             size = 0;
         }
 
-        private unsafe void* Reserve(int byteSize, bool zero)
+        private void* Reserve(int bytes, bool zero)
         {
+            bytes = Align(bytes);
+            
+            if (size + bytes > capacity)
+            {
+                GrowToFit(size + bytes);
+            }
+            
             var ptr = (void*)(buffer + size);
             if (zero)
             {
-                UnsafeUtility.MemSet(ptr, 0, byteSize);
+                UnsafeUtility.MemSet(ptr, 0, bytes);
             }
-            size += byteSize;
+            size += bytes;
             
             return ptr;
         }
@@ -121,9 +104,14 @@ namespace Imui.Core
                 newCapacity *= 2;
             }
             
-            prevBuffers.Push(buffer); // (artem-s): keep exiting buffer until end of the frame
+            prevBuffers.Push(buffer);
             buffer = Marshal.AllocHGlobal(newCapacity);
             capacity = requiredCapacity;
+        }
+        
+        private static int Align(int size)
+        {
+            return (sizeof(IntPtr) * ((size + sizeof(IntPtr) - 1) / sizeof(IntPtr)));
         }
     }
 }
