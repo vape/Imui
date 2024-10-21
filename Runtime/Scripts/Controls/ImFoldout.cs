@@ -10,15 +10,23 @@ namespace Imui.Controls
         private const float VERTICAL_ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
         private const float HORIZONTAL_ARROW_ASPECT_RATIO = 1 / VERTICAL_ARROW_ASPECT_RATIO;
         
-        public static void BeginFoldout(this ImGui gui, out bool open, ReadOnlySpan<char> label, ImSize size = default)
+        public static bool BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
-            var id =  gui.PushId(label);
+            var id = gui.PushId(label);
             var rect = ImControls.AddRowRect(gui, size);
-            ref var state = ref gui.Storage.Get<bool>(id);
-            state = DrawFoldout(gui, id, state, label, rect);
-            open = state;
+            
+            ref var open = ref gui.Storage.Get<bool>(id);
+            DrawFoldout(gui, id, ref open, label, rect);
+            
+            if (!open)
+            {
+                gui.PopId();
+                return false;
+            }
+
+            return true;
         }
         
         public static void EndFoldout(this ImGui gui)
@@ -26,7 +34,7 @@ namespace Imui.Controls
             gui.PopId();
         }
         
-        public static bool DrawFoldout(ImGui gui, uint id, bool open, ReadOnlySpan<char> label, ImRect rect)
+        public static void DrawFoldout(ImGui gui, uint id, ref bool open, ReadOnlySpan<char> label, ImRect rect)
         {
             using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, gui.Style.Foldout.Button);
 
@@ -52,8 +60,6 @@ namespace Imui.Controls
             }
             
             gui.Text(label, in textSettings, labelRect);
-
-            return open;
         }
         
         public static void DrawArrowRight(ImCanvas canvas, ImRect rect, Color32 color, float scale = 1.0f)

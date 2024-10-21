@@ -41,10 +41,10 @@ namespace Imui.Core
 
         public ref T Get<T>(uint id, T defaultValue = default) where T : unmanaged
         {
-            return ref *GetRef(id, defaultValue);
+            return ref *GetPtr(id, defaultValue);
         }
         
-        public T* GetRef<T>(uint id, T defaultValue = default) where T : unmanaged
+        public T* GetPtr<T>(uint id, T defaultValue = default) where T : unmanaged
         {
             if (!TryGet(out T* value, out Metadata* metadata, id))
             {
@@ -55,7 +55,7 @@ namespace Imui.Core
             return value;
         }
 
-        public bool TryGetRef<T>(uint id, out T* value) where T : unmanaged
+        public bool TryGetPtr<T>(uint id, out T* value) where T : unmanaged
         {
             var result = TryGet(out value, out var metadata, id);
             if (result)
@@ -118,7 +118,7 @@ namespace Imui.Core
             SetMetaAndValue(ptr, ref metadata, ref value);
             tail += sizeof(Metadata) + Align(size);
             
-            return GetValueRef<T>(ptr);
+            return GetValuePtr<T>(ptr);
         }
 
         private bool TryGet<T>(out T* value, out Metadata* metadata, uint id) where T: unmanaged
@@ -136,7 +136,7 @@ namespace Imui.Core
                     continue;
                 }
 
-                value = GetValueRef<T>((void*)ptr);
+                value = GetValuePtr<T>((void*)ptr);
                 return true;
             }
 
@@ -165,7 +165,7 @@ namespace Imui.Core
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private T* GetValueRef<T>(void* ptr) where T : unmanaged
+        private T* GetValuePtr<T>(void* ptr) where T : unmanaged
         {
             return (T*)((byte*)ptr + sizeof(Metadata));
         }

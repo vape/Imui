@@ -185,9 +185,9 @@ namespace Imui.Controls
                 gui.PushId(id);
                 
                 var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);
-                if (!gui.Storage.TryGetRef(tempBufferId, out tempBuffer))
+                if (!gui.Storage.TryGetPtr(tempBufferId, out tempBuffer))
                 {
-                    tempBuffer = gui.Storage.GetRef<ImTextTempFilterBuffer>(tempBufferId);
+                    tempBuffer = gui.Storage.GetPtr<ImTextTempFilterBuffer>(tempBufferId);
                     tempBuffer->Populate(buffer);
                 }
                 // else relying on collecting garbage on every frame to clean up filter state

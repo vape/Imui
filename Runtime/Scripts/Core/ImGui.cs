@@ -7,21 +7,27 @@ using UnityEngine;
 
 namespace Imui.Core
 {
+    public struct ImControlScope
+    {
+        public uint Id;
+        public int Type;
+    }
+
     public class ImGui : IDisposable
     {
         private const int CONTROL_IDS_CAPACITY = 32;
-        
+
         private const int INIT_MESHES_COUNT = 1024 / 2;
         private const int INIT_VERTICES_COUNT = 1024 * 16;
         private const int INIT_INDICES_COUNT = INIT_VERTICES_COUNT * 3;
-        
+
         private const float UI_SCALE_MIN = 0.05f;
         private const float UI_SCALE_MAX = 16.0f;
 
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
-        private const int SCROLL_RECT_STACK_CAPACITY = 8;
         private const int READONLY_STACK_CAPACITY = 4;
+        private const int CONTROL_SCOPE_STACK_CAPACITY = 64;
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
         private const int DEFAULT_ARENA_CAPACITY = 1024 * 64;
@@ -123,7 +129,7 @@ namespace Imui.Core
         public readonly ImFormatter Formatter;
 
         public ImStyleSheet Style;
-        
+
         // ReSharper disable InconsistentNaming
         internal FrameData nextFrameData;
         internal FrameData frameData;
@@ -131,16 +137,16 @@ namespace Imui.Core
 
         private float uiScale = 1.0f;
         private ImDynamicArray<ControlId> idsStack;
-        private ImDynamicArray<uint> scrollRectsStack;
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
         private ImControlFlag activeControlFlag;
         private ImControlSettings nextControlSettings;
         private uint lastControl;
         private ImRect lastControlRect;
-        
+        private ImDynamicArray<ImControlScope> controlScopesStack;
+
         private bool disposed;
-        
+
         public ImGui(IImRenderingBackend renderer, IImInputBackend input)
         {
             MeshBuffer = new ImMeshBuffer(INIT_MESHES_COUNT, INIT_VERTICES_COUNT, INIT_INDICES_COUNT);
@@ -159,9 +165,9 @@ namespace Imui.Core
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             idsStack = new ImDynamicArray<ControlId>(CONTROL_IDS_CAPACITY);
-            scrollRectsStack = new ImDynamicArray<uint>(SCROLL_RECT_STACK_CAPACITY);
             readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
-            
+            controlScopesStack = new ImDynamicArray<ImControlScope>(CONTROL_SCOPE_STACK_CAPACITY);
+
             Input.SetRaycaster(Raycast);
             SetTheme(ImThemeBuiltin.Light());
         }
@@ -194,7 +200,19 @@ namespace Imui.Core
 
         public void EndFrame()
         {
+            if (controlScopesStack.Count > 0)
+            {
+                Debug.LogError($"There are still {controlScopesStack.Count} control scopes on the stack. Check Begin(X)/End(X) calls.");
+                controlScopesStack.Clear(false);
+            }
+            
             idsStack.Pop();
+
+            if (idsStack.Count > 0)
+            {
+                Debug.LogError($"There are still {idsStack.Count} ids on the stack. Check PushId/PopId calls.");
+                idsStack.Clear(false);
+            }
             
             Layout.Pop();
             
@@ -221,11 +239,6 @@ namespace Imui.Core
         {
             readOnlyStack.Pop();
             Canvas.PopInvColorMul();
-        }
-        
-        internal ref ImDynamicArray<uint> GetScrollRectStack()
-        {
-            return ref scrollRectsStack;
         }
         
         public void PushId(uint id)
@@ -415,7 +428,99 @@ namespace Imui.Core
                 });
             }
         }
+
+        public unsafe ref TState PushControlScope<TState>(uint id, TState @default = default) where TState : unmanaged => ref *PushControlScopePtr(id, @default);
         
+        public unsafe TState* PushControlScopePtr<TState>(uint id, TState @default = default) where TState : unmanaged
+        {
+            var stateReference = new ImControlScope() { Id = id, Type = typeof(TState).GetHashCode() };
+
+            controlScopesStack.Push(in stateReference);
+
+            return Storage.GetPtr(id, @default);
+        }
+
+        public unsafe ref TState PopControlScope<TState>() where TState : unmanaged => ref *PopControlScopePtr<TState>(out _);
+        public unsafe ref TState PopControlScope<TState>(out uint id) where TState : unmanaged => ref *PopControlScopePtr<TState>(out id);
+
+        public unsafe TState* PopControlScopePtr<TState>() where TState : unmanaged => PopControlScopePtr<TState>(out _);
+        public unsafe TState* PopControlScopePtr<TState>(out uint id) where TState : unmanaged
+        {
+            ref var reference = ref FindControlScopeOrFail<TState>(out var index);
+
+            id = reference.Id;
+            controlScopesStack.RemoveAtFast(index);
+
+            return Storage.GetPtr<TState>(id);
+        }
+
+        public unsafe ref TState PeekControlScope<TState>() where TState : unmanaged => ref *PeekControlScopePtr<TState>(out _);
+        public unsafe ref TState PeekControlScope<TState>(out uint id) where TState : unmanaged => ref *PeekControlScopePtr<TState>(out id);
+        
+        public unsafe TState* PeekControlScopePtr<TState>() where TState : unmanaged => PeekControlScopePtr<TState>(out _);
+        public unsafe TState* PeekControlScopePtr<TState>(out uint id) where TState : unmanaged
+        {
+            ref var reference = ref FindControlScopeOrFail<TState>(out _);
+
+            id = reference.Id;
+            return Storage.GetPtr<TState>(id);
+        }
+
+        public unsafe bool TryPeekControlScopePtr<TState>(out TState* state) where TState : unmanaged
+        {
+            if (!TryFindControlScope<TState>(out var index))
+            {
+                state = default;
+                return false;
+            }
+
+            state = Storage.GetPtr<TState>(controlScopesStack.Array[index].Id);
+            return true;
+        }
+
+        private ref ImControlScope FindControlScopeOrFail<T>(out int index)
+        {
+            if (TryFindControlScope<T>(out index))
+            {
+                return ref controlScopesStack.Array[index];
+            }
+
+            if (controlScopesStack.Count == 0)
+            {
+                throw new InvalidOperationException($"State stack is empty when trying to get state for type {typeof(T)}. Check for missing Begin call.");
+            }
+            else
+            {
+                throw new ArgumentException($"Failed to find state of type {typeof(T)}. Check for missing Begin call.");
+            }
+        }
+
+        private bool TryFindControlScope<T>(out int index)
+        {
+            index = default;
+
+            if (controlScopesStack.Count == 0)
+            {
+                return false;
+            }
+
+            var type = typeof(T).GetHashCode();
+            index = controlScopesStack.Count;
+
+            while (--index >= 0)
+            {
+                ref var reference = ref controlScopesStack.Array[index];
+                if (reference.Type != type)
+                {
+                    continue;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         public void Render()
         {
             nextFrameData.VerticesCount = MeshDrawer.buffer.VerticesCount;
