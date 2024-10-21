@@ -218,8 +218,8 @@ namespace Imui.Style
             
             // Separator
             sheet.Separator.Thickness = Mathf.Max(1, theme.BorderThickness);
-            sheet.Separator.Color = theme.BorderColor;
-            sheet.Separator.TextColor = Color.Lerp(theme.Foreground, theme.BorderColor, 0.5f);
+            sheet.Separator.Color = Color.Lerp(theme.Background, theme.Foreground, 0.4f);
+            sheet.Separator.TextColor = Color.Lerp(theme.Background, theme.Foreground, 0.6f);
             sheet.Separator.TextAlignment = new ImAlignment(0.1f, 0.5f);
             sheet.Separator.TextMargin = new ImPadding(theme.Spacing, theme.Spacing, 0, 0);
             
