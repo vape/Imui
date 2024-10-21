@@ -83,12 +83,15 @@ namespace Imui.Core
             meshDrawer.Clear();
         }
 
-        public void PushSettings(in ImCanvasSettings settings)
+        public void PushSettings(in ImCanvasSettings settings, bool changed = true)
         {
             settingsStack.Push(in settings);
-            meshDrawer.NextMesh();
-            
-            ApplySettings();
+
+            if (changed)
+            {
+                meshDrawer.NextMesh();
+                ApplySettings();
+            }
         }
         
         public void PopSettings()

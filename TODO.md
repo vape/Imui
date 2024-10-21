@@ -9,7 +9,7 @@
 - ~~Fix that 2px border in adjacent controls~~
 - ~~Closeable windows~~
 - ~~Menu Control~~
-- Pushing same InvColorMul as current should not result in additional draw call 
+- ~~Pushing same InvColorMul as current should not result in additional draw call~~ 
 - ~~No control should not modify passed value unless user interacts with it~~
   - ~~Slider~~
 - ~~Separator with label~~

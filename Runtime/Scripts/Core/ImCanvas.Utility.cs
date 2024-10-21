@@ -39,8 +39,9 @@ namespace Imui.Core
         public void PushInvColorMul(float value)
         {
             var prop = GetActiveSettingsCopy();
+            var changed = prop.InvColorMul != value;
             prop.InvColorMul = Mathf.Clamp01(value);
-            PushSettings(in prop);
+            PushSettings(in prop, changed);
         }
 
         public void PopClipRect() => PopSettings();
