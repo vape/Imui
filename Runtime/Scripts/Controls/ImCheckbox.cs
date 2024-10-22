@@ -12,7 +12,8 @@ namespace Imui.Controls
             switch (size.Mode)
             {
                 case ImSizeMode.Fixed:
-                    return gui.Layout.AddRect(size.Width, size.Height);
+                case ImSizeMode.Fill:
+                    return ImControls.AddRowRect(gui, size);
                 default:
                     var boxSize = gui.Style.Layout.TextSize;
                     

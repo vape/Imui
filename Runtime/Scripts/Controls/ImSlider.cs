@@ -15,15 +15,6 @@ namespace Imui.Controls
 
     public static class ImSlider
     {
-        public static ImRect GetRect(ImGui gui, ImSize size)
-        {
-            return size.Mode switch
-            {
-                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
-                _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
-            };
-        }
-
         public static int Slider(this ImGui gui,
                                  int value,
                                  int min,
@@ -76,7 +67,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            return Slider(gui, ref value, min, max, GetRect(gui, size), format, step, flags);
+            return Slider(gui, ref value, min, max, ImControls.AddRowRect(gui, size), format, step, flags);
         }
 
         public static bool Slider(this ImGui gui,
