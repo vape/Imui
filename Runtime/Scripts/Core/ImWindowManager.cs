@@ -1,6 +1,7 @@
 using System;
 using Imui.Utility;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 namespace Imui.Core
 {
@@ -8,11 +9,12 @@ namespace Imui.Core
     public enum ImWindowFlag : ulong
     {
         None = 0,
-        NoResize = 1 << 0,
-        NoDrag = 1 << 1,
+        NoResizing = 1 << 0,
+        NoMoving = 1 << 1,
         NoTitleBar = 1 << 2,
         NoCloseButton = 1 << 3,
-        HasMenuBar = 1 << 4
+        HasMenuBar = 1 << 4,
+        NoMovingAndResizing = NoMoving | NoResizing
     }
 
     public class ImWindowManager
@@ -24,7 +26,7 @@ namespace Imui.Core
         private ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
         private Vector2 screenSize;
 
-        public ref ImWindowState BeginWindow(uint id, string title, float width, float height, ImWindowFlag flags)
+        public ref ImWindowState BeginWindow(uint id, string title, ImRect initialRect, ImWindowFlag flags)
         {
             drawingStack.Push(id);
 
@@ -32,22 +34,27 @@ namespace Imui.Core
             if (index >= 0)
             {
                 ref var window = ref windows.Array[index];
+
                 window.Flags = flags;
                 window.Visible = true;
                 window.NextVisible = true;
-                
+
+                if ((flags & ImWindowFlag.NoMovingAndResizing) == ImWindowFlag.NoMovingAndResizing)
+                {
+                    window.Rect = initialRect;
+                    window.NextRect = initialRect;
+                }
+
                 return ref window;
             }
-
-            var rect = GetRectForNewWindow(width, height);
 
             windows.Add(new ImWindowState
             {
                 Id = id,
                 Order = windows.Count,
                 Title = title,
-                Rect = rect,
-                NextRect = rect,
+                Rect = initialRect,
+                NextRect = initialRect,
                 Flags = flags,
                 Visible = true,
                 NextVisible = true
@@ -82,13 +89,13 @@ namespace Imui.Core
             id = drawingStack.Peek();
             return true;
         }
-        
+
         public bool Raycast(float x, float y)
         {
             for (int i = 0; i < windows.Count; ++i)
             {
                 ref var state = ref windows.Array[i];
-                
+
                 if (state.Visible && state.Rect.Contains(x, y))
                 {
                     return true;
@@ -113,7 +120,7 @@ namespace Imui.Core
 
             MoveToTop(index);
         }
-        
+
         internal void SetScreenSize(Vector2 size)
         {
             screenSize = size;
@@ -124,7 +131,7 @@ namespace Imui.Core
             for (int i = 0; i < windows.Count; ++i)
             {
                 ref var state = ref windows.Array[i];
-                
+
                 state.Visible = state.NextVisible;
                 state.NextVisible = false;
             }
@@ -153,14 +160,6 @@ namespace Imui.Core
             }
 
             return -1;
-        }
-
-        private ImRect GetRectForNewWindow(float width, float height)
-        {
-            var size = new Vector2(width, height);
-            var position = new Vector2((screenSize.x - width) / 2f, (screenSize.y - height) / 2f);
-
-            return new ImRect(position, size);
         }
     }
 
