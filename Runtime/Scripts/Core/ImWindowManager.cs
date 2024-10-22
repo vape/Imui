@@ -33,6 +33,9 @@ namespace Imui.Core
             {
                 ref var window = ref windows.Array[index];
                 window.Flags = flags;
+                window.Visible = true;
+                window.NextVisible = true;
+                
                 return ref window;
             }
 
@@ -45,7 +48,9 @@ namespace Imui.Core
                 Title = title,
                 Rect = rect,
                 NextRect = rect,
-                Flags = flags
+                Flags = flags,
+                Visible = true,
+                NextVisible = true
             });
 
             return ref windows.Array[windows.Count - 1];
@@ -82,7 +87,9 @@ namespace Imui.Core
         {
             for (int i = 0; i < windows.Count; ++i)
             {
-                if (windows.Array[i].Rect.Contains(x, y))
+                ref var state = ref windows.Array[i];
+                
+                if (state.Visible && state.Rect.Contains(x, y))
                 {
                     return true;
                 }
@@ -110,6 +117,17 @@ namespace Imui.Core
         internal void SetScreenSize(Vector2 size)
         {
             screenSize = size;
+        }
+
+        internal void HandleFrameEnded()
+        {
+            for (int i = 0; i < windows.Count; ++i)
+            {
+                ref var state = ref windows.Array[i];
+                
+                state.Visible = state.NextVisible;
+                state.NextVisible = false;
+            }
         }
 
         private void MoveToTop(int index)
@@ -154,5 +172,7 @@ namespace Imui.Core
         public ImRect Rect;
         public ImRect NextRect;
         public ImWindowFlag Flags;
+        public bool Visible;
+        public bool NextVisible;
     }
 }

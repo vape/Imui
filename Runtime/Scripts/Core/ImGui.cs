@@ -219,6 +219,8 @@ namespace Imui.Core
             Canvas.PopSettings();
             
             Storage.CollectAndCompact();
+            
+            WindowManager.HandleFrameEnded();
         }
 
         public void BeginReadOnly(bool isReadOnly)
