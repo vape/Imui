@@ -20,7 +20,6 @@ namespace Imui.Style
             sheet.Layout.InnerSpacing = theme.InnerSpacing;
             sheet.Layout.TextSize = theme.TextSize;
             sheet.Layout.Indent = theme.Indent;
-            sheet.Layout.ScrollSpeedScale = theme.ScrollSpeed;
             
             // Button
             sheet.Button.Alignment = new ImAlignment(0.5f, 0.5f);

@@ -11,8 +11,6 @@ namespace Imui.Style
         public float InnerSpacing;
         public float Indent;
         public float ExtraRowHeight;
-        // TODO (artem-s): this does not belong here
-        public float ScrollSpeed;
         public float ScrollBarSize;
 
         public float WindowBorderRadius;
@@ -44,7 +42,6 @@ namespace Imui.Style
                 InnerSpacing = 5f,
                 Indent = 12f,
                 ExtraRowHeight = 4f,
-                ScrollSpeed = 2f,
                 ScrollBarSize = 13f,
                 WindowBorderRadius = 8f,
                 WindowBorderThickness = 1f,
@@ -69,7 +66,6 @@ namespace Imui.Style
                 InnerSpacing = 5f,
                 Indent = 12f,
                 ExtraRowHeight = 4f,
-                ScrollSpeed = 2f,
                 ScrollBarSize = 13f,
                 WindowBorderRadius = 8f,
                 WindowBorderThickness = 1f,
@@ -94,7 +90,6 @@ namespace Imui.Style
                 InnerSpacing = 3f,
                 Indent = 8f,
                 ExtraRowHeight = 4f,
-                ScrollSpeed = 2f,
                 ScrollBarSize = 12f,
                 WindowBorderRadius = 0f,
                 WindowBorderThickness = 1f,

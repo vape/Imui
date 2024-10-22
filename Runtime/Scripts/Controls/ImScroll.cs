@@ -113,9 +113,9 @@ namespace Imui.Controls
             switch (evt.Type)
             {
                 case ImMouseEventType.Scroll when groupHovered:
-                    var scale = gui.Style.Layout.ScrollSpeedScale;
-                    dx += evt.Delta.x * scale;
-                    dy += evt.Delta.y * scale;
+                    var factor = gui.Style.Layout.TextSize;
+                    dx += evt.Delta.x * factor;
+                    dy += evt.Delta.y * factor;
                     deferredUseMouseEvent = true;
                     break;
                 
