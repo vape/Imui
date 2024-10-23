@@ -2,7 +2,6 @@
 - ~~Handle double clicks in ImTextEdit to select words~~
 - ~~__Word__ wrapping~~
 - ~~Optimize layout and rendering~~
-- Fix touch keyboard in webgl
 - ~~Simplify styling and fix the current themes as they look kinda ugly~~
 - ~~Make slider looking similar to sliders in other GUI libraries, dearimgui look seems off~~
 - ~~Implement tooltips on mouse hover~~
@@ -34,6 +33,8 @@
 - Theme editor
 
 ### Maybe
+- Fix touch keyboard in webgl
+  - Apparently, it is bug in unity that prevents touchkeybaord to open in WebGL builds in versions prior to 2022.1 https://discussions.unity.com/t/touch-screen-keyboard-in-web-gl/892662/18 
 - Reorder demo controls from basic to more advanced
 - Unit tests
 - More demo windows
