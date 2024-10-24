@@ -1,4 +1,4 @@
-using System;
+using Imui.Controls;
 using Imui.Controls.Windows;
 using Imui.Core;
 using Imui.IO.UGUI;
@@ -14,6 +14,7 @@ namespace Imui.Demo
         [SerializeField] private float fontSize;
 
         private ImGui gui;
+        private bool demoOpen = true;
 
         private void Awake()
         {
@@ -25,8 +26,24 @@ namespace Imui.Demo
         {
             gui.UiScale = canvas.scaleFactor;
             gui.BeginFrame();
-            ImDemoWindow.Draw(gui);
+            DrawRootMenu();
+            ImDemoWindow.Draw(gui, ref demoOpen);
             gui.EndFrame();
+        }
+
+        private void DrawRootMenu()
+        {
+            gui.BeginPopup();
+            
+            gui.BeginMenuBar(gui.Canvas.ScreenRect.SplitTop(gui.GetRowHeight()));
+            if (gui.BeginMenuBarItem("Demo"))
+            {
+                gui.MenuItem("Show Demo", ref demoOpen);
+                gui.EndMenuBarItem();
+            }
+            gui.EndMenuBar();
+            
+            gui.EndPopup();
         }
 
         private void OnRenderObject()
