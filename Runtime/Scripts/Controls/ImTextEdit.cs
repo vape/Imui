@@ -2,9 +2,9 @@ using System;
 using System.Runtime.InteropServices;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Rendering;
-using Imui.Controls.Styling;
 using Imui.IO.Utility;
+using Imui.Rendering;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -59,7 +59,7 @@ namespace Imui.Controls
 
             if (multiline == null)
             {
-                if (size.Type == ImSizeType.Fixed && size.Height > gui.GetRowHeight())
+                if (size.Mode == ImSizeMode.Fixed && size.Height > gui.GetRowHeight())
                 {
                     multiline = true;
                 }
@@ -76,9 +76,9 @@ namespace Imui.Controls
 
             isActuallyMultiline = multiline.Value;
             
-            return size.Type switch
+            return size.Mode switch
             {
-                ImSizeType.Fixed => gui.Layout.AddRect(size.Width, size.Height),
+                ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
                 _ => gui.Layout.AddRect(
                     Mathf.Max(MIN_WIDTH, gui.GetLayoutWidth()), 
                     Mathf.Max(MIN_HEIGHT, minHeight))
@@ -95,6 +95,7 @@ namespace Imui.Controls
         {
             var buffer = new ImTextEditBuffer(text);
 
+            // TODO (artem-s): in this case, readonly should not change styling
             gui.BeginReadOnly(true);
             TextEdit(gui, ref buffer, rect, multiline);
             gui.EndReadOnly();
@@ -118,6 +119,11 @@ namespace Imui.Controls
         {
             TextEdit(gui, ref text, rect, multiline, filter);
             return text;
+        }
+        
+        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = default)
+        {
+            TextEdit(gui, ref text, rect, true, filter);
         }
         
         public static void TextEdit(this ImGui gui, ref string text, ImRect rect, bool multiline, ImTextEditFilter filter = default)
@@ -155,7 +161,7 @@ namespace Imui.Controls
             bool multiline,
             ImTextEditFilter filter)
         {
-            ref readonly var style = ref ImTheme.Active.TextEdit;
+            ref readonly var style = ref gui.Style.TextEdit;
             
             var selected = gui.IsControlActive(id);
             var hovered = gui.IsControlHovered(id);
@@ -179,9 +185,9 @@ namespace Imui.Controls
                 gui.PushId(id);
                 
                 var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);
-                if (!gui.Storage.TryGetRef(tempBufferId, out tempBuffer))
+                if (!gui.Storage.TryGetPtr(tempBufferId, out tempBuffer))
                 {
-                    tempBuffer = gui.Storage.GetRef<ImTextTempFilterBuffer>(tempBufferId);
+                    tempBuffer = gui.Storage.GetPtr<ImTextTempFilterBuffer>(tempBufferId);
                     tempBuffer->Populate(buffer);
                 }
                 // else relying on collecting garbage on every frame to clean up filter state
@@ -193,16 +199,17 @@ namespace Imui.Controls
                 buffer.Insert(0, tempBuffer->AsSpan());
             }
 
-            gui.Box(rect, stateStyle.Box.Apply(adjacency));
+            gui.Box(rect, stateStyle.Box.MakeAdjacent(adjacency));
+
+            ImPadding textPadding = gui.Style.Layout.InnerSpacing;
             
-            var textSize = ImTheme.Active.Controls.TextSize;
-            var textPadding = ImTheme.Active.TextEdit.Padding;
-            var textAlignment = ImTheme.Active.TextEdit.Alignment;
+            var textSize = gui.Style.Layout.TextSize;
+            var textAlignment = gui.Style.TextEdit.Alignment;
 
             if (!multiline)
             {
                 // single-line text is always drawn at vertical center
-                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeight(textSize), 0.0f) / 2.0f;
+                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(textSize), 0.0f) / 2.0f;
 
                 textPadding.Top = halfVertPadding;
                 textPadding.Bottom = halfVertPadding;
@@ -227,6 +234,21 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
+                                
+                case ImMouseEventType.Down when selected && hovered && evt.Count > 1:
+                    state.Selection = 0;
+                    state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, textRect, in layout, in buffer);
+                    
+                    if (evt.Count == 2)
+                    {
+                        SelectWordOnTheSameLineAtCaret(ref state, in layout, buffer);
+                    }
+                    else
+                    {
+                        SelectLineAtCaret(ref state, in layout, buffer);
+                    } 
+                    break;
+                
                 case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
                     if (!selected)
                     {
@@ -595,17 +617,16 @@ namespace Imui.Controls
                     ? Mathf.Min(state.Caret + state.Selection, state.Caret)
                     : Mathf.Max(state.Caret + state.Selection, state.Caret);
             }
+            else if (cmd.HasFlag(ImKeyboardCommandFlag.NextWord))
+            {
+                state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, dir, buffer);
+            }
             else
             {
                 state.Caret = Mathf.Max(state.Caret + dir, 0);
             }
 
             state.Caret = Mathf.Clamp(state.Caret, 0, buffer.Length);
-
-            if (cmd.HasFlag(ImKeyboardCommandFlag.NextWord))
-            {
-                state.Caret = FindEndOfWordOrSpacesSequence(state.Caret, dir, buffer);
-            }
 
             if (cmd.HasFlag(ImKeyboardCommandFlag.Selection))
             {
@@ -617,6 +638,39 @@ namespace Imui.Controls
             }
 
             return state.Caret != prevCaret || state.Selection != prevSelection;
+        }
+        
+        public static void SelectWordOnTheSameLineAtCaret(ref ImTextEditState state, in ImTextLayout layout, ReadOnlySpan<char> buffer)
+        {
+            var line = FindLineAtCaretPosition(state.Caret, in layout, out _);
+            var maxLeft = layout.Lines[line].Start;
+            var maxRight = maxLeft + layout.Lines[line].Count;
+
+            if (line < layout.LinesCount - 1)
+            {
+                maxRight -= 1;
+            }
+
+            var right = Mathf.Min(maxRight, FindEndOfWordOrSpacesSequence(state.Caret, 1, buffer));
+            var left = Mathf.Max(maxLeft, FindEndOfWordOrSpacesSequence(state.Caret, -1, buffer));
+
+            state.Caret = right;
+            state.Selection = left - right;
+        }
+
+        public static void SelectLineAtCaret(ref ImTextEditState state, in ImTextLayout layout, ReadOnlySpan<char> buffer)
+        {
+            if (layout.LinesCount <= 0)
+            {
+                return;
+            }
+            
+            var line = FindLineAtCaretPosition(state.Caret, in layout, out _);
+            var left = layout.Lines[line].Start;
+            var right = left + layout.Lines[line].Count;
+            
+            state.Caret = right;
+            state.Selection = left - right;
         }
 
         // TODO: doesn't work when caret is horizontally outside of the scope
@@ -646,7 +700,7 @@ namespace Imui.Controls
             
             var charWidth = state.Caret >= buffer.Length
                 ? 0
-                : gui.TextDrawer.GetCharacterWidth(buffer.At(state.Caret), layout.Size);
+                : gui.TextDrawer.GetCharacterAdvance(buffer.At(state.Caret), layout.Size);
             var caretLeft = caretTop.x;
             var caretRight = caretTop.x + charWidth;
             
@@ -723,7 +777,7 @@ namespace Imui.Controls
             
             for (int i = start; i < end; ++i)
             {
-                var characterWidth = drawer.GetCharacterWidth(span[i], layout.Size);
+                var characterWidth = drawer.GetCharacterAdvance(span[i], layout.Size);
                 
                 if (px > position.x || (px + characterWidth) < position.x)
                 {
@@ -763,7 +817,7 @@ namespace Imui.Controls
                 
                 for (int i = 0; i < slice.Length; ++i)
                 {
-                    xOffset += drawer.GetCharacterWidth(slice[i], layout.Size);
+                    xOffset += drawer.GetCharacterAdvance(slice[i], layout.Size);
                 }
             }
 
@@ -787,14 +841,14 @@ namespace Imui.Controls
             int position,
             ImRect textRect, 
             in ImTextLayout layout, 
-            in ImTextEditStateStyle style, 
+            in ImStyleTextEditState style, 
             in ImTextEditBuffer buffer)
         {
             var viewPosition = CaretToViewPosition(position, gui.TextDrawer, textRect, in layout, in buffer);
             var caretViewRect = new ImRect(
                 viewPosition.x, 
                 viewPosition.y - layout.LineHeight, 
-                ImTheme.Active.TextEdit.CaretWidth,
+                gui.Style.TextEdit.CaretWidth,
                 layout.LineHeight);
 
             if ((long)(Time.unscaledTime / CARET_BLINKING_TIME) % 2 == 0)
@@ -808,7 +862,7 @@ namespace Imui.Controls
             int size,
             ImRect textRect, 
             in ImTextLayout layout, 
-            in ImTextEditStateStyle style,
+            in ImStyleTextEditState style,
             in ImTextEditBuffer buffer)
         {
             if (size == 0)
@@ -995,23 +1049,5 @@ namespace Imui.Controls
         
         public abstract bool IsValid(ReadOnlySpan<char> buffer);
         public abstract string GetFallbackString();
-    }
-
-    [Serializable]
-    public struct ImTextEditStateStyle
-    {
-        public ImBoxStyle Box;
-        public Color32 SelectionColor;
-    }
-    
-    [Serializable]
-    public struct ImTextEditStyle
-    {
-        public ImTextEditStateStyle Normal;
-        public ImTextEditStateStyle Selected;
-        public float CaretWidth;
-        public ImTextAlignment Alignment;
-        public ImPadding Padding;
-        public bool TextWrap;
     }
 }

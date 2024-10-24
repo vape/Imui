@@ -1,39 +1,40 @@
 using UnityEngine;
 
-namespace Imui.Controls.Styling
+namespace Imui.Style
 {
-    public enum ImSizeType
+    public enum ImSizeMode
     {
         Auto  = 0,
         Fixed = 1,
-        Fit   = 2
+        Fit   = 2,
+        Fill  = 3
     }
     
     public struct ImSize
     {
         public float Width;
         public float Height;
-        public ImSizeType Type;
+        public ImSizeMode Mode;
 
-        public ImSize(float width, float height, ImSizeType type)
+        public ImSize(float width, float height, ImSizeMode mode)
         {
             Width = width;
             Height = height;
-            Type = type;
+            Mode = mode;
         }
 
         public ImSize(float width, float height)
         {
             Width = width;
             Height = height;
-            Type = ImSizeType.Fixed;
+            Mode = ImSizeMode.Fixed;
         }
 
-        public ImSize(ImSizeType type)
+        public ImSize(ImSizeMode mode)
         {
             Width = 0;
             Height = 0;
-            Type = type;
+            Mode = mode;
         }
 
         public static implicit operator ImSize(Vector2 size)
@@ -46,9 +47,9 @@ namespace Imui.Controls.Styling
             return new ImSize(size.width, size.height);
         }
 
-        public static implicit operator ImSize(ImSizeType type)
+        public static implicit operator ImSize(ImSizeMode mode)
         {
-            return new ImSize(type);
+            return new ImSize(mode);
         }
     }
 }

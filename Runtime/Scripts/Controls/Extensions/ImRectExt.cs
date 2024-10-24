@@ -1,5 +1,5 @@
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 // ReSharper disable once CheckNamespace
@@ -18,7 +18,6 @@ namespace Imui.Controls
             rect.H = height;
             return rect;
         }
-
         
         public static ImRect SplitTop(this ImRect rect, float height, out ImRect bottom)
         {
@@ -29,6 +28,7 @@ namespace Imui.Controls
             return rect;
         }
 
+        public static ImRect SplitLeft(this ImRect rect, float width) => SplitLeft(rect, width, out _);
         public static ImRect SplitLeft(this ImRect rect, float width, out ImRect right)
         {
             right = rect;
@@ -38,6 +38,7 @@ namespace Imui.Controls
             return rect;
         }
 
+        public static ImRect SplitRight(this ImRect rect, float width) => SplitRight(rect, width, out _);
         public static ImRect SplitRight(this ImRect rect, float width, out ImRect left)
         {
             left = rect;
@@ -56,6 +57,15 @@ namespace Imui.Controls
             return rect;
         }
         
+        public static ImRect SplitRight(this ImRect rect, float width, float space, out ImRect left)
+        {
+            left = rect;
+            left.W -= width + space;
+            rect.W = width;
+            rect.X += left.W + space;
+            return rect;
+        }
+        
         public static ImRect WithAspect(this ImRect rect, float aspect)
         {
             var rectAspect = rect.W / rect.H;
@@ -65,6 +75,16 @@ namespace Imui.Controls
             var y = rect.Y + (0.5f * (rect.H - h));
             
             return new ImRect(x, y, w, h);
+        }
+
+        public static ImRect WithPadding(this ImRect rect, float left = 0, float right = 0, float top = 0, float bottom = 0)
+        {
+            rect.X += left;
+            rect.Y += bottom;
+            rect.W -= left + right;
+            rect.H -= top + bottom;
+
+            return rect;
         }
         
         public static ImRect WithPadding(this ImRect rect, float size)
@@ -99,6 +119,14 @@ namespace Imui.Controls
             rect.Y += padding.Bottom;
             rect.W -= padding.Left + padding.Right;
             rect.H -= padding.Top + padding.Bottom;
+        }
+        
+        public static void AddPadding(this ref ImRect rect, float left = 0, float right = 0, float top = 0, float bottom = 0)
+        {
+            rect.X += left;
+            rect.Y += bottom;
+            rect.W -= left + right;
+            rect.H -= top + bottom;
         }
         
         public static ImRect ScaleFromCenter(this ImRect rect, float scale)

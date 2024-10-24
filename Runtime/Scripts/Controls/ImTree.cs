@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 
 namespace Imui.Controls
 {
@@ -16,81 +16,161 @@ namespace Imui.Controls
     public enum ImTreeNodeFlags
     {
         None = 0,
-        NonSelectable = 1,
-        NonExpandable = 2
+        UnselectOnClick = 1
     }
 
     public static class ImTree
     {
+        public static bool BeginTreeNode(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImTreeNodeFlags flags = ImTreeNodeFlags.None)
+        {
+            var selected = false;
+
+            return BeginTreeNode(gui, ref selected, label, size, selectable: false, flags: flags);
+        }
+
+        public static (bool expanded, bool selected) BeginTreeNode(this ImGui gui,
+                                                                   bool selected,
+                                                                   ReadOnlySpan<char> label,
+                                                                   ImSize size = default,
+                                                                   ImTreeNodeFlags flags = ImTreeNodeFlags.None)
+        {
+            return (BeginTreeNode(gui, ref selected, label, size, flags: flags), selected);
+        }
+
         public static bool BeginTreeNode(this ImGui gui,
+                                         ref bool selected,
                                          ReadOnlySpan<char> label,
-                                         ref ImTreeNodeState state,
-                                         ImTreeNodeFlags flags = ImTreeNodeFlags.None,
-                                         ImSize size = default)
+                                         ImSize size = default,
+                                         bool expandable = true,
+                                         bool selectable = true,
+                                         ImTreeNodeFlags flags = ImTreeNodeFlags.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            return BeginTreeNode(gui, label, ImControls.AddRowRect(gui, size), ref state, flags);
-        }
+            var id = gui.PushId(label);
+            ref var expanded = ref gui.Storage.Get<bool>(id);
+            var rect = ImControls.AddRowRect(gui, size);
+            var state = ImTreeNodeState.None;
 
-        public static bool BeginTreeNode(this ImGui gui, ReadOnlySpan<char> label, ImRect rect, ref ImTreeNodeState state, ImTreeNodeFlags flags)
-        {
-            gui.PushId(label);
+            state |= selected ? ImTreeNodeState.Selected : ImTreeNodeState.None;
+            state |= expanded ? ImTreeNodeState.Expanded : ImTreeNodeState.None;
 
-            var arrowRect = rect.SplitLeft(rect.H * 0.7f, out var labelRect);
-            var changed = false;
-            var buttonState = ImButtonState.Normal;
-            var nonExpandable = (flags & ImTreeNodeFlags.NonExpandable) != 0;
-            var nonSelectable = (flags & ImTreeNodeFlags.NonSelectable) != 0;
-            var expandButtonRect = nonSelectable ? rect : arrowRect;
-            
-            if (!nonExpandable && gui.InvisibleButton(expandButtonRect, out buttonState, ImButtonFlag.ActOnPress))
+            TreeNode(gui, id, ref state, label, rect, expandable, selectable, flags);
+
+            expanded = (state & ImTreeNodeState.Expanded) != 0;
+            selected = (state & ImTreeNodeState.Selected) != 0;
+
+            if (!expanded)
             {
-                state ^= ImTreeNodeState.Expanded;
-                changed = true;
+                gui.PopId();
+                return false;
             }
-
-            if (!nonSelectable && gui.InvisibleButton(labelRect, out buttonState, ImButtonFlag.ActOnPress))
-            {
-                state |= ImTreeNodeState.Selected;
-                changed = true;
-            }
-            
-            ref readonly var style = ref ((state & ImTreeNodeState.Selected) != 0
-                ? ref ImButton.GetStateStyle(in ImTheme.Active.List.ItemSelected, buttonState)
-                : ref ImButton.GetStateStyle(in ImTheme.Active.List.ItemNormal, buttonState));
-
-            if ((state & ImTreeNodeState.Selected) != 0)
-            {
-                gui.Canvas.Rect(rect, style.BackColor);
-            }
-
-            if ((flags & ImTreeNodeFlags.NonExpandable) == 0)
-            {
-                arrowRect = arrowRect.ScaleFromCenter(ImTheme.Active.Foldout.ArrowOuterScale);
-
-                if ((state & ImTreeNodeState.Expanded) != 0)
-                {
-                    ImFoldout.DrawOpenArrow(gui.Canvas, arrowRect, style.FrontColor);
-                }
-                else
-                {
-                    ImFoldout.DrawClosedArrow(gui.Canvas, arrowRect, style.FrontColor);
-                }
-            }
-            
-            var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, ImTheme.Active.Foldout.TextAlignment, ImTheme.Active.Button.TextWrap);
-            gui.Text(label, textSettings, style.FrontColor, labelRect);
 
             gui.BeginIndent();
-
-            return changed;
+            return true;
         }
 
         public static void EndTreeNode(this ImGui gui)
         {
             gui.EndIndent();
             gui.PopId();
+        }
+
+        public static void TreeNode(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImTreeNodeFlags flags = ImTreeNodeFlags.None)
+        {
+            var selected = false;
+
+            TreeNode(gui, ref selected, label, size, flags);
+        }
+
+        public static bool TreeNode(this ImGui gui,
+                                    bool selected,
+                                    ReadOnlySpan<char> label,
+                                    ImSize size = default,
+                                    ImTreeNodeFlags flags = ImTreeNodeFlags.None)
+        {
+            TreeNode(gui, ref selected, label, size, flags);
+
+            return selected;
+        }
+
+        public static void TreeNode(this ImGui gui,
+                                    ref bool selected,
+                                    ReadOnlySpan<char> label,
+                                    ImSize size = default,
+                                    ImTreeNodeFlags flags = ImTreeNodeFlags.None)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+
+            var id = gui.GetNextControlId();
+            var state = selected ? ImTreeNodeState.Selected : ImTreeNodeState.None;
+            var rect = ImControls.AddRowRect(gui, size);
+
+            TreeNode(gui, id, ref state, label, rect, false, true, flags);
+
+            selected = (state & ImTreeNodeState.Selected) != 0;
+        }
+
+        public static bool TreeNode(ImGui gui,
+                                    uint id,
+                                    ref ImTreeNodeState state,
+                                    ReadOnlySpan<char> label,
+                                    ImRect rect,
+                                    bool expandable,
+                                    bool selectable,
+                                    ImTreeNodeFlags flags)
+        {
+            ref readonly var buttonStyle = ref ((state & ImTreeNodeState.Selected) != 0 ? ref gui.Style.Tree.ItemSelected : ref gui.Style.Tree.ItemNormal);
+
+            var arrowSize = gui.Style.Layout.TextSize;
+            var contentRect = ImButton.CalculateContentRect(gui, rect);
+            var arrowRect = contentRect.SplitLeft(arrowSize, gui.Style.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
+            var changed = false;
+            var buttonState = ImButtonState.Normal;
+            var expandButtonRect = selectable ? arrowRect : rect;
+
+            if (expandable && gui.InvisibleButton(expandButtonRect, out buttonState, ImButtonFlag.ActOnPress))
+            {
+                state ^= ImTreeNodeState.Expanded;
+                changed = true;
+            }
+
+            if (selectable && gui.InvisibleButton(labelRect, out buttonState, ImButtonFlag.ActOnPress))
+            {
+                if ((flags & ImTreeNodeFlags.UnselectOnClick) != 0)
+                {
+                    state ^= ImTreeNodeState.Selected;
+                }
+                else
+                {
+                    state |= ImTreeNodeState.Selected;
+                }
+                
+                changed = true;
+            }
+
+            var boxStyle = ImButton.GetStateBoxStyle(in buttonStyle, buttonState);
+            if (boxStyle.BackColor.a > 0)
+            {
+                gui.Box(rect, boxStyle);
+            }
+
+            if (expandable)
+            {
+                if ((state & ImTreeNodeState.Expanded) != 0)
+                {
+                    ImFoldout.DrawArrowDown(gui.Canvas, arrowRect, boxStyle.FrontColor, gui.Style.Tree.ArrowScale);
+                }
+                else
+                {
+                    ImFoldout.DrawArrowRight(gui.Canvas, arrowRect, boxStyle.FrontColor, gui.Style.Tree.ArrowScale);
+                }
+            }
+
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, buttonStyle.Alignment);
+            gui.Text(label, textSettings, boxStyle.FrontColor, labelRect);
+
+            return changed;
         }
     }
 }

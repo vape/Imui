@@ -1,6 +1,6 @@
 using System;
 
-namespace Imui.Controls.Styling
+namespace Imui.Style
 {
     [Serializable]
     public struct ImPadding
@@ -43,6 +43,15 @@ namespace Imui.Controls.Styling
         public static ImPadding operator -(ImPadding padding, float value) 
         {
             padding.Add(-value);
+            return padding;
+        }
+        
+        public static ImPadding operator -(ImPadding padding)
+        {
+            padding.Left = -padding.Left;
+            padding.Right = -padding.Right;
+            padding.Top = -padding.Top;
+            padding.Bottom = -padding.Bottom;
             return padding;
         }
     }

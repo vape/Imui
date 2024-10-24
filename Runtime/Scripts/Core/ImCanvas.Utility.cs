@@ -34,13 +34,14 @@ namespace Imui.Core
             PushSettings(in prop);
         }
 
-        public void PopContrast() => PopSettings();
-        public void PushDefaultContrast() => PushContrast(0.0f);
-        public void PushContrast(float contrast)
+        public void PopInvColorMul() => PopSettings();
+        public void PushDefaultInvColorMul() => PushInvColorMul(0.0f);
+        public void PushInvColorMul(float value)
         {
             var prop = GetActiveSettingsCopy();
-            prop.Contrast = contrast;
-            PushSettings(in prop);
+            var changed = prop.InvColorMul != value;
+            prop.InvColorMul = Mathf.Clamp01(value);
+            PushSettings(in prop, changed);
         }
 
         public void PopClipRect() => PopSettings();
@@ -61,6 +62,11 @@ namespace Imui.Core
             var prop = GetActiveSettingsCopy();
             prop.ClipRect.Enabled = false;
             PushSettings(in prop);
+        }
+
+        public void PushClipEverything()
+        {
+            PushClipRect(new ImRect(0, 0, 1, 1));
         }
 
         public void PopRectMask() => PopSettings();

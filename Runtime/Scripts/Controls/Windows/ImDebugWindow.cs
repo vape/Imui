@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
@@ -19,21 +19,25 @@ namespace Imui.Controls.Windows
         private static float maxFrameTime;
         private static float avgFrameTime;
         
-        public static void Draw(ImGui gui)
+        public static void Draw(ImGui gui, ref bool open)
         {
-            gui.BeginWindow("Imui Debug", width: 350, 415);
+            if (!gui.BeginWindow("Imui Debug", ref open, (350, 450)))
+            {
+                return;
+            }
             
-            var storageRatio = gui.Formatter.Join(gui.Formatter.Format(gui.Storage.OccupiedSize)," / ", gui.Formatter.Format(gui.Storage.Capacity));
+            var storageRatio = gui.Formatter.Concat(gui.Formatter.Format(gui.Storage.OccupiedSize)," / ", gui.Formatter.Format(gui.Storage.Capacity));
             var fpsValue = gui.Formatter.Format(avgFrameTime <= 0 ? 0 : 1 / avgFrameTime, "0");
             var msValue = gui.Formatter.Format(avgFrameTime * 1000, "0.0");
 
-            gui.Text(gui.Formatter.Join("Hovered: ", gui.Formatter.Format(gui.frameData.HoveredControl.Id)));
-            gui.Text(gui.Formatter.Join("Active: ", gui.Formatter.Format(gui.GetActiveControl())));
-            gui.Text(gui.Formatter.Join("Storage: ", storageRatio, " bytes"));
-            gui.Text(gui.Formatter.Join("Arena: ", gui.Formatter.Format(gui.frameData.ArenaSize), " bytes"));
-            gui.Text(gui.Formatter.Join("Vertices: ", gui.Formatter.Format(gui.frameData.VerticesCount)));
-            gui.Text(gui.Formatter.Join("Indices: ", gui.Formatter.Format(gui.frameData.IndicesCount)));
-            gui.Text(gui.Formatter.Join("FPS: ", fpsValue, " (", msValue, " ms)"));
+            gui.Text(gui.Formatter.Concat("Hovered: ", gui.Formatter.Format(gui.frameData.HoveredControl.Id)));
+            gui.Text(gui.Formatter.Concat("Hovered Order: ", gui.Formatter.Format(gui.frameData.HoveredControl.Order)));
+            gui.Text(gui.Formatter.Concat("Active: ", gui.Formatter.Format(gui.GetActiveControl())));
+            gui.Text(gui.Formatter.Concat("Storage: ", storageRatio, " bytes"));
+            gui.Text(gui.Formatter.Concat("Arena: ", gui.Formatter.Format(gui.frameData.ArenaSize), " bytes"));
+            gui.Text(gui.Formatter.Concat("Vertices: ", gui.Formatter.Format(gui.frameData.VerticesCount)));
+            gui.Text(gui.Formatter.Concat("Indices: ", gui.Formatter.Format(gui.frameData.IndicesCount)));
+            gui.Text(gui.Formatter.Concat("FPS: ", fpsValue, " (", msValue, " ms)"));
 
             AppendFrameTime();
             DrawFrametimeGraph(gui);
@@ -110,7 +114,7 @@ namespace Imui.Controls.Windows
             }
 
             gui.BeginList(rect);
-            gui.Canvas.Line(points, ImTheme.Active.Text.Color, false, 1);
+            gui.Canvas.Line(points, gui.Style.Text.Color, false, 1);
             gui.EndList();
         }
     }

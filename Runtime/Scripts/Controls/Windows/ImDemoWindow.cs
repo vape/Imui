@@ -1,10 +1,7 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
-using Imui.Controls.Styling;
-using Imui.Controls.Styling.Themes;
 using Imui.Core;
-using Imui.IO.Events;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls.Windows
@@ -16,27 +13,40 @@ namespace Imui.Controls.Windows
         Flag1 = 1,
         Flag2 = 2,
         Flag3 = 4,
-        Flag1_And_3 = Flag1 | Flag3
+        Flag1And3 = Flag1 | Flag3
     }
 
     internal struct ImDemoTreeNode
     {
         public string Name;
-        public bool Root;
-        public bool Expanded;
-        public int[] Nodes;
+        public ImDemoTreeNode[] Childrens;
 
-        public ImDemoTreeNode(string name, bool root, params int[] nodes)
+        public ImDemoTreeNode(string name, params ImDemoTreeNode[] childrens)
         {
             Name = name;
-            Root = root;
-            Nodes = nodes;
-            Expanded = false;
+            Childrens = childrens;
         }
     }
 
     public static class ImDemoWindow
     {
+        private static string[] themes =
+        {
+            nameof(ImThemeBuiltin.Light), 
+            nameof(ImThemeBuiltin.Dark), 
+            nameof(ImThemeBuiltin.Dear)
+        };
+
+        private static ImTheme CreateTheme(int index)
+        {
+            return index switch
+            {
+                2 => ImThemeBuiltin.Dear(),
+                1 => ImThemeBuiltin.Dark(),
+                _ => ImThemeBuiltin.Light()
+            };
+        }
+        
         private static char[] formatBuffer = new char[256];
 
         private static bool checkboxValue;
@@ -46,7 +56,6 @@ namespace Imui.Controls.Windows
         private static int bouncingBallTrail = 32;
         private static float bouncingBallTime;
         private static int selectedTheme;
-        private static string[] themes = { ImLightTheme.NAME, ImDarkTheme.NAME };
 
         private static string[] values =
         {
@@ -68,90 +77,93 @@ namespace Imui.Controls.Windows
         private static bool showPlusMinusButtons = true;
         private static ImDemoEnumFlags demoFlags;
 
-        private static int selectedNode = -1;
-        private static ImDemoTreeNode[] treeNodes = new[]
+        private static bool selectMultipleValues = false;
+        private static HashSet<string> selectedNodes = new HashSet<string>(8);
+        private static readonly ImDemoTreeNode[] treeNodes = new[]
         {
-            new ImDemoTreeNode("Node 0", true, 1, 2),
-            new ImDemoTreeNode("Node 1", false),
-            new ImDemoTreeNode("Node 2", false, 3),
-            new ImDemoTreeNode("Node 3", false),
-            new ImDemoTreeNode("Node 4", true)
+            new ImDemoTreeNode("Node 0", 
+                new ImDemoTreeNode("Node 1"), 
+                new ImDemoTreeNode("Node 2")),
+            new ImDemoTreeNode("Node 3"),
+            new ImDemoTreeNode("Node 4", 
+                new ImDemoTreeNode("Node 5", 
+                    new ImDemoTreeNode("Node 6"), 
+                    new ImDemoTreeNode("Node 7")))
         };
 
         private static HashSet<int> selectedValues = new HashSet<int>(values.Length);
         private static ImConsoleWindow consoleWindow;
 
-        public static void Draw(ImGui gui)
+        public static void Draw(ImGui gui, ref bool open)
         {
-            gui.BeginWindow("Demo", width: 700, height: 700);
-
-            gui.BeginFoldout(out var controlsOpen, "Controls");
-            gui.BeginIndent();
-            if (controlsOpen)
+            if (!gui.BeginWindow("Demo", ref open, (700, 700), ImWindowFlag.HasMenuBar))
             {
-                DrawControlsPage(gui);
+                return;
             }
 
-            gui.EndIndent();
-            gui.EndFoldout();
+            gui.BeginWindowMenuBar();
+            DrawMenuBarItems(gui, ref open);
+            gui.EndWindowMenuBar();
+
+            if (gui.BeginFoldout("Controls"))
+            {
+                gui.BeginIndent();
+                DrawControlsPage(gui, ref open);
+                gui.EndIndent();
+                
+                gui.EndFoldout();
+            }
 
             gui.BeginReadOnly(isReadOnly);
 
-            gui.BeginFoldout(out var layoutOpen, "Layout");
-            gui.BeginIndent();
-            if (layoutOpen)
+            if (gui.BeginFoldout("Layout"))
             {
+                gui.BeginIndent();
                 DrawLayoutPage(gui);
+                gui.EndIndent();
+                
+                gui.EndFoldout();
             }
 
-            gui.EndIndent();
-            gui.EndFoldout();
-
-            gui.BeginFoldout(out var styleOpen, "Style");
-            gui.BeginIndent();
-            if (styleOpen)
+            if (gui.BeginFoldout("Style"))
             {
+                gui.BeginIndent();
                 DrawStylePage(gui);
+                gui.EndIndent();
+                
+                gui.EndFoldout();
             }
 
-            gui.EndIndent();
-            gui.EndFoldout();
-
-            gui.BeginFoldout(out var otherOpen, "Other");
-            gui.BeginIndent();
-            if (otherOpen)
+            if (gui.BeginFoldout("Other"))
             {
+                gui.BeginIndent();
                 DrawOtherPage(gui);
+                gui.EndIndent();
+                gui.EndFoldout();
             }
-
-            gui.EndIndent();
-            gui.EndFoldout();
 
             gui.EndReadOnly();
 
             gui.EndWindow();
 
-            if (showDebugWindow)
+            gui.PushId("DemoDebugWindow");
+            ImDebugWindow.Draw(gui, ref showDebugWindow);
+            gui.PopId();
+            
+            if (showLogWindow && consoleWindow == null)
             {
-                gui.PushId("DemoDebugWindow");
-                ImDebugWindow.Draw(gui);
-                gui.PopId();
+                consoleWindow = new ImConsoleWindow();
             }
 
-            if (showLogWindow)
+            if (consoleWindow != null)
             {
-                if (consoleWindow == null)
-                {
-                    consoleWindow = new ImConsoleWindow();
-                }
-
                 gui.PushId("DemoLogWindow");
-                consoleWindow.Draw(gui);
+                consoleWindow.Draw(gui, ref showLogWindow);
                 gui.PopId();
             }
         }
 
-        private static void DrawControlsPage(ImGui gui)
+        private static void DrawControlsPage(ImGui gui, ref bool open)
         {
             gui.Checkbox(ref isReadOnly, "Read Only");
 
@@ -159,12 +171,12 @@ namespace Imui.Controls.Windows
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
-            if (gui.Button(Format("Clicks ", clicks, "0"), ImSizeType.Fit))
+            if (gui.Button(Format("Clicks ", clicks, "0"), ImSizeMode.Fit))
             {
                 clicks++;
             }
 
-            if (gui.Button("Reset Clicks", ImSizeType.Auto))
+            if (gui.Button("Reset Clicks", ImSizeMode.Auto))
             {
                 clicks = 0;
             }
@@ -178,16 +190,13 @@ namespace Imui.Controls.Windows
             gui.Radio(ref dropdownPreview);
             gui.EndHorizontal();
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Dropdown without value selected", preview: dropdownPreview);
-            gui.Text("Text editors");
+            gui.Separator("Text editors");
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, multiline: true);
-            gui.Text("Sliders");
-            DrawBouncingBall(gui);
-            gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
-            gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
-            gui.Slider(ref bouncingBallTrail, 1, 128, format: "0 trail length");
-            gui.Text("Selection list (you can select multiple values)");
-            gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui.GetRowsHeightWithSpacing(3))));
+            gui.Separator("Sliders (with tooltips)");
+            DrawSlidersDemo(gui);
+            gui.Separator("Selection list (you can select multiple values)");
+            gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
             {
                 var wasSelected = selectedValues.Contains(i);
@@ -206,7 +215,7 @@ namespace Imui.Controls.Windows
 
             gui.EndList();
 
-            gui.Text("Numeric editors");
+            gui.Separator("Numeric editors");
             gui.Checkbox(ref showPlusMinusButtons, "Show +/-");
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
@@ -226,58 +235,188 @@ namespace Imui.Controls.Windows
             gui.EndHorizontal();
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            gui.Text("Radio buttons (enum flags)");
+            gui.Separator("Radio buttons (enum flags)");
             gui.Radio(ref demoFlags);
 
-            gui.Text("Tree");
+            gui.Separator("Trees");
+            DrawTreeDemo(gui);
 
-            void Node(ImGui gui, int index, ImDemoTreeNode[] nodes)
+            gui.Separator("Nested Foldout");
+            NestedFoldout(gui, 0, ref nestedFoldouts);
+
+            gui.Separator("Floating menu");
+            gui.BeginMenuBar();
+            DrawMenuBarItems(gui, ref open);
+            gui.EndMenuBar();
+
+            gui.EndReadOnly();
+        }
+
+        private static void DrawSelectableTreeDemo(ImGui gui)
+        {
+            gui.Checkbox(ref selectMultipleValues, "Select multiple values");
+            
+            gui.BeginHorizontal();
+            gui.Text("Selected nodes: ");
+            foreach (var name in selectedNodes)
             {
-                ref var node = ref nodes[index];
-                var selected = selectedNode == index ? ImTreeNodeState.Selected : ImTreeNodeState.None;
-                var expanded = node.Expanded ? ImTreeNodeState.Expanded : ImTreeNodeState.None;
-                var state = selected | expanded;
-                var changed = gui.BeginTreeNode(node.Name, ref state, node.Nodes?.Length == 0 ? ImTreeNodeFlags.NonExpandable : ImTreeNodeFlags.None);
-                if (changed)
+                gui.Text(name);
+                gui.AddSpacing();
+            }
+            gui.EndHorizontal();
+
+            void SetSelected(string name, bool selected)
+            {
+                if (selected)
                 {
-                    node.Expanded = state.HasFlag(ImTreeNodeState.Expanded);
-                    
-                    if ((state & ImTreeNodeState.Selected) != 0)
+                    if (!selectMultipleValues)
                     {
-                        selectedNode = index;
+                        selectedNodes.Clear();
                     }
+
+                    selectedNodes.Add(name);
+                }
+                else
+                {
+                    selectedNodes.Remove(name);
+                }
+            }
+            
+            void Node(ref ImDemoTreeNode node)
+            {
+                var flags = selectMultipleValues ? ImTreeNodeFlags.UnselectOnClick : ImTreeNodeFlags.None;
+                var isSelected = selectedNodes.Contains(node.Name);
+
+                if (node.Childrens.Length == 0)
+                {
+                    gui.TreeNode(ref isSelected, node.Name, flags: flags);
+                    SetSelected(node.Name, isSelected);
+                    return;
+                }
+
+                if (!gui.BeginTreeNode(ref isSelected, node.Name, flags: flags))
+                {
+                    SetSelected(node.Name, isSelected);
+                    return;
                 }
                 
-                if (node is { Expanded: true, Nodes: not null })
+                SetSelected(node.Name, isSelected);
+                    
+                for (int i = 0; i < node.Childrens.Length; ++i)
                 {
-                    for (int i = 0; i < node.Nodes.Length; ++i)
-                    {
-                        Node(gui, node.Nodes[i], nodes);
-                    }
+                    Node(ref node.Childrens[i]);
                 }
+                    
                 gui.EndTreeNode();
             }
 
             for (int i = 0; i < treeNodes.Length; ++i)
             {
-                if (treeNodes[i].Root)
-                {
-                    Node(gui, i, treeNodes);
-                }
+                Node(ref treeNodes[i]);
             }
-
-            if (selectedNode >= 0 && selectedNode < treeNodes.Length)
-            {
-                gui.Text(gui.Formatter.Join("Selected node: ", treeNodes[selectedNode].Name));
-            }
-
-            gui.Text("Some custom controls");
-            CustomDropdown(gui);
-            NestedFoldout(gui, 0, ref nestedFoldouts);
-
-            gui.EndReadOnly();
         }
 
+        private static void DrawTreeDemo(ImGui gui)
+        {
+            gui.TreeNode("Node 0");
+            if (gui.BeginTreeNode("Node 1"))
+            {
+                gui.TreeNode("Node 3");
+                if (gui.BeginTreeNode("Node 4"))
+                {
+                    gui.TreeNode("Node 5");
+                    gui.EndTreeNode();
+                }
+                gui.EndTreeNode();
+            }
+            gui.TreeNode("Node 5");
+            if (gui.BeginTreeNode("Selectable nodes demo"))
+            {
+                DrawSelectableTreeDemo(gui);
+                gui.EndTreeNode();
+            }
+        }
+
+        private static void DrawSlidersDemo(ImGui gui)
+        {
+            DrawBouncingBall(gui);
+            gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
+            gui.TooltipAtControl("Size of the circles in pixels");
+            gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
+            gui.TooltipAtControl("Speed for circles moving");
+            gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
+            gui.TooltipAtControl("Number of circles drawn");
+        }
+
+        private static void DrawMenuBarItems(ImGui gui, ref bool windowOpen)
+        {
+            if (gui.BeginMenuBarItem("Demo"))
+            {
+                DrawDemoMenu(gui, ref windowOpen);
+                gui.EndMenuBarItem();
+            }
+
+            if (gui.BeginMenuBarItem("Windows"))
+            {
+                DrawExamplesMenu(gui);
+                gui.EndMenuBarItem();
+            }
+        }
+
+        private static void DrawDemoMenu(ImGui gui, ref bool windowOpen)
+        {
+            if (gui.BeginSubMenu("Custom Menus"))
+            {
+                gui.BeginVertical(width: 300);
+                DrawSlidersDemo(gui);
+                gui.EndVertical();
+                
+                gui.EndSubMenu();
+            }
+            if (gui.BeginSubMenu("Recursive"))
+            {
+                DrawDemoMenu(gui, ref windowOpen);
+                gui.EndSubMenu();
+            }
+            gui.Separator();
+            if (gui.BeginSubMenu("Test"))
+            {           
+                if (gui.BeginSubMenu("Same name submenu"))
+                {
+                    gui.MenuItem("Item");
+                    gui.EndSubMenu();
+                }
+
+                gui.PushId("Next Menu");
+                if (gui.BeginSubMenu("Same name submenu"))
+                {
+                    gui.MenuItem("Item");
+                    gui.EndSubMenu();
+                }
+                gui.PopId();
+                
+                gui.EndSubMenu();
+            }
+            gui.Separator();
+            if (gui.MenuItem("Close"))
+            {
+                windowOpen = false;
+            }
+        }
+
+        private static void DrawExamplesMenu(ImGui gui)
+        {
+            if (gui.MenuItem("Console"))
+            {
+                showLogWindow = true;
+            }
+
+            if (gui.MenuItem("Debug"))
+            {
+                showDebugWindow = true;
+            }
+        }
+        
         private static void DrawLayoutPage(ImGui gui)
         {
             gui.AddSpacing();
@@ -285,7 +424,7 @@ namespace Imui.Controls.Windows
             gui.BeginHorizontal();
             for (int i = 0; i < 3; ++i)
             {
-                gui.Button("Horizontal", ImSizeType.Fit);
+                gui.Button("Horizontal", ImSizeMode.Fit);
             }
 
             gui.EndHorizontal();
@@ -295,7 +434,7 @@ namespace Imui.Controls.Windows
             gui.BeginVertical();
             for (int i = 0; i < 3; ++i)
             {
-                gui.Button("Vertical", ImSizeType.Fit);
+                gui.Button("Vertical", ImSizeMode.Fit);
             }
 
             gui.EndVertical();
@@ -311,31 +450,30 @@ namespace Imui.Controls.Windows
             gui.EndGrid(in grid);
         }
 
+        // TODO (artem-s): this does not reflect actual changes in theme
         private static void DrawStylePage(ImGui gui)
         {
-            selectedTheme = GetThemeIndex(ImTheme.Active.Name);
-
             gui.Text("Theme");
             if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
             {
-                ImTheme.Active = CreateTheme(selectedTheme);
+                gui.SetTheme(CreateTheme(selectedTheme));
             }
 
-            gui.Text(Format("Text Size: ", ImTheme.Active.Controls.TextSize));
-            gui.Slider(ref ImTheme.Active.Controls.TextSize, 6, 128);
+            gui.Text(Format("Text Size: ", gui.Style.Layout.TextSize));
+            gui.Slider(ref gui.Style.Layout.TextSize, 6, 128);
 
-            gui.Text(Format("Spacing: ", ImTheme.Active.Controls.ControlsSpacing));
-            gui.Slider(ref ImTheme.Active.Controls.ControlsSpacing, 0, 32);
+            gui.Text(Format("Spacing: ", gui.Style.Layout.Spacing));
+            gui.Slider(ref gui.Style.Layout.Spacing, 0, 32);
 
-            gui.Text(Format("Extra Row Size: ", ImTheme.Active.Controls.ExtraRowHeight));
-            gui.Slider(ref ImTheme.Active.Controls.ExtraRowHeight, 0, 32);
+            gui.Text(Format("Extra Row Size: ", gui.Style.Layout.ExtraRowHeight));
+            gui.Slider(ref gui.Style.Layout.ExtraRowHeight, 0, 32);
 
-            gui.Text(Format("Indent: ", ImTheme.Active.Controls.Indent));
-            gui.Slider(ref ImTheme.Active.Controls.Indent, 0, 32);
+            gui.Text(Format("Indent: ", gui.Style.Layout.Indent));
+            gui.Slider(ref gui.Style.Layout.Indent, 0, 32);
 
             if (gui.Button("Reset"))
             {
-                ImTheme.Active = CreateTheme(selectedTheme);
+                gui.SetTheme(CreateTheme(selectedTheme));
             }
         }
 
@@ -352,7 +490,9 @@ namespace Imui.Controls.Windows
                 return ((x % y) + y) % y;
             }
 
-            var bounds = gui.AddLayoutRectWithSpacing(gui.GetLayoutWidth(), gui.GetRowHeight());
+            var bounds = gui
+                         .AddLayoutRectWithSpacing(gui.GetLayoutWidth(), gui.GetRowHeight() * 1.25f)
+                         .WithPadding(left: bouncingBallSize / 2.0f, right: bouncingBallSize / 2.0f);
             var dt = Time.deltaTime * bouncingBallSpeed;
 
             bouncingBallTime += dt;
@@ -361,118 +501,50 @@ namespace Imui.Controls.Windows
             {
                 var t = mod((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)), 2.0f);
                 var x = t <= 1.0f ? t : 1 - (t - 1);
-                var p = bounds.GetPointAtNormalPosition(x, 0.5f);
-                var c = ImTheme.Active.Text.Color.WithAlpha((byte)(255 * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 2)));
+                var y = 0.5f + Mathf.Sin((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)) * Mathf.PI * 2) * 0.25f;
+                var p = bounds.GetPointAtNormalPosition(x, y);
+                var c = gui.Style.Text.Color.WithAlphaF(Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }
         }
-
-        public static void CustomDropdown(ImGui gui)
-        {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            var controlId = gui.GetNextControlId();
-
-            gui.BeginDropdown(controlId, ref customDropdownOpen, default);
-            {
-                var textSettings = new ImTextSettings(ImTheme.Active.Controls.TextSize, 0.0f, 0.5f);
-
-                gui.Text("Boxes ticked: ", textSettings);
-
-                for (int i = 0; i < checkboxes.Length; ++i)
-                {
-                    gui.Text(checkboxes[i] ? "X" : "-", textSettings);
-                }
-
-                if (customDropdownOpen)
-                {
-                    ImDropdown.BeginList(gui, 1);
-                    var allTrue = true;
-
-                    gui.BeginHorizontal();
-                    for (int i = 0; i < checkboxes.Length; ++i)
-                    {
-                        gui.Checkbox(ref checkboxes[i]);
-                        allTrue &= checkboxes[i];
-                    }
-
-                    if (allTrue)
-                    {
-                        gui.Text("Bingo!", textSettings);
-                    }
-
-                    gui.EndHorizontal();
-
-                    ImDropdown.EndList(gui, out var closeClicked);
-
-                    if (closeClicked)
-                    {
-                        customDropdownOpen = false;
-                    }
-                }
-            }
-            gui.EndDropdown();
-        }
-
+        
         public static void NestedFoldout(ImGui gui, int current, ref int total)
         {
             const int MAX = 8;
 
             var label = current == 0 ? "Nested Foldout" : Format("Nested Foldout ", current, "0");
 
-            gui.BeginFoldout(out var nestedFoldoutOpen, label);
-            gui.BeginIndent();
-            
-            if (nestedFoldoutOpen)
+            if (!gui.BeginFoldout(label))
             {
-                if (current < total)
+                return;
+            }
+            
+            gui.BeginIndent();
+            if (current < total)
+            {
+                NestedFoldout(gui, current + 1, ref total);
+            }
+            else if (current == total)
+            {
+                if (total == MAX)
                 {
-                    NestedFoldout(gui, current + 1, ref total);
+                    gui.Text("Let's just stop here");
+                    if (gui.Button("Reset"))
+                    {
+                        total = 0;
+                    }
                 }
-                else if (current == total)
+                else if (gui.Button("Add one more"))
                 {
-                    if (total == MAX)
-                    {
-                        gui.Text("Let's just stop here");
-                        if (gui.Button("Reset"))
-                        {
-                            total = 0;
-                        }
-                    }
-                    else if (gui.Button("Add one more"))
-                    {
-                        total++;
-                    }
+                    total++;
                 }
             }
-
             gui.EndIndent();
+                
             gui.EndFoldout();
         }
-
-        private static int GetThemeIndex(string name)
-        {
-            for (int i = 0; i < themes.Length; ++i)
-            {
-                if (themes[i] == name)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        private static ImTheme CreateTheme(int index)
-        {
-            return index switch
-            {
-                1 => ImDarkTheme.Create(),
-                _ => ImLightTheme.Create()
-            };
-        }
-
+        
         private static ReadOnlySpan<char> Format(ReadOnlySpan<char> prefix, float value, ReadOnlySpan<char> format = default)
         {
             var dst = new Span<char>(formatBuffer);

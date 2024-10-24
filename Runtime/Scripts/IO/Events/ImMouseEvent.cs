@@ -11,7 +11,7 @@ namespace Imui.IO.Events
         Scroll,
         BeginDrag,
         Drag,
-        Held
+        Hold
     }
     
     public readonly struct ImMouseEvent
@@ -20,13 +20,15 @@ namespace Imui.IO.Events
         public readonly int Button;
         public readonly EventModifiers Modifiers;
         public readonly Vector2 Delta;
+        public readonly int Count;
 
-        public ImMouseEvent(ImMouseEventType type, int button, EventModifiers modifiers, Vector2 delta)
+        public ImMouseEvent(ImMouseEventType type, int button, EventModifiers modifiers, Vector2 delta, int count = 1)
         {
             Type = type;
             Button = button;
             Modifiers = modifiers;
             Delta = delta;
+            Count = count;
         }
 
         public override string ToString()

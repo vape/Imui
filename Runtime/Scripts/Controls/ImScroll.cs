@@ -1,7 +1,6 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.Controls.Styling;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -22,7 +21,6 @@ namespace Imui.Controls
         HorBarVisible = 1 << 1
     }
     
-    [Serializable]
     public struct ImScrollState
     {
         public Vector2 Offset;
@@ -34,53 +32,40 @@ namespace Imui.Controls
         public static void BeginScrollable(this ImGui gui)
         {
             var id = gui.GetNextControlId();
-            var state = gui.Storage.Get<ImScrollState>(id);
+            ref var state = ref gui.PushControlScope<ImScrollState>(id);
             
             ref readonly var frame = ref gui.Layout.GetFrame();
-            var visibleRect = GetVisibleRect(frame.Bounds, state);
+            var visibleRect = GetVisibleRect(gui, frame.Bounds, state);
             
             gui.Layout.Push(frame.Axis, visibleRect, ImLayoutFlag.None);
             gui.Layout.SetOffset(state.Offset);
-
-            ref var scrollRectStack = ref gui.GetScrollRectStack();
-            scrollRectStack.Push(id);
         }
         
         public static void EndScrollable(this ImGui gui, ImScrollFlag flags = ImScrollFlag.None)
         {
-            ref var scrollRectStack = ref gui.GetScrollRectStack();
-            var id = scrollRectStack.Pop();
+            ref var state = ref gui.PopControlScope<ImScrollState>(out var id);
             
             gui.Layout.Pop(out var contentFrame);
 
             var bounds = gui.Layout.GetBoundsRect();
             
-            Scroll(gui, id, bounds, contentFrame.Size, flags);
+            Scroll(gui, id, ref state, bounds, contentFrame.Size, flags);
         }
 
         public static Vector2 GetScrollOffset(this ImGui gui)
         {
-            ref var scrollRectStack = ref gui.GetScrollRectStack();
-            var id = scrollRectStack.Peek();
-            
-            return gui.Storage.Get<ImScrollState>(id).Offset;
+            return gui.PeekControlScope<ImScrollState>().Offset;
         }
 
         public static void SetScrollOffset(this ImGui gui, Vector2 offset)
         {
-            ref var scrollRectStack = ref gui.GetScrollRectStack();
-            var id = scrollRectStack.Peek();
-            
-            ref var state = ref gui.Storage.Get<ImScrollState>(id);
-            
+            ref var state = ref gui.PeekControlScope<ImScrollState>();
             state.Offset = offset;
         }
         
-        public static void Scroll(ImGui gui, uint id, ImRect view, Vector2 size, ImScrollFlag flags)
+        public static void Scroll(ImGui gui, uint id, ref ImScrollState state, ImRect view, Vector2 size, ImScrollFlag flags)
         {
-            ref var state = ref gui.Storage.Get<ImScrollState>(id);
-            
-            Layout(ref state, view, size, out var adjust, flags);
+            Layout(gui, ref state, view, size, out var adjust, flags);
 
             var dx = 0f;
             var dy = 0f;
@@ -93,7 +78,7 @@ namespace Imui.Controls
             
             if ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0)
             {
-                var rect = GetVerticalBarRect(view);
+                var rect = GetVerticalBarRect(gui, view);
                 var normalSize = view.H / size.y;
                 var normalPosition = state.Offset.y / (size.y - view.H);
                 var normalDelta = Bar(verId, gui, rect, normalSize, normalPosition, 1);
@@ -103,7 +88,7 @@ namespace Imui.Controls
 
             if ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0)
             {
-                var rect = GetHorizontalBarRect(view, (state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0);
+                var rect = GetHorizontalBarRect(gui, view, (state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0);
                 var normalSize = view.W / size.x;
                 var normalPosition = (state.Offset.x / (size.x - view.W));
                 var normalDelta = Bar(horId, gui, rect, normalSize, -normalPosition, 0);
@@ -111,7 +96,7 @@ namespace Imui.Controls
                 dx -= normalDelta * size.x;
             }
             
-            var groupRect = GetVisibleRect(view, state);
+            var groupRect = GetVisibleRect(gui, view, state);
             gui.RegisterGroup(id, groupRect);
 
             // Scroll bars should probably work even in read only mode
@@ -128,9 +113,9 @@ namespace Imui.Controls
             switch (evt.Type)
             {
                 case ImMouseEventType.Scroll when groupHovered:
-                    var scale = ImTheme.Active.Controls.ScrollSpeedScale;
-                    dx += evt.Delta.x * scale;
-                    dy += evt.Delta.y * scale;
+                    var factor = gui.Style.Layout.TextSize;
+                    dx += evt.Delta.x * factor;
+                    dy += evt.Delta.y * factor;
                     deferredUseMouseEvent = true;
                     break;
                 
@@ -169,9 +154,9 @@ namespace Imui.Controls
             float normalPosition, 
             int axis)
         {
-            ref readonly var style = ref ImTheme.Active.Scroll;
+            ref readonly var style = ref gui.Style.Scroll;
                 
-            rect = rect.WithPadding(style.Margin);
+            rect = rect.WithPadding(axis == 0 ? style.HMargin : style.VMargin);
 
             var delta = 0f;
             var absoluteSize = axis == 0 ? rect.W : rect.H;
@@ -181,14 +166,14 @@ namespace Imui.Controls
             var handleRect = axis == 0 ? 
                 new ImRect(rect.X + position, rect.Y, size, rect.H) : 
                 new ImRect(rect.X, rect.Y + (rect.H - size) - position, rect.W, size);
-            handleRect = handleRect.WithPadding(style.Padding);
+            handleRect = handleRect.WithPadding(style.BorderThickness);
 
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             
             var barStyle = pressed ? style.PressedState : hovered ? style.HoveredState : style.NormalState;
             gui.Canvas.Rect(rect, barStyle.BackColor, style.BorderRadius);
-            gui.Canvas.Rect(handleRect, barStyle.FrontColor, style.BorderRadius - style.Padding);
+            gui.Canvas.Rect(handleRect, barStyle.FrontColor, Mathf.Max(0, style.BorderRadius - style.BorderThickness));
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -213,45 +198,50 @@ namespace Imui.Controls
             return delta;
         }
 
-        public static ImRect GetVisibleRect(ImRect view, ImScrollState state)
+        public static ImRect GetVisibleRect(ImGui gui, ImRect view, ImScrollState state)
         {
             if ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0)
             {
-                view.Y += ImTheme.Active.Scroll.Size;
-                view.H -= ImTheme.Active.Scroll.Size;
+                var size = GetScrollBarSize(gui, 0);
+                
+                view.Y += size;
+                view.H -= size;
             }
 
             if ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0)
             {
-                view.W -= ImTheme.Active.Scroll.Size;
+                view.W -= GetScrollBarSize(gui, 1);
             }
 
             return view;
         }
         
-        public static ImRect GetHorizontalBarRect(ImRect view, bool verBarVisible)
+        public static ImRect GetHorizontalBarRect(ImGui gui, ImRect view, bool verBarVisible)
         {
-            view.H = ImTheme.Active.Scroll.Size;
+            view.H = GetScrollBarSize(gui, 0);
 
             if (verBarVisible)
             {
-                view.W -= ImTheme.Active.Scroll.Size;
+                view.W -= GetScrollBarSize(gui, 1);
             }
             
             return view;
         }
 
-        public static ImRect GetVerticalBarRect(ImRect view)
+        public static ImRect GetVerticalBarRect(ImGui gui, ImRect view)
         {
-            view.X += view.W - ImTheme.Active.Scroll.Size;
-            view.W = ImTheme.Active.Scroll.Size;
+            var size = GetScrollBarSize(gui, 1);
+            
+            view.X += view.W - size;
+            view.W = size;
 
             return view;
         }
         
-        private static void Layout(ref ImScrollState state, ImRect view, Vector2 size, out Vector2 adjust, ImScrollFlag flags)
+        private static void Layout(ImGui gui, ref ImScrollState state, ImRect view, Vector2 size, out Vector2 adjust, ImScrollFlag flags)
         {
-            var styleSize = ImTheme.Active.Scroll.Size;
+            var styleSizeVer = GetScrollBarSize(gui, 1);
+            var styleSizeHor = GetScrollBarSize(gui, 0);
             
             state.Layout = default;
 
@@ -259,39 +249,24 @@ namespace Imui.Controls
             for (int i = 0; i < 2; ++i)
             {
                 state.Layout =
-                    (flags & ImScrollFlag.NoVerticalBar) == 0 && size.y > (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSize : 0f))
+                    (flags & ImScrollFlag.NoVerticalBar) == 0 && size.y > (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeVer : 0f))
                         ? (state.Layout | ImScrollLayoutFlag.VerBarVisible)
                         : (state.Layout & ~ImScrollLayoutFlag.VerBarVisible);
 
                 state.Layout =
-                    (flags & ImScrollFlag.NoHorizontalBar) == 0 && size.x > (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSize : 0f))
+                    (flags & ImScrollFlag.NoHorizontalBar) == 0 && size.x > (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeHor : 0f))
                         ? (state.Layout | ImScrollLayoutFlag.HorBarVisible)
                         : (state.Layout & ~ImScrollLayoutFlag.HorBarVisible);
             }
 
             adjust = new Vector2(
-                (state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSize : 0f, 
-                (state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSize : 0f);
+                (state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeVer : 0f, 
+                (state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeHor : 0f);
         }
-    }
-    
-            
-    [Serializable]
-    public struct ImScrollBarStateStyle
-    {
-        public Color32 BackColor;
-        public Color32 FrontColor;
-    }
 
-    [Serializable]
-    public struct ImScrollStyle
-    {
-        public float Size;
-        public float Margin;
-        public float Padding;
-        public float BorderRadius;
-        public ImScrollBarStateStyle NormalState;
-        public ImScrollBarStateStyle HoveredState;
-        public ImScrollBarStateStyle PressedState;
+        private static float GetScrollBarSize(ImGui gui, int axis)
+        {
+            return (int)(gui.Style.Scroll.Size + (axis == 0 ? gui.Style.Scroll.HMargin.Vertical : gui.Style.Scroll.VMargin.Horizontal));
+        }
     }
 }

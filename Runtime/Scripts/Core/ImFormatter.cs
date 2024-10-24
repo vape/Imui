@@ -11,7 +11,7 @@ namespace Imui.Core
             this.arena = arena;
         }
 
-        public Span<char> Join(ReadOnlySpan<char> str, int value)
+        public Span<char> Concat(ReadOnlySpan<char> str, int value)
         {
             var valueSpan = Format(value);
             var span = arena.AllocArray<char>(str.Length + valueSpan.Length);
@@ -22,7 +22,7 @@ namespace Imui.Core
             return span;
         }
         
-        public Span<char> Join(ReadOnlySpan<char> str, float value)
+        public Span<char> Concat(ReadOnlySpan<char> str, float value)
         {
             var valueSpan = Format(value);
             var span = arena.AllocArray<char>(str.Length + valueSpan.Length);
@@ -33,7 +33,7 @@ namespace Imui.Core
             return span;
         }
 
-        public Span<char> Join(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1)
+        public Span<char> Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length);
             var size = 0;
@@ -43,7 +43,7 @@ namespace Imui.Core
             return span;
         }
         
-        public Span<char> Join(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
+        public Span<char> Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length + str2.Length);
             var size = 0;
@@ -55,7 +55,7 @@ namespace Imui.Core
             return span;
         }
         
-        public Span<char> Join(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3)
+        public Span<char> Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length + str2.Length + str3.Length);
             var size = 0;
@@ -69,7 +69,7 @@ namespace Imui.Core
             return span;
         }
         
-        public Span<char> Join(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3, ReadOnlySpan<char> str4)
+        public Span<char> Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3, ReadOnlySpan<char> str4)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length);
             var size = 0;
@@ -86,7 +86,7 @@ namespace Imui.Core
         }
         
         
-        public Span<char> JoinDuplicate(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, int repeat)
+        public Span<char> ConcatDuplicate(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, int repeat)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length * (repeat < 0 ? 0 : repeat));
             var size = 0;

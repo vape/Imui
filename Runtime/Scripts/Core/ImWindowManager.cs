@@ -1,31 +1,32 @@
 using System;
 using Imui.Utility;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 namespace Imui.Core
 {
     [Flags]
     public enum ImWindowFlag : ulong
     {
-        None            = 0,
-        DisableResize   = 1 << 0,
-        DisableMoving   = 1 << 1,
-        DisableTitleBar = 1 << 2
+        None = 0,
+        NoResizing = 1 << 0,
+        NoMoving = 1 << 1,
+        NoTitleBar = 1 << 2,
+        NoCloseButton = 1 << 3,
+        HasMenuBar = 1 << 4,
+        NoMovingAndResizing = NoMoving | NoResizing
     }
-    
+
     public class ImWindowManager
     {
         private const int DRAWING_STACK_CAPACITY = 8;
         private const int WINDOWS_CAPACITY = 32;
 
-        public const int DEFAULT_WIDTH = 500;
-        public const int DEFAULT_HEIGHT = 500;
-        
         private ImDynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
         private ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
         private Vector2 screenSize;
-        
-        public ref ImWindowState BeginWindow(uint id, string title, float width = DEFAULT_WIDTH, float height = DEFAULT_HEIGHT, ImWindowFlag flags = ImWindowFlag.None)
+
+        public ref ImWindowState BeginWindow(uint id, string title, ImRect initialRect, ImWindowFlag flags)
         {
             drawingStack.Push(id);
 
@@ -33,7 +34,17 @@ namespace Imui.Core
             if (index >= 0)
             {
                 ref var window = ref windows.Array[index];
+
                 window.Flags = flags;
+                window.Visible = true;
+                window.NextVisible = true;
+
+                if ((flags & ImWindowFlag.NoMovingAndResizing) == ImWindowFlag.NoMovingAndResizing)
+                {
+                    window.Rect = initialRect;
+                    window.NextRect = initialRect;
+                }
+
                 return ref window;
             }
 
@@ -42,50 +53,50 @@ namespace Imui.Core
                 Id = id,
                 Order = windows.Count,
                 Title = title,
-                Rect = GetNewWindowRect(width, height),
-                Flags = flags
+                Rect = initialRect,
+                NextRect = initialRect,
+                Flags = flags,
+                Visible = true,
+                NextVisible = true
             });
-            
+
             return ref windows.Array[windows.Count - 1];
         }
 
         public uint EndWindow()
         {
-            return drawingStack.Pop();
+            var id = drawingStack.Pop();
+
+            ref var state = ref GetWindowState(id);
+            state.Rect = state.NextRect;
+
+            return id;
         }
 
         public bool IsDrawingWindow()
         {
             return drawingStack.Count > 0;
         }
-        
-        public ImRect GetCurrentWindowRect()
+
+        public bool TryGetDrawingWindowId(out uint id)
         {
-            if (!IsDrawingWindow())
+            if (drawingStack.Count == 0)
             {
-                return default;
+                id = default;
+                return false;
             }
 
-            ref var state = ref GetWindowState(drawingStack.Peek());
-            return state.Rect;
-        }
-
-        public void SetCurrentWindowRect(ImRect rect)
-        {
-            if (!IsDrawingWindow())
-            {
-                return;
-            }
-
-            ref var state = ref GetWindowState(drawingStack.Peek());
-            state.Rect = rect;
+            id = drawingStack.Peek();
+            return true;
         }
 
         public bool Raycast(float x, float y)
         {
             for (int i = 0; i < windows.Count; ++i)
             {
-                if (windows.Array[i].Rect.Contains(x, y))
+                ref var state = ref windows.Array[i];
+
+                if (state.Visible && state.Rect.Contains(x, y))
                 {
                     return true;
                 }
@@ -94,11 +105,6 @@ namespace Imui.Core
             return false;
         }
 
-        public void SetScreenSize(Vector2 screenSize)
-        {
-            this.screenSize = screenSize;
-        }
-        
         public ref ImWindowState GetWindowState(uint id)
         {
             return ref windows.Array[TryFindWindow(id)];
@@ -111,8 +117,24 @@ namespace Imui.Core
             {
                 return;
             }
-            
+
             MoveToTop(index);
+        }
+
+        internal void SetScreenSize(Vector2 size)
+        {
+            screenSize = size;
+        }
+
+        internal void HandleFrameEnded()
+        {
+            for (int i = 0; i < windows.Count; ++i)
+            {
+                ref var state = ref windows.Array[i];
+
+                state.Visible = state.NextVisible;
+                state.NextVisible = false;
+            }
         }
 
         private void MoveToTop(int index)
@@ -120,7 +142,7 @@ namespace Imui.Core
             var state = windows.Array[index];
             windows.RemoveAt(index);
             windows.Add(state);
-            
+
             for (int i = 0; i < windows.Count; ++i)
             {
                 windows.Array[i].Order = i;
@@ -139,14 +161,6 @@ namespace Imui.Core
 
             return -1;
         }
-
-        private ImRect GetNewWindowRect(float width, float height)
-        {
-            var size = new Vector2(width, height);
-            var position = new Vector2((screenSize.x - width) / 2f, (screenSize.y - height) / 2f);
-
-            return new ImRect(position, size);
-        }
     }
 
     public struct ImWindowState
@@ -155,6 +169,9 @@ namespace Imui.Core
         public int Order;
         public string Title;
         public ImRect Rect;
+        public ImRect NextRect;
         public ImWindowFlag Flags;
+        public bool Visible;
+        public bool NextVisible;
     }
 }

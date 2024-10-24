@@ -49,7 +49,7 @@
             bool _MaskEnable;
             float4 _MaskRect;
             float _MaskCornerRadius;
-            float _Contrast;
+            float _InvColorMul;
 
             // simplified signed distance round box from here: https://iquilezles.org/articles/distfunctions2d/ 
             float sdf_round_box(in float2 p, in float2 s, in float r) 
@@ -76,7 +76,7 @@
                     ? 1 - saturate(sdf_round_box(i.vertex.xy - _MaskRect.xy, _MaskRect.zw, _MaskCornerRadius) * 2 + 1)
                     : 1;
                 col *= i.color;
-                col.rgb = ((col.rgb - 0.5f) * (1 - _Contrast)) + 0.5f;
+                col.rgb *= (1 - _InvColorMul);
                 
                 return col;
             }

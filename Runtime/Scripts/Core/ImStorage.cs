@@ -41,10 +41,10 @@ namespace Imui.Core
 
         public ref T Get<T>(uint id, T defaultValue = default) where T : unmanaged
         {
-            return ref *GetRef(id, defaultValue);
+            return ref *GetPtr(id, defaultValue);
         }
         
-        public T* GetRef<T>(uint id, T defaultValue = default) where T : unmanaged
+        public T* GetPtr<T>(uint id, T defaultValue = default) where T : unmanaged
         {
             if (!TryGet(out T* value, out Metadata* metadata, id))
             {
@@ -55,7 +55,7 @@ namespace Imui.Core
             return value;
         }
 
-        public bool TryGetRef<T>(uint id, out T* value) where T : unmanaged
+        public bool TryGetPtr<T>(uint id, out T* value) where T : unmanaged
         {
             var result = TryGet(out value, out var metadata, id);
             if (result)
@@ -74,7 +74,7 @@ namespace Imui.Core
             while ((int)ptr < (int)tail)
             {
                 var metadata = (Metadata*)ptr;
-                var blockSize = sizeof(Metadata) + metadata->Size;
+                var blockSize = sizeof(Metadata) + Align(metadata->Size);
                 
                 if ((metadata->Flag & Flag.Used) != 0)
                 {
@@ -101,7 +101,7 @@ namespace Imui.Core
             Assert.IsTrue(sizeof(T) <= byte.MaxValue);
             
             var size = (byte)sizeof(T);
-            if (((int)tail - (int)data + size + sizeof(Metadata)) >= capacity)
+            if (((int)tail - (int)data + Align(size) + sizeof(Metadata)) >= capacity)
             {
                 Grow();
             }
@@ -116,9 +116,9 @@ namespace Imui.Core
             var ptr = (void*)tail;
             
             SetMetaAndValue(ptr, ref metadata, ref value);
-            tail += size + sizeof(Metadata);
+            tail += sizeof(Metadata) + Align(size);
             
-            return GetValueRef<T>(ptr);
+            return GetValuePtr<T>(ptr);
         }
 
         private bool TryGet<T>(out T* value, out Metadata* metadata, uint id) where T: unmanaged
@@ -132,11 +132,11 @@ namespace Imui.Core
 
                 if (metadata->Id != id || metadata->Size != size)
                 {
-                    ptr += sizeof(Metadata) + metadata->Size;
+                    ptr += sizeof(Metadata) + Align(metadata->Size);
                     continue;
                 }
 
-                value = GetValueRef<T>((void*)ptr);
+                value = GetValuePtr<T>((void*)ptr);
                 return true;
             }
 
@@ -165,7 +165,7 @@ namespace Imui.Core
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private T* GetValueRef<T>(void* ptr) where T : unmanaged
+        private T* GetValuePtr<T>(void* ptr) where T : unmanaged
         {
             return (T*)((byte*)ptr + sizeof(Metadata));
         }
@@ -175,6 +175,11 @@ namespace Imui.Core
         {
             *(Metadata*)ptr = metadata;
             *(T*)((byte*)ptr + sizeof(Metadata)) = value;
+        }
+        
+        private static byte Align(byte size)
+        {
+            return (byte)(sizeof(IntPtr) * ((size + sizeof(IntPtr) - 1) / sizeof(IntPtr)));
         }
         
         public void Dispose()

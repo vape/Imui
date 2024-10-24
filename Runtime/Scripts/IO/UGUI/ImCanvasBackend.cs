@@ -11,21 +11,17 @@ namespace Imui.IO.UGUI
 {
     [RequireComponent(typeof(CanvasRenderer))]
     [ExecuteAlways]
-    public class ImCanvasBackend : Graphic, 
-        IImRenderingBackend, 
-        IImInputBackend, 
-        IPointerDownHandler, 
-        IPointerUpHandler, 
-        IDragHandler, 
-        IBeginDragHandler, 
-        IScrollHandler
+    public class ImCanvasBackend : Graphic, IImRenderingBackend, IImInputBackend, IPointerDownHandler, IPointerUpHandler, IDragHandler, IBeginDragHandler,
+                                   IScrollHandler
     {
         private const int COMMAND_BUFFER_POOL_INITIAL_SIZE = 2;
         private const int MOUSE_EVENTS_QUEUE_SIZE = 4;
         private const int KEYBOARD_EVENTS_QUEUE_SIZE = 16;
-        
+
         private const float HELD_DOWN_DELAY = 0.2f;
-        
+        private const float MULTI_CLICK_TIME_THRESHOLD = 0.2f;
+        private const float MULTI_CLICK_POS_THRESHOLD = 20.0f;
+
         private static Texture2D ClearTexture;
         private static readonly Vector3[] TempBuffer = new Vector3[4];
 
@@ -33,7 +29,7 @@ namespace Imui.IO.UGUI
         public ref readonly ImMouseEvent MouseEvent => ref mouseEvent;
         public ref readonly ImTextEvent TextEvent => ref textEvent;
         public int KeyboardEventsCount => keyboardEvents.Count;
-        
+
         public override Texture mainTexture => textureRenderer?.Texture == null ? ClearTexture : textureRenderer.Texture;
 
         private ImInputRaycaster raycaster;
@@ -48,21 +44,23 @@ namespace Imui.IO.UGUI
         private ImTextEvent textEvent;
         private ImTouchKeyboard touchKeyboardHandler;
         private bool elementHovered;
-        
+
         private bool mouseHeldDown;
-        private float mouseDownTime;
-        
+        private float[] mouseDownTime = new float[3];
+        private int[] mouseDownCount = new int[3];
+        private Vector2[] mouseDownPos = new Vector2[3];
+
         protected override void Awake()
         {
             base.Awake();
-            
+
             useGUILayout = false;
         }
-        
+
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            
+
             if (textureRenderer != null)
             {
                 textureRenderer.Dispose();
@@ -79,7 +77,7 @@ namespace Imui.IO.UGUI
         protected override void OnEnable()
         {
             base.OnEnable();
-            
+
             if (ClearTexture == null)
             {
                 ClearTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
@@ -129,7 +127,7 @@ namespace Imui.IO.UGUI
 
             return raycaster(sp.x / scale, sp.y / scale);
         }
-        
+
         public ref readonly ImKeyboardEvent GetKeyboardEvent(int index)
         {
             if (index < 0 || index >= keyboardEvents.Count)
@@ -146,7 +144,7 @@ namespace Imui.IO.UGUI
             {
                 throw new IndexOutOfRangeException($"Event at {index} is out of range");
             }
-            
+
             keyboardEvents.Set(index, default);
         }
 
@@ -164,7 +162,7 @@ namespace Imui.IO.UGUI
         {
             this.scale = scale;
         }
-        
+
         public void Pull()
         {
 #if UNITY_EDITOR
@@ -173,15 +171,20 @@ namespace Imui.IO.UGUI
                 return;
             }
 #endif
+            var mouseBtnLeft = (int)PointerEventData.InputButton.Left;
+
             mousePosition = GetMousePosition();
-            
+
             if (mouseEventsQueue.TryPopBack(out var queuedMouseEvent))
             {
                 mouseEvent = queuedMouseEvent;
             }
-            else if (mouseHeldDown && (Time.unscaledTime - mouseDownTime) > HELD_DOWN_DELAY)
+            else if (mouseHeldDown && (Time.unscaledTime - mouseDownTime[mouseBtnLeft]) > HELD_DOWN_DELAY)
             {
-                mouseEvent = new ImMouseEvent(ImMouseEventType.Held, 0, EventModifiers.None, new Vector2(Time.unscaledTime - mouseDownTime, 0));
+                var delta = new Vector2(Time.unscaledTime - mouseDownTime[mouseBtnLeft], 0);
+                var count = mouseDownCount[mouseBtnLeft];
+
+                mouseEvent = new ImMouseEvent(ImMouseEventType.Hold, mouseBtnLeft, EventModifiers.None, delta, count);
             }
             else
             {
@@ -190,10 +193,10 @@ namespace Imui.IO.UGUI
 
             (nextKeyboardEvents, keyboardEvents) = (keyboardEvents, nextKeyboardEvents);
             nextKeyboardEvents.Clear();
-            
+
             touchKeyboardHandler.HandleTouchKeyboard(out textEvent);
         }
-        
+
         public Vector2 GetMousePosition()
         {
             return ((Vector2)Input.mousePosition - GetScreenRect().position) / scale;
@@ -215,24 +218,36 @@ namespace Imui.IO.UGUI
             ImKeyboardEventsUtility.TryParse(evt, ref nextKeyboardEvents);
         }
 
-        
+
         public void OnPointerDown(PointerEventData eventData)
         {
             // (artem-s): with touch input, defer down event one frame so controls first could understand they are hovered
             // before processing actual click
-            
+
             if (IsTouchSupported() && IsTouchBegan())
             {
                 mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
             }
 
+            var btn = (int)eventData.button;
+            var pos = GetMousePosition();
+
+            if (Time.unscaledTime - mouseDownTime[btn] >= MULTI_CLICK_TIME_THRESHOLD || (pos - mouseDownPos[btn]).magnitude >= MULTI_CLICK_POS_THRESHOLD)
+            {
+                mouseDownCount[btn] = 0;
+            }
+
+            mouseDownPos[btn] = pos;
+            mouseDownCount[btn] += 1;
+            mouseDownTime[btn] = Time.unscaledTime;
+
             if (eventData.button == PointerEventData.InputButton.Left)
             {
                 mouseHeldDown = true;
-                mouseDownTime = Time.unscaledTime;
             }
-            
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
+
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale,
+                mouseDownCount[btn]));
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -256,26 +271,32 @@ namespace Imui.IO.UGUI
         public void OnScroll(PointerEventData eventData)
         {
             mouseHeldDown = false;
-            var delta = new Vector2(eventData.scrollDelta.x, -eventData.scrollDelta.y);
+
+            var dx = eventData.scrollDelta.x;
+            var dy = eventData.scrollDelta.y;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // (artem-s): I fucking hate web
+            dx = dx / 3.0f;
+            dy = dy / 3.0f;
+#endif
+
+            var delta = new Vector2(dx, -dy);
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Scroll, (int)eventData.button, EventModifiers.None, delta));
         }
-        
+
         public Rect GetScreenRect()
         {
             var cam = canvas.worldCamera;
-            
+
             rectTransform.GetWorldCorners(TempBuffer);
 
             var screenBottomLeft = RectTransformUtility.WorldToScreenPoint(cam, TempBuffer[0]);
             var screenTopRight = RectTransformUtility.WorldToScreenPoint(cam, TempBuffer[2]);
 
-            return new Rect(
-                screenBottomLeft.x, 
-                screenBottomLeft.y, 
-                screenTopRight.x - screenBottomLeft.x, 
-                screenTopRight.y - screenBottomLeft.y);
+            return new Rect(screenBottomLeft.x, screenBottomLeft.y, screenTopRight.x - screenBottomLeft.x, screenTopRight.y - screenBottomLeft.y);
         }
-        
+
         private bool IsTouchSupported()
         {
 #if UNITY_EDITOR
@@ -283,7 +304,7 @@ namespace Imui.IO.UGUI
 #else
             var isRunningInDeviceSimulator = false;
 #endif
-            
+
             return isRunningInDeviceSimulator || Input.touchSupported;
         }
 
@@ -291,7 +312,7 @@ namespace Imui.IO.UGUI
         {
             var touches = Input.touches;
             var count = Input.touchCount;
-            
+
             for (int i = 0; i < count; ++i)
             {
                 if (touches[i].phase == TouchPhase.Began)
@@ -302,16 +323,13 @@ namespace Imui.IO.UGUI
 
             return false;
         }
-        
+
         CommandBuffer IImRenderingBackend.CreateCommandBuffer()
         {
             if (commandBufferPool.Count == 0)
             {
-                var cmd = new CommandBuffer()
-                {
-                    name = "Imui Canvas Backend"
-                };
-                
+                var cmd = new CommandBuffer() { name = "Imui Canvas Backend" };
+
                 commandBufferPool.Add(cmd);
             }
 
@@ -323,7 +341,7 @@ namespace Imui.IO.UGUI
             cmd.Clear();
             commandBufferPool.Add(cmd);
         }
-        
+
         Vector2Int IImRenderingBackend.SetupRenderTarget(CommandBuffer cmd)
         {
             var rect = GetScreenRect();

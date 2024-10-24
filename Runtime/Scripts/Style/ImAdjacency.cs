@@ -1,6 +1,6 @@
 using System;
 
-namespace Imui.Core
+namespace Imui.Style
 {
     [Flags]
     public enum ImAdjacency
@@ -9,10 +9,5 @@ namespace Imui.Core
         Left = 1,
         Right = 2,
         Middle = Left | Right
-    }
-    
-    public struct ImControlSettings
-    {
-        public ImAdjacency Adjacency;
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Imui.Rendering;
 using Imui.Utility;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace Imui.Core
         public Texture MainTex;
         public Texture FontTex;
         public int Order;
-        public float Contrast;
+        public float InvColorMul;
     }
     
     public partial class ImCanvas : IDisposable
@@ -54,6 +55,8 @@ namespace Imui.Core
         private Vector2 screenSize;
         private float screenScale;
         private bool disposed;
+        private ImRect cullingRect;
+        private ImTextClipRect textClipRect;
         
         private readonly ImMeshDrawer meshDrawer;
         private readonly ImTextDrawer textDrawer;
@@ -80,12 +83,15 @@ namespace Imui.Core
             meshDrawer.Clear();
         }
 
-        public void PushSettings(in ImCanvasSettings settings)
+        public void PushSettings(in ImCanvasSettings settings, bool changed = true)
         {
             settingsStack.Push(in settings);
-            meshDrawer.NextMesh();
-            
-            ApplySettings();
+
+            if (changed)
+            {
+                meshDrawer.NextMesh();
+                ApplySettings();
+            }
         }
         
         public void PopSettings()
@@ -136,25 +142,34 @@ namespace Imui.Core
             mesh.Order = settings.Order;
             mesh.ClipRect = settings.ClipRect;
             mesh.MaskRect = settings.MaskRect;
-            mesh.Contrast = settings.Contrast;
-        }
+            mesh.InvColorMul = settings.InvColorMul;
 
-        public bool Cull(ImRect rect)
+            cullingRect = CalculateCullRect();
+            textClipRect = new ImTextClipRect(cullingRect.Left, cullingRect.Right, cullingRect.Top, cullingRect.Bottom);
+        }
+        
+        private ImRect CalculateCullRect()
         {
-            var r = (Rect)rect;
+            var result = ScreenRect;
             
             ref var settings = ref settingsStack.Peek();
-            if (settings.ClipRect.Enabled && !settings.ClipRect.Rect.Overlaps(r))
+            if (settings.ClipRect.Enabled)
             {
-                return true;
+                result = result.Intersection((ImRect)settings.ClipRect.Rect);
             }
 
-            if (settings.MaskRect.Enabled && !settings.MaskRect.Rect.Overlaps(r))
+            if (settings.MaskRect.Enabled)
             {
-                return true;
+                result = result.Intersection((ImRect)settings.MaskRect.Rect);
             }
 
-            return !ScreenRect.Overlaps(rect);
+            return result;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Cull(ImRect rect)
+        {
+            return !cullingRect.Overlaps(rect);
         }
 
         public void Circle(Vector2 position, float radius, Color32 color)
@@ -237,13 +252,6 @@ namespace Imui.Core
             return thickness + (1 - pixelWidth) / screenScale;
         }
 
-        public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, float size, int line = 0)
-        {
-            textDrawer.Color = color;
-            textDrawer.Depth = DrawingDepth;
-            textDrawer.AddTextLine(text, size / textDrawer.FontRenderSize, position.x, position.y, line);
-        }
-
         public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in ImTextLayout layout)
         {
             var rect = new ImRect(position.x + layout.OffsetX, position.y - layout.Height + layout.OffsetY, layout.Width, layout.Height);
@@ -254,9 +262,10 @@ namespace Imui.Core
             
             textDrawer.Color = color;
             textDrawer.Depth = DrawingDepth;
-            textDrawer.AddTextWithLayout(text, in layout, position.x, position.y);
+            textDrawer.AddTextWithLayout(text, in layout, position.x, position.y, in textClipRect);
         }
 
+        // TODO (artem-s): use few parameters instead of textsettings here and add extension that acceps text settings for convenience
         public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
             ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);
@@ -276,6 +285,22 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
 
+        public void Line(Vector2 p0, Vector2 p1, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        {
+            if (thickness <= 0)
+            {
+                return;
+            }
+            
+            bias = Mathf.Clamp01(bias);
+            
+            meshDrawer.Color = color;
+            meshDrawer.ScaleOffset = TexScaleOffset;
+            meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
+            meshDrawer.Depth = DrawingDepth;
+            meshDrawer.AddLine(stackalloc Vector2[2] { p0, p1 }, closed, thickness, bias, 1.0f - bias);
+        }
+        
         public void Line(ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)

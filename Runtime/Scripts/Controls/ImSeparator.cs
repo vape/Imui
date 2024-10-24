@@ -1,6 +1,6 @@
 using System;
-using Imui.Controls.Styling;
 using Imui.Core;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -11,50 +11,49 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
-            bool vertical;
-            float width;
-            float height;
+            Separator(gui, gui.AddLayoutRect(gui.GetLayoutWidth(), gui.Style.Separator.Thickness));
+        }
+
+        public static void Separator(this ImGui gui, ReadOnlySpan<char> label)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
             
-            if (gui.Layout.Axis == ImAxis.Horizontal)
-            {
-                vertical = true;
-                width = ImTheme.Active.Separator.Thickness;
-                height = gui.Layout.GetContentRect().H;
-            }
-            else
-            {
-                vertical = false;
-                width = gui.GetLayoutWidth();
-                height = ImTheme.Active.Separator.Thickness;
-            }
-            
-            Separator(gui, gui.AddLayoutRect(width, height), vertical);
+            Separator(gui, label, gui.AddLayoutRect(gui.GetLayoutWidth(), gui.Style.Layout.TextSize));
         }
         
-        public static unsafe void Separator(this ImGui gui, ImRect rect, bool horizontal)
+        public static void Separator(ImGui gui, ImRect rect)
         {
-            Vector2 p0;
-            Vector2 p1;
+            var p0 = rect.LeftCenter;
+            var p1 = rect.RightCenter;
             
-            if (horizontal)
-            {
-                p0 = rect.BottomCenter;
-                p1 = rect.TopCenter;
-            }
-            else
-            {
-                p0 = rect.LeftCenter;
-                p1 = rect.RightCenter;
-            }
-
-            Span<Vector2> path = stackalloc Vector2[2] { p0, p1 };
-            gui.Canvas.Line(path, ImTheme.Active.Separator.FrontColor, false, ImTheme.Active.Separator.Thickness);
+            gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
         }
-    }
+        
+        public static void Separator(ImGui gui, ReadOnlySpan<char> label, ImRect rect)
+        {
+            var fontSize = Mathf.Min(gui.Style.Layout.TextSize, gui.TextDrawer.GetFontSizeFromLineHeight(rect.H));
+            var textSettings = new ImTextSettings(fontSize, gui.Style.Separator.TextAlignment);
+            var textRectSize = gui.MeasureTextSize(label, in textSettings, rect.Size);
+            var start = rect.X + (rect.W - textRectSize.x) * gui.Style.Separator.TextAlignment.X;
+            var end = start + textRectSize.x;
+            var textRect = new ImRect(start, rect.Y, end - start, rect.H);
 
-    public struct ImSeparatorStyle
-    {
-        public float Thickness;
-        public Color32 FrontColor;
+            var p0 = rect.LeftCenter;
+            var p1 = new Vector2(start - gui.Style.Separator.TextMargin.Left, rect.Center.y);
+            var p2 = new Vector2(end + gui.Style.Separator.TextMargin.Right, rect.Center.y);
+            var p3 = rect.RightCenter;
+
+            if (p0.x < p1.x)
+            {
+                gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
+            }
+
+            if (p2.x < p3.x)
+            {
+                gui.Canvas.Line(p2, p3, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
+            }
+
+            gui.Text(label, textSettings, gui.Style.Separator.TextColor, textRect);
+        }
     }
 }

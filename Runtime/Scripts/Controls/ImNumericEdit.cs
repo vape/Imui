@@ -1,8 +1,8 @@
 using System;
 using System.Globalization;
-using Imui.Controls.Styling;
 using Imui.Core;
 using Imui.IO.Utility;
+using Imui.Style;
 
 // ReSharper disable BuiltInTypeReferenceStyle
 
@@ -96,11 +96,12 @@ namespace Imui.Controls
 
         private static int PlusMinusButtons(ImGui gui, ref ImRect rect)
         {
+            var border = gui.Style.Button.BorderThickness;
             var height = rect.H;
             var width = height;
 
-            var plusBtnRect = rect.SplitRight(width, out rect);
-            var minusBtnRect = rect.SplitRight(width, out rect);
+            var plusBtnRect = rect.SplitRight(width, -border, out rect);
+            var minusBtnRect = rect.SplitRight(width, -border, out rect);
             var delta = 0;
 
             gui.SetNextAdjacency(ImAdjacency.Middle);

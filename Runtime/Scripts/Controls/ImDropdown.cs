@@ -1,6 +1,6 @@
 using System;
 using Imui.Core;
-using Imui.Controls.Styling;
+using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -15,27 +15,6 @@ namespace Imui.Controls
     public static class ImDropdown
     {
         public static bool BeginDropdown(this ImGui gui,
-                                         bool open,
-                                         ReadOnlySpan<char> label,
-                                         ImSize size = default,
-                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
-        {
-            BeginDropdown(gui, ref open, label, size, preview);
-            return open;
-        }
-
-        public static bool BeginDropdown(this ImGui gui,
-                                         ref bool open,
-                                         ReadOnlySpan<char> label,
-                                         ImSize size = default,
-                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
-        {
-            var id = gui.GetNextControlId();
-
-            return BeginDropdown(gui, id, ref open, label, size, preview);
-        }
-
-        public static bool BeginDropdown(this ImGui gui,
                                          uint id,
                                          ref bool open,
                                          ReadOnlySpan<char> label,
@@ -44,19 +23,26 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = ImControls.AddRowRect(gui, size);
-            var prev = open;
-
+            return BeginDropdown(gui, id, ref open, label, ImControls.AddRowRect(gui, size), preview);
+        }
+        
+        public static bool BeginDropdown(this ImGui gui,
+                                         uint id,
+                                         ref bool open,
+                                         ReadOnlySpan<char> label,
+                                         ImRect rect,
+                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        {
             gui.PushId(id);
             gui.Layout.Push(ImAxis.Horizontal, rect);
-            
+
             if (preview == ImDropdownPreviewType.Arrow)
             {
                 NoPreview(gui, id, ref open);
             }
             else
             {
-                BeginPreview(gui);
+                BeginPreview(gui, id, ref open);
 
                 if (preview == ImDropdownPreviewType.Text)
                 {
@@ -67,10 +53,16 @@ namespace Imui.Controls
                     PreviewButton(gui, id, ref open, label);
                 }
 
-                EndPreview(gui, id, ref open);
+                EndPreview(gui);
             }
 
-            return open != prev;
+            if (!open)
+            {
+                gui.Layout.Pop();
+                gui.PopId();
+            }
+            
+            return open;
         }
 
         public static void EndDropdown(this ImGui gui)
@@ -122,21 +114,24 @@ namespace Imui.Controls
 
             ref var open = ref gui.Storage.Get<bool>(id);
 
-            BeginDropdown(gui, ref open, label, size, preview);
-            if (open && DropdownList(gui, ref selected, items))
+            if (BeginDropdown(gui, id, ref open, label, size, preview))
             {
-                open = false;
+                if (DropdownList(gui, ref selected, items))
+                {
+                    open = false;
+                }
+                
+                EndDropdown(gui);
             }
-            EndDropdown(gui);
 
             return prev != selected;
         }
 
         public static ImRect GetListRect(ImGui gui, ImRect controlRect, int itemsCount = 0)
         {
-            var width = Mathf.Max(controlRect.W, ImTheme.Active.Dropdown.MinListWidth);
-            var itemsHeight = gui.GetRowHeight() * itemsCount + (ImTheme.Active.Controls.ControlsSpacing * Mathf.Max(0, itemsCount - 1));
-            var height = Mathf.Min(ImTheme.Active.Dropdown.MaxListHeight, ImList.GetEnclosingHeight(itemsHeight));
+            var width = Mathf.Max(controlRect.W, gui.Style.Dropdown.MinListWidth);
+            var itemsHeight = gui.GetRowHeight() * itemsCount + (gui.Style.Layout.Spacing * Mathf.Max(0, itemsCount - 1));
+            var height = Mathf.Min(gui.Style.Dropdown.MaxListHeight, ImList.GetEnclosingHeight(gui, itemsHeight));
             var x = controlRect.X;
             var y = controlRect.Y - height;
 
@@ -155,32 +150,29 @@ namespace Imui.Controls
         public static void EndList(ImGui gui, out bool closeClicked)
         {
             gui.EndList();
-            gui.EndPopup(out closeClicked);
+            gui.EndPopupWithCloseButton(out closeClicked);
         }
 
-        public static void BeginPreview(ImGui gui)
+        public static void BeginPreview(ImGui gui, uint id, ref bool open)
         {
+            var borderWidth = gui.Style.Dropdown.Button.BorderThickness;
             var wholeRect = gui.Layout.GetBoundsRect();
             var arrowWidth = GetArrowWidth(wholeRect.W, wholeRect.H);
-            wholeRect.SplitRight(arrowWidth, out var previewRect);
-
-            gui.Layout.Push(ImAxis.Horizontal, previewRect);
-            gui.SetNextAdjacency(ImAdjacency.Left);
-        }
-
-        public static void EndPreview(ImGui gui, uint id, ref bool open)
-        {
-            gui.Layout.Pop();
-
-            var wholeRect = gui.Layout.GetBoundsRect();
-            var buttonRect = wholeRect.SplitRight(GetArrowWidth(wholeRect.W, wholeRect.H), out _);
+            var buttonRect = wholeRect.SplitRight(arrowWidth, -borderWidth, out var previewRect);
 
             gui.SetNextAdjacency(ImAdjacency.Right);
-
             if (ArrowButton(gui, id, buttonRect))
             {
                 open = !open;
             }
+            
+            gui.Layout.Push(ImAxis.Horizontal, previewRect);
+            gui.SetNextAdjacency(ImAdjacency.Left);
+        }
+
+        public static void EndPreview(ImGui gui)
+        {
+            gui.Layout.Pop();
         }
 
         public static void NoPreview(ImGui gui, uint id, ref bool open)
@@ -193,8 +185,7 @@ namespace Imui.Controls
         
         public static void PreviewButton(ImGui gui, uint id, ref bool open, ReadOnlySpan<char> label)
         {
-            using var _ = new ImStyleScope<ImButtonStyle>(ref ImTheme.Active.Button);
-            ImTheme.Active.Button.Alignment = ImTheme.Active.Dropdown.Alignment;
+            using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button);
 
             if (gui.Button(id, label, gui.Layout.GetBoundsRect()))
             {
@@ -209,17 +200,18 @@ namespace Imui.Controls
 
         public static bool ArrowButton(ImGui gui, uint id, ImRect rect)
         {
-            var clicked = gui.Button(id, rect, out var state);
-
-            rect = rect.WithAspect(1.0f).ScaleFromCenter(ImTheme.Active.Dropdown.ArrowScale).WithAspect(1.1547f);
-
-            Span<Vector2> points = stackalloc Vector2[3]
+            bool clicked;
+            
+            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
             {
-                new Vector2(rect.X + rect.W * 0.5f, rect.Y), new Vector2(rect.X + rect.W, rect.Y + rect.H), new Vector2(rect.X, rect.Y + rect.H),
-            };
-
-            gui.Canvas.ConvexFill(points, ImButton.GetStateFontColor(state));
-
+                clicked = gui.Button(id, rect, out var state);
+                
+                rect = rect.WithAspect(1.0f);
+                rect = rect.ScaleFromCenter(gui.Style.Layout.TextSize / rect.W);
+                
+                ImFoldout.DrawArrowDown(gui.Canvas, rect, ImButton.GetStateFrontColor(gui, state), gui.Style.Dropdown.ArrowScale);
+            }
+            
             return clicked;
         }
 
@@ -227,14 +219,5 @@ namespace Imui.Controls
         {
             return Mathf.Min(controlWidth * 0.5f, controlHeight);
         }
-    }
-
-    [Serializable]
-    public struct ImDropdownStyle
-    {
-        public float ArrowScale;
-        public ImTextAlignment Alignment;
-        public float MaxListHeight;
-        public float MinListWidth;
     }
 }
