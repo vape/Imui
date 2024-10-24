@@ -1,36 +1,19 @@
-### 0.4
-- ~~Handle double clicks in ImTextEdit to select words~~
-- ~~__Word__ wrapping~~
-- ~~Optimize layout and rendering~~
-- ~~Simplify styling and fix the current themes as they look kinda ugly~~
-- ~~Make slider looking similar to sliders in other GUI libraries, dearimgui look seems off~~
-- ~~Implement tooltips on mouse hover~~
-- ~~Fix that 2px border in adjacent controls~~
-- ~~Closeable windows~~
-- ~~Menu Control~~
-- ~~Pushing same InvColorMul as current should not result in additional draw call~~ 
-- ~~No control should not modify passed value unless user interacts with it~~
-  - ~~Slider~~
-- ~~Separator with label~~
-- ~~Control scopes~~
-- ~~Fix memory alignment~~
-  - ~~In ImStorage~~
-  - ~~In ImArena~~
-
 ### 0.5
-- Implement style sheet generation using palettes which derived from theme
+- Implement style sheet generation using palettes
+- Color picker
+- Theme editor
 - Implement table layout
 - Implement tabs
-- Rich text
 - Plotting control
-- In code documentation
-- Handle windows moving/resizing better
-  - Do not allow to resize to negative values
+- Polishing
+  - Do not allow to resize windows to negative values
   - Text truncation
   - Do not allow to move title bar outside screen rect
   - Controls should have their own reasonable minimal size
-- Color picker
-- Theme editor
+
+### 0.6
+- In code documentation
+- Rich text
 
 ### Maybe
 - Fix touch keyboard in webgl
@@ -43,3 +26,22 @@
 - Property drawers, like in Unity's IMGUI
 - Show min/max value inside slider
 - Implement slider inside numeric editor
+- 
+### 0.4
+- ~~Handle double clicks in ImTextEdit to select words~~
+- ~~__Word__ wrapping~~
+- ~~Optimize layout and rendering~~
+- ~~Simplify styling and fix the current themes as they look kinda ugly~~
+- ~~Make slider looking similar to sliders in other GUI libraries, dearimgui look seems off~~
+- ~~Implement tooltips on mouse hover~~
+- ~~Fix that 2px border in adjacent controls~~
+- ~~Closeable windows~~
+- ~~Menu Control~~
+- ~~Pushing same InvColorMul as current should not result in additional draw call~~
+- ~~No control should not modify passed value unless user interacts with it~~
+  - ~~Slider~~
+- ~~Separator with label~~
+- ~~Control scopes~~
+- ~~Fix memory alignment~~
+  - ~~In ImStorage~~
+  - ~~In ImArena~~
