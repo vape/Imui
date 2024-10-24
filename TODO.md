@@ -1,21 +1,18 @@
-### 0.5
+### TODO
 - Implement style sheet generation using palettes
 - Color picker
 - Theme editor
 - Implement table layout
 - Implement tabs
 - Plotting control
-- Polishing
-  - Do not allow to resize windows to negative values
-  - Text truncation
-  - Do not allow to move title bar outside screen rect
-  - Controls should have their own reasonable minimal size
-
-### 0.6
+- Do not allow to resize windows to negative values
+- Text truncation
+- Do not allow to move title bar outside screen rect
+- Controls should have their own reasonable minimal size
 - In code documentation
 - Rich text
 
-### Maybe
+### Later
 - Fix touch keyboard in webgl
   - Apparently, it is bug in unity that prevents touchkeybaord to open in WebGL builds in versions prior to 2022.1 https://discussions.unity.com/t/touch-screen-keyboard-in-web-gl/892662/18 
 - Reorder demo controls from basic to more advanced
@@ -26,7 +23,7 @@
 - Property drawers, like in Unity's IMGUI
 - Show min/max value inside slider
 - Implement slider inside numeric editor
-- 
+
 ### 0.4
 - ~~Handle double clicks in ImTextEdit to select words~~
 - ~~__Word__ wrapping~~

@@ -4,7 +4,7 @@ Immediate mode GUI framework made specifically for Unity. Written in pure C#, ha
 
 ## Screenshot
 
-![Screenshot](https://raw.githubusercontent.com/vape/Imui/screenshots/Screenshots/screenshot_1.png)
+![Screenshot](https://raw.githubusercontent.com/vape/Imui/screenshots/Screenshots/screenshot_2.png)
 
 ## How it works
 
@@ -16,7 +16,7 @@ You can install Imui as a git package in Unity Package Manager
 
 ## Styling
 
-Dark and light themes are supported, check out demo [here](https://vape.github.io/imui_demo_030/).
+Dark and light themes are supported, check out demo [here](https://vape.github.io/imui_demo_040/).
 
 ## Supported Controls
 
@@ -34,6 +34,8 @@ Dark and light themes are supported, check out demo [here](https://vape.github.i
 * Tree
 * Radio Group
 * Listbox
+* Menu
+* Tooltip
 
 ## Layout
 
