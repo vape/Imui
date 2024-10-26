@@ -161,7 +161,7 @@ namespace Imui.Controls
             var buttonRect = wholeRect.SplitRight(arrowWidth, -borderWidth, out var previewRect);
 
             gui.SetNextAdjacency(ImAdjacency.Right);
-            if (ArrowButton(gui, id, buttonRect))
+            if (ArrowButton(gui, id, buttonRect, ImAdjacency.Right))
             {
                 open = !open;
             }
@@ -177,7 +177,7 @@ namespace Imui.Controls
 
         public static void NoPreview(ImGui gui, uint id, ref bool open)
         {
-            if (ArrowButton(gui, id, gui.Layout.GetBoundsRect()))
+            if (ArrowButton(gui, id, gui.Layout.GetBoundsRect(), ImAdjacency.None))
             {
                 open = !open;
             }
@@ -187,7 +187,7 @@ namespace Imui.Controls
         {
             using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button);
 
-            if (gui.Button(id, label, gui.Layout.GetBoundsRect()))
+            if (gui.Button(id, label, gui.Layout.GetBoundsRect(), adjacency: ImAdjacency.Left))
             {
                 open = !open;
             }
@@ -198,13 +198,13 @@ namespace Imui.Controls
             gui.TextEditReadonly(label, gui.Layout.GetBoundsRect(), false);
         }
 
-        public static bool ArrowButton(ImGui gui, uint id, ImRect rect)
+        public static bool ArrowButton(ImGui gui, uint id, ImRect rect, ImAdjacency adjacency)
         {
             bool clicked;
             
             using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
             {
-                clicked = gui.Button(id, rect, out var state);
+                clicked = gui.Button(id, rect, out var state, adjacency: adjacency);
                 
                 rect = rect.WithAspect(1.0f);
                 rect = rect.ScaleFromCenter(gui.Style.Layout.TextSize / rect.W);

@@ -221,7 +221,7 @@ namespace Imui.Controls.Windows
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
-            gui.FloatEdit(ref floatValue, format: "0.00#####", step: showPlusMinusButtons ? 0.01f : 0.0f);
+            gui.NumericEdit(ref floatValue, format: "0.00#####", step: showPlusMinusButtons ? 0.05f : 0.0f);
             gui.EndHorizontal();
             gui.Text(Format(" floatValue = ", floatValue, "0.0######"));
             gui.EndHorizontal();
@@ -229,7 +229,7 @@ namespace Imui.Controls.Windows
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
-            gui.IntEdit(ref intValue, step: showPlusMinusButtons ? 1 : 0);
+            gui.NumericEdit(ref intValue, step: showPlusMinusButtons ? 1 : 0);
             gui.EndHorizontal();
             gui.Text(Format(" intValue = ", intValue));
             gui.EndHorizontal();

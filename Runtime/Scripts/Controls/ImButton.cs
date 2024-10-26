@@ -50,17 +50,28 @@ namespace Imui.Controls
 
         public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flags = ImButtonFlag.None)
         {
-            return Button(gui, gui.GetNextControlId(), label, rect, out _, flags);
+            var id = gui.GetNextControlId();
+            var adjacency = gui.GetNextControlSettings().Adjacency;
+
+            return Button(gui, id, label, rect, out _, flags, adjacency);
         }
 
         public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flags = ImButtonFlag.None)
         {
-            return Button(gui, gui.GetNextControlId(), rect, out state, flags);
+            var id = gui.GetNextControlId();
+            var adjacency = gui.GetNextControlSettings().Adjacency;
+            
+            return Button(gui, id, rect, out state, flags, adjacency);
         }
 
-        public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)
+        public static bool Button(this ImGui gui,
+                                  uint id,
+                                  ReadOnlySpan<char> label,
+                                  ImRect rect,
+                                  ImButtonFlag flag = ImButtonFlag.None,
+                                  ImAdjacency adjacency = default)
         {
-            return Button(gui, id, label, rect, out _, flag);
+            return Button(gui, id, label, rect, out _, flag, adjacency);
         }
 
         public static bool Button(this ImGui gui,
@@ -68,9 +79,10 @@ namespace Imui.Controls
                                   ReadOnlySpan<char> label,
                                   ImRect rect,
                                   out ImButtonState state,
-                                  ImButtonFlag flag = ImButtonFlag.None)
+                                  ImButtonFlag flag = ImButtonFlag.None,
+                                  ImAdjacency adjacency = default)
         {
-            var clicked = Button(gui, id, rect, out state, flag);
+            var clicked = Button(gui, id, rect, out state, flag, adjacency);
             var textSettings = CreateTextSettings(gui);
             var textColor = GetStateFrontColor(gui, state);
             var textRect = CalculateContentRect(gui, rect);
@@ -80,12 +92,16 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static bool Button(this ImGui gui, uint id, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
+        public static bool Button(this ImGui gui,
+                                  uint id,
+                                  ImRect rect,
+                                  out ImButtonState state,
+                                  ImButtonFlag flag = ImButtonFlag.None,
+                                  ImAdjacency adjacency = default)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             var clicked = false;
-            var adjacency = gui.GetNextControlSettings().Adjacency;
 
             gui.RegisterControl(id, rect);
 
