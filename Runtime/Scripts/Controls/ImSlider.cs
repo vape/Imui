@@ -79,8 +79,6 @@ namespace Imui.Controls
                                   float step = 0,
                                   ImSliderFlag flags = ImSliderFlag.None)
         {
-            const float EPSILON = 0.000001f;
-
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);

@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using Imui.Core;
+using Imui.IO.Events;
 using Imui.IO.Utility;
 using Imui.Style;
 
@@ -11,7 +12,9 @@ namespace Imui.Controls
     [Flags]
     public enum ImNumericEditFlag
     {
-        None = 0
+        None = 0,
+        PlusMinus = 1,
+        Slider = 2
     }
     
     public static class ImNumericEdit
@@ -204,6 +207,40 @@ namespace Imui.Controls
                                                  T max,
                                                  ImNumericEditFlag flags)
         {
+            var delta = 0.0d;
+            var textEditActive = gui.IsControlActive(id);
+            var useSlider = (flags & ImNumericEditFlag.Slider) != 0;
+            var usePlusMinusButtons = !useSlider && (flags & ImNumericEditFlag.PlusMinus) != 0;
+            
+            if (!textEditActive && useSlider)
+            {
+                gui.PushId(id);
+                var sId = gui.GetNextControlId();
+                ref readonly var evt = ref gui.Input.MouseEvent;
+                // when double clicking, pass control to text editor
+                if (evt.Type != ImMouseEventType.Down || evt.Count < 2)
+                {
+                    var sMin = filter.AsDouble(min);
+                    var sMax = filter.AsDouble(max);
+                    var sDelta = NumericSlider(gui, id, sId, sMin, sMax, step, rect);
+                    
+                    if (filter.IsInteger)
+                    {
+                        sDelta = Math.Round(sDelta);
+                    }
+                    
+                    delta += sDelta;
+                }
+                gui.PopId();
+            }
+            
+            if (usePlusMinusButtons)
+            {
+                gui.PushId(id);
+                delta = PlusMinusButtons(gui, ref rect) * step;
+                gui.PopId();
+            }
+            
             var buffer = new ImTextEditBuffer();
             buffer.MakeMutable();
 
@@ -216,15 +253,9 @@ namespace Imui.Controls
                 buffer.Insert(0, filter.GetFallbackString());
             }
 
-            var delta = 0.0d;
-
-            if (step != 0)
-            {
-                delta = PlusMinusButtons(gui, ref rect) * step;
-                gui.SetNextAdjacency(ImAdjacency.Left);
-            }
-
-            var changed = gui.TextEdit(id, ref buffer, rect, false, filter);
+            var adjacency = usePlusMinusButtons ? ImAdjacency.Left : ImAdjacency.None;
+            var changed = gui.TextEdit(id, ref buffer, rect, false, filter, adjacency);
+            
             if (changed && filter.TryParse(buffer, out var newValue))
             {
                 value = newValue;
@@ -233,6 +264,7 @@ namespace Imui.Controls
             if (delta != 0)
             {
                 value = filter.Add(value, delta);
+                changed = true;
             }
 
             if (changed)
@@ -267,6 +299,38 @@ namespace Imui.Controls
 
             return delta;
         }
+        
+        public static double NumericSlider(ImGui gui, uint hoveredId, uint id, double min, double max, double step, ImRect rect)
+        {
+            var hovered = gui.IsControlHovered(hoveredId);
+            var active = gui.IsControlActive(id);
+            var delta = 0.0d;
+            
+            gui.RegisterControl(id, rect);
+
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            switch (evt.Type)
+            {
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    gui.Input.UseMouseEvent();
+                    break;
+
+                case ImMouseEventType.Drag when active:
+                    if (evt.Delta.x != 0)
+                    {
+                        delta = step == 0 ? Math.Min(max - min, rect.W) * evt.Delta.x / rect.W : step * Math.Sign(evt.Delta.x);
+                    }
+                    gui.Input.UseMouseEvent();
+                    break;
+
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
+                    break;
+            }
+            
+            return delta;
+        }
 
         public abstract class NumericFilter<T> : ImTextEditFilter
         {
@@ -296,6 +360,9 @@ namespace Imui.Controls
                 return TryParseNonEmpty(in buffer, out value);
             }
 
+            public virtual bool IsInteger => true;
+
+            public abstract double AsDouble(T value);
             public abstract T Add(T value0, double value1);
             public abstract T Clamp(T value, T min, T max);
             public abstract bool TryParseNonEmpty(in ReadOnlySpan<char> buffer, out T value);
@@ -319,6 +386,7 @@ namespace Imui.Controls
 
         public sealed class ByteFilter : NumericFilter<Byte>
         {
+            public override double AsDouble(byte value) => value;
             public override Byte Add(Byte value0, double value1) => (Byte)Add(value0, value1, Byte.MinValue, Byte.MaxValue);
             public override Byte Clamp(Byte value, Byte min, Byte max) => value > max ? max : value < min ? min : value;
 
@@ -331,6 +399,7 @@ namespace Imui.Controls
 
         public sealed class Int16Filter : NumericFilter<Int16>
         {
+            public override double AsDouble(Int16 value) => value;
             public override Int16 Add(Int16 value0, double value1) => (Int16)Add(value0, value1, byte.MinValue, byte.MaxValue);
             public override Int16 Clamp(Int16 value, Int16 min, Int16 max) => value > max ? max : value < min ? min : value;
 
@@ -343,6 +412,7 @@ namespace Imui.Controls
 
         public sealed class Int32Filter : NumericFilter<Int32>
         {
+            public override double AsDouble(Int32 value) => value;
             public override Int32 Add(Int32 value0, double value1) => (Int32)Add(value0, value1, Int32.MinValue, Int32.MaxValue);
             public override Int32 Clamp(Int32 value, Int32 min, Int32 max) => value > max ? max : value < min ? min : value;
 
@@ -355,6 +425,7 @@ namespace Imui.Controls
 
         public sealed class Int64Filter : NumericFilter<Int64>
         {
+            public override double AsDouble(Int64 value) => value;
             public override Int64 Add(Int64 value0, double value1) => (Int64)Add(value0, value1, Int64.MinValue, Int64.MaxValue);
             public override Int64 Clamp(Int64 value, Int64 min, Int64 max) => value > max ? max : value < min ? min : value;
 
@@ -367,6 +438,9 @@ namespace Imui.Controls
 
         public sealed class SingleFilter : NumericFilter<Single>
         {
+            public override bool IsInteger => false;
+            
+            public override double AsDouble(Single value) => value;
             public override Single Add(Single value0, double value1) => (Single)Add(value0, value1, Single.MinValue, Single.MaxValue);
             public override Single Clamp(Single value, Single min, Single max) => value > max ? max : value < min ? min : value;
 
@@ -377,11 +451,14 @@ namespace Imui.Controls
             }
 
             public override bool TryFormat(Span<char> buffer, Single value, out int length, ReadOnlySpan<char> format) =>
-                value.TryFormat(buffer, out length, format);
+                value.TryFormat(buffer, out length, format.IsEmpty ? "G" : format);
         }
 
         public sealed class DoubleFilter : NumericFilter<Double>
         {
+            public override bool IsInteger => false;
+            
+            public override double AsDouble(Double value) => value;
             public override Double Add(Double value0, double value1) => (Double)Add(value0, value1, Double.MinValue, Double.MaxValue);
             public override Double Clamp(Double value, Double min, Double max) => value > max ? max : value < min ? min : value;
 
@@ -392,7 +469,7 @@ namespace Imui.Controls
             }
 
             public override bool TryFormat(Span<char> buffer, Double value, out int length, ReadOnlySpan<char> format) =>
-                value.TryFormat(buffer, out length, format);
+                value.TryFormat(buffer, out length, format.IsEmpty ? "G" : format);
         }
     }
 }

@@ -75,6 +75,7 @@ namespace Imui.Controls.Windows
         private static int clicks;
         private static int nestedFoldouts;
         private static bool showPlusMinusButtons = true;
+        private static bool useNumericSlider = false;
         private static ImDemoEnumFlags demoFlags;
 
         private static bool selectMultipleValues = false;
@@ -216,12 +217,19 @@ namespace Imui.Controls.Windows
             gui.EndList();
 
             gui.Separator("Numeric editors");
-            gui.Checkbox(ref showPlusMinusButtons, "Show +/-");
+            gui.BeginReadOnly(useNumericSlider);
+            gui.Checkbox(ref showPlusMinusButtons, "Enable Plus/Minus buttons");
+            gui.EndReadOnly();
+            gui.Checkbox(ref useNumericSlider, "Enable Slider");
+            
+            var numericFlag = ImNumericEditFlag.None;
+            numericFlag |= showPlusMinusButtons ? ImNumericEditFlag.PlusMinus : ImNumericEditFlag.None;
+            numericFlag |= useNumericSlider ? ImNumericEditFlag.Slider : ImNumericEditFlag.None;
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
-            gui.NumericEdit(ref floatValue, format: "0.00#####", step: showPlusMinusButtons ? 0.05f : 0.0f);
+            gui.NumericEdit(ref floatValue, step: 0.05f, flags: numericFlag);
             gui.EndHorizontal();
             gui.Text(Format(" floatValue = ", floatValue, "0.0######"));
             gui.EndHorizontal();
@@ -229,7 +237,7 @@ namespace Imui.Controls.Windows
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
-            gui.NumericEdit(ref intValue, step: showPlusMinusButtons ? 1 : 0);
+            gui.NumericEdit(ref intValue, flags: numericFlag);
             gui.EndHorizontal();
             gui.Text(Format(" intValue = ", intValue));
             gui.EndHorizontal();
