@@ -7,12 +7,12 @@ namespace Imui.Controls
     // TODO (artem-s): implement table layout helper
     public static class ImControls
     {
-        public static ImRect AddRowRect(ImGui gui, ImSize size)
+        public static ImRect AddRowRect(ImGui gui, ImSize size, float minWidth = 0)
         {
             return size.Mode switch
             {
                 ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
-                _ => gui.Layout.AddRect(gui.Layout.GetAvailableWidth(), gui.GetRowHeight())
+                _ => gui.Layout.AddRect(Mathf.Max(minWidth, gui.Layout.GetAvailableWidth()), gui.GetRowHeight())
             };
         }
         

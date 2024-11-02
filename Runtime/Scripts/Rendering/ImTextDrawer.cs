@@ -212,7 +212,7 @@ namespace Imui.Rendering
 
         public void AddTextWithLayout(ReadOnlySpan<char> text, in ImTextLayout layout, float x, float y, in ImTextClipRect clipRect)
         {
-            Profiler.BeginSample("TextDrawer.AddTextWithLayout");
+            ImProfiler.BeginSample("ImTextDrawer.AddTextWithLayout");
 
             var ct = fontAsset.characterLookupTable;
             var lh = lineHeight * layout.Scale;
@@ -271,7 +271,7 @@ namespace Imui.Rendering
                 x = sx;
             }
 
-            Profiler.EndSample();
+            ImProfiler.EndSample();
         }
 
 #if IMUI_DEBUG

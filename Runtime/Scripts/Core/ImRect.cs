@@ -22,6 +22,8 @@ namespace Imui.Core
         public Vector2 BottomCenter => new Vector2(X + W / 2.0f, Y);
         public Vector2 Center => new Vector2(X + W / 2f, Y + H / 2f);
 
+        public float AspectRatio => W / H;
+
         public Vector2 Position
         {
             get

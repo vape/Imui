@@ -30,7 +30,7 @@ namespace Imui.Core
         private const int CONTROL_SCOPE_STACK_CAPACITY = 64;
 
         private const int DEFAULT_STORAGE_CAPACITY = 2048;
-        private const int DEFAULT_ARENA_CAPACITY = 1024 * 64;
+        private const int DEFAULT_ARENA_CAPACITY = 1024 * 1024;
 
         private struct ControlId
         {
@@ -153,7 +153,7 @@ namespace Imui.Core
             MeshDrawer = new ImMeshDrawer(MeshBuffer);
             TextDrawer = new ImTextDrawer(MeshBuffer);
             Arena = new ImArena(DEFAULT_ARENA_CAPACITY);
-            Canvas = new ImCanvas(MeshDrawer, TextDrawer);
+            Canvas = new ImCanvas(MeshDrawer, TextDrawer, Arena);
             MeshRenderer = new ImMeshRenderer();
             Layout = new ImLayout();
             Storage = new ImStorage(DEFAULT_STORAGE_CAPACITY);

@@ -31,9 +31,13 @@ namespace Imui.Controls
             {
                 rect = rect.WithAspect(texture.width / (float)texture.height);
             }
+
+            var scaleOffset = gui.Canvas.GetTexScaleOffset();
             
             gui.Canvas.PushTexture(texture);
+            gui.Canvas.SetTexScaleOffset(new Vector4(1, 1, 0, 0));
             gui.Canvas.Rect(rect, ImStyleUtility.White);
+            gui.Canvas.SetTexScaleOffset(scaleOffset);
             gui.Canvas.PopTexture();
         }
     }
