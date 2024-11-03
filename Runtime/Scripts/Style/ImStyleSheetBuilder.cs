@@ -260,6 +260,11 @@ namespace Imui.Style
             sheet.MenuBar.ItemActive.Alignment = new ImAlignment(0.5f, 0.5f);
             sheet.MenuBar.ItemActive.Normal.BackColor.SetAlphaF(1.0f);
             
+            // Color Picker
+            sheet.ColorPicker.BorderColor = theme.BorderColor;
+            sheet.ColorPicker.BorderThickness = theme.BorderThickness;
+            sheet.ColorPicker.PreviewCircleScale = 0.5f;
+            
             return sheet;
         }
 

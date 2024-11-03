@@ -563,6 +563,34 @@ namespace Imui.Rendering
             
             ImProfiler.EndSample();
         }
+        
+        public void AddQuadTextured(ImVertex v0, ImVertex v1, ImVertex v2, ImVertex v3)
+        {
+            ImProfiler.BeginSample("ImMeshDrawer.AddQuadTextured");
+            
+            var vc = buffer.VerticesCount;
+            var ic = buffer.IndicesCount;
+            
+            buffer.EnsureVerticesCapacity(vc + 4);
+            buffer.EnsureIndicesCapacity(ic + 6);
+
+            buffer.Vertices[vc + 0] = v0;
+            buffer.Vertices[vc + 1] = v1;
+            buffer.Vertices[vc + 2] = v2;
+            buffer.Vertices[vc + 3] = v3;
+
+            buffer.Indices[ic + 0] = vc + 0;
+            buffer.Indices[ic + 1] = vc + 1;
+            buffer.Indices[ic + 2] = vc + 2;
+            buffer.Indices[ic + 3] = vc + 2;
+            buffer.Indices[ic + 4] = vc + 3;
+            buffer.Indices[ic + 5] = vc + 0;
+
+            buffer.AddIndices(6);
+            buffer.AddVertices(4);
+            
+            ImProfiler.EndSample();
+        }
 
         public void AddQuadTextured(float x, float y, float w, float h)
         {
