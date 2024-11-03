@@ -77,7 +77,7 @@ namespace Imui.Controls.Windows
         private static bool showPlusMinusButtons = true;
         private static bool useNumericSlider = false;
         private static ImDemoEnumFlags demoFlags;
-        private static Color demoColor;
+        private static Color circleColor = new Color(0, 0, 0, 1.0f);
 
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
@@ -197,6 +197,8 @@ namespace Imui.Controls.Windows
             gui.TextEdit(ref multiLineText, multiline: true);
             gui.Separator("Sliders (with tooltips)");
             DrawSlidersDemo(gui);
+            gui.Separator("Colors");
+            gui.ColorEdit(ref circleColor);
             gui.Separator("Selection list (you can select multiple values)");
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
@@ -257,9 +259,6 @@ namespace Imui.Controls.Windows
             gui.BeginMenuBar();
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
-            
-            gui.Separator("Colors");
-            gui.ColorEdit(ref demoColor);
 
             gui.EndReadOnly();
         }
@@ -515,7 +514,7 @@ namespace Imui.Controls.Windows
                 var x = t <= 1.0f ? t : 1 - (t - 1);
                 var y = 0.5f + Mathf.Sin((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)) * Mathf.PI * 2) * 0.25f;
                 var p = bounds.GetPointAtNormalPosition(x, y);
-                var c = gui.Style.Text.Color.WithAlphaF(Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
+                var c = circleColor.WithAlphaF(circleColor.a * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }

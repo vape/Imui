@@ -1,7 +1,7 @@
 ### TODO
-- Implement style sheet generation using palettes
-- Color picker
+- ~~Color picker~~
 - Theme editor
+- Implement style sheet generation using palettes
 - Implement table layout
 - Implement tabs
 - Plotting control

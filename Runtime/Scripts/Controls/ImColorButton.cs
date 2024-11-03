@@ -71,6 +71,11 @@ namespace Imui.Controls
         {
             var clicked = gui.InvisibleButton(id, rect, out var state);
 
+            if (gui.Canvas.Cull(rect))
+            {
+                return clicked;
+            }
+            
             ref readonly var stateStyle = ref ImButton.GetStateStyle(gui, state);
             var boxStyle = new ImStyleBox
             {

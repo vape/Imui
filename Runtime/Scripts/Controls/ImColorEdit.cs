@@ -51,6 +51,7 @@ namespace Imui.Controls
 
                 var col32 = (Color32)color;
 
+                // TODO (artem-s): cut drawcalls generated because of text masking
                 changed |= ImNumericEdit.NumericEdit(gui, rId, ref col32.r, rects[0], flags: ImNumericEditFlag.Slider);
                 changed |= ImNumericEdit.NumericEdit(gui, gId, ref col32.g, rects[1], flags: ImNumericEditFlag.Slider);
                 changed |= ImNumericEdit.NumericEdit(gui, bId, ref col32.b, rects[2], flags: ImNumericEditFlag.Slider);
