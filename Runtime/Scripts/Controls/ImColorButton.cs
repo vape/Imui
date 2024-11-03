@@ -9,7 +9,7 @@ namespace Imui.Controls
     public enum ImColorButtonFlag
     {
         None = 0,
-        WithoutAlphaPreview = 1
+        AlphaOnePreview = 1
     }
     
     public static class ImColorButton
@@ -39,11 +39,13 @@ namespace Imui.Controls
             }
 
             gui.PushId(id);
-            var pickerId = gui.GetNextControlId();
-            var pickerRect = FindRectForPicker(gui, rect);
             gui.BeginPopup();
+            
+            var pickerId = gui.GetNextControlId();
+            var pickerRect = FindColorPickerPopupRect(gui, rect);
             gui.Box(pickerRect, gui.Style.Tooltip.Box);
             var changed = gui.ColorPicker(pickerId, ref color, pickerRect.WithPadding(gui.Style.Tooltip.Padding));
+            
             gui.EndPopupWithCloseButton(out var close);
             gui.PopId();
 
@@ -80,7 +82,7 @@ namespace Imui.Controls
 
             DrawCheckerboardPattern(gui, rect);
 
-            if ((flags & ImColorButtonFlag.WithoutAlphaPreview) != 0)
+            if ((flags & ImColorButtonFlag.AlphaOnePreview) != 0)
             {
                 var leftBoxColor = color;
                 leftBoxColor.a = 1.0f;
@@ -124,7 +126,7 @@ namespace Imui.Controls
             gui.Canvas.SetTexScaleOffset(tmp);
         }
 
-        public static ImRect FindRectForPicker(ImGui gui, ImRect buttonRect)
+        public static ImRect FindColorPickerPopupRect(ImGui gui, ImRect buttonRect)
         {
             var width = Mathf.Max(buttonRect.W, gui.GetRowHeight() * 10) + gui.Style.Tooltip.Padding.Horizontal;
             var height = ImColorPicker.GetHeight(gui, width) + gui.Style.Tooltip.Padding.Vertical;

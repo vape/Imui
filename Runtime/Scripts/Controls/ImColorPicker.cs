@@ -24,7 +24,7 @@ namespace Imui.Controls
     {
         public static float GetHeight(ImGui gui, float width)
         {
-            return width - (gui.GetRowHeight() + gui.Style.Layout.Spacing) * 2;
+            return width - (gui.GetRowHeight() + gui.Style.Layout.InnerSpacing) * 2;
         }
         
         public static ImRect AddRect(ImGui gui, ImSize size = default)
@@ -55,27 +55,6 @@ namespace Imui.Controls
 
             return ColorPicker(gui, id, ref color, rect);
         }
-
-        private static ref ImColorPickerState GetState(ImGui gui, uint id, Color color)
-        {
-            Color.RGBToHSV(color, out var h, out var s, out var v);
-            
-            ref var state = ref gui.Storage.Get(id, new ImColorPickerState(h, s, v));
-
-            if (s != 0.0f && v != 0.0f && (state.Hue != 1.0f || h != 0.0f))
-            {
-                state.Hue = h;
-            }
-
-            if (v != 0.0f)
-            {
-                state.Saturation = s;
-            }
-
-            state.Value = v;
-            
-            return ref state;
-        }
         
         public static bool ColorPicker(this ImGui gui, uint id, ref Color color, ImRect rect)
         {
@@ -88,12 +67,12 @@ namespace Imui.Controls
             var svBarId = gui.GetNextControlId();
             var hueBarId = gui.GetNextControlId();
             var alphaBarId = gui.GetNextControlId();
-            var alphaBarRect = rect.SplitRight(gui.GetRowHeight(), gui.Style.Layout.Spacing, out rect);
-            var hueBarRect = rect.SplitRight(gui.GetRowHeight(), gui.Style.Layout.Spacing, out rect);
+            var alphaBarRect = rect.SplitRight(gui.GetRowHeight(), gui.Style.Layout.InnerSpacing, out rect);
+            var hueBarRect = rect.SplitRight(gui.GetRowHeight(), gui.Style.Layout.InnerSpacing, out rect);
 
-            changed |= DrawHueBar(gui, hueBarId, ref state.Hue, hueBarRect);
-            changed |= DrawAlphaBar(gui, alphaBarId, color, ref alpha, alphaBarRect);
-            changed |= DrawSaturationValueSquare(gui, svBarId, state.Hue, ref state.Saturation, ref state.Value, rect);
+            changed |= HueBar(gui, hueBarId, ref state.Hue, hueBarRect);
+            changed |= AlphaBar(gui, alphaBarId, color, ref alpha, alphaBarRect);
+            changed |= SaturationValueSquare(gui, svBarId, state.Hue, ref state.Saturation, ref state.Value, rect);
 
             gui.PopId();
 
@@ -108,7 +87,7 @@ namespace Imui.Controls
             return true;
         }
 
-        public static bool DrawSaturationValueSquare(ImGui gui, uint id, float h, ref float s, ref float v, ImRect rect)
+        public static bool SaturationValueSquare(ImGui gui, uint id, float h, ref float s, ref float v, ImRect rect)
         {
             var black = (Color32)Color.black;
             var white = (Color32)Color.white;
@@ -158,22 +137,22 @@ namespace Imui.Controls
             return changed;
         }
 
-        public static bool DrawHueBar(ImGui gui, uint id, ref float h, ImRect rect)
+        public static bool HueBar(ImGui gui, uint id, ref float h, ImRect rect)
         {
             const int STEPS = 8;
 
-            var c = Color.HSVToRGB(0, 1, 1);
-            var v0 = new ImVertex(rect.BottomRight, c, default, default);
-            var v1 = new ImVertex(rect.BottomLeft, c, default, default);
+            var col = Color.HSVToRGB(0, 1, 1);
+            var v0 = new ImVertex(rect.BottomRight, col, default, default);
+            var v1 = new ImVertex(rect.BottomLeft, col, default, default);
 
             for (int i = 1; i <= STEPS; ++i)
             {
                 var t = i / (float)STEPS;
 
-                c = Color.HSVToRGB(t, 1, 1);
+                col = Color.HSVToRGB(t, 1, 1);
 
-                var v2 = new ImVertex(rect.GetPointAtNormalPosition(0, t), c, default, default);
-                var v3 = new ImVertex(rect.GetPointAtNormalPosition(1, t), c, default, default);
+                var v2 = new ImVertex(rect.GetPointAtNormalPosition(0, t), col, default, default);
+                var v3 = new ImVertex(rect.GetPointAtNormalPosition(1, t), col, default, default);
 
                 gui.MeshDrawer.AddQuadTextured(v0, v1, v2, v3);
 
@@ -181,105 +160,31 @@ namespace Imui.Controls
                 v1 = v2;
             }
             
-            var inputRect = rect.WithPadding(gui.Style.ColorPicker.BorderThickness);
-            DrawBarPointer(gui, ref inputRect, h);
-            
             gui.Canvas.RectOutline(rect, gui.Style.ColorPicker.BorderColor, gui.Style.ColorPicker.BorderThickness);
 
-            gui.RegisterControl(id, rect);
-
-            var changed = false;
-            var hovered = gui.IsControlHovered(id);
-            var active = gui.IsControlActive(id);
-
-            ref readonly var evt = ref gui.Input.MouseEvent;
-            switch (evt.Type)
-            {
-                case ImMouseEventType.Down when hovered && !active:
-                    gui.SetActiveControl(id, ImControlFlag.Draggable);
-                    break;
-                case ImMouseEventType.Drag or ImMouseEventType.BeginDrag when active:
-                    h = Mathf.Clamp01(inputRect.GetNormalPositionAtPoint(gui.Input.MousePosition).y);
-                    changed = true;
-                    break;
-            }
-
-            return changed;
+            return SliderVertical(gui, id, rect.WithPadding(gui.Style.ColorPicker.BorderThickness), ref h);
         }
 
-        public static bool DrawAlphaBar(ImGui gui, uint id, Color color, ref float a, ImRect rect)
+        public static bool AlphaBar(ImGui gui, uint id, Color color, ref float a, ImRect rect)
         {
-            DrawCheckerboardPattern(gui, rect);
+            CheckerboardPatternVertical(gui, rect);
 
-            color.a = 1.0f;
-            
             var clear = color;
+            
             clear.a = 0.0f;
+            color.a = 1.0f;
 
             var v0 = new ImVertex(rect.TopLeft, color, default, default);
             var v1 = new ImVertex(rect.TopRight, color, default, default);
             var v2 = new ImVertex(rect.BottomRight, clear, default, default);
             var v3 = new ImVertex(rect.BottomLeft, clear, default, default);
             gui.MeshDrawer.AddQuadTextured(v0, v1, v2, v3);
-
-            var inputRect = rect.WithPadding(gui.Style.ColorPicker.BorderThickness);
-            DrawBarPointer(gui, ref inputRect, a);
-
             gui.Canvas.RectOutline(rect, gui.Style.ColorPicker.BorderColor, gui.Style.ColorPicker.BorderThickness);
-
-            gui.RegisterControl(id, rect);
-
-            var changed = false;
-            var hovered = gui.IsControlHovered(id);
-            var active = gui.IsControlActive(id);
-
-            ref readonly var evt = ref gui.Input.MouseEvent;
-            switch (evt.Type)
-            {
-                case ImMouseEventType.Down when hovered && !active:
-                    gui.SetActiveControl(id, ImControlFlag.Draggable);
-                    break;
-                case ImMouseEventType.Drag or ImMouseEventType.BeginDrag when active:
-                    a = Mathf.Clamp01(inputRect.GetNormalPositionAtPoint(gui.Input.MousePosition).y);
-                    changed = true;
-                    break;
-            }
-
-            return changed;
+            
+            return SliderVertical(gui, id, rect.WithPadding(gui.Style.ColorPicker.BorderThickness), ref a);
         }
 
-        public static void DrawCheckerboardPattern(ImGui gui, ImRect rect)
-        {
-            void SetPatternAspect(float aspect)
-            {
-                var scaleOffset = ImCanvas.GetTexScaleOffsetFor(ImCanvasBuiltinTex.Checkerboard);
-                scaleOffset.y *= aspect;
-
-                gui.Canvas.SetTexScaleOffset(scaleOffset);
-            }
-
-            var count = Mathf.CeilToInt(rect.H / rect.W);
-            var tmp = gui.Canvas.GetTexScaleOffset();
-
-            var color = (Color32)Color.white;
-            var height = rect.H;
-
-            while (count > 0)
-            {
-                var h = Mathf.Min(height, rect.W);
-                var r = new ImRect(rect.X, rect.Y + (rect.H - height), rect.W, h);
-
-                SetPatternAspect(h / rect.W);
-                gui.Canvas.Rect(r, color);
-
-                height -= h;
-                count--;
-            }
-
-            gui.Canvas.SetTexScaleOffset(tmp);
-        }
-
-        public static void DrawBarPointer(ImGui gui, ref ImRect rect, float value)
+        public static void SliderPointer(ImGui gui, ref ImRect rect, float value)
         {
             const float SIZE = 6;
             const float SHADOW_SIZE = 1;
@@ -295,10 +200,89 @@ namespace Imui.Controls
             gui.Canvas.Rect(shadowRect, shadowColor);
             gui.Canvas.Rect(arrowRect, arrowColor);
         }
+
+        public static bool SliderVertical(ImGui gui, uint id, ImRect rect, ref float value)
+        {
+            SliderPointer(gui, ref rect, value);
+            
+            gui.RegisterControl(id, rect);
+
+            var changed = false;
+            var hovered = gui.IsControlHovered(id);
+            var active = gui.IsControlActive(id);
+
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            switch (evt.Type)
+            {
+                case ImMouseEventType.Down when hovered && !active:
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    break;
+                case ImMouseEventType.Drag or ImMouseEventType.BeginDrag when active:
+                    value = Mathf.Clamp01(rect.GetNormalPositionAtPoint(gui.Input.MousePosition).y);
+                    changed = true;
+                    break;
+            }
+
+            return changed;
+        }
+        
+        public static void CheckerboardPatternVertical(ImGui gui, ImRect rect)
+        {
+            var count = Mathf.CeilToInt(rect.H / rect.W);
+            var tmp = gui.Canvas.GetTexScaleOffset();
+
+            var color = (Color32)Color.white;
+            var height = rect.H;
+
+            while (count > 0)
+            {
+                var h = Mathf.Min(height, rect.W);
+                var r = new ImRect(rect.X, rect.Y + (rect.H - height), rect.W, h);
+
+                SetPatternAspect(gui, h / rect.W);
+                gui.Canvas.Rect(r, color);
+
+                height -= h;
+                count--;
+            }
+
+            gui.Canvas.SetTexScaleOffset(tmp);
+            return;
+
+            void SetPatternAspect(ImGui gui, float aspect)
+            {
+                var scaleOffset = ImCanvas.GetTexScaleOffsetFor(ImCanvasBuiltinTex.Checkerboard);
+                scaleOffset.y *= aspect;
+
+                gui.Canvas.SetTexScaleOffset(scaleOffset);
+            }
+        }
         
         public static float GetBrightness(Color color)
         {
             return 0.2125f * color.r + 0.7152f * color.g + 0.0722f * color.b;
+        }
+        
+        public static ref ImColorPickerState GetState(ImGui gui, uint id, Color color)
+        {
+            Color.RGBToHSV(color, out var h, out var s, out var v);
+            
+            ref var state = ref gui.Storage.Get(id, new ImColorPickerState(h, s, v));
+
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (s != 0.0f && v != 0.0f && (state.Hue != 1.0f || h != 0.0f))
+            {
+                state.Hue = h;
+            }
+
+            if (v != 0.0f)
+            {
+                state.Saturation = s;
+            }
+
+            state.Value = v;
+            
+            return ref state;
         }
     }
 }

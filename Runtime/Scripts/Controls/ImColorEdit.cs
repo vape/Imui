@@ -67,7 +67,7 @@ namespace Imui.Controls
             ColorIndicator(gui, rects[2], new Color32(32, 64, 255, 255), in style);
             ColorIndicator(gui, rects[3], Color.white, in style);
 
-            gui.ColorPickerButton(cId, ref color, rects[4], ImColorButtonFlag.WithoutAlphaPreview);
+            gui.ColorPickerButton(cId, ref color, rects[4], ImColorButtonFlag.AlphaOnePreview);
 
             gui.PopId();
 
