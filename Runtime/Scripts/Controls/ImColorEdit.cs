@@ -22,6 +22,8 @@ namespace Imui.Controls
 
         public static bool ColorEdit(this ImGui gui, ref Color color, ImSize size = default)
         {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
             var id = gui.GetNextControlId();
             var rect = AddRect(gui, size);
 
@@ -65,7 +67,7 @@ namespace Imui.Controls
             ColorIndicator(gui, rects[2], new Color32(32, 64, 255, 255), in style);
             ColorIndicator(gui, rects[3], Color.white, in style);
 
-            gui.ColorPickerButton(cId, ref color, rects[4]);
+            gui.ColorPickerButton(cId, ref color, rects[4], ImColorButtonFlag.WithoutAlphaPreview);
 
             gui.PopId();
 

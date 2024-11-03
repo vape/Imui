@@ -6,6 +6,20 @@ using UnityEngine;
 
 namespace Imui.Controls
 {
+    public struct ImColorPickerState
+    {
+        public float Hue;
+        public float Saturation;
+        public float Value;
+
+        public ImColorPickerState(float h, float s, float v)
+        {
+            Hue = h;
+            Saturation = s;
+            Value = v;
+        }
+    }
+    
     public static class ImColorPicker
     {
         public static float GetHeight(ImGui gui, float width)
@@ -42,20 +56,34 @@ namespace Imui.Controls
             return ColorPicker(gui, id, ref color, rect);
         }
 
-        public static bool ColorPicker(this ImGui gui, uint id, ref Color color, ImRect rect)
+        private static ref ImColorPickerState GetState(ImGui gui, uint id, Color color)
         {
-            Color.RGBToHSV(color, out var colorHue, out var s, out var v);
-            var a = color.a;
+            Color.RGBToHSV(color, out var h, out var s, out var v);
+            
+            ref var state = ref gui.Storage.Get(id, new ImColorPickerState(h, s, v));
 
-            gui.PushId(id);
-
-            ref var h = ref gui.Storage.Get(id, colorHue);
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (s != 0.0f && v != 0.0f && (h != 1.0f || colorHue != 0.0f))
+            if (s != 0.0f && v != 0.0f && (state.Hue != 1.0f || h != 0.0f))
             {
-                h = colorHue;
+                state.Hue = h;
             }
 
+            if (v != 0.0f)
+            {
+                state.Saturation = s;
+            }
+
+            state.Value = v;
+            
+            return ref state;
+        }
+        
+        public static bool ColorPicker(this ImGui gui, uint id, ref Color color, ImRect rect)
+        {
+            gui.PushId(id);
+
+            ref var state = ref GetState(gui, id, color);
+            var alpha = color.a;
+            
             var changed = false;
             var svBarId = gui.GetNextControlId();
             var hueBarId = gui.GetNextControlId();
@@ -63,9 +91,9 @@ namespace Imui.Controls
             var alphaBarRect = rect.SplitRight(gui.GetRowHeight(), gui.Style.Layout.Spacing, out rect);
             var hueBarRect = rect.SplitRight(gui.GetRowHeight(), gui.Style.Layout.Spacing, out rect);
 
-            changed |= DrawHueBar(gui, hueBarId, ref h, hueBarRect);
-            changed |= DrawAlphaBar(gui, alphaBarId, color, ref a, alphaBarRect);
-            changed |= DrawSaturationValueSquare(gui, svBarId, h, ref s, ref v, rect);
+            changed |= DrawHueBar(gui, hueBarId, ref state.Hue, hueBarRect);
+            changed |= DrawAlphaBar(gui, alphaBarId, color, ref alpha, alphaBarRect);
+            changed |= DrawSaturationValueSquare(gui, svBarId, state.Hue, ref state.Saturation, ref state.Value, rect);
 
             gui.PopId();
 
@@ -74,8 +102,8 @@ namespace Imui.Controls
                 return false;
             }
 
-            color = Color.HSVToRGB(h, s, v);
-            color.a = a;
+            color = Color.HSVToRGB(state.Hue, state.Saturation, state.Value);
+            color.a = alpha;
 
             return true;
         }
@@ -105,7 +133,7 @@ namespace Imui.Controls
             var radius = gui.Style.Layout.TextSize * gui.Style.ColorPicker.PreviewCircleScale;
             var circleColor = Color.HSVToRGB(h, s, v);
             var borderColor = GetBrightness(circleColor) >= 0.5f ? Color.black : Color.white;
-            gui.Canvas.CircleWithOutline(point, radius, circleColor, borderColor, gui.Style.ColorPicker.BorderThickness);
+            gui.Canvas.CircleWithOutline(point, radius, circleColor, borderColor, 1.0f);
 
             gui.RegisterControl(id, rect);
 
@@ -185,7 +213,8 @@ namespace Imui.Controls
 
             color.a = 1.0f;
             
-            var clear = Color.clear;
+            var clear = color;
+            clear.a = 0.0f;
 
             var v0 = new ImVertex(rect.TopLeft, color, default, default);
             var v1 = new ImVertex(rect.TopRight, color, default, default);

@@ -1,24 +1,34 @@
+using System;
 using Imui.Core;
 using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
 {
+    [Flags]
+    public enum ImColorButtonFlag
+    {
+        None = 0,
+        WithoutAlphaPreview = 1
+    }
+    
     public static class ImColorButton
     {
-        public static bool ColorPickerButton(this ImGui gui, ref Color color, ImSize size = default)
+        public static bool ColorPickerButton(this ImGui gui, ref Color color, ImSize size = default, ImColorButtonFlag flags = ImColorButtonFlag.None)
         {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            
             var id = gui.GetNextControlId();
             var rect = ImControls.AddRowRect(gui, size, gui.GetRowHeight());
             
-            return ColorPickerButton(gui, id, ref color, rect);
+            return ColorPickerButton(gui, id, ref color, rect, flags);
         }
         
-        public static bool ColorPickerButton(this ImGui gui, uint id, ref Color color, ImRect rect)
+        public static bool ColorPickerButton(this ImGui gui, uint id, ref Color color, ImRect rect, ImColorButtonFlag flags = ImColorButtonFlag.None)
         {
             ref var open = ref gui.Storage.Get(id, false);
 
-            if (ColorButton(gui, id, color, rect))
+            if (ColorButton(gui, id, color, rect, flags))
             {
                 open = !open;
             }
@@ -45,17 +55,17 @@ namespace Imui.Controls
             return changed;
         }
 
-        public static bool ColorButton(this ImGui gui, Color color, ImSize size = default)
+        public static bool ColorButton(this ImGui gui, Color color, ImSize size = default, ImColorButtonFlag flags = ImColorButtonFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id = gui.GetNextControlId();
             var rect = ImControls.AddRowRect(gui, size, gui.GetRowHeight());
 
-            return ColorButton(gui, id, color, rect);
+            return ColorButton(gui, id, color, rect, flags);
         }
 
-        public static bool ColorButton(this ImGui gui, uint id, Color color, ImRect rect)
+        public static bool ColorButton(this ImGui gui, uint id, Color color, ImRect rect, ImColorButtonFlag flags = ImColorButtonFlag.None)
         {
             var clicked = gui.InvisibleButton(id, rect, out var state);
 
@@ -69,6 +79,15 @@ namespace Imui.Controls
             };
 
             DrawCheckerboardPattern(gui, rect);
+
+            if ((flags & ImColorButtonFlag.WithoutAlphaPreview) != 0)
+            {
+                var leftBoxColor = color;
+                leftBoxColor.a = 1.0f;
+            
+                gui.Canvas.Rect(rect.SplitLeft(rect.W / 2.0f), leftBoxColor);
+            }
+            
             gui.Box(rect, boxStyle);
             
             return clicked;
