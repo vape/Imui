@@ -113,6 +113,11 @@ namespace Imui.Controls
             var x = Mathf.Max(gui.Canvas.ScreenRect.X, Mathf.Min(buttonRect.X, buttonRect.Right - width));
             var y = buttonRect.Y - height - gui.Style.Layout.Spacing;
 
+            if (y < gui.Canvas.ScreenRect.Y)
+            {
+                y = buttonRect.Top + gui.Style.Layout.Spacing;
+            }
+
             return new ImRect(x, y, width, height);
         }
     }

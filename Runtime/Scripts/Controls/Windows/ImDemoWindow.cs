@@ -77,6 +77,7 @@ namespace Imui.Controls.Windows
         private static bool showPlusMinusButtons = true;
         private static bool useNumericSlider = false;
         private static ImDemoEnumFlags demoFlags;
+        private static Color demoColor;
 
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
@@ -256,6 +257,9 @@ namespace Imui.Controls.Windows
             gui.BeginMenuBar();
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
+            
+            gui.Separator("Colors");
+            gui.ColorEdit(ref demoColor);
 
             gui.EndReadOnly();
         }
@@ -469,7 +473,7 @@ namespace Imui.Controls.Windows
 
             gui.Text(Format("Text Size: ", gui.Style.Layout.TextSize));
             gui.Slider(ref gui.Style.Layout.TextSize, 6, 128);
-
+            
             gui.Text(Format("Spacing: ", gui.Style.Layout.Spacing));
             gui.Slider(ref gui.Style.Layout.Spacing, 0, 32);
 

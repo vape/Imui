@@ -1,3 +1,4 @@
+using System;
 using Imui.Core;
 using Imui.Style;
 using UnityEngine;
@@ -10,6 +11,22 @@ namespace Imui.Controls
         public static Vector2 Max(this Vector2 vec, float x, float y)
         {
             return new Vector2(Mathf.Max(vec.x, x), Mathf.Max(vec.y, y));
+        }
+
+        public static Span<ImRect> SplitHorizontal(ImRect rect, ImArena arena, int cols, float spacing)
+        {
+            ImAssert.True(cols > 0, "cols > 0");
+
+            var columnWidth = (rect.W - (spacing * (cols - 1))) / cols;
+            var result = arena.AllocArray<ImRect>(cols);
+            
+            for (int i = 0; i < cols; ++i)
+            {
+                result[i] = new ImRect(rect.X, rect.Y, columnWidth, rect.H);
+                rect.X += spacing + columnWidth;
+            }
+
+            return result;
         }
         
         public static ImRect SplitTop(this ImRect rect, float height)
@@ -107,12 +124,6 @@ namespace Imui.Controls
             return rect;
         }
         
-        public static void AddPaddingToSize(ref Vector2 size, ImPadding padding)
-        {
-            size.x += padding.Left + padding.Right;
-            size.y += padding.Bottom + padding.Top;
-        }
-        
         public static void AddPadding(this ref ImRect rect, ImPadding padding)
         {
             rect.X += padding.Left;
@@ -127,6 +138,14 @@ namespace Imui.Controls
             rect.Y += bottom;
             rect.W -= left + right;
             rect.H -= top + bottom;
+        }
+        
+        public static void AddPadding(this ref ImRect rect, float padding)
+        {
+            rect.X += padding;
+            rect.Y += padding;
+            rect.W -= padding * 2;
+            rect.H -= padding * 2;
         }
         
         public static ImRect ScaleFromCenter(this ImRect rect, float scale)
