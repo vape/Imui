@@ -140,6 +140,16 @@ namespace Imui.Core
         {
             return new Vector2(Mathf.LerpUnclamped(X, X + W, point.x), Mathf.LerpUnclamped(Y, Y + H, point.y));
         }
+        
+        public Vector2 GetNormalPositionAtPoint(float x, float y)
+        {
+            return new Vector2(Mathf.InverseLerp(X, X + W, x), Mathf.InverseLerp(Y, Y + H, y));
+        }
+        
+        public Vector2 GetNormalPositionAtPoint(Vector2 point)
+        {
+            return new Vector2(Mathf.InverseLerp(X, X + W, point.x), Mathf.InverseLerp(Y, Y + H, point.y));
+        }
 
         public override string ToString()
         {

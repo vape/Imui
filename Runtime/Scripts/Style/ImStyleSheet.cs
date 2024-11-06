@@ -23,5 +23,6 @@ namespace Imui.Style
         public ImStyleTooltip Tooltip;
         public ImStyleMenu Menu;
         public ImStyleMenuBar MenuBar;
+        public ImStyleColorPicker ColorPicker;
     }
 }

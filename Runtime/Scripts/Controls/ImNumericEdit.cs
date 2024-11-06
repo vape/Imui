@@ -38,7 +38,7 @@ namespace Imui.Controls
                                        ref byte value,
                                        ImSize size = default,
                                        ReadOnlySpan<char> format = default,
-                                       byte step = 0,
+                                       byte step = 1,
                                        byte min = byte.MinValue,
                                        byte max = byte.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -52,7 +52,7 @@ namespace Imui.Controls
                                        ref short value,
                                        ImSize size = default,
                                        ReadOnlySpan<char> format = default,
-                                       short step = 0,
+                                       short step = 1,
                                        short min = short.MinValue,
                                        short max = short.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -66,7 +66,7 @@ namespace Imui.Controls
                                        ref int value,
                                        ImSize size = default,
                                        ReadOnlySpan<char> format = default,
-                                       int step = 0,
+                                       int step = 1,
                                        int min = int.MinValue,
                                        int max = int.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -80,7 +80,7 @@ namespace Imui.Controls
                                        ref long value,
                                        ImSize size = default,
                                        ReadOnlySpan<char> format = default,
-                                       long step = 0L,
+                                       long step = 1L,
                                        long min = long.MinValue,
                                        long max = long.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -94,7 +94,7 @@ namespace Imui.Controls
                                        ref float value,
                                        ImSize size = default,
                                        ReadOnlySpan<char> format = default,
-                                       float step = 0.0f,
+                                       float step = 0.1f,
                                        float min = float.MinValue,
                                        float max = float.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -108,7 +108,7 @@ namespace Imui.Controls
                                        ref double value,
                                        ImSize size = default,
                                        ReadOnlySpan<char> format = default,
-                                       double step = 0.0f,
+                                       double step = 0.1d,
                                        double min = double.MinValue,
                                        double max = double.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -123,7 +123,7 @@ namespace Imui.Controls
                                        ref byte value,
                                        ImRect rect,
                                        ReadOnlySpan<char> format = default,
-                                       byte step = 0,
+                                       byte step = 1,
                                        byte min = byte.MinValue,
                                        byte max = byte.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -136,7 +136,7 @@ namespace Imui.Controls
                                        ref short value,
                                        ImRect rect,
                                        ReadOnlySpan<char> format = default,
-                                       short step = 0,
+                                       short step = 1,
                                        short min = short.MinValue,
                                        short max = short.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -149,7 +149,7 @@ namespace Imui.Controls
                                        ref int value,
                                        ImRect rect,
                                        ReadOnlySpan<char> format = default,
-                                       int step = 0,
+                                       int step = 1,
                                        int min = int.MinValue,
                                        int max = int.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -162,7 +162,7 @@ namespace Imui.Controls
                                        ref long value,
                                        ImRect rect,
                                        ReadOnlySpan<char> format = default,
-                                       long step = 0L,
+                                       long step = 1L,
                                        long min = long.MinValue,
                                        long max = long.MaxValue,
                                        ImNumericEditFlag flags = default)
@@ -217,7 +217,7 @@ namespace Imui.Controls
                 gui.PushId(id);
                 var sId = gui.GetNextControlId();
                 ref readonly var evt = ref gui.Input.MouseEvent;
-                // when double clicking, pass control to text editor
+                // (artem-s): when double clicking, pass control to text editor
                 if (evt.Type != ImMouseEventType.Down || evt.Count < 2)
                 {
                     var sMin = filter.AsDouble(min);

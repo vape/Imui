@@ -97,6 +97,32 @@ namespace Imui.Controls
             return scale * gui.TextDrawer.FontRenderSize;
         }
         
+        public static Vector2 MeasureTextSize(this ImGui gui, ReadOnlySpan<char> text)
+        {
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(text, 
+                0, 
+                0,
+                0,
+                0, 
+                gui.Style.Layout.TextSize,
+                false);
+
+            return new Vector2(textLayout.Width, textLayout.Height);
+        }
+        
+        public static Vector2 MeasureTextSize(this ImGui gui, ReadOnlySpan<char> text, float textSize)
+        {
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(text, 
+                0, 
+                0,
+                0,
+                0, 
+                textSize,
+                false);
+
+            return new Vector2(textLayout.Width, textLayout.Height);
+        }
+        
         public static Vector2 MeasureTextSize(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings textSettings, Vector2 bounds = default)
         {
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(text, 

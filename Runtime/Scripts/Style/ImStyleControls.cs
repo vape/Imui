@@ -221,4 +221,12 @@ namespace Imui.Style
         public ImStyleButton ItemActive;
         public float ItemExtraWidth;
     }
+
+    [Serializable]
+    public struct ImStyleColorPicker
+    {
+        public float PreviewCircleScale;
+        public float BorderThickness;
+        public Color32 BorderColor;
+    }
 }

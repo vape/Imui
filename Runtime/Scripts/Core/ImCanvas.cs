@@ -240,6 +240,12 @@ namespace Imui.Core
             var rect = new ImRect(position.x - radius, position.y - radius, radius * 2, radius * 2);
             Ellipse(rect, color);
         }
+        
+        public void CircleWithOutline(Vector2 position, float radius, Color32 color, Color32 outlineColor, float thickness, float bias = 0.0f)
+        {
+            var rect = new ImRect(position.x - radius, position.y - radius, radius * 2, radius * 2);
+            EllipseWithOutline(rect, color, outlineColor, thickness, bias);
+        }
 
         public void Ellipse(ImRect rect, Color32 color)
         {
@@ -250,6 +256,22 @@ namespace Imui.Core
 
             var path = ImShapes.Ellipse(arena, rect);
             ConvexFill(path, color);
+        }
+        
+        public void EllipseWithOutline(ImRect rect, Color32 color, Color32 outlineColor, float thickness, float bias = 0.0f)
+        {
+            if (Cull(rect))
+            {
+                return;
+            }
+
+            var path = ImShapes.Ellipse(arena, rect);
+            ConvexFill(path, color);
+            
+            if (thickness >= LINE_THICKNESS_THRESHOLD)
+            {
+                Line(path, outlineColor, true, GetScaledLineThickness(thickness), bias);
+            }
         }
         
         public void Rect(ImRect rect, Color32 color)
