@@ -250,6 +250,7 @@ namespace Imui.Controls
                     break;
 
                 case ImMouseEventType.Drag when active:
+                    // TODO (artem-s): window's title bar should always be reachable so we can move it around
                     state.NextRect.W += evt.Delta.x;
                     state.NextRect.H -= evt.Delta.y;
                     state.NextRect.Y += evt.Delta.y;

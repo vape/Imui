@@ -89,13 +89,13 @@ namespace Imui.Controls
             TextEditReadonly(gui, text, rect, actuallyMultiline);
         }
 
-        public static void TextEditReadonly(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool multiline)
+        public static void TextEditReadonly(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool multiline, ImAdjacency adjacency = ImAdjacency.None)
         {
             var buffer = new ImTextEditBuffer(text);
 
             // TODO (artem-s): in this case, readonly should not change styling
             gui.BeginReadOnly(true);
-            TextEdit(gui, ref buffer, rect, multiline);
+            TextEdit(gui, ref buffer, rect, multiline, adjacency: adjacency);
             gui.EndReadOnly();
         }
 
@@ -124,21 +124,27 @@ namespace Imui.Controls
             TextEdit(gui, ref text, rect, true, filter);
         }
 
-        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, bool multiline, ImTextEditFilter filter = default)
+        public static void TextEdit(this ImGui gui,
+                                    ref string text,
+                                    ImRect rect,
+                                    bool multiline,
+                                    ImTextEditFilter filter = default,
+                                    ImAdjacency adjacency = ImAdjacency.None)
         {
             var id = gui.GetNextControlId();
-            var adjacency = gui.GetNextControlSettings().Adjacency;
-
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
             TextEdit(gui, id, ref text, ref state, rect, multiline, filter, adjacency);
         }
 
-        public static bool TextEdit(this ImGui gui, ref ImTextEditBuffer buffer, ImRect rect, bool multiline, ImTextEditFilter filter = default)
+        public static bool TextEdit(this ImGui gui,
+                                    ref ImTextEditBuffer buffer,
+                                    ImRect rect,
+                                    bool multiline,
+                                    ImTextEditFilter filter = default,
+                                    ImAdjacency adjacency = ImAdjacency.None)
         {
             var id = gui.GetNextControlId();
-            var adjacency = gui.GetNextControlSettings().Adjacency;
-
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
             return TextEdit(gui, id, ref buffer, ref state, rect, multiline, filter, adjacency);

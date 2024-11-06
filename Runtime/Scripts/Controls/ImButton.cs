@@ -48,19 +48,25 @@ namespace Imui.Controls
             return Button(gui, label, rect, flags);
         }
 
-        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flags = ImButtonFlag.None)
+        public static bool Button(this ImGui gui,
+                                  ReadOnlySpan<char> label,
+                                  ImRect rect,
+                                  ImButtonFlag flags = ImButtonFlag.None,
+                                  ImAdjacency adjacency = ImAdjacency.None)
         {
             var id = gui.GetNextControlId();
-            var adjacency = gui.GetNextControlSettings().Adjacency;
 
             return Button(gui, id, label, rect, out _, flags, adjacency);
         }
 
-        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flags = ImButtonFlag.None)
+        public static bool Button(this ImGui gui,
+                                  ImRect rect,
+                                  out ImButtonState state,
+                                  ImButtonFlag flags = ImButtonFlag.None,
+                                  ImAdjacency adjacency = ImAdjacency.None)
         {
             var id = gui.GetNextControlId();
-            var adjacency = gui.GetNextControlSettings().Adjacency;
-            
+
             return Button(gui, id, rect, out state, flags, adjacency);
         }
 

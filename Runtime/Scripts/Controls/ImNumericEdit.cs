@@ -285,14 +285,12 @@ namespace Imui.Controls
             var minusBtnRect = rect.TakeRight(width, -border, out rect);
             var delta = 0;
 
-            gui.SetNextAdjacency(ImAdjacency.Middle);
-            if (gui.Button("-", minusBtnRect, flags: ImButtonFlag.ReactToHeldDown))
+            if (gui.Button("-", minusBtnRect, flags: ImButtonFlag.ReactToHeldDown, ImAdjacency.Middle))
             {
                 delta--;
             }
 
-            gui.SetNextAdjacency(ImAdjacency.Right);
-            if (gui.Button("+", plusBtnRect, flags: ImButtonFlag.ReactToHeldDown))
+            if (gui.Button("+", plusBtnRect, flags: ImButtonFlag.ReactToHeldDown, ImAdjacency.Right))
             {
                 delta++;
             }

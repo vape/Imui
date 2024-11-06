@@ -160,14 +160,12 @@ namespace Imui.Controls
             var arrowWidth = GetArrowWidth(wholeRect.W, wholeRect.H);
             var buttonRect = wholeRect.TakeRight(arrowWidth, -borderWidth, out var previewRect);
 
-            gui.SetNextAdjacency(ImAdjacency.Right);
             if (ArrowButton(gui, id, buttonRect, ImAdjacency.Right))
             {
                 open = !open;
             }
             
             gui.Layout.Push(ImAxis.Horizontal, previewRect);
-            gui.SetNextAdjacency(ImAdjacency.Left);
         }
 
         public static void EndPreview(ImGui gui)
@@ -195,7 +193,7 @@ namespace Imui.Controls
 
         public static void PreviewText(ImGui gui, ReadOnlySpan<char> label)
         {
-            gui.TextEditReadonly(label, gui.Layout.GetBoundsRect(), false);
+            gui.TextEditReadonly(label, gui.Layout.GetBoundsRect(), false, ImAdjacency.Left);
         }
 
         public static bool ArrowButton(ImGui gui, uint id, ImRect rect, ImAdjacency adjacency)
