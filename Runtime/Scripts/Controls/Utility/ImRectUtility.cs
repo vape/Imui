@@ -6,37 +6,37 @@ using UnityEngine;
 // ReSharper disable once CheckNamespace
 namespace Imui.Controls
 {
-    public static class ImRectExt
+    public static class ImRectUtility
     {
         public static Vector2 Max(this Vector2 vec, float x, float y)
         {
             return new Vector2(Mathf.Max(vec.x, x), Mathf.Max(vec.y, y));
         }
 
-        public static Span<ImRect> SplitHorizontal(ImRect rect, ImArena arena, int cols, float spacing)
+        public static void SplitHorizontal(this ImRect rect, ref Span<ImRect> output, int columns, float spacing)
         {
-            ImAssert.True(cols > 0, "cols > 0");
-
-            var columnWidth = (rect.W - (spacing * (cols - 1))) / cols;
-            var result = arena.AllocArray<ImRect>(cols);
-            
-            for (int i = 0; i < cols; ++i)
+            if (columns <= 0)
             {
-                result[i] = new ImRect(rect.X, rect.Y, columnWidth, rect.H);
-                rect.X += spacing + columnWidth;
+                return;
             }
 
-            return result;
+            var columnWidth = (rect.W - (spacing * (columns - 1))) / columns;
+            
+            for (int i = 0; i < columns; ++i)
+            {
+                output[i] = new ImRect(rect.X, rect.Y, columnWidth, rect.H);
+                rect.X += spacing + columnWidth;
+            }
         }
         
-        public static ImRect SplitTop(this ImRect rect, float height)
+        public static ImRect TakeTop(this ImRect rect, float height)
         {
             rect.Y += rect.H - height;
             rect.H = height;
             return rect;
         }
         
-        public static ImRect SplitTop(this ImRect rect, float height, out ImRect bottom)
+        public static ImRect TakeTop(this ImRect rect, float height, out ImRect bottom)
         {
             bottom = rect;
             bottom.H = rect.H - height;
@@ -44,9 +44,29 @@ namespace Imui.Controls
             rect.H = height;
             return rect;
         }
+        
+        public static ImRect TakeBottom(this ImRect rect, float height)
+        {
+            rect.H = height;
+            return rect;
+        }
+        
+        public static ImRect TakeBottom(this ImRect rect, float height, out ImRect top)
+        {
+            top = rect;
+            top.Y += height;
+            top.H -= height;
+            rect.H = height;
+            return rect;
+        }
 
-        public static ImRect SplitLeft(this ImRect rect, float width) => SplitLeft(rect, width, out _);
-        public static ImRect SplitLeft(this ImRect rect, float width, out ImRect right)
+        public static ImRect TakeLeft(this ImRect rect, float width)
+        {
+            rect.W = width;
+            return rect;
+        }
+        
+        public static ImRect TakeLeft(this ImRect rect, float width, out ImRect right)
         {
             right = rect;
             right.X += width;
@@ -55,8 +75,14 @@ namespace Imui.Controls
             return rect;
         }
 
-        public static ImRect SplitRight(this ImRect rect, float width) => SplitRight(rect, width, out _);
-        public static ImRect SplitRight(this ImRect rect, float width, out ImRect left)
+        public static ImRect TakeRight(this ImRect rect, float width)
+        {
+            rect.X += rect.W - width;
+            rect.W = width;
+            return rect;
+        }
+        
+        public static ImRect TakeRight(this ImRect rect, float width, out ImRect left)
         {
             left = rect;
             left.W -= width;
@@ -65,7 +91,7 @@ namespace Imui.Controls
             return rect;
         }
         
-        public static ImRect SplitLeft(this ImRect rect, float width, float space, out ImRect right)
+        public static ImRect TakeLeft(this ImRect rect, float width, float space, out ImRect right)
         {
             right = rect;
             right.X += width + space;
@@ -74,7 +100,7 @@ namespace Imui.Controls
             return rect;
         }
         
-        public static ImRect SplitRight(this ImRect rect, float width, float space, out ImRect left)
+        public static ImRect TakeRight(this ImRect rect, float width, float space, out ImRect left)
         {
             left = rect;
             left.W -= width + space;
@@ -93,6 +119,16 @@ namespace Imui.Controls
             
             return new ImRect(x, y, w, h);
         }
+        
+        public static ImRect WithPadding(this ImRect rect, ImPadding padding)
+        {
+            rect.X += padding.Left;
+            rect.Y += padding.Bottom;
+            rect.W -= padding.Left + padding.Right;
+            rect.H -= padding.Top + padding.Bottom;
+
+            return rect;
+        }
 
         public static ImRect WithPadding(this ImRect rect, float left = 0, float right = 0, float top = 0, float bottom = 0)
         {
@@ -110,16 +146,6 @@ namespace Imui.Controls
             rect.Y += size;
             rect.W -= size * 2;
             rect.H -= size * 2;
-
-            return rect;
-        }
-        
-        public static ImRect WithPadding(this ImRect rect, ImPadding padding)
-        {
-            rect.X += padding.Left;
-            rect.Y += padding.Bottom;
-            rect.W -= padding.Left + padding.Right;
-            rect.H -= padding.Top + padding.Bottom;
 
             return rect;
         }

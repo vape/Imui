@@ -7,16 +7,11 @@ namespace Imui.Controls
     // TODO (artem-s): add optional titlebar
     public static class ImList
     {
-        public static ImRect GetRect(ImGui gui, ImSize size)
-        {
-            return ImControls.AddRowRect(gui, size);
-        }
-
         public static void BeginList(this ImGui gui, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
-            BeginList(gui, GetRect(gui, size));
+            BeginList(gui, gui.AddSingleRowRect(size));
         }
 
         public static void BeginList(this ImGui gui, ImRect rect)

@@ -49,7 +49,7 @@ namespace Imui.Controls
 
             var id = gui.PushId(label);
             ref var expanded = ref gui.Storage.Get<bool>(id);
-            var rect = ImControls.AddRowRect(gui, size);
+            var rect = gui.AddSingleRowRect(size);
             var state = ImTreeNodeState.None;
 
             state |= selected ? ImTreeNodeState.Selected : ImTreeNodeState.None;
@@ -104,7 +104,7 @@ namespace Imui.Controls
 
             var id = gui.GetNextControlId();
             var state = selected ? ImTreeNodeState.Selected : ImTreeNodeState.None;
-            var rect = ImControls.AddRowRect(gui, size);
+            var rect = gui.AddSingleRowRect(size);
 
             TreeNode(gui, id, ref state, label, rect, false, true, flags);
 
@@ -124,7 +124,7 @@ namespace Imui.Controls
 
             var arrowSize = gui.Style.Layout.TextSize;
             var contentRect = ImButton.CalculateContentRect(gui, rect);
-            var arrowRect = contentRect.SplitLeft(arrowSize, gui.Style.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
+            var arrowRect = contentRect.TakeLeft(arrowSize, gui.Style.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
             var changed = false;
             var buttonState = ImButtonState.Normal;
             var expandButtonRect = selectable ? arrowRect : rect;

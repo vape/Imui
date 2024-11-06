@@ -53,7 +53,7 @@ namespace Imui.Controls
 
         private const string TEMP_BUFFER_TAG = "temp_buffer";
 
-        public static ImRect GetRect(ImGui gui, ImSize size, bool? multiline, out bool isActuallyMultiline /* wtf? */)
+        public static ImRect AddRect(ImGui gui, ImSize size, bool? multiline, out bool isActuallyMultiline /* wtf? */)
         {
             var minHeight = gui.GetRowHeight();
 
@@ -85,7 +85,7 @@ namespace Imui.Controls
 
         public static void TextEditReadonly(this ImGui gui, ReadOnlySpan<char> text, ImSize size = default, bool? multiline = null)
         {
-            var rect = GetRect(gui, size, multiline, out var actuallyMultiline);
+            var rect = AddRect(gui, size, multiline, out var actuallyMultiline);
             TextEditReadonly(gui, text, rect, actuallyMultiline);
         }
 
@@ -109,7 +109,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size, multiline, out var actuallyMultiline);
+            var rect = AddRect(gui, size, multiline, out var actuallyMultiline);
             TextEdit(gui, ref text, rect, actuallyMultiline, filter);
         }
 

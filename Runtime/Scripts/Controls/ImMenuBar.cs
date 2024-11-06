@@ -32,7 +32,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
-            var rect = ImControls.AddRowRect(gui, size);
+            var rect = gui.AddSingleRowRect(size);
 
             BeginMenuBar(gui, rect);
         }

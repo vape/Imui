@@ -92,7 +92,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = ImCheckbox.GetRect(gui, size, label);
+            var rect = ImCheckbox.AddRect(gui, size, label);
             return Radio(gui, ref value, label, rect);
         }
 
@@ -106,7 +106,7 @@ namespace Imui.Controls
         {
             var id = gui.GetNextControlId();
             var boxSize = gui.Style.Layout.TextSize;
-            var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
+            var boxRect = rect.TakeLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Radio(gui, id, ref value, boxRect);
 
             if (label.IsEmpty)

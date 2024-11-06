@@ -19,7 +19,7 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id = gui.GetNextControlId();
-            var rect = ImControls.AddRowRect(gui, size, gui.GetRowHeight());
+            var rect = gui.AddSingleRowRect(size, gui.GetRowHeight());
             
             return ColorPickerButton(gui, id, ref color, rect, flags);
         }
@@ -62,7 +62,7 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id = gui.GetNextControlId();
-            var rect = ImControls.AddRowRect(gui, size, gui.GetRowHeight());
+            var rect = gui.AddSingleRowRect(size, gui.GetRowHeight());
 
             return ColorButton(gui, id, color, rect, flags);
         }
@@ -92,7 +92,7 @@ namespace Imui.Controls
                 var leftBoxColor = color;
                 leftBoxColor.a = 1.0f;
             
-                gui.Canvas.Rect(rect.SplitLeft(rect.W / 2.0f), leftBoxColor);
+                gui.Canvas.Rect(rect.TakeLeft(rect.W / 2.0f), leftBoxColor);
             }
             
             gui.Box(rect, boxStyle);

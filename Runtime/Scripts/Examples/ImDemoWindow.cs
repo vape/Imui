@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Imui.Controls;
 using Imui.Core;
 using Imui.Style;
 using UnityEngine;
 
-namespace Imui.Controls.Windows
+namespace Imui.Examples
 {
     [Flags]
     internal enum ImDemoEnumFlags

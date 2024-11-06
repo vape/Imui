@@ -1,11 +1,10 @@
-using System;
 using Imui.Core;
 using Imui.Style;
-using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace Imui.Controls
 {
-    public static class ImBox
+    public static class ImDrawingUtility
     {
         public static void Box(this ImGui gui, ImRect rect, in ImStyleBox style)
         {

@@ -1,3 +1,4 @@
+using System;
 using Imui.Core;
 using Imui.Style;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace Imui.Controls
                 return gui.Layout.AddRect(width, gui.GetRowHeight());
             }
 
-            return ImControls.AddRowRect(gui, size);
+            return gui.AddSingleRowRect(size);
         }
 
         public static bool ColorEdit(this ImGui gui, ref Color color, ImSize size = default)
@@ -42,7 +43,9 @@ namespace Imui.Controls
 
             ref readonly var style = ref gui.Style.TextEdit.Normal.Box;
 
-            var rects = ImRectExt.SplitHorizontal(rect, gui.Arena, 5, gui.Style.Layout.InnerSpacing);
+            Span<ImRect> rects = stackalloc ImRect[5];
+            rect.SplitHorizontal(ref rects, rects.Length, gui.Style.Layout.InnerSpacing);
+            
             var changed = false;
 
             using (new ImStyleScope<ImStyleTextEdit>(ref gui.Style.TextEdit))

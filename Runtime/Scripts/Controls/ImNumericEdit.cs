@@ -31,7 +31,7 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             id = gui.GetNextControlId();
-            rect = ImTextEdit.GetRect(gui, size, false, out _);
+            rect = ImTextEdit.AddRect(gui, size, false, out _);
         }
         
         public static bool NumericEdit(this ImGui gui,
@@ -281,8 +281,8 @@ namespace Imui.Controls
             var height = rect.H;
             var width = height;
 
-            var plusBtnRect = rect.SplitRight(width, -border, out rect);
-            var minusBtnRect = rect.SplitRight(width, -border, out rect);
+            var plusBtnRect = rect.TakeRight(width, -border, out rect);
+            var minusBtnRect = rect.TakeRight(width, -border, out rect);
             var delta = 0;
 
             gui.SetNextAdjacency(ImAdjacency.Middle);

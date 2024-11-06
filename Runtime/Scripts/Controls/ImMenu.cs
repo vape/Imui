@@ -224,7 +224,7 @@ namespace Imui.Controls
             var clicked = gui.Button(id, contentRect, out var buttonState, ImButtonFlag.ActOnPress) && !isExpandable;
             var frontColor = ImButton.GetStateFrontColor(gui, buttonState);
             var labelRect = contentRect.WithPadding(left: gui.Style.Layout.InnerSpacing);
-            var extraRect = labelRect.SplitRight(extraWidth, gui.Style.Layout.InnerSpacing, out labelRect).WithAspect(1.0f);
+            var extraRect = labelRect.TakeRight(extraWidth, gui.Style.Layout.InnerSpacing, out labelRect).WithAspect(1.0f);
             
             if (isExpandable)
             {

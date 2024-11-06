@@ -1,10 +1,10 @@
 using System;
+using Imui.Controls;
 using Imui.Core;
-using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
-namespace Imui.Controls.Windows
+namespace Imui.Examples
 {
     public static class ImDebugWindow
     {

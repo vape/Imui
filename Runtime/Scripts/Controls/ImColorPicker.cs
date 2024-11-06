@@ -67,8 +67,8 @@ namespace Imui.Controls
             var svBarId = gui.GetNextControlId();
             var hueBarId = gui.GetNextControlId();
             var alphaBarId = gui.GetNextControlId();
-            var alphaBarRect = rect.SplitRight(gui.GetRowHeight(), gui.Style.Layout.InnerSpacing, out rect);
-            var hueBarRect = rect.SplitRight(gui.GetRowHeight(), gui.Style.Layout.InnerSpacing, out rect);
+            var alphaBarRect = rect.TakeRight(gui.GetRowHeight(), gui.Style.Layout.InnerSpacing, out rect);
+            var hueBarRect = rect.TakeRight(gui.GetRowHeight(), gui.Style.Layout.InnerSpacing, out rect);
 
             changed |= HueBar(gui, hueBarId, ref state.Hue, hueBarRect);
             changed |= AlphaBar(gui, alphaBarId, color, ref alpha, alphaBarRect);

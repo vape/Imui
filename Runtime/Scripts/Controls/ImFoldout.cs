@@ -15,7 +15,7 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id = gui.PushId(label);
-            var rect = ImControls.AddRowRect(gui, size);
+            var rect = gui.AddSingleRowRect(size);
             
             ref var open = ref gui.Storage.Get<bool>(id);
             DrawFoldout(gui, id, ref open, label, rect);
@@ -41,7 +41,7 @@ namespace Imui.Controls
             var textSettings = ImButton.CreateTextSettings(gui);
             var arrowSize = gui.Style.Layout.TextSize;
             var contentRect = ImButton.CalculateContentRect(gui, rect);
-            var arrowRect = contentRect.SplitLeft(arrowSize, gui.Style.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
+            var arrowRect = contentRect.TakeLeft(arrowSize, gui.Style.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
 
             if (gui.Button(id, rect, out var state))
             {

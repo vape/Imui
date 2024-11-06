@@ -23,7 +23,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            return BeginDropdown(gui, id, ref open, label, ImControls.AddRowRect(gui, size), preview);
+            return BeginDropdown(gui, id, ref open, label, gui.AddSingleRowRect(size), preview);
         }
         
         public static bool BeginDropdown(this ImGui gui,
@@ -158,7 +158,7 @@ namespace Imui.Controls
             var borderWidth = gui.Style.Dropdown.Button.BorderThickness;
             var wholeRect = gui.Layout.GetBoundsRect();
             var arrowWidth = GetArrowWidth(wholeRect.W, wholeRect.H);
-            var buttonRect = wholeRect.SplitRight(arrowWidth, -borderWidth, out var previewRect);
+            var buttonRect = wholeRect.TakeRight(arrowWidth, -borderWidth, out var previewRect);
 
             gui.SetNextAdjacency(ImAdjacency.Right);
             if (ArrowButton(gui, id, buttonRect, ImAdjacency.Right))

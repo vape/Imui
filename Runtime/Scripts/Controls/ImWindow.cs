@@ -184,7 +184,7 @@ namespace Imui.Controls
 
             if ((state.Flags & ImWindowFlag.NoCloseButton) == 0)
             {
-                var closeButtonRect = rect.SplitRight(gui.GetRowHeight() - gui.Style.Layout.InnerSpacing).WithAspect(1.0f);
+                var closeButtonRect = rect.TakeRight(gui.GetRowHeight() - gui.Style.Layout.InnerSpacing).WithAspect(1.0f);
                 closeButtonRect.X -= closeButtonRect.Y - rect.Y;
 
                 using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Window.TitleBar.CloseButton))
@@ -286,7 +286,7 @@ namespace Imui.Controls
             var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderThickness;
             cornerRadius = new ImRectRadius(radiusTopLeft, radiusTopRight);
 
-            return window.WithPadding(style.Box.BorderThickness).SplitTop(height);
+            return window.WithPadding(style.Box.BorderThickness).TakeTop(height);
         }
 
         public static ImRect GetMenuBarRect(ImGui gui, in ImWindowState state)
@@ -295,10 +295,10 @@ namespace Imui.Controls
 
             if ((state.Flags & ImWindowFlag.NoTitleBar) == 0)
             {
-                rect.SplitTop(GetTitleBarHeight(gui), out rect);
+                rect.TakeTop(GetTitleBarHeight(gui), out rect);
             }
 
-            return rect.SplitTop(GetMenuBarHeight(gui));
+            return rect.TakeTop(GetMenuBarHeight(gui));
         }
 
         public static ImRect GetContentRect(ImGui gui, in ImWindowState state)
@@ -307,12 +307,12 @@ namespace Imui.Controls
 
             if ((state.Flags & ImWindowFlag.NoTitleBar) == 0)
             {
-                content.SplitTop(GetTitleBarHeight(gui), out content);
+                content.TakeTop(GetTitleBarHeight(gui), out content);
             }
 
             if ((state.Flags & ImWindowFlag.HasMenuBar) != 0)
             {
-                content.SplitTop(GetMenuBarHeight(gui), out content);
+                content.TakeTop(GetMenuBarHeight(gui), out content);
             }
 
             return content.WithPadding(gui.Style.Window.ContentPadding);

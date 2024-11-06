@@ -23,7 +23,7 @@ namespace Imui.Controls
 
     public static class ImButton
     {
-        public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
+        public static ImRect AddRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
         {
             if (size.Mode == ImSizeMode.Fit || (size.Mode == ImSizeMode.Auto && gui.Layout.Axis == ImAxis.Horizontal))
             {
@@ -37,14 +37,14 @@ namespace Imui.Controls
                 return gui.Layout.AddRect(rectSize);
             }
 
-            return ImControls.AddRowRect(gui, size);
+            return gui.AddSingleRowRect(size);
         }
 
         public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImButtonFlag flags = ImButtonFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size, label);
+            var rect = AddRect(gui, size, label);
             return Button(gui, label, rect, flags);
         }
 
