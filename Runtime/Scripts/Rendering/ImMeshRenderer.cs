@@ -143,7 +143,7 @@ namespace Imui.Rendering
                 return;
             }
             
-            ImObjectUtility.Destroy(mesh);
+            ImUnityUtility.Destroy(mesh);
             mesh = null;
 
             disposed = true;

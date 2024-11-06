@@ -518,7 +518,7 @@ namespace Imui.Rendering
                 return;
             }
 
-            ImObjectUtility.Destroy(fontAsset);
+            ImUnityUtility.Destroy(fontAsset);
             fontAsset = null;
 
             disposed = true;
