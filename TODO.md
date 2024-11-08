@@ -1,6 +1,6 @@
 ### TODO
 - ~~Color picker~~
-- Style using palettes
+- ~~Style using palettes~~
 - Context menus
 - Use context menu instead of list in dropdown
 - Tables

@@ -35,13 +35,17 @@ namespace Imui.Examples
         {
             nameof(ImThemeBuiltin.Light), 
             nameof(ImThemeBuiltin.Dark), 
-            nameof(ImThemeBuiltin.Dear)
+            nameof(ImThemeBuiltin.Dear),
+            nameof(ImThemeBuiltin.Orange),
+            nameof(ImThemeBuiltin.Terminal)
         };
 
         private static ImTheme CreateTheme(int index)
         {
             return index switch
             {
+                4 => ImThemeBuiltin.Terminal(),
+                3 => ImThemeBuiltin.Orange(),
                 2 => ImThemeBuiltin.Dear(),
                 1 => ImThemeBuiltin.Dark(),
                 _ => ImThemeBuiltin.Light()

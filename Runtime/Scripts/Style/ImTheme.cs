@@ -92,5 +92,49 @@ namespace Imui.Style
                 Variance = 0.2f,
             };
         }
+        
+        public static ImTheme Orange()
+        {
+            return new ImTheme {
+                TextSize = 20f, 
+                Spacing = 3f,
+                InnerSpacing = 5f,
+                Indent = 12f,
+                ExtraRowHeight = 4f,
+                ScrollBarSize = 13f,
+                WindowBorderRadius = 8f,
+                WindowBorderThickness = 1f,
+                BorderRadius = 5f,
+                BorderThickness = 1f,
+                ReadOnlyColorMultiplier = 0.7f,
+                Background = new Color32(17, 18, 18, 245),
+                Foreground = new Color32(224, 224, 224, 255),
+                Accent = new Color32(211, 85, 12, 255),
+                Control = new Color32(0, 121, 255, 11),
+                Variance = 0.22f,
+            };
+        }
+        
+        public static ImTheme Terminal()
+        {
+            return new ImTheme {
+                TextSize = 18f, 
+                Spacing = 1f,
+                InnerSpacing = 2f,
+                Indent = 8f,
+                ExtraRowHeight = 0f,
+                ScrollBarSize = 15f,
+                WindowBorderRadius = 0f,
+                WindowBorderThickness = 1f,
+                BorderRadius = 0f,
+                BorderThickness = 1f,
+                ReadOnlyColorMultiplier = 0.7f,
+                Background = new Color32(0, 0, 0, 240),
+                Foreground = new Color32(18, 255, 0, 255),
+                Accent = new Color32(52, 224, 0, 255),
+                Control = new Color32(22, 78, 0, 255),
+                Variance = 0.2f,
+            };
+        }
     }
 }
