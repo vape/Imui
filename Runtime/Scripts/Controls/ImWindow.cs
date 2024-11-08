@@ -165,7 +165,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     gui.Input.UseMouseEvent();
                     break;
@@ -244,7 +244,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     gui.Input.UseMouseEvent();
                     break;

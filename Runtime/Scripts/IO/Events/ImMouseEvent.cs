@@ -21,6 +21,7 @@ namespace Imui.IO.Events
         public readonly EventModifiers Modifiers;
         public readonly Vector2 Delta;
         public readonly int Count;
+        public readonly bool LeftButton;
 
         public ImMouseEvent(ImMouseEventType type, int button, EventModifiers modifiers, Vector2 delta, int count = 1)
         {
@@ -29,6 +30,7 @@ namespace Imui.IO.Events
             Modifiers = modifiers;
             Delta = delta;
             Count = count;
+            LeftButton = button == 0;
         }
 
         public override string ToString()

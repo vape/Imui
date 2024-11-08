@@ -123,10 +123,10 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down when hovered && !active:
+                case ImMouseEventType.Down when evt.LeftButton && hovered && !active:
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     break;
-                case ImMouseEventType.Drag or ImMouseEventType.BeginDrag when active:
+                case ImMouseEventType.Drag or ImMouseEventType.BeginDrag when evt.LeftButton && active:
                     var pnorm = rect.GetNormalPositionAtPoint(gui.Input.MousePosition);
                     s = Mathf.Clamp01(pnorm.x);
                     v = Mathf.Clamp01(pnorm.y);

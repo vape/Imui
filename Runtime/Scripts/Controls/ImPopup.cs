@@ -52,7 +52,7 @@ namespace Imui.Controls
                 gui.Input.UseMouseEvent();
             }
             
-            var clicked = gui.InvisibleButton(id, gui.Canvas.ScreenRect, ImButtonFlag.ActOnPress);
+            var clicked = gui.InvisibleButton(id, gui.Canvas.ScreenRect, ImButtonFlag.ActOnPress | ImButtonFlag.ReactToAnyButton);
             
             gui.Canvas.PopOrder();
             gui.Canvas.PopClipRect();

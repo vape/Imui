@@ -258,7 +258,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down when selected && hovered && evt.Count > 1:
+                case ImMouseEventType.Down when evt.LeftButton && selected && hovered && evt.Count > 1:
                     state.Selection = 0;
                     state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, textRect, in layout, in buffer);
 
@@ -272,7 +272,7 @@ namespace Imui.Controls
                     }
                     break;
 
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
                     if (!selected)
                     {
                         gui.SetActiveControl(id, ImControlFlag.Draggable);
