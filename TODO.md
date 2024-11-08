@@ -1,9 +1,13 @@
 ### TODO
 - ~~Color picker~~
+- Style using palettes
+- Context menus
+- Use context menu instead of list in dropdown
+- Tables
+- Tabs
+
+### Later
 - Theme editor
-- Implement style sheet generation using palettes
-- Implement table layout
-- Implement tabs
 - Plotting control
 - Do not allow to resize windows to negative values
 - Text truncation
@@ -11,8 +15,6 @@
 - Controls should have their own reasonable minimal size
 - In code documentation
 - Rich text
-
-### Later
 - Fix touch keyboard in webgl
   - Apparently, it is bug in unity that prevents touchkeybaord to open in WebGL builds in versions prior to 2022.1 https://discussions.unity.com/t/touch-screen-keyboard-in-web-gl/892662/18 
 - Reorder demo controls from basic to more advanced
