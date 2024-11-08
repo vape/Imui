@@ -6,6 +6,8 @@ namespace Imui.Controls
 {
     public static class ImImage
     {
+        private static readonly Color32 White = new Color32(255, 255, 255, 255);
+        
         public static ImRect AddRect(ImGui gui, Texture texture, ImSize size)
         {
             return size.Mode switch
@@ -36,7 +38,7 @@ namespace Imui.Controls
             
             gui.Canvas.PushTexture(texture);
             gui.Canvas.SetTexScaleOffset(new Vector4(1, 1, 0, 0));
-            gui.Canvas.Rect(rect, ImStyleUtility.White);
+            gui.Canvas.Rect(rect, White);
             gui.Canvas.SetTexScaleOffset(scaleOffset);
             gui.Canvas.PopTexture();
         }

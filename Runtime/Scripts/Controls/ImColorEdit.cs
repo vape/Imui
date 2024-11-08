@@ -83,7 +83,7 @@ namespace Imui.Controls
             var radius = new ImRectRadius(bottomRight: style.BorderRadius.BottomRight, bottomLeft: style.BorderRadius.BottomLeft);
             rect.AddPadding(style.BorderThickness);
             rect.H = Mathf.Max(2, style.BorderRadius.BottomLeft - style.BorderThickness);
-            gui.Canvas.Rect(rect, color.WithAlpha(128), radius);
+            gui.Canvas.Rect(rect, color.WithAlpha(0.5f), radius);
         }
     }
 }

@@ -239,7 +239,7 @@ namespace Imui.Controls
                 buffer[i + 1].y = cy + Mathf.Sin(a) * radius;
             }
 
-            gui.Canvas.ConvexFill(buffer, style.ResizeHandleColor);
+            gui.Canvas.ConvexFill(buffer, hovered || active ? style.ResizeHandleActiveColor : style.ResizeHandleNormalColor);
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)

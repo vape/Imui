@@ -12,24 +12,17 @@ namespace Imui.Style
         public float Indent;
         public float ExtraRowHeight;
         public float ScrollBarSize;
-
         public float WindowBorderRadius;
         public float WindowBorderThickness;
-        
         public float BorderRadius;
         public float BorderThickness;
-
         public float ReadOnlyColorMultiplier;
         
-        public Color32 Background;
-        public Color32 Foreground;
-
-        public Color32 AccentBackground;
-        public Color32 AccentForeground;
-        
-        public Color32 BorderColor;
-        public Color32 ButtonColor;
-        public Color32 FieldColor;
+        public Color Background;
+        public Color Foreground;
+        public Color Control;
+        public Color Accent;
+        public float Variance;
     }
 
     public static class ImThemeBuiltin
@@ -50,11 +43,9 @@ namespace Imui.Style
                 ReadOnlyColorMultiplier = 0.9f,
                 Background = new Color32(241, 241, 241, 255),
                 Foreground = new Color32(30, 30, 30, 255),
-                AccentBackground = new Color32(0, 120, 202, 255),
-                AccentForeground = new Color32(241, 241, 241, 255),
-                BorderColor = new Color32(179, 179, 179, 255),
-                ButtonColor = new Color32(222, 222, 222, 255),
-                FieldColor = new Color32(214, 214, 214, 255)
+                Accent = new Color32(0, 120, 202, 255),
+                Control = new Color32(0, 0, 0, 0),
+                Variance = 0.05f
             };
         }
         
@@ -73,12 +64,10 @@ namespace Imui.Style
                 BorderThickness = 1f,
                 ReadOnlyColorMultiplier = 0.7f,
                 Background = new Color32(58, 58, 58, 255),
-                Foreground = new Color32(217, 217, 217, 255),
-                AccentBackground = new Color32(0, 116, 204, 255),
-                AccentForeground = new Color32(230, 230, 230, 255),
-                BorderColor = new Color32(36, 36, 36, 255),
-                ButtonColor = new Color32(75, 75, 75, 255),
-                FieldColor = new Color32(48, 48, 48, 255)
+                Foreground = new Color32(224, 224, 224, 255),
+                Accent = new Color32(0, 125, 219, 255),
+                Control = new Color32(255, 255, 255, 8),
+                Variance = 0.15f,
             };
         }
         
@@ -96,13 +85,11 @@ namespace Imui.Style
                 BorderRadius = 0f,
                 BorderThickness = 0f,
                 ReadOnlyColorMultiplier = 0.7f,
-                Background = new Color32(10, 10, 10, 250),
+                Background = new Color32(10, 10, 10, 242),
                 Foreground = new Color32(255, 255, 255, 255),
-                AccentBackground = new Color32(89, 148, 243, 255),
-                AccentForeground = new Color32(17, 26, 41, 255),
-                BorderColor = new Color32(59, 76, 103, 255),
-                ButtonColor = new Color32(41, 61, 91, 255),
-                FieldColor = new Color32(36, 49, 75, 255)
+                Accent = new Color32(89, 148, 243, 255),
+                Control = new Color32(75, 114, 200, 118),
+                Variance = 0.2f,
             };
         }
     }

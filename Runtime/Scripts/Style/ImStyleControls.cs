@@ -186,7 +186,8 @@ namespace Imui.Style
     public struct ImStyleWindow
     {
         public ImStyleBox Box;
-        public Color32 ResizeHandleColor;
+        public Color32 ResizeHandleNormalColor;
+        public Color32 ResizeHandleActiveColor;
         public float ResizeHandleSize;
         public ImPadding ContentPadding;
         public ImStyleWindowTitleBar TitleBar;

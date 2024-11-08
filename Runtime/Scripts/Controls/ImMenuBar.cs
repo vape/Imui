@@ -69,7 +69,8 @@ namespace Imui.Controls
             var id = gui.PushId(label);
             var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.MenuBar.ItemNormal.Alignment);
             var textWidth = gui.MeasureTextSize(label, in textSettings).x;
-            var rect = gui.AddLayoutRect(textWidth + gui.Style.MenuBar.ItemExtraWidth, gui.GetRowHeight());
+            var rect = gui.AddLayoutRect(textWidth + gui.Style.MenuBar.ItemExtraWidth, gui.GetLayoutHeight());
+            rect.AddPadding(gui.Style.MenuBar.Box.BorderThickness);
             var clicked = false;
             
             ref var buttonStyle = ref (barState.Selected == id ? ref gui.Style.MenuBar.ItemActive : ref gui.Style.MenuBar.ItemNormal);

@@ -515,7 +515,7 @@ namespace Imui.Examples
                 var x = t <= 1.0f ? t : 1 - (t - 1);
                 var y = 0.5f + Mathf.Sin((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)) * Mathf.PI * 2) * 0.25f;
                 var p = bounds.GetPointAtNormalPosition(x, y);
-                var c = circleColor.WithAlphaF(circleColor.a * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
+                var c = circleColor.WithAlpha(circleColor.a * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }
