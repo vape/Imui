@@ -197,6 +197,24 @@ namespace Imui.Examples
             gui.Radio(ref dropdownPreview);
             gui.EndHorizontal();
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Dropdown without value selected", preview: dropdownPreview);
+            if (gui.BeginDropdownMenu("Custom Dropdown", preview: dropdownPreview))
+            {
+                if (gui.MenuItem("Menu Item"))
+                {
+                    gui.CloseDropdown();
+                }
+                gui.TooltipAtLastControl("Will close dropdown on click");
+                
+                if (gui.BeginSubMenu("Sub Menu Inside Dropdown"))
+                {
+                    gui.Text("Hello there");
+                    gui.EndSubMenu();
+                }
+                gui.Checkbox(ref checkboxValue, "Checkbox");
+                gui.Separator("Nested dropdown, if that's want you really want");
+                gui.Dropdown(ref selectedValue, values, defaultLabel: "Nothing", preview: dropdownPreview);
+                gui.EndDropdownMenu();
+            }
             gui.Separator("Text editors");
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, multiline: true);
@@ -357,11 +375,11 @@ namespace Imui.Examples
         {
             DrawBouncingBall(gui);
             gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
-            gui.TooltipAtControl("Size of the circles in pixels");
+            gui.TooltipAtLastControl("Size of the circles in pixels");
             gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
-            gui.TooltipAtControl("Speed for circles moving");
+            gui.TooltipAtLastControl("Speed for circles moving");
             gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
-            gui.TooltipAtControl("Number of circles drawn");
+            gui.TooltipAtLastControl("Number of circles drawn");
         }
 
         private static void DrawMenuBarItems(ImGui gui, ref bool windowOpen)

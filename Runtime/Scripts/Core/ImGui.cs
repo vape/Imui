@@ -340,6 +340,12 @@ namespace Imui.Core
             nextFrameData.FloatingControls.Add(rect);
         }
 
+        public void SetLastControl(uint id, ImRect rect)
+        {
+            lastControl = id;
+            lastControlRect = rect;
+        }
+
         public void RegisterControl(uint controlId, ImRect rect)
         {
             lastControl = controlId;
