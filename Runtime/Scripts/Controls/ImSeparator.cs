@@ -1,6 +1,5 @@
 using System;
 using Imui.Core;
-using Imui.Style;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -10,27 +9,37 @@ namespace Imui.Controls
         public static void Separator(this ImGui gui)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             Separator(gui, gui.AddLayoutRect(gui.GetLayoutWidth(), gui.Style.Separator.Thickness));
         }
 
         public static void Separator(this ImGui gui, ReadOnlySpan<char> label)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             Separator(gui, label, gui.AddLayoutRect(gui.GetLayoutWidth(), gui.Style.Layout.TextSize));
         }
-        
+
         public static void Separator(ImGui gui, ImRect rect)
         {
+            if (gui.Canvas.Cull(rect))
+            {
+                return;
+            }
+
             var p0 = rect.LeftCenter;
             var p1 = rect.RightCenter;
-            
+
             gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
         }
-        
+
         public static void Separator(ImGui gui, ReadOnlySpan<char> label, ImRect rect)
         {
+            if (gui.Canvas.Cull(rect))
+            {
+                return;
+            }
+
             var fontSize = Mathf.Min(gui.Style.Layout.TextSize, gui.TextDrawer.GetFontSizeFromLineHeight(rect.H));
             var textSettings = new ImTextSettings(fontSize, gui.Style.Separator.TextAlignment);
             var textRectSize = gui.MeasureTextSize(label, in textSettings, rect.Size);
