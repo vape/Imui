@@ -34,13 +34,10 @@ namespace Imui.Controls
         public static bool BeginContextMenu(this ImGui gui, uint id, Vector2 source, ref bool open)
         {
             gui.PushId(id);
-            gui.Layout.Push(ImAxis.Vertical, new ImRect(source.x, source.y, 0, 0));
 
-            if (!gui.BeginMenu("context_menu", ref open))
+            if (!gui.BeginMenu("context_menu", ref open, source))
             {
-                gui.Layout.Pop();
                 gui.PopId();
-                
                 return false;
             }
 
@@ -51,7 +48,6 @@ namespace Imui.Controls
         {
             gui.EndMenu();
             
-            gui.Layout.Pop();
             gui.PopId();
         }
     }

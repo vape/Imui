@@ -70,6 +70,7 @@ namespace Imui.Controls
             var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.MenuBar.ItemNormal.Alignment);
             var textWidth = gui.MeasureTextSize(label, in textSettings).x;
             var rect = gui.AddLayoutRect(textWidth + gui.Style.MenuBar.ItemExtraWidth, gui.GetLayoutHeight());
+            var source = rect.BottomLeft;
             rect.AddPadding(gui.Style.MenuBar.Box.BorderThickness);
             var clicked = false;
             
@@ -103,13 +104,8 @@ namespace Imui.Controls
                 gui.PopId();
                 return false;
             }
-
-            var buttonRect = gui.LastControlRect;
-            buttonRect.W = 0;
-            buttonRect.H = 0;
-            gui.Layout.Push(ImAxis.Vertical, buttonRect);
-
-            gui.BeginMenu(label, ref open);
+            
+            gui.BeginMenu(label, ref open, source);
 
             if (!open && barState.Selected == id)
             {
@@ -122,7 +118,6 @@ namespace Imui.Controls
         public static void EndMenuBarItem(this ImGui gui)
         {
             gui.EndMenu();
-            gui.Layout.Pop();
             gui.PopId();
         }
     }
