@@ -1,8 +1,8 @@
 ### TODO
 - ~~Color picker~~
 - ~~Style using palettes~~
-- Context menus
-- Use context menu instead of list in dropdown
+- ~~Context menus~~
+- ~~Use menus instead of list in dropdown~~
 - Tables
 - Tabs
 
@@ -25,6 +25,7 @@
 - Property drawers, like in Unity's IMGUI
 - Show min/max value inside slider
 - Implement slider inside numeric editor
+- Controls optimization
 
 ### 0.4
 - ~~Handle double clicks in ImTextEdit to select words~~
