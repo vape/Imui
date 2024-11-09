@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Imui.Core
@@ -81,6 +82,7 @@ namespace Imui.Core
             return x >= X && x <= (X + W) && y >= Y && y <= (Y + H);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Overlaps(ImRect other)
         {
             var xMax = X + W;
