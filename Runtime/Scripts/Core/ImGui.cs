@@ -36,7 +36,7 @@ namespace Imui.Core
         private const int READONLY_STACK_CAPACITY = 4;
         private const int CONTROL_SCOPE_STACK_CAPACITY = 64;
 
-        private const int DEFAULT_STORAGE_CAPACITY = 2048;
+        private const int INITIAL_STORAGE_ENTRIES = 256;
         private const int DEFAULT_ARENA_CAPACITY = 1024 * 1024;
 
         private struct ControlId
@@ -136,7 +136,7 @@ namespace Imui.Core
             Canvas = new ImCanvas(MeshDrawer, TextDrawer, Arena);
             MeshRenderer = new ImMeshRenderer();
             Layout = new ImLayout();
-            Storage = new ImStorage(DEFAULT_STORAGE_CAPACITY);
+            Storage = new ImStorage(INITIAL_STORAGE_ENTRIES);
             WindowManager = new ImWindowManager();
             Input = input;
             Renderer = renderer;
@@ -198,7 +198,7 @@ namespace Imui.Core
 
             Canvas.PopSettings();
 
-            Storage.CollectAndCompact();
+            Storage.CollectAndCompactIteration();
 
             WindowManager.HandleFrameEnded();
         }

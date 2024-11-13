@@ -10,6 +10,8 @@ internal class ImuiAssertException : Exception
 
 internal static class ImAssert
 {
+    // TODO (artem-s): assets only with IMUI_DEBUG
+    
     [Conditional("IMUI_DEBUG")]
     [Conditional("IMUI_VALIDATION")]
     [Conditional("DEVELOPMENT_BUILD")]

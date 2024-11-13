@@ -209,18 +209,7 @@ namespace Imui.Controls
 
             if (selected && filter != null)
             {
-                gui.PushId(id);
-
-                var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);
-                if (!gui.Storage.TryGetPtr(tempBufferId, out tempBuffer))
-                {
-                    tempBuffer = gui.Storage.GetPtr<ImTextTempFilterBuffer>(tempBufferId);
-                    tempBuffer->Populate(buffer);
-                }
-                // else relying on collecting garbage on every frame to clean up filter state
-                // TODO: if storage gc mechanism is somehow changed - return back here
-
-                gui.PopId();
+                tempBuffer = GetTempFilterBuffer(gui, id);
 
                 buffer.Clear(tempBuffer->Length);
                 buffer.Insert(0, tempBuffer->AsSpan());
@@ -276,6 +265,11 @@ namespace Imui.Controls
                     if (!selected)
                     {
                         gui.SetActiveControl(id, ImControlFlag.Draggable);
+
+                        if (filter != null)
+                        {
+                            GetTempFilterBuffer(gui, id)->Populate(buffer);
+                        }
                     }
 
                     state.Selection = 0;
@@ -891,6 +885,16 @@ namespace Imui.Controls
 
                 gui.Canvas.Rect(lineSelectionRect, style.SelectionColor);
             }
+        }
+        
+        private static unsafe ImTextTempFilterBuffer* GetTempFilterBuffer(ImGui gui, uint id)
+        {
+            gui.PushId(id);
+            var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);
+            var tempBuffer = gui.Storage.GetPtr<ImTextTempFilterBuffer>(tempBufferId);
+            gui.PopId();
+            
+            return tempBuffer;
         }
     }
 

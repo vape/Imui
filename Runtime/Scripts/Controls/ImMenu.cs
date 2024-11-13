@@ -181,6 +181,9 @@ namespace Imui.Controls
             {
                 state->Size = default;
                 state->Flags &= ~ImMenuStateFlag.LayoutBuilt;
+                state->Fixed = default;
+                state->Selected = default;
+                
                 gui.PopControlScopePtr<ImMenuState>();
                 gui.PopId();
                 return false;

@@ -19,21 +19,47 @@ namespace Imui.Examples
         private static float maxFrameTime;
         private static float avgFrameTime;
         
-        public static void Draw(ImGui gui, ref bool open)
+        public static unsafe void Draw(ImGui gui, ref bool open)
         {
             if (!gui.BeginWindow("Imui Debug", ref open, (350, 450)))
             {
                 return;
             }
             
-            var storageRatio = gui.Formatter.Concat(gui.Formatter.Format(gui.Storage.OccupiedSize)," / ", gui.Formatter.Format(gui.Storage.Capacity));
             var fpsValue = gui.Formatter.Format(avgFrameTime <= 0 ? 0 : 1 / avgFrameTime, "0");
             var msValue = gui.Formatter.Format(avgFrameTime * 1000, "0.0");
 
             gui.Text(gui.Formatter.Concat("Hovered: ", gui.Formatter.Format(gui.frameData.HoveredControl.Id)));
             gui.Text(gui.Formatter.Concat("Hovered Order: ", gui.Formatter.Format(gui.frameData.HoveredControl.Order)));
             gui.Text(gui.Formatter.Concat("Active: ", gui.Formatter.Format(gui.GetActiveControl())));
-            gui.Text(gui.Formatter.Concat("Storage: ", storageRatio, " bytes"));
+            
+            if (gui.BeginTreeNode("Storage"))
+            {
+                var entriesCount = gui.Storage.entriesCount;
+                var entriesCapacity = gui.Storage.entriesCapacity;
+            
+                var keysSize = gui.Formatter.Format(entriesCount * sizeof(uint));
+                var metaSize = gui.Formatter.Format(entriesCount * sizeof(ImStorage.Metadata));
+                var dataSize = gui.Formatter.Format(gui.Storage.dataSize);
+                
+                var metaCap = gui.Formatter.Format(entriesCapacity * sizeof(ImStorage.Metadata));
+                var keysCap = gui.Formatter.Format(entriesCapacity * sizeof(uint));
+                var dataCap = gui.Formatter.Format(gui.Storage.dataCapacity);
+
+                var keys = gui.Formatter.Concat(keysSize, " / ", keysCap);
+                var meta = gui.Formatter.Concat(metaSize, " / ", metaCap);
+                var data= gui.Formatter.Concat(dataSize, " / ", dataCap);
+                
+                var total = gui.Formatter.Concat(gui.Formatter.Format(gui.Storage.TotalUsed)," / ", gui.Formatter.Format(gui.Storage.TotalAllocated));
+
+                gui.Text(gui.Formatter.Concat("Keys: ", keys, " bytes"));
+                gui.Text(gui.Formatter.Concat("Meta: ", meta, " bytes"));
+                gui.Text(gui.Formatter.Concat("Data: ", data, " bytes"));
+                gui.Text(gui.Formatter.Concat("Total: ", total, " bytes"));
+                
+                gui.EndTreeNode();
+            }
+            
             gui.Text(gui.Formatter.Concat("Arena: ", gui.Formatter.Format(gui.frameData.ArenaSize), " bytes"));
             gui.Text(gui.Formatter.Concat("Vertices: ", gui.Formatter.Format(gui.frameData.VerticesCount)));
             gui.Text(gui.Formatter.Concat("Indices: ", gui.Formatter.Format(gui.frameData.IndicesCount)));
