@@ -388,8 +388,8 @@ namespace Imui.Rendering
 
         public void AddTriangleFan(Vector2 center, float from, float to, float radius, int segments)
         {
-            ImAssert.True(segments > 0, "segments > 0");
-            ImAssert.True(to > from, "to > from");
+            ImAssert.IsTrue(segments > 0, "segments > 0");
+            ImAssert.IsTrue(to > from, "to > from");
             
             ImProfiler.BeginSample("ImMeshDrawer.AddTriangleFan");
             
@@ -445,8 +445,8 @@ namespace Imui.Rendering
         
         public void AddTriangleFanTextured(Vector2 center, float from, float to, float radius, int segments)
         {
-            ImAssert.True(segments > 0, "segments > 0");
-            ImAssert.True(to > from, "to > from");
+            ImAssert.IsTrue(segments > 0, "segments > 0");
+            ImAssert.IsTrue(to > from, "to > from");
             
             ImProfiler.BeginSample("ImMeshDrawer.AddTriangleFanTextured");
             
@@ -653,7 +653,7 @@ namespace Imui.Rendering
 
         public void AddFilledConvexMesh(ReadOnlySpan<Vector2> points)
         {
-            ImAssert.True(points.Length > 2, "points.Length > 2");
+            ImAssert.IsTrue(points.Length > 2, "points.Length > 2");
             
             ImProfiler.BeginSample("ImMeshDrawer.AddFilledConvexMesh");
             
@@ -710,7 +710,7 @@ namespace Imui.Rendering
         
         public void AddFilledConvexMeshTextured(ReadOnlySpan<Vector2> points, float x, float y, float w, float h)
         {
-            ImAssert.True(points.Length > 2, "points.Length > 2");
+            ImAssert.IsTrue(points.Length > 2, "points.Length > 2");
             
             ImProfiler.BeginSample("ImMeshDrawer.AddFilledConvexMeshTextured");
             

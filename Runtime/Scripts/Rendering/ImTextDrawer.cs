@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -277,20 +278,22 @@ namespace Imui.Rendering
 #if IMUI_DEBUG
         private void AddControlGlyphQuad(char c, float px, float py, float scale)
         {
-            var ct = fontAsset.characterLookupTable;
+            var tmpColor = Color;
+            Color.SetAlpha(0.5f * Color.GetAlpha());
+            
+            ref var backSlash = ref glyphsLookup['\\'];
             
             switch (c)
             {
                 case '\n':
-                    px += AddGlyphQuad(ct['\\'].glyph, px, py, scale);
-                    px += AddGlyphQuad(ct['n'].glyph, px, py, scale);
+                    AddGlyphQuad(ref glyphsLookup['n'], px + AddGlyphQuad(ref backSlash, px, py, scale), py, scale);
                     break;
                 case '\t':
-                    px += AddGlyphQuad(ct['\\'].glyph, px, py, scale);
-                    px += AddGlyphQuad(ct['t'].glyph, px, py, scale);
+                    AddGlyphQuad(ref glyphsLookup['t'], px + AddGlyphQuad(ref backSlash, px, py, scale), py, scale);
                     break;
-                
             }
+
+            Color = tmpColor;
         }
 #endif
 

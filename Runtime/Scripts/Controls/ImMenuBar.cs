@@ -15,7 +15,7 @@ namespace Imui.Controls
         
         public static void BeginWindowMenuBar(this ImGui gui)
         {
-            ImAssert.True(gui.WindowManager.IsDrawingWindow(), "Called outside window scope");
+            ImAssert.IsTrue(gui.WindowManager.IsDrawingWindow(), "gui.WindowManager.IsDrawingWindow()");
 
             var id = gui.GetNextControlId();
             var rect = gui.GetWindowMenuBarRect();

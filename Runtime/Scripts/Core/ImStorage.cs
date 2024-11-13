@@ -195,9 +195,9 @@ namespace Imui.Core
 
         private void Delete(int index)
         {
-            ImAssert.True(entriesCount > 0, "entriesCount > 0");
-            ImAssert.True(index >= 0, "index >= 0");
-            ImAssert.True(index < entriesCount, "index < entriesCount");
+            ImAssert.IsTrue(entriesCount > 0, "entriesCount > 0");
+            ImAssert.IsTrue(index >= 0, "index >= 0");
+            ImAssert.IsTrue(index < entriesCount, "index < entriesCount");
 
             ImProfiler.BeginSample("ImStorage.Delete");
 
@@ -234,9 +234,9 @@ namespace Imui.Core
 
         private T* Insert<T>(int index, uint key, T value) where T: unmanaged
         {
-            ImAssert.True(index >= 0, "index >= 0");
-            ImAssert.True(index <= entriesCount, "index <= count");
-            ImAssert.True(sizeof(T) <= short.MaxValue, "sizeof(T) <= short.MaxValue");
+            ImAssert.IsTrue(index >= 0, "index >= 0");
+            ImAssert.IsTrue(index <= entriesCount, "index <= count");
+            ImAssert.IsTrue(sizeof(T) <= short.MaxValue, "sizeof(T) <= short.MaxValue");
 
             var sizeAligned = Align(sizeof(T));
 
@@ -275,8 +275,8 @@ namespace Imui.Core
         
         private T* InsertArray<T>(int index, uint key, int count) where T: unmanaged
         {
-            ImAssert.True(index >= 0, "index >= 0");
-            ImAssert.True(index <= entriesCount, "index <= count");
+            ImAssert.IsTrue(index >= 0, "index >= 0");
+            ImAssert.IsTrue(index <= entriesCount, "index <= count");
 
             var sizeAligned = Align(sizeof(T) * count);
 
