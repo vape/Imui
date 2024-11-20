@@ -887,7 +887,7 @@ namespace Imui.Controls
             }
         }
         
-        private static unsafe ImTextTempFilterBuffer* GetTempFilterBuffer(ImGui gui, uint id)
+        public static unsafe ImTextTempFilterBuffer* GetTempFilterBuffer(ImGui gui, uint id)
         {
             gui.PushId(id);
             var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);

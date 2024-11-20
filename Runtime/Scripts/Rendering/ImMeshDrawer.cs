@@ -1,7 +1,6 @@
 using System;
 using Imui.Utility;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace Imui.Rendering
 {
@@ -11,6 +10,10 @@ namespace Imui.Rendering
         public const float MAIN_TEX_ID = 0.0f;
         public const float FONT_TEX_ID = 1.0f;
 
+        private const int SQRT_TABLE_SIZE = 500;
+        private const float SQRT_TABLE_RES = 0.1f;
+        private const float SQRT_TABLE_MAX = SQRT_TABLE_SIZE * SQRT_TABLE_RES;
+
         public float Depth;
         public float Atlas;
         public Color32 Color;
@@ -18,10 +21,20 @@ namespace Imui.Rendering
 
         // ReSharper disable once InconsistentNaming
         internal readonly ImMeshBuffer buffer;
+
+        private readonly float[] invSqrtLut;
         
         public ImMeshDrawer(ImMeshBuffer buffer)
         {
             this.buffer = buffer;
+            
+            invSqrtLut = new float[SQRT_TABLE_SIZE];
+            invSqrtLut[0] = 0.0f;
+            
+            for (int i = 1; i < invSqrtLut.Length; ++i)
+            {
+                invSqrtLut[i] = 1.0f / Mathf.Sqrt(i * SQRT_TABLE_RES);
+            }
         }
 
         public void Clear()
@@ -65,17 +78,11 @@ namespace Imui.Rendering
                 
                 var abx = b.x - a.x;
                 var aby = b.y - a.y;
-                var abm = Mathf.Sqrt(abx * abx + aby * aby);
-                if (abm != 0)
-                {
-                    normalX = -aby / abm;
-                    normalY = abx / abm;
-                }
-                else
-                {
-                    normalX = 0;
-                    normalY = 0;
-                }
+                var abn = abx * abx + aby * aby;
+                var invabm = abn < SQRT_TABLE_MAX ? invSqrtLut[(int)(abn / SQRT_TABLE_RES)] : 1.0f / Mathf.Sqrt(abn);
+                
+                normalX = -aby * invabm;
+                normalY =  abx * invabm;
                 
                 ref var v0 = ref buffer.Vertices[vc + 0];
                 v0.Position.x = a.x + normalX * -1 * outerThickness;
@@ -130,17 +137,11 @@ namespace Imui.Rendering
                 
                 var abx = b.x - a.x;
                 var aby = b.y - a.y;
-                var abm = Mathf.Sqrt(abx * abx + aby * aby);
-                if (abm != 0)
-                {
-                    normalX = -aby / abm;
-                    normalY = abx / abm;
-                }
-                else
-                {
-                    normalX = 0;
-                    normalY = 0;
-                }
+                var abn = abx * abx + aby * aby;
+                var invabm = abn < SQRT_TABLE_MAX ? invSqrtLut[(int)(abn / SQRT_TABLE_RES)] : 1.0f / Mathf.Sqrt(abn);
+                
+                normalX = -aby * invabm;
+                normalY =  abx * invabm;
                 
                 ref var v0 = ref buffer.Vertices[vc + 0];
                 v0.Position.x = a.x + normalX * -1 * outerThickness;

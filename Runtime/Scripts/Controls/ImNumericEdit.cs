@@ -4,6 +4,7 @@ using Imui.Core;
 using Imui.IO.Events;
 using Imui.IO.Utility;
 using Imui.Style;
+using UnityEngine;
 
 // ReSharper disable BuiltInTypeReferenceStyle
 
@@ -196,7 +197,7 @@ namespace Imui.Controls
             return NumericEditControl(gui, id, ref value, FilterDouble, rect, format, step, min, max, flags);
         }
 
-        public static bool NumericEditControl<T>(ImGui gui,
+        public static unsafe bool NumericEditControl<T>(ImGui gui,
                                                  uint id,
                                                  ref T value,
                                                  NumericFilter<T> filter,
@@ -208,29 +209,33 @@ namespace Imui.Controls
                                                  ImNumericEditFlag flags)
         {
             var delta = 0.0d;
-            var textEditActive = gui.IsControlActive(id);
+            var hovered = gui.IsControlHovered(id);
+            var active = gui.IsControlActive(id);
             var useSlider = (flags & ImNumericEditFlag.Slider) != 0;
             var usePlusMinusButtons = !useSlider && (flags & ImNumericEditFlag.PlusMinus) != 0;
             
-            if (!textEditActive && useSlider)
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            
+            if (!active && useSlider)
             {
                 gui.PushId(id);
-                var sId = gui.GetNextControlId();
-                ref readonly var evt = ref gui.Input.MouseEvent;
+                
+                var sliderId = gui.GetNextControlId();
                 // (artem-s): when double clicking, pass control to text editor
-                if (evt.Type != ImMouseEventType.Down || evt.Count < 2)
+                if (evt.LeftButton && (evt.Type != ImMouseEventType.Down || evt.Count < 2))
                 {
-                    var sMin = filter.AsDouble(min);
-                    var sMax = filter.AsDouble(max);
-                    var sDelta = NumericSlider(gui, id, sId, sMin, sMax, step, rect);
+                    var sliderMin = filter.AsDouble(min);
+                    var sliderMax = filter.AsDouble(max);
+                    var sliderDelta = NumericSlider(gui, id, sliderId, sliderMin, sliderMax, step, rect);
                     
                     if (filter.IsInteger)
                     {
-                        sDelta = Math.Round(sDelta);
+                        sliderDelta = Math.Round(sliderDelta);
                     }
                     
-                    delta += sDelta;
+                    delta += sliderDelta;
                 }
+                
                 gui.PopId();
             }
             
@@ -254,7 +259,39 @@ namespace Imui.Controls
             }
 
             var adjacency = usePlusMinusButtons ? ImAdjacency.Left : ImAdjacency.None;
-            var changed = gui.TextEdit(id, ref buffer, rect, false, filter, adjacency);
+            var changed = false;
+            
+            if (!active && useSlider)
+            {
+                ref readonly var style = ref gui.Style.TextEdit.Normal.Box;
+
+                var align = gui.Style.TextEdit.Alignment;
+                var radius = style.BorderRadius;
+                if (adjacency == ImAdjacency.Left)
+                {
+                    radius.BottomRight = 0;
+                    radius.TopRight = 0;
+                }
+                
+                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(gui.Style.Layout.TextSize), 0.0f) / 2.0f;
+                var textRect = rect.WithPadding(left: gui.Style.Layout.InnerSpacing, right: gui.Style.Layout.InnerSpacing, top: halfVertPadding, bottom: halfVertPadding);
+
+                gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderThickness, radius);
+                gui.Canvas.Text(buffer, style.FrontColor, textRect, gui.Style.Layout.TextSize, alignX: align.X, alignY: align.Y);
+                
+                gui.RegisterControl(id, rect);
+                
+                if (hovered && evt is { Type: ImMouseEventType.Down, LeftButton: true, Count: >= 2 })
+                {
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    
+                    ImTextEdit.GetTempFilterBuffer(gui, id)->Populate(buffer);
+                }
+            }
+            else
+            {
+                changed = gui.TextEdit(id, ref buffer, rect, false, filter, adjacency);
+            }
             
             if (changed && filter.TryParse(buffer, out var newValue))
             {

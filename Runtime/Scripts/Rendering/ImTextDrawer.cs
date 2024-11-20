@@ -399,6 +399,8 @@ namespace Imui.Rendering
             {
                 return;
             }
+            
+            ImProfiler.BeginSample("ImTextDrawer.FillLayout");
 
             wrap &= boundsWidth > 0;
 
@@ -512,6 +514,8 @@ namespace Imui.Rendering
             layout.Width = maxLineWidth;
             layout.Height = layout.LineHeight * layout.LinesCount;
             layout.OffsetY = -(boundsHeight - layout.LinesCount * layout.LineHeight) * alignY;
+            
+            ImProfiler.EndSample();
         }
 
         public void Dispose()

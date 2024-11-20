@@ -40,6 +40,8 @@ namespace Imui.Rendering
 
         public void Render(CommandBuffer cmd, ImMeshBuffer buffer, Vector2 screenSize, float screenScale, Vector2Int targetSize)
         {
+            ImProfiler.BeginSample("ImMeshRenderer.Render");
+            
             mesh.Clear(true);
             
             buffer.Trim();
@@ -134,6 +136,8 @@ namespace Imui.Rendering
                     cmd.DisableScissorRect();
                 }
             }
+            
+            ImProfiler.EndSample();
         }
 
         public void Dispose()

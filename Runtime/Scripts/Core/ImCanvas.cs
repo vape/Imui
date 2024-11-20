@@ -253,7 +253,7 @@ namespace Imui.Core
             {
                 return;
             }
-
+            
             var path = ImShapes.Ellipse(arena, rect);
             ConvexFill(path, color);
         }
@@ -354,6 +354,12 @@ namespace Imui.Core
         public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
             ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);
+            Text(text, color, rect.TopLeft, in layout);
+        }
+        
+        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, float size, float alignX = 0.5f, float alignY = 0.5f, bool wrap = false)
+        {
+            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, alignX, alignY, size, wrap);
             Text(text, color, rect.TopLeft, in layout);
         }
         

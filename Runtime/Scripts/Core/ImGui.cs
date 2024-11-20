@@ -502,6 +502,8 @@ namespace Imui.Core
 
         public void Render()
         {
+            ImProfiler.BeginSample("ImGui.Render");
+            
             nextFrameData.VerticesCount = MeshDrawer.buffer.VerticesCount;
             nextFrameData.IndicesCount = MeshDrawer.buffer.IndicesCount;
             nextFrameData.ArenaSize = Arena.Size;
@@ -513,6 +515,8 @@ namespace Imui.Core
             MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale, targetSize);
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
+            
+            ImProfiler.EndSample();
         }
 
         public bool Raycast(float x, float y)

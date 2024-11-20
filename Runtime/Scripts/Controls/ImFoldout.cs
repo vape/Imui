@@ -10,14 +10,14 @@ namespace Imui.Controls
         private const float VERTICAL_ARROW_ASPECT_RATIO = 1.1547f; // ~ 2/sqrt(3)
         private const float HORIZONTAL_ARROW_ASPECT_RATIO = 1 / VERTICAL_ARROW_ASPECT_RATIO;
         
-        public static bool BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default)
+        public static bool BeginFoldout(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, bool defaultOpen = false)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             
             var id = gui.PushId(label);
             var rect = gui.AddSingleRowRect(size);
             
-            ref var open = ref gui.Storage.Get<bool>(id);
+            ref var open = ref gui.Storage.Get<bool>(id, defaultOpen);
             DrawFoldout(gui, id, ref open, label, rect);
             
             if (!open)
