@@ -107,6 +107,14 @@ namespace Imui.Core
                 return InsertArray<T>(index, key, count);
             }
             
+            // TODO (artem-s): maintain content when 'count' is changed, but we already have some data stored
+            if (meta[index].Type != TypeHelper<T>.Hash || meta[index].Size != Align(sizeof(T) * count))
+            {
+                Delete(index);
+                
+                return InsertArray<T>(index, key, count);
+            }
+
             meta[index].Flags &= ~MetaFlag.Unused;
             var ptr = (T*)(data + meta[index].Offset);
 
