@@ -126,7 +126,7 @@ namespace Imui.Controls
             }
 
             var textSize = gui.TextDrawer.GetFontSizeFromLineHeight(backgroundRect.H);
-            var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f);
+            var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f, overflow: gui.Style.Slider.TextOverflow);
             
             gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Normal.FrontColor, backgroundRect);
 

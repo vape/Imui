@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Imui.Rendering;
 using UnityEngine;
 
 namespace Imui.Core
@@ -181,6 +182,11 @@ namespace Imui.Core
         public static explicit operator Vector4(ImRect rect)
         {
             return new Vector4(rect.X, rect.Y, rect.W, rect.H);
+        }
+        
+        public static explicit operator ImTextClipRect(ImRect rect)
+        {
+            return new ImTextClipRect(rect.X, rect.X + rect.W, rect.Y + rect.H, rect.Y);
         }
 
         public static explicit operator ImRect(in Rect rect)

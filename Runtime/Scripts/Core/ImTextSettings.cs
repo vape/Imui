@@ -1,6 +1,6 @@
 using System;
+using Imui.Rendering;
 using Imui.Style;
-using UnityEngine;
 
 namespace Imui.Core
 {
@@ -10,20 +10,23 @@ namespace Imui.Core
         public float Size;
         public ImAlignment Align;
         public bool Wrap;
-
-        public ImTextSettings(float size, float alignX = 0.0f, float alignY = 0.0f, bool wrap = false)
+        public ImTextOverflow Overflow;
+        
+        public ImTextSettings(float size, float alignX = 0.0f, float alignY = 0.0f, bool wrap = false, ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
             Size = size;
             Align.X = alignX;
             Align.Y = alignY;
             Wrap = wrap;
+            Overflow = overflow;
         }
 
-        public ImTextSettings(float size, ImAlignment alignment, bool wrap = false)
+        public ImTextSettings(float size, ImAlignment alignment, bool wrap = false, ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
             Size = size;
             Align = alignment;
             Wrap = wrap;
+            Overflow = overflow;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Globalization;
 using Imui.Core;
 using Imui.IO.Events;
 using Imui.IO.Utility;
+using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;
 
@@ -275,9 +276,9 @@ namespace Imui.Controls
                 
                 var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(gui.Style.Layout.TextSize), 0.0f) / 2.0f;
                 var textRect = rect.WithPadding(left: gui.Style.Layout.InnerSpacing, right: gui.Style.Layout.InnerSpacing, top: halfVertPadding, bottom: halfVertPadding);
-
+                
                 gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderThickness, radius);
-                gui.Canvas.Text(buffer, style.FrontColor, textRect, gui.Style.Layout.TextSize, alignX: align.X, alignY: align.Y);
+                gui.Canvas.Text(buffer, style.FrontColor, textRect, gui.Style.Layout.TextSize, alignX: align.X, alignY: align.Y, false, ImTextOverflow.Ellipsis);
                 
                 gui.RegisterControl(id, rect);
                 

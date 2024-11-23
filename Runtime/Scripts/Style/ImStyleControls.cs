@@ -1,5 +1,6 @@
 using System;
 using Imui.Core; // TODO (artem-s): styling should not depend on Core module
+using Imui.Rendering;
 using UnityEngine;
 
 namespace Imui.Style
@@ -59,6 +60,7 @@ namespace Imui.Style
         public float BorderThickness;
         public float BorderRadius;
         public ImAlignment Alignment;
+        public ImTextOverflow Overflow;
     }
     
     [Serializable]
@@ -130,6 +132,7 @@ namespace Imui.Style
         public Color32 TextColor;
         public ImAlignment TextAlignment;
         public ImPadding TextMargin;
+        public ImTextOverflow TextOverflow;
     }
     
     [Serializable]
@@ -139,6 +142,7 @@ namespace Imui.Style
         public ImStyleBox Selected;
         public ImStyleButton Handle;
         public float BackScale;
+        public ImTextOverflow TextOverflow;
     }
         
     [Serializable]

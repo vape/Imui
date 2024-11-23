@@ -232,8 +232,9 @@ namespace Imui.Controls
             }
 
             var textRect = rect.WithPadding(textPadding);
-
-            var layout = gui.TextDrawer.BuildTempLayout(buffer, textRect.W, textRect.H, textAlignment.X, textAlignment.Y, textSize, style.TextWrap);
+            var layout = gui.TextDrawer.BuildTempLayout(
+                buffer, textRect.W, textRect.H, textAlignment.X, textAlignment.Y, textSize, 
+                style.TextWrap, ImTextOverflow.Overflow);
 
             gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
             gui.Layout.Push(ImAxis.Vertical, textRect, ImLayoutFlag.Root);

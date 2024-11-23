@@ -1,3 +1,4 @@
+using Imui.Rendering;
 using UnityEngine;
 
 namespace Imui.Style
@@ -188,6 +189,7 @@ namespace Imui.Style
             var sliderRadius = theme.BorderRadius;
             
             sheet.Slider.BackScale = 0.75f;
+            sheet.Slider.TextOverflow = ImTextOverflow.Ellipsis;
             
             sheet.Slider.Normal.BackColor = palette.ControlDark;
             sheet.Slider.Normal.BorderColor = palette.ControlDarkBorder;
@@ -273,12 +275,14 @@ namespace Imui.Style
             sheet.Dropdown.MinListWidth = 150.0f;
             sheet.Dropdown.Button = sheet.Button;
             sheet.Dropdown.Button.Alignment = new ImAlignment(0.0f, 0.5f);
+            sheet.Dropdown.Button.Overflow = ImTextOverflow.Ellipsis;
             
             // Separator
             sheet.Separator.Thickness = Mathf.Max(1, theme.BorderThickness);
             sheet.Separator.Color = palette.FrontAlt;
             sheet.Separator.TextColor = palette.FrontAlt;
             sheet.Separator.TextAlignment = new ImAlignment(0.1f, 0.5f);
+            sheet.Separator.TextOverflow = ImTextOverflow.Ellipsis;
             sheet.Separator.TextMargin = new ImPadding(theme.Spacing, theme.Spacing, 0, 0);
             
             // Tooltip

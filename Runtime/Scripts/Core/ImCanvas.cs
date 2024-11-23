@@ -27,7 +27,7 @@ namespace Imui.Core
     {
         public const int DEFAULT_ORDER = 0;
         
-        private const int MESH_SETTINGS_CAPACITY = 32;
+        private const int SETTINGS_CAPACITY = 32;
 
         private const float LINE_THICKNESS_THRESHOLD = 0.01f;
         
@@ -91,8 +91,19 @@ namespace Imui.Core
             }
         }
 
+        private struct SettingsPref
+        {
+            public readonly bool RequiresNextMesh;
+
+            public SettingsPref(bool requiresNextMesh = true)
+            {
+                RequiresNextMesh = requiresNextMesh;
+            }
+        }
+
         public ImRect ScreenRect => new ImRect(Vector2.zero, ScreenSize);
         public Vector2 ScreenSize => screenSize;
+        public float ScreenScale => screenScale;
 
         public int DrawingDepth = 0;
         
@@ -100,6 +111,7 @@ namespace Imui.Core
         private Material material;
         private Texture2D defaultTexture;
         private ImDynamicArray<ImCanvasSettings> settingsStack;
+        private ImDynamicArray<SettingsPref> settingsPrefStack;
         private Vector2 screenSize;
         private float screenScale;
         private bool disposed;
@@ -122,7 +134,8 @@ namespace Imui.Core
             shader = Resources.Load<Shader>(SHADER_NAME);
             material = new Material(shader);
             defaultTexture = CreateMainAtlas();
-            settingsStack = new ImDynamicArray<ImCanvasSettings>(MESH_SETTINGS_CAPACITY);
+            settingsStack = new ImDynamicArray<ImCanvasSettings>(SETTINGS_CAPACITY);
+            settingsPrefStack = new ImDynamicArray<SettingsPref>(SETTINGS_CAPACITY);
         }
         
         public void SetScreen(Vector2 screenSize, float screenScale)
@@ -136,24 +149,47 @@ namespace Imui.Core
             meshDrawer.Clear();
         }
 
-        public void PushSettings(in ImCanvasSettings settings, bool changed = true)
+        public void PushSettings(in ImCanvasSettings settings)
         {
+            Debug.Log($"Push {settingsStack.Count}");
+            
+            var pref = new SettingsPref(true);
+            
             settingsStack.Push(in settings);
+            settingsPrefStack.Push(in pref);
 
-            if (changed)
+            if (pref.RequiresNextMesh)
             {
                 meshDrawer.NextMesh();
                 ApplySettings();
             }
         }
         
+        private void PushSettings(in ImCanvasSettings settings, in SettingsPref pref)
+        {
+            settingsStack.Push(in settings);
+            settingsPrefStack.Push(in pref);
+
+            if (pref.RequiresNextMesh)
+            {
+                meshDrawer.NextMesh();
+            }
+            
+            ApplySettings();
+        }
+        
         public void PopSettings()
         {
+            var pref = settingsPrefStack.Pop();
             settingsStack.Pop();
 
             if (settingsStack.Count > 0)
             {
-                meshDrawer.NextMesh();
+                if (pref.RequiresNextMesh)
+                {
+                    meshDrawer.NextMesh();
+                }
+                
                 ApplySettings();
             }
         }
@@ -353,19 +389,32 @@ namespace Imui.Core
         // TODO (artem-s): use few parameters instead of textsettings here and add extension that acceps text settings for convenience
         public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
-            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(
+                text, rect.W, rect.H, 
+                settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap, settings.Overflow);
             Text(text, color, rect.TopLeft, in layout);
         }
-        
-        public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, float size, float alignX = 0.5f, float alignY = 0.5f, bool wrap = false)
+
+        public void Text(ReadOnlySpan<char> text,
+                         Color32 color,
+                         ImRect rect,
+                         float size,
+                         float alignX = 0.5f,
+                         float alignY = 0.5f,
+                         bool wrap = false,
+                         ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
-            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, alignX, alignY, size, wrap);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(
+                text, rect.W, rect.H,
+                alignX, alignY, size, wrap, overflow);
             Text(text, color, rect.TopLeft, in layout);
         }
         
         public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings, out ImRect textRect)
         {
-            ref readonly var layout = ref textDrawer.BuildTempLayout(text, rect.W, rect.H, settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap);
+            ref readonly var layout = ref textDrawer.BuildTempLayout(
+                text, rect.W, rect.H, 
+                settings.Align.X, settings.Align.Y, settings.Size, settings.Wrap, settings.Overflow);
             
             textRect = new ImRect(
                 rect.X + layout.OffsetX, 

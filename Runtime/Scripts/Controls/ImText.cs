@@ -1,5 +1,6 @@
 using System;
 using Imui.Core;
+using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;
 
@@ -105,7 +106,8 @@ namespace Imui.Controls
                 0,
                 0, 
                 gui.Style.Layout.TextSize,
-                false);
+                false,
+                ImTextOverflow.Overflow);
 
             return new Vector2(textLayout.Width, textLayout.Height);
         }
@@ -118,7 +120,8 @@ namespace Imui.Controls
                 0,
                 0, 
                 textSize,
-                false);
+                false,
+                ImTextOverflow.Overflow);
 
             return new Vector2(textLayout.Width, textLayout.Height);
         }
@@ -131,7 +134,8 @@ namespace Imui.Controls
                 textSettings.Align.X,
                 textSettings.Align.Y, 
                 textSettings.Size,
-                textSettings.Wrap);
+                textSettings.Wrap,
+                textSettings.Overflow);
 
             return new Vector2(textLayout.Width, textLayout.Height);
         }

@@ -1,5 +1,6 @@
 using System;
 using Imui.Core;
+using Imui.Rendering;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -41,10 +42,10 @@ namespace Imui.Controls
             }
 
             var fontSize = Mathf.Min(gui.Style.Layout.TextSize, gui.TextDrawer.GetFontSizeFromLineHeight(rect.H));
-            var textSettings = new ImTextSettings(fontSize, gui.Style.Separator.TextAlignment);
+            var textSettings = new ImTextSettings(fontSize, gui.Style.Separator.TextAlignment, overflow: gui.Style.Separator.TextOverflow);
             var textRectSize = gui.MeasureTextSize(label, in textSettings, rect.Size);
-            var start = rect.X + (rect.W - textRectSize.x) * gui.Style.Separator.TextAlignment.X;
-            var end = start + textRectSize.x;
+            var start = Mathf.Max(rect.X, rect.X + (rect.W - textRectSize.x) * gui.Style.Separator.TextAlignment.X);
+            var end = Mathf.Min(start + textRectSize.x, rect.Right);
             var textRect = new ImRect(start, rect.Y, end - start, rect.H);
 
             var p0 = rect.LeftCenter;

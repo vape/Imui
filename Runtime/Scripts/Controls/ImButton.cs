@@ -240,7 +240,7 @@ namespace Imui.Controls
 
         public static ImTextSettings CreateTextSettings(ImGui gui, in ImStyleButton style)
         {
-            return new ImTextSettings(gui.Style.Layout.TextSize, style.Alignment, false);
+            return new ImTextSettings(gui.Style.Layout.TextSize, style.Alignment, false, style.Overflow);
         }
 
         public static ImRect CalculateContentRect(ImGui gui, ImRect buttonRect)
