@@ -57,7 +57,7 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var id = gui.GetNextControlId();
-            var rect = gui.AddSingleRowRect(size);
+            var rect = gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight());
 
             ref var state = ref gui.PushControlScope<ImDropdownState>(id);
 
@@ -94,7 +94,7 @@ namespace Imui.Controls
 
         public static bool DropdownButton(ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, ImDropdownPreviewType preview)
         {
-            if (preview == ImDropdownPreviewType.Arrow)
+            if (preview == ImDropdownPreviewType.Arrow || (rect.H > 0.0f && rect.W / rect.H < 2.0f))
             {
                 return ArrowButton(gui, id, rect);
             }

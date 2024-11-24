@@ -67,7 +67,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            return Slider(gui, ref value, min, max, gui.AddSingleRowRect(size), format, step, flags);
+            return Slider(gui, ref value, min, max, gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight() * 2), format, step, flags);
         }
 
         public static bool Slider(this ImGui gui,

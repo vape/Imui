@@ -3,16 +3,16 @@
 - ~~Style using palettes~~
 - ~~Context menus~~
 - ~~Use menus instead of list in dropdown~~
-- Tables
+- ~~Text truncation~~
 - Tabs
+- ~~Do not allow to resize windows to negative values~~
+- ~~Do not allow to move title bar outside screen rect~~
+- ~~Controls should have their own reasonable minimal size~~
 
 ### Later
 - Theme editor
 - Plotting control
-- Do not allow to resize windows to negative values
-- Text truncation
-- Do not allow to move title bar outside screen rect
-- Controls should have their own reasonable minimal size
+- Tables
 - In code documentation
 - Rich text
 - Fix touch keyboard in webgl

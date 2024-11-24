@@ -113,6 +113,7 @@ namespace Imui.Style
             sheet.Window.TitleBar.BackColor = palette.BackSecondary.WithAlpha(1.0f);
             sheet.Window.TitleBar.FrontColor = palette.Front;
             sheet.Window.TitleBar.Alignment = new ImAlignment(0.5f, 0.5f);
+            sheet.Window.TitleBar.Overflow = ImTextOverflow.Ellipsis;
             
             sheet.Window.TitleBar.CloseButton = sheet.Button;
             sheet.Window.TitleBar.CloseButton.BorderRadius = 999.9f;

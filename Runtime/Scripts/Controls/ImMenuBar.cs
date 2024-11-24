@@ -20,7 +20,7 @@ namespace Imui.Controls
             var id = gui.GetNextControlId();
             var rect = gui.GetWindowMenuBarRect();
             
-            BeginMenuBar(gui, id, rect, gui.Canvas.GetOrder() + ImWindow.WINDOW_FRONT_ORDER_OFFSET);
+            BeginMenuBar(gui, id, rect, gui.Canvas.GetOrder() + ImWindow.WINDOW_MENU_ORDER_OFFSET - 1);
         }
 
         public static void EndWindowMenuBar(this ImGui gui)

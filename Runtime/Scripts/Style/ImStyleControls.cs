@@ -39,7 +39,6 @@ namespace Imui.Style
         public float TextSize;
         public float Spacing;
         public float InnerSpacing;
-        public float ScrollSpeedScale;
         public float Indent;
     }
     
@@ -183,6 +182,7 @@ namespace Imui.Style
         public Color32 BackColor;
         public Color32 FrontColor;
         public ImAlignment Alignment;
+        public ImTextOverflow Overflow;
         public ImStyleButton CloseButton;
     }
         

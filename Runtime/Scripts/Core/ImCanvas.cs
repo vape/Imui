@@ -151,8 +151,6 @@ namespace Imui.Core
 
         public void PushSettings(in ImCanvasSettings settings)
         {
-            Debug.Log($"Push {settingsStack.Count}");
-            
             var pref = new SettingsPref(true);
             
             settingsStack.Push(in settings);

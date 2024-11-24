@@ -1,6 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
+using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;
 
@@ -11,8 +12,12 @@ namespace Imui.Controls
         public const float DEFAULT_WIDTH = 512;
         public const float DEFAULT_HEIGHT = 512;
 
+        public const float MIN_WIDTH = 64;
+        public const float MIN_HEIGHT = 64;
+
         public const int WINDOW_ORDER_OFFSET = 128;
         public const int WINDOW_FRONT_ORDER_OFFSET = 64;
+        public const int WINDOW_MENU_ORDER_OFFSET = WINDOW_FRONT_ORDER_OFFSET - 1;
 
         public static void BeginWindow(this ImGui gui, string title, ImSize size = default, ImWindowFlag flags = ImWindowFlag.None)
         {
@@ -153,14 +158,14 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
             var rect = GetTitleBarRect(gui, state.Rect, out var radius);
-            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, style.TitleBar.Alignment);
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, style.TitleBar.Alignment, overflow: style.TitleBar.Overflow);
             var movable = (state.Flags & ImWindowFlag.NoMoving) == 0;
+            var contentRect = rect.WithPadding(gui.Style.Layout.InnerSpacing);
 
             Span<Vector2> border = stackalloc Vector2[2] { rect.BottomLeft, rect.BottomRight };
 
             gui.Canvas.Rect(rect, style.TitleBar.BackColor, radius);
             gui.Canvas.Line(border, style.Box.BorderColor, false, style.Box.BorderThickness, 0.0f);
-            gui.Canvas.Text(text, style.TitleBar.FrontColor, rect, in textSettings);
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -182,11 +187,15 @@ namespace Imui.Controls
 
             gui.RegisterControl(id, rect);
 
+            if (!active)
+            {
+                state.NextRect.Position = KeepWindowInsideScreen(gui, state.NextRect.Position, state.NextRect.Size);
+            }
+
             if ((state.Flags & ImWindowFlag.NoCloseButton) == 0)
             {
-                var closeButtonRect = rect.TakeRight(gui.GetRowHeight() - gui.Style.Layout.InnerSpacing).WithAspect(1.0f);
-                closeButtonRect.X -= closeButtonRect.Y - rect.Y;
-
+                var closeButtonRect = contentRect.TakeRight(gui.GetRowHeight() - gui.Style.Layout.InnerSpacing, out contentRect).WithAspect(1.0f);
+                
                 using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Window.TitleBar.CloseButton))
                 {
                     closeClicked = gui.Button(closeButtonRect, out var buttonState);
@@ -208,6 +217,8 @@ namespace Imui.Controls
                     gui.Canvas.Line(path, color, false, width);
                 }
             }
+            
+            gui.Canvas.Text(text, style.TitleBar.FrontColor, contentRect, in textSettings);
         }
 
         public static void ResizeHandle(ImGui gui, ref ImWindowState state)
@@ -250,10 +261,12 @@ namespace Imui.Controls
                     break;
 
                 case ImMouseEventType.Drag when active:
-                    // TODO (artem-s): window's title bar should always be reachable so we can move it around
-                    state.NextRect.W += evt.Delta.x;
-                    state.NextRect.H -= evt.Delta.y;
-                    state.NextRect.Y += evt.Delta.y;
+                    var widthDelta = Mathf.Max(state.NextRect.W + evt.Delta.x, MIN_WIDTH) - state.NextRect.W;
+                    var heightDelta = Mathf.Max(state.NextRect.H + -evt.Delta.y, MIN_HEIGHT) - state.NextRect.H;
+                    
+                    state.NextRect.W += widthDelta;
+                    state.NextRect.H += heightDelta;
+                    state.NextRect.Y -= heightDelta;
                     gui.Input.UseMouseEvent();
                     break;
 
@@ -334,6 +347,21 @@ namespace Imui.Controls
             var position = new Vector2((screenSize.x - width) / 2f, (screenSize.y - height) / 2f);
 
             return new ImRect(position.x, position.y, width, height);
+        }
+
+        private static Vector2 KeepWindowInsideScreen(ImGui gui, Vector2 position, Vector2 size)
+        {
+            var titleBarHeight = GetTitleBarHeight(gui);
+            var screenRect = gui.Canvas.ScreenRect;
+            var left = screenRect.Left - size.x + titleBarHeight * 2; // close button
+            var right = screenRect.Right - titleBarHeight;
+            var top = screenRect.Top - size.y;
+            var bottom = screenRect.Bottom - size.y + titleBarHeight;
+            
+            position.x = Mathf.Clamp(position.x, left, right);
+            position.y = Mathf.Clamp(position.y, bottom, top);
+
+            return position;
         }
     }
 }
