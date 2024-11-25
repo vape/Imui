@@ -4,7 +4,7 @@
 - ~~Context menus~~
 - ~~Use menus instead of list in dropdown~~
 - ~~Text truncation~~
-- Tabs
+- ~~Tabs~~
 - ~~Do not allow to resize windows to negative values~~
 - ~~Do not allow to move title bar outside screen rect~~
 - ~~Controls should have their own reasonable minimal size~~

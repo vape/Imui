@@ -272,8 +272,6 @@ namespace Imui.Style
             
             // Dropdown
             sheet.Dropdown.ArrowScale = 0.6f;
-            sheet.Dropdown.MaxListHeight = 300.0f;
-            sheet.Dropdown.MinListWidth = 150.0f;
             sheet.Dropdown.Button = sheet.Button;
             sheet.Dropdown.Button.Alignment = new ImAlignment(0.0f, 0.5f);
             sheet.Dropdown.Button.Overflow = ImTextOverflow.Ellipsis;
@@ -329,6 +327,20 @@ namespace Imui.Style
             sheet.ColorPicker.BorderColor = palette.ControlBorder;
             sheet.ColorPicker.BorderThickness = theme.BorderThickness;
             sheet.ColorPicker.PreviewCircleScale = 0.5f;
+            
+            // Tab
+            sheet.Tabs.IndicatorColor = palette.Accent;
+            sheet.Tabs.Normal = sheet.Button;
+            sheet.Tabs.Selected = sheet.Button;
+            sheet.Tabs.Selected.Normal.BackColor = palette.BackSecondary;
+            sheet.Tabs.Selected.Hovered.BackColor = sheet.Tabs.Selected.Normal.BackColor;
+            
+            sheet.Tabs.ContainerBox.BackColor = sheet.Tabs.Selected.Normal.BackColor;
+            sheet.Tabs.ContainerBox.BorderColor = sheet.Tabs.Selected.Normal.BorderColor;
+            sheet.Tabs.ContainerBox.BorderRadius = sheet.Tabs.Selected.BorderRadius;
+            sheet.Tabs.ContainerBox.BorderRadius.TopLeft = 0;
+            sheet.Tabs.ContainerBox.BorderRadius.TopRight = 0;
+            sheet.Tabs.ContainerBox.BorderThickness = sheet.Tabs.Selected.BorderThickness;
             
             return sheet;
         }

@@ -28,6 +28,18 @@ namespace Imui.Style
                 BorderRadius.TopLeft = 0;
             }
 
+            if ((adjacency & ImAdjacency.Top) != 0)
+            {
+                BorderRadius.BottomLeft = 0;
+                BorderRadius.BottomRight = 0;
+            }
+            
+            if ((adjacency & ImAdjacency.Bottom) != 0)
+            {
+                BorderRadius.TopLeft = 0;
+                BorderRadius.TopRight = 0;
+            }
+
             return this;
         }
     }
@@ -75,8 +87,6 @@ namespace Imui.Style
     {
         public float ArrowScale;
         public ImStyleButton Button;
-        public float MaxListHeight;
-        public float MinListWidth;
     }
     
     [Serializable]
@@ -233,5 +243,14 @@ namespace Imui.Style
         public float PreviewCircleScale;
         public float BorderThickness;
         public Color32 BorderColor;
+    }
+
+    [Serializable]
+    public struct ImStyleTab
+    {
+        public ImStyleButton Normal;
+        public ImStyleButton Selected;
+        public Color32 IndicatorColor;
+        public ImStyleBox ContainerBox;
     }
 }
