@@ -33,7 +33,7 @@ namespace Imui.Controls
 
             ref var state = ref gui.PeekControlScope<ImDropdownState>();
 
-            if (!gui.BeginMenu(label, ref state.Open, gui.GetLayoutPosition(), gui.LastControlRect.W))
+            if (!gui.BeginMenu(label, ref state.Open, gui.LastControlRect.BottomLeft, gui.LastControlRect.W))
             {
                 gui.EndPopup();
                 return false;

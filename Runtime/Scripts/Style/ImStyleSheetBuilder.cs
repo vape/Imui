@@ -71,7 +71,6 @@ namespace Imui.Style
 
             // Text
             sheet.Text.Color = palette.Front;
-            sheet.Text.Alignment = new ImAlignment(0.0f, 0.0f);
             
             // Layout
             sheet.Layout.ExtraRowHeight = theme.ExtraRowHeight;

@@ -84,10 +84,11 @@ namespace Imui.Controls
             gui.Canvas.PopClipRect();
             gui.Canvas.PopRectMask();
             
-            var rect = gui.Layout.GetWholeRect();
-            var state = gui.PeekControlScopePtr<ImTabsPaneState>();
-            
-            state->Content = rect;
+            // TODO (artem-s): add flag dynamically resize tab's container to fit content 
+            // var rect = gui.Layout.GetWholeRect();
+            // var state = gui.PeekControlScopePtr<ImTabsPaneState>();
+            //
+            // state->Content = rect;
             
             gui.EndScrollable();
             gui.Layout.Pop();

@@ -31,7 +31,9 @@ namespace Imui.Examples
 
     public static class ImDemoWindow
     {
-        private static string[] themes =
+        private static int selectedThemeIndex = 0;
+        private static ImTheme[] themes = { CreateTheme(0), CreateTheme(1), CreateTheme(2), CreateTheme(3), CreateTheme(4) };
+        private static string[] themeNames =
         {
             nameof(ImThemeBuiltin.Light), 
             nameof(ImThemeBuiltin.Dark), 
@@ -60,7 +62,6 @@ namespace Imui.Examples
         private static float bouncingBallSpeed = 1;
         private static int bouncingBallTrail = 32;
         private static float bouncingBallTime;
-        private static int selectedTheme;
 
         private static string[] values =
         {
@@ -82,7 +83,6 @@ namespace Imui.Examples
         private static bool showPlusMinusButtons = true;
         private static bool useNumericSlider = false;
         private static ImDemoEnumFlags demoFlags;
-        private static Color circleColor = new Color(0, 0, 0, 1.0f);
 
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
@@ -220,8 +220,6 @@ namespace Imui.Examples
             gui.TextEdit(ref multiLineText, multiline: true);
             gui.Separator("Sliders (with tooltips)");
             DrawSlidersDemo(gui);
-            gui.Separator("Colors");
-            gui.ColorEdit(ref circleColor);
             gui.Separator("Selection list (you can select multiple values)");
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
@@ -282,6 +280,20 @@ namespace Imui.Examples
             gui.BeginMenuBar();
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
+            
+            gui.Separator("Tabs");
+            gui.AddSpacing();
+            gui.BeginTabsPane(gui.AddLayoutRect(gui.GetLayoutWidth(), gui.GetRowsHeightWithSpacing(2)));
+            for (int i = 0; i < 4; ++i)
+            {
+                var label = gui.Formatter.Concat("Tab ", i);
+                if (gui.BeginTab(label))
+                {
+                    gui.Text(label);
+                    gui.EndTab();
+                }
+            }
+            gui.EndTabsPane();
 
             gui.EndReadOnly();
         }
@@ -488,26 +500,22 @@ namespace Imui.Examples
         private static void DrawStylePage(ImGui gui)
         {
             gui.Text("Theme");
-            if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
+            gui.BeginHorizontal();
+            if (gui.Dropdown(ref selectedThemeIndex, themeNames, defaultLabel: "Unknown", size: (gui.GetLayoutWidth() * 0.75f, gui.GetRowHeight())))
             {
-                gui.SetTheme(CreateTheme(selectedTheme));
+                gui.SetTheme(themes[selectedThemeIndex]);
             }
-
-            gui.Text(Format("Text Size: ", gui.Style.Layout.TextSize));
-            gui.Slider(ref gui.Style.Layout.TextSize, 6, 128);
-            
-            gui.Text(Format("Spacing: ", gui.Style.Layout.Spacing));
-            gui.Slider(ref gui.Style.Layout.Spacing, 0, 32);
-
-            gui.Text(Format("Extra Row Size: ", gui.Style.Layout.ExtraRowHeight));
-            gui.Slider(ref gui.Style.Layout.ExtraRowHeight, 0, 32);
-
-            gui.Text(Format("Indent: ", gui.Style.Layout.Indent));
-            gui.Slider(ref gui.Style.Layout.Indent, 0, 32);
-
-            if (gui.Button("Reset"))
+            gui.AddSpacing();
+            if (gui.Button("Reset", size: ImSizeMode.Fill))
             {
-                gui.SetTheme(CreateTheme(selectedTheme));
+                themes[selectedThemeIndex] = CreateTheme(selectedThemeIndex); 
+                gui.SetTheme(themes[selectedThemeIndex]);
+            }
+            gui.EndHorizontal();
+
+            if (ImThemeEditor.DrawEditor(gui, ref themes[selectedThemeIndex]))
+            {
+                gui.SetTheme(themes[selectedThemeIndex]);
             }
         }
 
@@ -537,7 +545,7 @@ namespace Imui.Examples
                 var x = t <= 1.0f ? t : 1 - (t - 1);
                 var y = 0.5f + Mathf.Sin((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)) * Mathf.PI * 2) * 0.25f;
                 var p = bounds.GetPointAtNormalPosition(x, y);
-                var c = circleColor.WithAlpha(circleColor.a * Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
+                var c = gui.Style.Text.Color.WithAlpha(Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }

@@ -8,9 +8,9 @@
 - ~~Do not allow to resize windows to negative values~~
 - ~~Do not allow to move title bar outside screen rect~~
 - ~~Controls should have their own reasonable minimal size~~
+- ~~Theme editor~~
 
 ### Later
-- Theme editor
 - Plotting control
 - Tables
 - In code documentation

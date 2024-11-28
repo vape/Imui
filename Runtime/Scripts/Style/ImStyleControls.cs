@@ -158,7 +158,6 @@ namespace Imui.Style
     public struct ImStyleText
     {
         public Color32 Color;
-        public ImAlignment Alignment;
     }
     
     [Serializable]
