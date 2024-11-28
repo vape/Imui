@@ -61,7 +61,7 @@ namespace Imui.Utility
         
         public T Pop()
         {
-            ImAssert.True(Count >= 0, "Popping empty array");
+            ImAssert.IsTrue(Count > 0, "Count > 0");
             
             return Array[--Count];
         }
@@ -90,7 +90,7 @@ namespace Imui.Utility
         
         public ref T Peek()
         {
-            ImAssert.True(Count >= 0, "Peeking empty array");
+            ImAssert.IsTrue(Count > 0, "Count > 0");
             
             return ref Array[Count - 1];
         }

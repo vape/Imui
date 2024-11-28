@@ -1,28 +1,37 @@
 ### TODO
-- Implement style sheet generation using palettes
-- Color picker
-- Theme editor
-- Implement table layout
-- Implement tabs
 - Plotting control
-- Do not allow to resize windows to negative values
-- Text truncation
-- Do not allow to move title bar outside screen rect
-- Controls should have their own reasonable minimal size
-- In code documentation
-- Rich text
+- Inspector example window
+- Controls optimization
+- Text edit preview hint
+- Draw without UnityUI's Canvas
 
 ### Later
+- Tables
+- In code documentation
+- Rich text
 - Fix touch keyboard in webgl
   - Apparently, it is bug in unity that prevents touchkeybaord to open in WebGL builds in versions prior to 2022.1 https://discussions.unity.com/t/touch-screen-keyboard-in-web-gl/892662/18 
-- Reorder demo controls from basic to more advanced
+- Better demo window organization 
 - Unit tests
-- More demo windows
-  - Inspector
-- Text edit preview hint
 - Property drawers, like in Unity's IMGUI
 - Show min/max value inside slider
-- Implement slider inside numeric editor
+- Range slider
+- Progress bar
+- Text clipping without additional draw call
+- Draw inside unity's editor window
+
+### 0.5
+- ~~Color picker~~
+- ~~Style using palettes~~
+- ~~Context menus~~
+- ~~Use menus instead of list in dropdown~~
+- ~~Text truncation~~
+- ~~Tabs~~
+- ~~Do not allow to resize windows to negative values~~
+- ~~Do not allow to move title bar outside screen rect~~
+- ~~Controls should have their own reasonable minimal size~~
+- ~~Theme editor~~
+- ~~Implement slider inside numeric editor~~
 
 ### 0.4
 - ~~Handle double clicks in ImTextEdit to select words~~

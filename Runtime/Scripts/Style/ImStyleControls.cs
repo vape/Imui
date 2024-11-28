@@ -1,5 +1,6 @@
 using System;
 using Imui.Core; // TODO (artem-s): styling should not depend on Core module
+using Imui.Rendering;
 using UnityEngine;
 
 namespace Imui.Style
@@ -27,6 +28,18 @@ namespace Imui.Style
                 BorderRadius.TopLeft = 0;
             }
 
+            if ((adjacency & ImAdjacency.Top) != 0)
+            {
+                BorderRadius.BottomLeft = 0;
+                BorderRadius.BottomRight = 0;
+            }
+            
+            if ((adjacency & ImAdjacency.Bottom) != 0)
+            {
+                BorderRadius.TopLeft = 0;
+                BorderRadius.TopRight = 0;
+            }
+
             return this;
         }
     }
@@ -38,7 +51,6 @@ namespace Imui.Style
         public float TextSize;
         public float Spacing;
         public float InnerSpacing;
-        public float ScrollSpeedScale;
         public float Indent;
     }
     
@@ -59,6 +71,7 @@ namespace Imui.Style
         public float BorderThickness;
         public float BorderRadius;
         public ImAlignment Alignment;
+        public ImTextOverflow Overflow;
     }
     
     [Serializable]
@@ -74,8 +87,6 @@ namespace Imui.Style
     {
         public float ArrowScale;
         public ImStyleButton Button;
-        public float MaxListHeight;
-        public float MinListWidth;
     }
     
     [Serializable]
@@ -130,6 +141,7 @@ namespace Imui.Style
         public Color32 TextColor;
         public ImAlignment TextAlignment;
         public ImPadding TextMargin;
+        public ImTextOverflow TextOverflow;
     }
     
     [Serializable]
@@ -139,13 +151,13 @@ namespace Imui.Style
         public ImStyleBox Selected;
         public ImStyleButton Handle;
         public float BackScale;
+        public ImTextOverflow TextOverflow;
     }
         
     [Serializable]
     public struct ImStyleText
     {
         public Color32 Color;
-        public ImAlignment Alignment;
     }
     
     [Serializable]
@@ -179,6 +191,7 @@ namespace Imui.Style
         public Color32 BackColor;
         public Color32 FrontColor;
         public ImAlignment Alignment;
+        public ImTextOverflow Overflow;
         public ImStyleButton CloseButton;
     }
         
@@ -186,7 +199,8 @@ namespace Imui.Style
     public struct ImStyleWindow
     {
         public ImStyleBox Box;
-        public Color32 ResizeHandleColor;
+        public Color32 ResizeHandleNormalColor;
+        public Color32 ResizeHandleActiveColor;
         public float ResizeHandleSize;
         public ImPadding ContentPadding;
         public ImStyleWindowTitleBar TitleBar;
@@ -220,5 +234,22 @@ namespace Imui.Style
         public ImStyleButton ItemNormal;
         public ImStyleButton ItemActive;
         public float ItemExtraWidth;
+    }
+
+    [Serializable]
+    public struct ImStyleColorPicker
+    {
+        public float PreviewCircleScale;
+        public float BorderThickness;
+        public Color32 BorderColor;
+    }
+
+    [Serializable]
+    public struct ImStyleTab
+    {
+        public ImStyleButton Normal;
+        public ImStyleButton Selected;
+        public Color32 IndicatorColor;
+        public ImStyleBox ContainerBox;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using Imui.Core;
+using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;
 
@@ -10,24 +11,24 @@ namespace Imui.Controls
         public const float MIN_WIDTH = 1;
         public const float MIN_HEIGHT = 1;
         
-        public static void Text(this ImGui gui, ReadOnlySpan<char> text, bool wrap = false)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, bool wrap = false, ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
-            Text(gui, text, GetTextSettings(gui, wrap));
+            Text(gui, text, GetTextSettings(gui, wrap, overflow));
         }
         
-        public static void Text(this ImGui gui, ReadOnlySpan<char> text, Color32 color, bool wrap = false)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, Color32 color, bool wrap = false, ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
-            Text(gui, text, GetTextSettings(gui, wrap), color);
+            Text(gui, text, GetTextSettings(gui, wrap, overflow), color);
         }
         
-        public static void Text(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool wrap = false)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool wrap = false, ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
-            Text(gui, text, GetTextSettings(gui, wrap), rect);
+            Text(gui, text, GetTextSettings(gui, wrap, overflow), rect);
         }
         
-        public static void Text(this ImGui gui, ReadOnlySpan<char> text, Color32 color, ImRect rect, bool wrap = false)
+        public static void Text(this ImGui gui, ReadOnlySpan<char> text, Color32 color, ImRect rect, bool wrap = false, ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
-            Text(gui, text, GetTextSettings(gui, wrap), color, rect);
+            Text(gui, text, GetTextSettings(gui, wrap, overflow), color, rect);
         }
 
         public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, ImRect rect, bool wrap = false)
@@ -35,7 +36,7 @@ namespace Imui.Controls
             TextAutoSize(gui, text, gui.Style.Text.Color, rect, wrap);
         }
         
-        public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, Color32 color, ImRect rect, bool wrap = false)
+        public static void TextAutoSize(this ImGui gui, ReadOnlySpan<char> text, Color32 color, ImRect rect, bool wrap = false, ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
             // (artem-s): at least try to skip costly auto-sizing
             if (gui.Canvas.Cull(rect))
@@ -43,7 +44,7 @@ namespace Imui.Controls
                 return;
             }
             
-            var settings = GetTextSettings(gui, wrap);
+            var settings = GetTextSettings(gui, wrap, overflow);
             settings.Size = AutoSizeTextSlow(gui, text, settings, rect.Size);
             Text(gui, text, settings, color, rect);
         }
@@ -73,9 +74,9 @@ namespace Imui.Controls
             gui.Canvas.Text(text, color, rect, in settings);
         }
 
-        public static ImTextSettings GetTextSettings(ImGui gui, bool wrap)
+        public static ImTextSettings GetTextSettings(ImGui gui, bool wrap, ImTextOverflow overflow)
         {
-            return new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.Text.Alignment, wrap);
+            return new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.0f, wrap, overflow);
         }
 
         // TODO (artem-s): Got to come up with better solution instead of just brute forcing the fuck of it every time
@@ -97,6 +98,34 @@ namespace Imui.Controls
             return scale * gui.TextDrawer.FontRenderSize;
         }
         
+        public static Vector2 MeasureTextSize(this ImGui gui, ReadOnlySpan<char> text)
+        {
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(text, 
+                0, 
+                0,
+                0,
+                0, 
+                gui.Style.Layout.TextSize,
+                false,
+                ImTextOverflow.Overflow);
+
+            return new Vector2(textLayout.Width, textLayout.Height);
+        }
+        
+        public static Vector2 MeasureTextSize(this ImGui gui, ReadOnlySpan<char> text, float textSize)
+        {
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(text, 
+                0, 
+                0,
+                0,
+                0, 
+                textSize,
+                false,
+                ImTextOverflow.Overflow);
+
+            return new Vector2(textLayout.Width, textLayout.Height);
+        }
+        
         public static Vector2 MeasureTextSize(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings textSettings, Vector2 bounds = default)
         {
             ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(text, 
@@ -105,7 +134,8 @@ namespace Imui.Controls
                 textSettings.Align.X,
                 textSettings.Align.Y, 
                 textSettings.Size,
-                textSettings.Wrap);
+                textSettings.Wrap,
+                textSettings.Overflow);
 
             return new Vector2(textLayout.Width, textLayout.Height);
         }

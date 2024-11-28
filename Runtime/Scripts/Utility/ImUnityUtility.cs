@@ -1,6 +1,6 @@
 namespace Imui.Utility
 {
-    public static class ImObjectUtility
+    public static class ImUnityUtility
     {
         public static void Destroy(UnityEngine.Object obj)
         {

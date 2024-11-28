@@ -7,13 +7,13 @@ namespace Imui.Controls
 {
     public static class ImCheckbox
     {
-        public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label = default)
+        public static ImRect AddRect(ImGui gui, ImSize size, ReadOnlySpan<char> label = default)
         {
             switch (size.Mode)
             {
                 case ImSizeMode.Fixed:
                 case ImSizeMode.Fill:
-                    return ImControls.AddRowRect(gui, size);
+                    return gui.AddSingleRowRect(size);
                 default:
                     var boxSize = gui.Style.Layout.TextSize;
                     
@@ -46,7 +46,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size, label);
+            var rect = AddRect(gui, size, label);
             return Checkbox(gui, ref value, label, rect);
         }
 
@@ -60,7 +60,7 @@ namespace Imui.Controls
         {
             var id = gui.GetNextControlId();
             var boxSize = gui.Style.Layout.TextSize;
-            var boxRect = rect.SplitLeft(boxSize, out var textRect).WithAspect(1.0f);
+            var boxRect = rect.TakeLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Checkbox(gui, id, ref value, boxRect);
 
             if (label.IsEmpty)

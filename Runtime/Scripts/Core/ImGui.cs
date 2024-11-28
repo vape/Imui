@@ -7,6 +7,13 @@ using UnityEngine;
 
 namespace Imui.Core
 {
+    [Flags]
+    public enum ImControlFlag
+    {
+        None = 0,
+        Draggable = 1 << 0
+    }
+    
     public struct ImControlScope
     {
         public uint Id;
@@ -15,7 +22,7 @@ namespace Imui.Core
 
     public class ImGui : IDisposable
     {
-        private const int CONTROL_IDS_CAPACITY = 32;
+        private const int CONTROL_IDS_STACK_CAPACITY = 32;
 
         private const int INIT_MESHES_COUNT = 1024 / 2;
         private const int INIT_VERTICES_COUNT = 1024 * 16;
@@ -29,8 +36,8 @@ namespace Imui.Core
         private const int READONLY_STACK_CAPACITY = 4;
         private const int CONTROL_SCOPE_STACK_CAPACITY = 64;
 
-        private const int DEFAULT_STORAGE_CAPACITY = 2048;
-        private const int DEFAULT_ARENA_CAPACITY = 1024 * 64;
+        private const int INITIAL_STORAGE_ENTRIES = 256;
+        private const int DEFAULT_ARENA_CAPACITY = 1024 * 1024;
 
         private struct ControlId
         {
@@ -43,14 +50,14 @@ namespace Imui.Core
                 Gen = 0;
             }
         }
-        
+
         internal struct ControlData
         {
             public uint Id;
             public int Order;
             public ImRect Rect;
         }
-        
+
         internal struct FrameData
         {
             public ControlData HoveredControl;
@@ -69,7 +76,7 @@ namespace Imui.Core
                 VerticesCount = 0;
                 ArenaSize = 0;
             }
-            
+
             public void Clear()
             {
                 HoveredControl = default;
@@ -81,40 +88,14 @@ namespace Imui.Core
 
         public float UiScale
         {
-            get
-            {
-                return uiScale;
-            }
-            set
-            {
-                uiScale = Mathf.Clamp(value, UI_SCALE_MIN, UI_SCALE_MAX);
-            }
+            get => uiScale;
+            set => uiScale = Mathf.Clamp(value, UI_SCALE_MIN, UI_SCALE_MAX);
         }
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return readOnlyStack.TryPeek(@default: false);
-            }
-        }
+        public bool IsReadOnly => readOnlyStack.TryPeek(@default: false);
+        public uint LastControl => lastControl;
+        public ImRect LastControlRect => lastControlRect;
 
-        public uint LastControl
-        {
-            get
-            {
-                return lastControl;
-            }
-        }
-
-        public ImRect LastControlRect
-        {
-            get
-            {
-                return lastControlRect;
-            }
-        }
-        
         public readonly ImMeshBuffer MeshBuffer;
         public readonly ImMeshRenderer MeshRenderer;
         public readonly ImMeshDrawer MeshDrawer;
@@ -140,7 +121,6 @@ namespace Imui.Core
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
         private ImControlFlag activeControlFlag;
-        private ImControlSettings nextControlSettings;
         private uint lastControl;
         private ImRect lastControlRect;
         private ImDynamicArray<ImControlScope> controlScopesStack;
@@ -153,10 +133,10 @@ namespace Imui.Core
             MeshDrawer = new ImMeshDrawer(MeshBuffer);
             TextDrawer = new ImTextDrawer(MeshBuffer);
             Arena = new ImArena(DEFAULT_ARENA_CAPACITY);
-            Canvas = new ImCanvas(MeshDrawer, TextDrawer);
+            Canvas = new ImCanvas(MeshDrawer, TextDrawer, Arena);
             MeshRenderer = new ImMeshRenderer();
             Layout = new ImLayout();
-            Storage = new ImStorage(DEFAULT_STORAGE_CAPACITY);
+            Storage = new ImStorage(INITIAL_STORAGE_ENTRIES);
             WindowManager = new ImWindowManager();
             Input = input;
             Renderer = renderer;
@@ -164,18 +144,18 @@ namespace Imui.Core
 
             frameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
             nextFrameData = new FrameData(HOVERED_GROUPS_CAPACITY, FLOATING_CONTROLS_CAPACITY);
-            idsStack = new ImDynamicArray<ControlId>(CONTROL_IDS_CAPACITY);
+            idsStack = new ImDynamicArray<ControlId>(CONTROL_IDS_STACK_CAPACITY);
             readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
             controlScopesStack = new ImDynamicArray<ImControlScope>(CONTROL_SCOPE_STACK_CAPACITY);
 
             Input.SetRaycaster(Raycast);
             SetTheme(ImThemeBuiltin.Light());
         }
-        
+
         public void BeginFrame()
         {
             Arena.Clear();
-            
+
             idsStack.Clear(false);
 
             (nextFrameData, frameData) = (frameData, nextFrameData);
@@ -190,11 +170,11 @@ namespace Imui.Core
             Canvas.SetScreen(scaledScreenSize, uiScale);
             Canvas.Clear();
             Canvas.PushSettings(Canvas.CreateDefaultSettings());
-            
+
             WindowManager.SetScreenSize(scaledScreenSize);
-            
+
             Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledScreenSize));
-            
+
             idsStack.Push(new ControlId(ImHash.Get("root", 0)));
         }
 
@@ -205,7 +185,7 @@ namespace Imui.Core
                 Debug.LogError($"There are still {controlScopesStack.Count} control scopes on the stack. Check Begin(X)/End(X) calls.");
                 controlScopesStack.Clear(false);
             }
-            
+
             idsStack.Pop();
 
             if (idsStack.Count > 0)
@@ -213,13 +193,13 @@ namespace Imui.Core
                 Debug.LogError($"There are still {idsStack.Count} ids on the stack. Check PushId/PopId calls.");
                 idsStack.Clear(false);
             }
-            
+
             Layout.Pop();
-            
+
             Canvas.PopSettings();
-            
-            Storage.CollectAndCompact();
-            
+
+            Storage.CollectAndCompactIteration();
+
             WindowManager.HandleFrameEnded();
         }
 
@@ -242,12 +222,12 @@ namespace Imui.Core
             readOnlyStack.Pop();
             Canvas.PopInvColorMul();
         }
-        
+
         public void PushId(uint id)
         {
             idsStack.Push(new ControlId(id));
         }
-        
+
         public uint PushId(ReadOnlySpan<char> name)
         {
             var id = GetControlId(name);
@@ -327,16 +307,6 @@ namespace Imui.Core
             activeControlFlag = default;
         }
 
-        public ImControlSettings GetNextControlSettings()
-        {
-            return nextControlSettings;
-        }
-        
-        public void SetNextAdjacency(ImAdjacency adjacency)
-        {
-            nextControlSettings.Adjacency |= adjacency;
-        }
-
         public bool IsControlActive(uint controlId)
         {
             return activeControl == controlId;
@@ -346,7 +316,7 @@ namespace Imui.Core
         {
             return frameData.HoveredControl.Id == controlId;
         }
-        
+
         public bool IsGroupHovered(uint controlId)
         {
             for (int i = 0; i < frameData.HoveredGroups.Count; ++i)
@@ -369,15 +339,20 @@ namespace Imui.Core
         {
             nextFrameData.FloatingControls.Add(rect);
         }
-        
+
+        public void SetLastControl(uint id, ImRect rect)
+        {
+            lastControl = id;
+            lastControlRect = rect;
+        }
+
         public void RegisterControl(uint controlId, ImRect rect)
         {
-            nextControlSettings = default;
             lastControl = controlId;
             lastControlRect = rect;
-            
+
             ref readonly var meshProperties = ref Canvas.GetActiveSettings();
-            
+
             if (meshProperties.ClipRect.Enabled && !meshProperties.ClipRect.Rect.Contains(Input.MousePosition))
             {
                 return;
@@ -387,7 +362,7 @@ namespace Imui.Core
             {
                 nextFrameData.FloatingControls.Add(rect);
             }
-            
+
             if (meshProperties.Order >= nextFrameData.HoveredControl.Order && rect.Contains(Input.MousePosition))
             {
                 nextFrameData.HoveredControl.Id = controlId;
@@ -399,7 +374,7 @@ namespace Imui.Core
         public void RegisterGroup(uint controlId, ImRect rect)
         {
             ref readonly var meshProperties = ref Canvas.GetActiveSettings();
-            
+
             if (meshProperties.ClipRect.Enabled && !meshProperties.ClipRect.Rect.Contains(Input.MousePosition))
             {
                 return;
@@ -421,7 +396,7 @@ namespace Imui.Core
                         return;
                     }
                 }
-                
+
                 nextFrameData.HoveredGroups.Add(new ControlData()
                 {
                     Id = controlId,
@@ -431,9 +406,9 @@ namespace Imui.Core
             }
         }
 
-        public unsafe ref TState PushControlScope<TState>(uint id, TState @default = default) where TState : unmanaged => ref *PushControlScopePtr(id, @default);
-        
-        public unsafe TState* PushControlScopePtr<TState>(uint id, TState @default = default) where TState : unmanaged
+        public unsafe ref TState PushControlScope<TState>(uint id, TState @default = default) where TState: unmanaged => ref *PushControlScopePtr(id, @default);
+
+        public unsafe TState* PushControlScopePtr<TState>(uint id, TState @default = default) where TState: unmanaged
         {
             var stateReference = new ImControlScope() { Id = id, Type = typeof(TState).GetHashCode() };
 
@@ -442,11 +417,12 @@ namespace Imui.Core
             return Storage.GetPtr(id, @default);
         }
 
-        public unsafe ref TState PopControlScope<TState>() where TState : unmanaged => ref *PopControlScopePtr<TState>(out _);
-        public unsafe ref TState PopControlScope<TState>(out uint id) where TState : unmanaged => ref *PopControlScopePtr<TState>(out id);
+        public unsafe ref TState PopControlScope<TState>() where TState: unmanaged => ref *PopControlScopePtr<TState>(out _);
+        public unsafe ref TState PopControlScope<TState>(out uint id) where TState: unmanaged => ref *PopControlScopePtr<TState>(out id);
 
-        public unsafe TState* PopControlScopePtr<TState>() where TState : unmanaged => PopControlScopePtr<TState>(out _);
-        public unsafe TState* PopControlScopePtr<TState>(out uint id) where TState : unmanaged
+        public unsafe TState* PopControlScopePtr<TState>() where TState: unmanaged => PopControlScopePtr<TState>(out _);
+
+        public unsafe TState* PopControlScopePtr<TState>(out uint id) where TState: unmanaged
         {
             ref var reference = ref FindControlScopeOrFail<TState>(out var index);
 
@@ -456,11 +432,12 @@ namespace Imui.Core
             return Storage.GetPtr<TState>(id);
         }
 
-        public unsafe ref TState PeekControlScope<TState>() where TState : unmanaged => ref *PeekControlScopePtr<TState>(out _);
-        public unsafe ref TState PeekControlScope<TState>(out uint id) where TState : unmanaged => ref *PeekControlScopePtr<TState>(out id);
-        
-        public unsafe TState* PeekControlScopePtr<TState>() where TState : unmanaged => PeekControlScopePtr<TState>(out _);
-        public unsafe TState* PeekControlScopePtr<TState>(out uint id) where TState : unmanaged
+        public unsafe ref TState PeekControlScope<TState>() where TState: unmanaged => ref *PeekControlScopePtr<TState>(out _);
+        public unsafe ref TState PeekControlScope<TState>(out uint id) where TState: unmanaged => ref *PeekControlScopePtr<TState>(out id);
+
+        public unsafe TState* PeekControlScopePtr<TState>() where TState: unmanaged => PeekControlScopePtr<TState>(out _);
+
+        public unsafe TState* PeekControlScopePtr<TState>(out uint id) where TState: unmanaged
         {
             ref var reference = ref FindControlScopeOrFail<TState>(out _);
 
@@ -468,7 +445,7 @@ namespace Imui.Core
             return Storage.GetPtr<TState>(id);
         }
 
-        public unsafe bool TryPeekControlScopePtr<TState>(out TState* state) where TState : unmanaged
+        public unsafe bool TryPeekControlScopePtr<TState>(out TState* state) where TState: unmanaged
         {
             if (!TryFindControlScope<TState>(out var index))
             {
@@ -525,25 +502,29 @@ namespace Imui.Core
 
         public void Render()
         {
+            ImProfiler.BeginSample("ImGui.Render");
+            
             nextFrameData.VerticesCount = MeshDrawer.buffer.VerticesCount;
             nextFrameData.IndicesCount = MeshDrawer.buffer.IndicesCount;
             nextFrameData.ArenaSize = Arena.Size;
-            
+
             var renderCmd = Renderer.CreateCommandBuffer();
             var screenSize = Renderer.GetScreenRect().size;
             var targetSize = Renderer.SetupRenderTarget(renderCmd);
-            
+
             MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale, targetSize);
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
+            
+            ImProfiler.EndSample();
         }
-        
+
         public bool Raycast(float x, float y)
         {
             // (artem-s): I don't really like this approach of checking whether we should capture input,
             // but for now I can't come up with something better given that raycast is happening before we render frame
             // with actual cursor position
-            
+
             var result = WindowManager.Raycast(x, y);
             if (!result)
             {
@@ -559,7 +540,7 @@ namespace Imui.Core
 
             return result;
         }
-        
+
         public void Dispose()
         {
             if (disposed)
@@ -572,20 +553,8 @@ namespace Imui.Core
             TextDrawer.Dispose();
             MeshRenderer.Dispose();
             Storage.Dispose();
-            
+
             disposed = true;
         }
-    }
-    
-    [Flags]
-    public enum ImControlFlag
-    {
-        None      = 0,
-        Draggable = 1 << 0
-    }
-    
-    public struct ImControlSettings
-    {
-        public ImAdjacency Adjacency;
     }
 }

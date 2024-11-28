@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.CompilerServices;
+using Imui.Rendering;
 using UnityEngine;
 
 namespace Imui.Core
@@ -21,6 +23,8 @@ namespace Imui.Core
         public Vector2 TopCenter => new Vector2(X + W / 2.0f, Y + H);
         public Vector2 BottomCenter => new Vector2(X + W / 2.0f, Y);
         public Vector2 Center => new Vector2(X + W / 2f, Y + H / 2f);
+
+        public float AspectRatio => W / H;
 
         public Vector2 Position
         {
@@ -79,6 +83,7 @@ namespace Imui.Core
             return x >= X && x <= (X + W) && y >= Y && y <= (Y + H);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Overlaps(ImRect other)
         {
             var xMax = X + W;
@@ -138,6 +143,16 @@ namespace Imui.Core
         {
             return new Vector2(Mathf.LerpUnclamped(X, X + W, point.x), Mathf.LerpUnclamped(Y, Y + H, point.y));
         }
+        
+        public Vector2 GetNormalPositionAtPoint(float x, float y)
+        {
+            return new Vector2(Mathf.InverseLerp(X, X + W, x), Mathf.InverseLerp(Y, Y + H, y));
+        }
+        
+        public Vector2 GetNormalPositionAtPoint(Vector2 point)
+        {
+            return new Vector2(Mathf.InverseLerp(X, X + W, point.x), Mathf.InverseLerp(Y, Y + H, point.y));
+        }
 
         public override string ToString()
         {
@@ -167,6 +182,11 @@ namespace Imui.Core
         public static explicit operator Vector4(ImRect rect)
         {
             return new Vector4(rect.X, rect.Y, rect.W, rect.H);
+        }
+        
+        public static explicit operator ImTextClipRect(ImRect rect)
+        {
+            return new ImTextClipRect(rect.X, rect.X + rect.W, rect.Y + rect.H, rect.Y);
         }
 
         public static explicit operator ImRect(in Rect rect)

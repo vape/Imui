@@ -6,6 +6,7 @@ namespace Imui.Style
     public struct ImStyleSheet
     {
         public ImTheme Theme;
+        public ImPalette Palette;
         public ImStyleLayout Layout;
         public ImStyleWindow Window;
         public ImStyleText Text;
@@ -23,5 +24,7 @@ namespace Imui.Style
         public ImStyleTooltip Tooltip;
         public ImStyleMenu Menu;
         public ImStyleMenuBar MenuBar;
+        public ImStyleColorPicker ColorPicker;
+        public ImStyleTab Tabs;
     }
 }

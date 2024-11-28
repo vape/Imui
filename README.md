@@ -1,6 +1,6 @@
 # Imui
 
-Immediate mode GUI framework made specifically for Unity. Written in pure C#, has zero per-frame allocations, is somewhat performant, has no external dependencies, and works on basically any platform that Unity supports and that has either a touchscreen or mouse and keyboard. A WebGL demo can be seen [here](https://vape.github.io/imui_demo_040/).
+Immediate mode GUI framework made specifically for Unity. Written in pure C#, has zero per-frame allocations, is somewhat performant, has no external dependencies, and works on basically any platform that Unity supports and that has either a touchscreen or mouse and keyboard. A WebGL demo can be seen [here](https://vape.github.io/imui_demo_050/).
 
 ## Screenshot
 
@@ -13,10 +13,6 @@ The basic principle is the same as in Dear ImGui: every frame, we generate a mes
 ## Installation
 
 You can install Imui as a git package in Unity Package Manager
-
-## Styling
-
-Dark and light themes are supported, check out demo [here](https://vape.github.io/imui_demo_040/).
 
 ## Supported Controls
 
@@ -36,10 +32,8 @@ Dark and light themes are supported, check out demo [here](https://vape.github.i
 * Listbox
 * Menu
 * Tooltip
-
-## Layout
-
-Implements an automatic layout system with vertical, horizontal, and grid layout groups.
+* Color Picker
+* Tabs Pane
 
 ## Notes
 

@@ -1,10 +1,10 @@
 using System;
+using Imui.Controls;
 using Imui.Core;
-using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
-namespace Imui.Controls.Windows
+namespace Imui.Examples
 {
     public class ImConsoleWindow : IDisposable
     {
@@ -177,7 +177,7 @@ namespace Imui.Controls.Windows
             }
 
             var windowRect = gui.GetWindowContentRect();
-            windowRect.SplitTop(windowRect.H * 0.4f, out var rect);
+            windowRect.TakeTop(windowRect.H * 0.4f, out var rect);
 
             rect.AddPadding(gui.Style.Window.ContentPadding);
             gui.Box(rect, in gui.Style.List.Box);

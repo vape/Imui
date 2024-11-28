@@ -67,7 +67,7 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            return Slider(gui, ref value, min, max, ImControls.AddRowRect(gui, size), format, step, flags);
+            return Slider(gui, ref value, min, max, gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight() * 2), format, step, flags);
         }
 
         public static bool Slider(this ImGui gui,
@@ -79,8 +79,6 @@ namespace Imui.Controls
                                   float step = 0,
                                   ImSliderFlag flags = ImSliderFlag.None)
         {
-            const float EPSILON = 0.000001f;
-
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
@@ -128,7 +126,7 @@ namespace Imui.Controls
             }
 
             var textSize = gui.TextDrawer.GetFontSizeFromLineHeight(backgroundRect.H);
-            var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f);
+            var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f, overflow: gui.Style.Slider.TextOverflow);
             
             gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Normal.FrontColor, backgroundRect);
 
@@ -140,7 +138,7 @@ namespace Imui.Controls
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     changed = true;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);

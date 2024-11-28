@@ -1,6 +1,7 @@
 using UnityEngine;
 
-namespace Imui.Style
+// ReSharper disable once CheckNamespace
+namespace Imui.Controls
 {
     public enum ImSizeMode
     {

@@ -18,12 +18,14 @@ namespace Imui.Controls
     {
         None = 0,
         ActOnPress = 1,
-        ReactToHeldDown = 2
+        ReactToHeldDown = 2,
+        ReactToRightButton = 4,
+        ReactToAnyButton = 8
     }
 
     public static class ImButton
     {
-        public static ImRect GetRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
+        public static ImRect AddRect(ImGui gui, ImSize size, ReadOnlySpan<char> label)
         {
             if (size.Mode == ImSizeMode.Fit || (size.Mode == ImSizeMode.Auto && gui.Layout.Axis == ImAxis.Horizontal))
             {
@@ -37,30 +39,47 @@ namespace Imui.Controls
                 return gui.Layout.AddRect(rectSize);
             }
 
-            return ImControls.AddRowRect(gui, size);
+            return gui.AddSingleRowRect(size);
         }
 
         public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImButtonFlag flags = ImButtonFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var rect = GetRect(gui, size, label);
+            var rect = AddRect(gui, size, label);
             return Button(gui, label, rect, flags);
         }
 
-        public static bool Button(this ImGui gui, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flags = ImButtonFlag.None)
+        public static bool Button(this ImGui gui,
+                                  ReadOnlySpan<char> label,
+                                  ImRect rect,
+                                  ImButtonFlag flags = ImButtonFlag.None,
+                                  ImAdjacency adjacency = ImAdjacency.None)
         {
-            return Button(gui, gui.GetNextControlId(), label, rect, out _, flags);
+            var id = gui.GetNextControlId();
+
+            return Button(gui, id, label, rect, out _, flags, adjacency);
         }
 
-        public static bool Button(this ImGui gui, ImRect rect, out ImButtonState state, ImButtonFlag flags = ImButtonFlag.None)
+        public static bool Button(this ImGui gui,
+                                  ImRect rect,
+                                  out ImButtonState state,
+                                  ImButtonFlag flags = ImButtonFlag.None,
+                                  ImAdjacency adjacency = ImAdjacency.None)
         {
-            return Button(gui, gui.GetNextControlId(), rect, out state, flags);
+            var id = gui.GetNextControlId();
+
+            return Button(gui, id, rect, out state, flags, adjacency);
         }
 
-        public static bool Button(this ImGui gui, uint id, ReadOnlySpan<char> label, ImRect rect, ImButtonFlag flag = ImButtonFlag.None)
+        public static bool Button(this ImGui gui,
+                                  uint id,
+                                  ReadOnlySpan<char> label,
+                                  ImRect rect,
+                                  ImButtonFlag flag = ImButtonFlag.None,
+                                  ImAdjacency adjacency = default)
         {
-            return Button(gui, id, label, rect, out _, flag);
+            return Button(gui, id, label, rect, out _, flag, adjacency);
         }
 
         public static bool Button(this ImGui gui,
@@ -68,9 +87,10 @@ namespace Imui.Controls
                                   ReadOnlySpan<char> label,
                                   ImRect rect,
                                   out ImButtonState state,
-                                  ImButtonFlag flag = ImButtonFlag.None)
+                                  ImButtonFlag flag = ImButtonFlag.None,
+                                  ImAdjacency adjacency = default)
         {
-            var clicked = Button(gui, id, rect, out state, flag);
+            var clicked = Button(gui, id, rect, out state, flag, adjacency);
             var textSettings = CreateTextSettings(gui);
             var textColor = GetStateFrontColor(gui, state);
             var textRect = CalculateContentRect(gui, rect);
@@ -80,12 +100,16 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static bool Button(this ImGui gui, uint id, ImRect rect, out ImButtonState state, ImButtonFlag flag = ImButtonFlag.None)
+        public static bool Button(this ImGui gui,
+                                  uint id,
+                                  ImRect rect,
+                                  out ImButtonState state,
+                                  ImButtonFlag flag = ImButtonFlag.None,
+                                  ImAdjacency adjacency = default)
         {
             var hovered = gui.IsControlHovered(id);
             var pressed = gui.IsControlActive(id);
             var clicked = false;
-            var adjacency = gui.GetNextControlSettings().Adjacency;
 
             gui.RegisterControl(id, rect);
 
@@ -99,9 +123,13 @@ namespace Imui.Controls
             }
 
             ref readonly var evt = ref gui.Input.MouseEvent;
+            var leftButton = evt.LeftButton || 
+                             (flag & ImButtonFlag.ReactToAnyButton) != 0 ||
+                             ((flag & ImButtonFlag.ReactToRightButton) != 0 && evt.Button == 1);
+            
             switch (evt.Type)
             {
-                case ImMouseEventType.Down when hovered:
+                case ImMouseEventType.Down when leftButton && hovered:
                     if ((flag & ImButtonFlag.ActOnPress) != 0)
                     {
                         clicked = true;
@@ -170,14 +198,17 @@ namespace Imui.Controls
             }
 
             ref readonly var evt = ref gui.Input.MouseEvent;
+            var leftButton = evt.Button == 0 ||
+                                (flag & ImButtonFlag.ReactToAnyButton) != 0 ||
+                                ((flag & ImButtonFlag.ReactToRightButton) != 0 && evt.Button == 1);
             switch (evt.Type)
             {
-                case ImMouseEventType.Down when !pressed && hovered && (flag & ImButtonFlag.ActOnPress) != 0:
+                case ImMouseEventType.Down when leftButton && !pressed && hovered && (flag & ImButtonFlag.ActOnPress) != 0:
                     clicked = true;
                     gui.Input.UseMouseEvent();
                     break;
 
-                case ImMouseEventType.Down when !pressed && hovered:
+                case ImMouseEventType.Down when leftButton && !pressed && hovered:
                     gui.SetActiveControl(id);
                     gui.Input.UseMouseEvent();
                     break;
@@ -209,7 +240,7 @@ namespace Imui.Controls
 
         public static ImTextSettings CreateTextSettings(ImGui gui, in ImStyleButton style)
         {
-            return new ImTextSettings(gui.Style.Layout.TextSize, style.Alignment, false);
+            return new ImTextSettings(gui.Style.Layout.TextSize, style.Alignment, false, style.Overflow);
         }
 
         public static ImRect CalculateContentRect(ImGui gui, ImRect buttonRect)

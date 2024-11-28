@@ -1,187 +1,402 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using UnityEngine.Assertions;
+using Imui.Utility;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Imui.Core
 {
     public sealed unsafe class ImStorage : IDisposable
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int Align(int size) => (sizeof(IntPtr) * ((size + sizeof(IntPtr) - 1) / sizeof(IntPtr)));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static uint MakeKey<T>(uint id)
+        {
+            unchecked
+            {
+                return (uint)HashCode.Combine(id, TypeHelper<T>.Hash);
+            }
+        }
+
+        private static class TypeHelper<T>
+        {
+            public static readonly int Hash = typeof(T).GetHashCode();
+        }
+
         [Flags]
-        private enum Flag : byte
+        internal enum MetaFlag : short
         {
-            // ReSharper disable once UnusedMember.Local
             None = 0,
-            Used = 1 << 0
+            Unused = 1,
+            Pinned = 2
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct Metadata
+        internal struct Metadata
         {
-            public Flag Flag;
-            public byte Size;
-            public uint Id;
+            public readonly int Type;
+            public readonly int Size;
+            
+            public int Offset;
+            public uint Parent;
+            public MetaFlag Flags;
+
+            public Metadata(int type, int offset, int size)
+            {
+                Type = type;
+                Offset = offset;
+                Size = size;
+                Parent = 0;
+                Flags = MetaFlag.None;
+            }
         }
 
-        public int OccupiedSize => (int)tail - (int)data;
-        public int Capacity => capacity;
-        
-        private int capacity;
-        private IntPtr data;
-        private IntPtr tail;
+        internal struct Scope
+        { }
+
+        public int TotalUsed => entriesCount * sizeof(Metadata) + entriesCapacity * sizeof(uint) + dataSize;
+        public int TotalAllocated => entriesCapacity * sizeof(Metadata) + entriesCapacity * sizeof(uint) + dataCapacity;
+
+        internal uint* keys;
+        internal Metadata* meta;
+        internal int entriesCount;
+        internal int entriesCapacity;
+
+        internal byte* data;
+        internal int dataSize;
+        internal int dataCapacity;
+
+        private ImDynamicArray<uint> scopesStack;
         private bool disposed;
 
-        public ImStorage(int capacity)
+        public ImStorage(int initialEntriesCapacity)
         {
-            this.capacity = capacity;
+            entriesCapacity = initialEntriesCapacity;
+            entriesCount = 0;
+            keys = (uint*)Marshal.AllocHGlobal(entriesCapacity * sizeof(uint));
+            meta = (Metadata*)Marshal.AllocHGlobal(entriesCapacity * sizeof(Metadata));
+
+            dataCapacity = initialEntriesCapacity * 64;
+            data = (byte*)Marshal.AllocHGlobal(dataCapacity);
             
-            data = Marshal.AllocHGlobal(capacity);
-            tail = data;
+            scopesStack = new ImDynamicArray<uint>(32);
         }
 
-        public ref T Get<T>(uint id, T defaultValue = default) where T : unmanaged
+        public void BeginPinned(uint id)
         {
-            return ref *GetPtr(id, defaultValue);
+            GetPtr<Scope>(id);
+            
+            scopesStack.Push(MakeKey<Scope>(id));
+        }
+
+        public void EndPinned()
+        {
+            scopesStack.Pop();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<T> GetArray<T>(uint id, int count) where T: unmanaged => new Span<T>(GetPtrArray<T>(id, count), count);
+        public T* GetPtrArray<T>(uint id, int count) where T: unmanaged
+        {
+            ImProfiler.BeginSample("ImStorage.GetPtrArray<T>");
+            
+            var key = MakeKey<T>(id);
+            if (!TryFindIndex(key, out var index))
+            {
+                return InsertArray<T>(index, key, count);
+            }
+            
+            // TODO (artem-s): maintain content when 'count' is changed, but we already have some data stored
+            if (meta[index].Type != TypeHelper<T>.Hash || meta[index].Size != Align(sizeof(T) * count))
+            {
+                Delete(index);
+                
+                return InsertArray<T>(index, key, count);
+            }
+
+            meta[index].Flags &= ~MetaFlag.Unused;
+            var ptr = (T*)(data + meta[index].Offset);
+
+            ImProfiler.EndSample();
+            
+            return ptr;
         }
         
-        public T* GetPtr<T>(uint id, T defaultValue = default) where T : unmanaged
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T Get<T>(uint id, T def = default) where T: unmanaged => ref *GetPtr(id, def);
+        public T* GetPtr<T>(uint id, T def = default) where T: unmanaged
         {
-            if (!TryGet(out T* value, out Metadata* metadata, id))
+            ImProfiler.BeginSample("ImStorage.GetPtr<T>");
+
+            var key = MakeKey<T>(id);
+            if (!TryFindIndex(key, out var index))
             {
-                return AddValue(id, defaultValue);
+                return Insert(index, key, def);
             }
 
-            metadata->Flag |= Flag.Used;
-            return value;
-        }
-
-        public bool TryGetPtr<T>(uint id, out T* value) where T : unmanaged
-        {
-            var result = TryGet(out value, out var metadata, id);
-            if (result)
+            if (meta[index].Type != TypeHelper<T>.Hash)
             {
-                metadata->Flag |= Flag.Used;
-            }
-
-            return result;
-        }
-
-        public void CollectAndCompact()
-        {
-            var ptr = data;
-            var free = 0;
-
-            while ((int)ptr < (int)tail)
-            {
-                var metadata = (Metadata*)ptr;
-                var blockSize = sizeof(Metadata) + Align(metadata->Size);
+                Delete(index);
                 
-                if ((metadata->Flag & Flag.Used) != 0)
-                {
-                    metadata->Flag &= ~Flag.Used;
+                return Insert(index, key, def);
+            }
 
-                    if (free > 0)
-                    {
-                        Buffer.MemoryCopy((void*)ptr, (void*)(ptr - free), blockSize, blockSize);
-                    }
+            meta[index].Flags &= ~MetaFlag.Unused;
+            var ptr = (T*)(data + meta[index].Offset);
+
+            ImProfiler.EndSample();
+
+            return ptr;
+        }
+        
+        public bool TryGetPtr<T>(uint id, out T* value) where T: unmanaged
+        {
+            ImProfiler.BeginSample("ImStorage.TryGetPtr<T>");
+
+            var key = MakeKey<T>(id);
+            if (!TryFindIndex(key, out var index) || meta[index].Type != TypeHelper<T>.Hash)
+            {
+                value = default;
+                return false;
+            }
+
+            meta[index].Flags &= ~MetaFlag.Unused;
+            value = (T*)(data + meta[index].Offset);
+
+            ImProfiler.EndSample();
+
+            return true;
+        }
+
+        public bool Remove<T>(uint id)
+        {
+            var key = MakeKey<T>(id);
+            if (!TryFindIndex(key, out var index) || meta[index].Type != TypeHelper<T>.Hash)
+            {
+                return false;
+            }
+
+            Delete(index);
+            return true;
+        }
+        
+        public bool CollectAndCompactIteration()
+        {
+            ImProfiler.BeginSample("ImStorage.CollectAndCompactIteration");
+
+            for (int i = 0; i < entriesCount; ++i)
+            {
+                if ((meta[i].Flags & MetaFlag.Unused) != 0 && (meta[i].Flags & MetaFlag.Pinned) == 0)
+                {
+                    Delete(i);
+                    return true;
+                }
+
+                meta[i].Flags |= MetaFlag.Unused;
+            }
+
+            ImProfiler.EndSample();
+
+            return false;
+        }
+
+        private void Delete(int index)
+        {
+            ImAssert.IsTrue(entriesCount > 0, "entriesCount > 0");
+            ImAssert.IsTrue(index >= 0, "index >= 0");
+            ImAssert.IsTrue(index < entriesCount, "index < entriesCount");
+
+            ImProfiler.BeginSample("ImStorage.Delete");
+
+            var id = keys[index];
+            var offset = meta[index].Offset;
+            var size = meta[index].Size;
+
+            if (index != entriesCount - 1)
+            {
+                ShiftEntries(index + 1, -1);
+            }
+
+            entriesCount--;
+
+            UnsafeUtility.MemMove(data + offset, data + offset + size, dataSize - size - offset);
+
+            for (int i = 0; i < entriesCount; ++i)
+            {
+                if (meta[i].Offset > offset)
+                {
+                    meta[i].Offset -= size;
+                }
+
+                if ((meta[i].Flags & MetaFlag.Pinned) != 0 && meta[i].Parent == id)
+                {
+                    meta[i].Flags &= ~MetaFlag.Pinned;
+                }
+            }
+
+            dataSize -= size;
+
+            ImProfiler.EndSample();
+        }
+
+        private T* Insert<T>(int index, uint key, T value) where T: unmanaged
+        {
+            ImAssert.IsTrue(index >= 0, "index >= 0");
+            ImAssert.IsTrue(index <= entriesCount, "index <= count");
+            ImAssert.IsTrue(sizeof(T) <= short.MaxValue, "sizeof(T) <= short.MaxValue");
+
+            var sizeAligned = Align(sizeof(T));
+
+            if (entriesCapacity <= entriesCount)
+            {
+                GrowEntriesToFit(entriesCapacity + 1);
+            }
+
+            if ((dataCapacity - dataSize) < sizeAligned)
+            {
+                GrowDataToFit(dataCapacity + sizeAligned);
+            }
+
+            if (index < entriesCount)
+            {
+                ShiftEntries(index, 1);
+            }
+
+            keys[index] = key;
+            meta[index] = new Metadata(TypeHelper<T>.Hash, dataSize, (short)sizeAligned);
+
+            if (scopesStack.TryPeek(out var parent))
+            {
+                meta[index].Flags |= MetaFlag.Pinned;
+                meta[index].Parent = parent;
+            }
+
+            var ptr = (T*)(data + dataSize);
+            *ptr = value;
+
+            entriesCount++;
+            dataSize += sizeAligned;
+
+            return ptr;
+        }
+        
+        private T* InsertArray<T>(int index, uint key, int count) where T: unmanaged
+        {
+            ImAssert.IsTrue(index >= 0, "index >= 0");
+            ImAssert.IsTrue(index <= entriesCount, "index <= count");
+
+            var sizeAligned = Align(sizeof(T) * count);
+
+            if (entriesCapacity <= entriesCount)
+            {
+                GrowEntriesToFit(entriesCapacity + 1);
+            }
+
+            if ((dataCapacity - dataSize) < sizeAligned)
+            {
+                GrowDataToFit(dataCapacity + sizeAligned);
+            }
+
+            if (index < entriesCount)
+            {
+                ShiftEntries(index, 1);
+            }
+
+            keys[index] = key;
+            meta[index] = new Metadata(TypeHelper<T>.Hash, dataSize, sizeAligned);
+            
+            if (scopesStack.TryPeek(out var parent))
+            {
+                meta[index].Flags |= MetaFlag.Pinned;
+                meta[index].Parent = parent;
+            }
+
+            var ptr = (T*)(data + dataSize);
+            UnsafeUtility.MemSet(ptr, 0, sizeAligned);
+
+            entriesCount++;
+            dataSize += sizeAligned;
+
+            return ptr;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ShiftEntries(int index, int offset)
+        {
+            var keysDst = keys + index + offset;
+            var keysSrc = keys + index;
+            var metaDst = meta + index + offset;
+            var metaSrc = meta + index;
+
+            UnsafeUtility.MemMove(keysDst, keysSrc, sizeof(uint) * (entriesCount - index));
+            UnsafeUtility.MemMove(metaDst, metaSrc, sizeof(Metadata) * (entriesCount - index));
+        }
+
+        private bool TryFindIndex(uint key, out int index)
+        {
+            var l = 0;
+            var h = entriesCount - 1;
+
+            while (l <= h)
+            {
+                var m = l + (h - l) / 2;
+
+                if (keys[m] == key)
+                {
+                    index = m;
+                    return true;
+                }
+
+                if (keys[m] < key)
+                {
+                    l = m + 1;
                 }
                 else
                 {
-                    free += blockSize;
+                    h = m - 1;
                 }
-                
-                ptr += blockSize;
-            }
-            
-            tail -= free;
-        }
-
-        private T* AddValue<T>(uint id, T value = default) where T : unmanaged
-        {
-            Assert.IsTrue(sizeof(T) <= byte.MaxValue);
-            
-            var size = (byte)sizeof(T);
-            if (((int)tail - (int)data + Align(size) + sizeof(Metadata)) >= capacity)
-            {
-                Grow();
-            }
-            
-            var metadata = new Metadata()
-            {
-                Flag = Flag.Used, 
-                Id = id, 
-                Size = size
-            };
-
-            var ptr = (void*)tail;
-            
-            SetMetaAndValue(ptr, ref metadata, ref value);
-            tail += sizeof(Metadata) + Align(size);
-            
-            return GetValuePtr<T>(ptr);
-        }
-
-        private bool TryGet<T>(out T* value, out Metadata* metadata, uint id) where T: unmanaged
-        {
-            var size = sizeof(T);
-            var ptr = data;
-            
-            while ((int)ptr < (int)tail)
-            {
-                metadata = (Metadata*)ptr;
-
-                if (metadata->Id != id || metadata->Size != size)
-                {
-                    ptr += sizeof(Metadata) + Align(metadata->Size);
-                    continue;
-                }
-
-                value = GetValuePtr<T>((void*)ptr);
-                return true;
             }
 
-            value = null;
-            metadata = null;
+            index = l;
             return false;
         }
-        
-        private void Grow(int ratio = 2)
+
+        private void GrowEntriesToFit(int capacity)
         {
-            if (data == IntPtr.Zero)
+            if (capacity < entriesCapacity)
             {
-                throw new NullReferenceException();
+                return;
             }
-            
-            var nextCapacity = capacity * ratio;
-            var nextData = Marshal.AllocHGlobal(nextCapacity);
-            var sizeToCopy = (int)tail - (int)data;
-            
-            Buffer.MemoryCopy((void*)data, (void*)nextData, nextCapacity, sizeToCopy);
-            Marshal.FreeHGlobal(data);
 
-            capacity = nextCapacity;
-            data = nextData;
-            tail = data + sizeToCopy;
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private T* GetValuePtr<T>(void* ptr) where T : unmanaged
-        {
-            return (T*)((byte*)ptr + sizeof(Metadata));
+            var nextCapacity = entriesCapacity * 2;
+            while (nextCapacity < capacity)
+            {
+                nextCapacity *= 2;
+            }
+
+            keys = (uint*)Marshal.ReAllocHGlobal((IntPtr)keys, (IntPtr)(nextCapacity * sizeof(uint)));
+            meta = (Metadata*)Marshal.ReAllocHGlobal((IntPtr)meta, (IntPtr)(nextCapacity * sizeof(Metadata)));
+            entriesCapacity = nextCapacity;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetMetaAndValue<T>(void* ptr, ref Metadata metadata, ref T value) where T: unmanaged 
+        private void GrowDataToFit(int capacity)
         {
-            *(Metadata*)ptr = metadata;
-            *(T*)((byte*)ptr + sizeof(Metadata)) = value;
+            if (capacity <= dataCapacity)
+            {
+                return;
+            }
+
+            var nextCapacity = dataCapacity * 2;
+            while (nextCapacity < capacity)
+            {
+                nextCapacity *= 2;
+            }
+
+            data = (byte*)Marshal.ReAllocHGlobal((IntPtr)data, (IntPtr)nextCapacity);
+            dataCapacity = nextCapacity;
         }
-        
-        private static byte Align(byte size)
-        {
-            return (byte)(sizeof(IntPtr) * ((size + sizeof(IntPtr) - 1) / sizeof(IntPtr)));
-        }
-        
+
         public void Dispose()
         {
             Dispose(true);
@@ -195,11 +410,19 @@ namespace Imui.Core
             {
                 return;
             }
-            
-            Marshal.FreeHGlobal(data);
 
-            data = IntPtr.Zero;
-            tail = IntPtr.Zero;
+            Marshal.FreeHGlobal((IntPtr)keys);
+            Marshal.FreeHGlobal((IntPtr)meta);
+            Marshal.FreeHGlobal((IntPtr)data);
+
+            data = null;
+            keys = null;
+            data = null;
+
+            entriesCount = 0;
+            entriesCapacity = 0;
+            dataSize = 0;
+            dataCapacity = 0;
 
             disposed = true;
         }

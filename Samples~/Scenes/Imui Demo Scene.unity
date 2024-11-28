@@ -383,6 +383,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2ba8e6528c5e4e66938af054c416091, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cam: {fileID: 347743684}
   canvas: {fileID: 1934553029}
   graphic: {fileID: 1315082254}
   font: {fileID: 12800000, guid: 2e601d9349a22409988f9d46642f3331, type: 3}

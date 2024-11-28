@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Imui.Controls;
 using Imui.Core;
 using Imui.Style;
 using UnityEngine;
 
-namespace Imui.Controls.Windows
+namespace Imui.Examples
 {
     [Flags]
     internal enum ImDemoEnumFlags
@@ -30,17 +31,23 @@ namespace Imui.Controls.Windows
 
     public static class ImDemoWindow
     {
-        private static string[] themes =
+        private static int selectedThemeIndex = 0;
+        private static ImTheme[] themes = { CreateTheme(0), CreateTheme(1), CreateTheme(2), CreateTheme(3), CreateTheme(4) };
+        private static string[] themeNames =
         {
             nameof(ImThemeBuiltin.Light), 
             nameof(ImThemeBuiltin.Dark), 
-            nameof(ImThemeBuiltin.Dear)
+            nameof(ImThemeBuiltin.Dear),
+            nameof(ImThemeBuiltin.Orange),
+            nameof(ImThemeBuiltin.Terminal)
         };
 
         private static ImTheme CreateTheme(int index)
         {
             return index switch
             {
+                4 => ImThemeBuiltin.Terminal(),
+                3 => ImThemeBuiltin.Orange(),
                 2 => ImThemeBuiltin.Dear(),
                 1 => ImThemeBuiltin.Dark(),
                 _ => ImThemeBuiltin.Light()
@@ -55,7 +62,6 @@ namespace Imui.Controls.Windows
         private static float bouncingBallSpeed = 1;
         private static int bouncingBallTrail = 32;
         private static float bouncingBallTime;
-        private static int selectedTheme;
 
         private static string[] values =
         {
@@ -75,6 +81,7 @@ namespace Imui.Controls.Windows
         private static int clicks;
         private static int nestedFoldouts;
         private static bool showPlusMinusButtons = true;
+        private static bool useNumericSlider = false;
         private static ImDemoEnumFlags demoFlags;
 
         private static bool selectMultipleValues = false;
@@ -190,6 +197,24 @@ namespace Imui.Controls.Windows
             gui.Radio(ref dropdownPreview);
             gui.EndHorizontal();
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Dropdown without value selected", preview: dropdownPreview);
+            if (gui.BeginDropdownMenu("Custom Dropdown", preview: dropdownPreview))
+            {
+                if (gui.MenuItem("Menu Item"))
+                {
+                    gui.CloseDropdown();
+                }
+                gui.TooltipAtLastControl("Will close dropdown on click");
+                
+                if (gui.BeginSubMenu("Sub Menu Inside Dropdown"))
+                {
+                    gui.Text("Hello there");
+                    gui.EndSubMenu();
+                }
+                gui.Checkbox(ref checkboxValue, "Checkbox");
+                gui.Separator("Nested dropdown, if that's want you really want");
+                gui.Dropdown(ref selectedValue, values, defaultLabel: "Nothing", preview: dropdownPreview);
+                gui.EndDropdownMenu();
+            }
             gui.Separator("Text editors");
             gui.TextEdit(ref singleLineText, multiline: false);
             gui.TextEdit(ref multiLineText, multiline: true);
@@ -216,12 +241,19 @@ namespace Imui.Controls.Windows
             gui.EndList();
 
             gui.Separator("Numeric editors");
-            gui.Checkbox(ref showPlusMinusButtons, "Show +/-");
+            gui.BeginReadOnly(useNumericSlider);
+            gui.Checkbox(ref showPlusMinusButtons, "Enable Plus/Minus buttons");
+            gui.EndReadOnly();
+            gui.Checkbox(ref useNumericSlider, "Enable Slider");
+            
+            var numericFlag = ImNumericEditFlag.None;
+            numericFlag |= showPlusMinusButtons ? ImNumericEditFlag.PlusMinus : ImNumericEditFlag.None;
+            numericFlag |= useNumericSlider ? ImNumericEditFlag.Slider : ImNumericEditFlag.None;
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
-            gui.FloatEdit(ref floatValue, format: "0.00#####", step: showPlusMinusButtons ? 0.01f : 0.0f);
+            gui.NumericEdit(ref floatValue, step: 0.05f, flags: numericFlag);
             gui.EndHorizontal();
             gui.Text(Format(" floatValue = ", floatValue, "0.0######"));
             gui.EndHorizontal();
@@ -229,7 +261,7 @@ namespace Imui.Controls.Windows
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.BeginHorizontal();
             gui.BeginHorizontal(width: gui.GetLayoutWidth() * 0.6f);
-            gui.IntEdit(ref intValue, step: showPlusMinusButtons ? 1 : 0);
+            gui.NumericEdit(ref intValue, flags: numericFlag);
             gui.EndHorizontal();
             gui.Text(Format(" intValue = ", intValue));
             gui.EndHorizontal();
@@ -248,6 +280,20 @@ namespace Imui.Controls.Windows
             gui.BeginMenuBar();
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
+            
+            gui.Separator("Tabs");
+            gui.AddSpacing();
+            gui.BeginTabsPane(gui.AddLayoutRect(gui.GetLayoutWidth(), gui.GetRowsHeightWithSpacing(2)));
+            for (int i = 0; i < 4; ++i)
+            {
+                var label = gui.Formatter.Concat("Tab ", i);
+                if (gui.BeginTab(label))
+                {
+                    gui.Text(label);
+                    gui.EndTab();
+                }
+            }
+            gui.EndTabsPane();
 
             gui.EndReadOnly();
         }
@@ -341,11 +387,11 @@ namespace Imui.Controls.Windows
         {
             DrawBouncingBall(gui);
             gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
-            gui.TooltipAtControl("Size of the circles in pixels");
+            gui.TooltipAtLastControl("Size of the circles in pixels");
             gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
-            gui.TooltipAtControl("Speed for circles moving");
+            gui.TooltipAtLastControl("Speed for circles moving");
             gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
-            gui.TooltipAtControl("Number of circles drawn");
+            gui.TooltipAtLastControl("Number of circles drawn");
         }
 
         private static void DrawMenuBarItems(ImGui gui, ref bool windowOpen)
@@ -454,26 +500,22 @@ namespace Imui.Controls.Windows
         private static void DrawStylePage(ImGui gui)
         {
             gui.Text("Theme");
-            if (gui.Dropdown(ref selectedTheme, themes, defaultLabel: "Unknown"))
+            gui.BeginHorizontal();
+            if (gui.Dropdown(ref selectedThemeIndex, themeNames, defaultLabel: "Unknown", size: (gui.GetLayoutWidth() * 0.75f, gui.GetRowHeight())))
             {
-                gui.SetTheme(CreateTheme(selectedTheme));
+                gui.SetTheme(themes[selectedThemeIndex]);
             }
-
-            gui.Text(Format("Text Size: ", gui.Style.Layout.TextSize));
-            gui.Slider(ref gui.Style.Layout.TextSize, 6, 128);
-
-            gui.Text(Format("Spacing: ", gui.Style.Layout.Spacing));
-            gui.Slider(ref gui.Style.Layout.Spacing, 0, 32);
-
-            gui.Text(Format("Extra Row Size: ", gui.Style.Layout.ExtraRowHeight));
-            gui.Slider(ref gui.Style.Layout.ExtraRowHeight, 0, 32);
-
-            gui.Text(Format("Indent: ", gui.Style.Layout.Indent));
-            gui.Slider(ref gui.Style.Layout.Indent, 0, 32);
-
-            if (gui.Button("Reset"))
+            gui.AddSpacing();
+            if (gui.Button("Reset", size: ImSizeMode.Fill))
             {
-                gui.SetTheme(CreateTheme(selectedTheme));
+                themes[selectedThemeIndex] = CreateTheme(selectedThemeIndex); 
+                gui.SetTheme(themes[selectedThemeIndex]);
+            }
+            gui.EndHorizontal();
+
+            if (ImThemeEditor.DrawEditor(gui, ref themes[selectedThemeIndex]))
+            {
+                gui.SetTheme(themes[selectedThemeIndex]);
             }
         }
 
@@ -503,7 +545,7 @@ namespace Imui.Controls.Windows
                 var x = t <= 1.0f ? t : 1 - (t - 1);
                 var y = 0.5f + Mathf.Sin((bouncingBallTime + (i * 0.01f * bouncingBallSpeed)) * Mathf.PI * 2) * 0.25f;
                 var p = bounds.GetPointAtNormalPosition(x, y);
-                var c = gui.Style.Text.Color.WithAlphaF(Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
+                var c = gui.Style.Text.Color.WithAlpha(Mathf.Pow((i + 1) / (float)bouncingBallTrail, 6));
 
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }

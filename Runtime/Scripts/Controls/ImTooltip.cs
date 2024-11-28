@@ -14,7 +14,7 @@ namespace Imui.Controls
     
     public static class ImTooltip
     {
-        public static void TooltipAtControl(this ImGui gui, ReadOnlySpan<char> text, ImTooltipShow show = ImTooltipShow.OnHover)
+        public static void TooltipAtLastControl(this ImGui gui, ReadOnlySpan<char> text, ImTooltipShow show = ImTooltipShow.OnHover)
         {
             TooltipAtControl(gui, gui.LastControl, text, show);
         }

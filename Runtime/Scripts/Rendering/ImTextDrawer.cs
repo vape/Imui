@@ -3,13 +3,19 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Imui.Utility;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.TextCore;
 using UnityEngine.TextCore.LowLevel;
 using UnityEngine.TextCore.Text;
 
 namespace Imui.Rendering
 {
+    public enum ImTextOverflow
+    {
+        Overflow,
+        Ellipsis,
+        Truncate
+    }
+    
     public struct ImTextLine
     {
         public int Start;
@@ -29,6 +35,8 @@ namespace Imui.Rendering
         public ImTextLine[] Lines;
         public int LinesCount;
         public float LineHeight;
+        public ImTextOverflow Overflow;
+        public float OverflowWidth;
     }
 
     public readonly struct ImTextClipRect
@@ -91,6 +99,7 @@ namespace Imui.Rendering
             }
         }
 
+        private const string ELLIPSIS = "...";
         private const char NEW_LINE = '\n';
         private const char SPACE = ' ';
         private const char TAB = '\t';
@@ -117,6 +126,7 @@ namespace Imui.Rendering
         private float renderSize;
         private float descentLine;
         private GlyphData[] glyphsLookup;
+        private float ellipsisWidth;
 
         private readonly ImMeshBuffer buffer;
 
@@ -153,6 +163,12 @@ namespace Imui.Rendering
             glyphsLookup[SPACE].flag |= GlyphFlag.Empty;
             glyphsLookup[TAB].flag |= GlyphFlag.Empty;
             glyphsLookup[TAB].advance = glyphsLookup[SPACE].advance * TAB_SPACES;
+
+            ellipsisWidth = 0.0f;
+            for (int i = 0; i < ELLIPSIS.Length; ++i)
+            {
+                ellipsisWidth += glyphsLookup[ELLIPSIS[i]].advance;
+            }
 
             fontAsset.atlasTexture.Apply();
         }
@@ -212,7 +228,7 @@ namespace Imui.Rendering
 
         public void AddTextWithLayout(ReadOnlySpan<char> text, in ImTextLayout layout, float x, float y, in ImTextClipRect clipRect)
         {
-            Profiler.BeginSample("TextDrawer.AddTextWithLayout");
+            ImProfiler.BeginSample("ImTextDrawer.AddTextWithLayout");
 
             var ct = fontAsset.characterLookupTable;
             var lh = lineHeight * layout.Scale;
@@ -227,6 +243,15 @@ namespace Imui.Rendering
             {
                 ref var line = ref layout.Lines[i];
 
+                var boundRight = float.MaxValue;
+                if ((line.Width - layout.OverflowWidth) > 1.0f)
+                {
+                    boundRight = 
+                        layout.Overflow == ImTextOverflow.Ellipsis ? sx + layout.OverflowWidth - ellipsisWidth * layout.Scale :
+                        layout.Overflow == ImTextOverflow.Truncate ? sx + layout.OverflowWidth : 
+                        boundRight;
+                }
+
                 for (int k = 0; k < line.Count; ++k)
                 {
                     var c = text[line.Start + k];
@@ -238,17 +263,33 @@ namespace Imui.Rendering
                     {
                         break;
                     }
-
+                    
                     if (c < GLYPH_LOOKUP_CAPACITY)
                     {
-                        ref var glyph = ref glyphsLookup[c];
+                        ref readonly var glyph = ref glyphsLookup[c];
+                        
+                        var advance = glyph.advance * layout.Scale;
+                        if (x + advance > boundRight)
+                        {
+                            if (layout.Overflow == ImTextOverflow.Ellipsis && layout.OverflowWidth > (ellipsisWidth * layout.Scale))
+                            {
+                                for (int j = 0; j < ELLIPSIS.Length; ++j)
+                                {
+                                    ref readonly var glyphEllipsis = ref glyphsLookup[ELLIPSIS[j]];
+                                    x += AddGlyphQuad(in glyphEllipsis, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                                }
+                            }
+                            
+                            break;
+                        }
+                        
                         if ((glyph.flag & GlyphFlag.Empty) != 0)
                         {
-                            x += glyph.advance * layout.Scale;
+                            x += advance;
                             continue;
                         }
 
-                        x += AddGlyphQuad(ref glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                        x += AddGlyphQuad(in glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                     }
                     else
                     {
@@ -258,7 +299,23 @@ namespace Imui.Rendering
                         }
 
                         var glyph = new GlyphData(character.glyph);
-                        x += AddGlyphQuad(ref glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                        
+                        var advance = glyph.advance * layout.Scale;
+                        if (x + advance > boundRight)
+                        {
+                            if (layout.Overflow == ImTextOverflow.Ellipsis)
+                            {
+                                for (int j = 0; j < ELLIPSIS.Length; ++j)
+                                {
+                                    ref readonly var glyphEllipsis = ref glyphsLookup[ELLIPSIS[j]];
+                                    x += AddGlyphQuad(in glyphEllipsis, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                                }
+                            }
+                            
+                            break;
+                        }
+                        
+                        x += AddGlyphQuad(in glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                     }
                 }
 
@@ -271,32 +328,34 @@ namespace Imui.Rendering
                 x = sx;
             }
 
-            Profiler.EndSample();
+            ImProfiler.EndSample();
         }
 
 #if IMUI_DEBUG
         private void AddControlGlyphQuad(char c, float px, float py, float scale)
         {
-            var ct = fontAsset.characterLookupTable;
+            var tmpColor = Color;
+            Color.SetAlpha(0.5f * Color.GetAlpha());
+            
+            ref var backSlash = ref glyphsLookup['\\'];
             
             switch (c)
             {
                 case '\n':
-                    px += AddGlyphQuad(ct['\\'].glyph, px, py, scale);
-                    px += AddGlyphQuad(ct['n'].glyph, px, py, scale);
+                    AddGlyphQuad(ref glyphsLookup['n'], px + AddGlyphQuad(ref backSlash, px, py, scale), py, scale);
                     break;
                 case '\t':
-                    px += AddGlyphQuad(ct['\\'].glyph, px, py, scale);
-                    px += AddGlyphQuad(ct['t'].glyph, px, py, scale);
+                    AddGlyphQuad(ref glyphsLookup['t'], px + AddGlyphQuad(ref backSlash, px, py, scale), py, scale);
                     break;
-                
             }
+
+            Color = tmpColor;
         }
 #endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [SuppressMessage("ReSharper", "InconsistentNaming")]
-        private float AddGlyphQuad(ref GlyphData glyph, float px, float py, float scale)
+        private float AddGlyphQuad(in GlyphData glyph, float px, float py, float scale)
         {
             var gw = scale * glyph.w;
             var gh = scale * glyph.h;
@@ -366,9 +425,10 @@ namespace Imui.Rendering
                                                          float alignX,
                                                          float alignY,
                                                          float size,
-                                                         bool wrap)
+                                                         bool wrap,
+                                                         ImTextOverflow overflow)
         {
-            FillLayout(text, boundsWidth, boundsHeight, alignX, alignY, size, wrap, ref sharedLayout);
+            FillLayout(text, boundsWidth, boundsHeight, alignX, alignY, size, wrap, overflow, ref sharedLayout);
             return ref sharedLayout;
         }
 
@@ -379,6 +439,7 @@ namespace Imui.Rendering
                                float alignY,
                                float size,
                                bool wrap,
+                               ImTextOverflow overflow,
                                ref ImTextLayout layout)
         {
             const float NEXT_LINE_WIDTH_THRESHOLD = 0.0001f;
@@ -391,14 +452,19 @@ namespace Imui.Rendering
             layout.Height = 0;
             layout.Size = size;
             layout.LineHeight = lineHeight * layout.Scale;
+            layout.OverflowWidth = boundsWidth;
+            layout.Overflow = overflow;
 
             if (text.IsEmpty)
             {
                 return;
             }
+            
+            ImProfiler.BeginSample("ImTextDrawer.FillLayout");
 
             wrap &= boundsWidth > 0;
 
+            var minLineSpaceLeft = overflow == ImTextOverflow.Overflow ? float.MinValue : 0.0f;
             var maxLineWidth = 0f;
             var lineWidth = 0f;
             var lineStart = 0;
@@ -462,7 +528,7 @@ namespace Imui.Rendering
                     line.Width = lineWidth;
                     line.Start = lineStart;
                     line.Count = i - lineStart + (newLine ? 1 : 0);
-                    line.OffsetX = (boundsWidth - lineWidth) * alignX;
+                    line.OffsetX = Mathf.Max((boundsWidth - lineWidth), minLineSpaceLeft) * alignX;
 
                     if (line.Width > maxLineWidth)
                     {
@@ -495,7 +561,7 @@ namespace Imui.Rendering
                 line.Width = lineWidth;
                 line.Start = lineStart;
                 line.Count = textLength - lineStart;
-                line.OffsetX = (boundsWidth - lineWidth) * alignX;
+                line.OffsetX = Mathf.Max((boundsWidth - lineWidth), minLineSpaceLeft) * alignX;
 
                 if (line.Width > maxLineWidth)
                 {
@@ -509,6 +575,8 @@ namespace Imui.Rendering
             layout.Width = maxLineWidth;
             layout.Height = layout.LineHeight * layout.LinesCount;
             layout.OffsetY = -(boundsHeight - layout.LinesCount * layout.LineHeight) * alignY;
+            
+            ImProfiler.EndSample();
         }
 
         public void Dispose()
@@ -518,7 +586,7 @@ namespace Imui.Rendering
                 return;
             }
 
-            ImObjectUtility.Destroy(fontAsset);
+            ImUnityUtility.Destroy(fontAsset);
             fontAsset = null;
 
             disposed = true;

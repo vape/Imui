@@ -11,10 +11,7 @@ internal class ImuiAssertException : Exception
 internal static class ImAssert
 {
     [Conditional("IMUI_DEBUG")]
-    [Conditional("IMUI_VALIDATION")]
-    [Conditional("DEVELOPMENT_BUILD")]
-    [Conditional("UNITY_EDITOR")]
-    public static void True(bool value, string message)
+    public static void IsTrue(bool value, string message)
     {
         if (!value)
         {
@@ -23,23 +20,11 @@ internal static class ImAssert
     }
     
     [Conditional("IMUI_DEBUG")]
-    [Conditional("IMUI_VALIDATION")]
-    [Conditional("DEVELOPMENT_BUILD")]
-    [Conditional("UNITY_EDITOR")]
-    public static void False(bool value, string message)
+    public static void IsFalse(bool value, string message)
     {
         if (value)
         {
             throw new ImuiAssertException(message);
         }
-    }
-
-    [Conditional("IMUI_DEBUG")]
-    [Conditional("IMUI_VALIDATION")]
-    [Conditional("DEVELOPMENT_BUILD")]
-    [Conditional("UNITY_EDITOR")]
-    public static void Error(string message)
-    {
-        throw new ImuiAssertException(message);
     }
 }

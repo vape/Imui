@@ -182,7 +182,7 @@ namespace Imui.Controls
                     gui.ResetActiveControl();
                     break;
                 
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     gui.Input.UseMouseEvent();
                     break;

@@ -6,7 +6,9 @@ namespace Imui.Controls
 {
     public static class ImImage
     {
-        public static ImRect GetRect(ImGui gui, Texture texture, ImSize size)
+        private static readonly Color32 White = new Color32(255, 255, 255, 255);
+        
+        public static ImRect AddRect(ImGui gui, Texture texture, ImSize size)
         {
             return size.Mode switch
             {
@@ -17,7 +19,7 @@ namespace Imui.Controls
         
         public static void Image(this ImGui gui, Texture texture, ImSize size = default, bool preserveAspect = false)
         {
-            Image(gui, texture, GetRect(gui, texture, size), preserveAspect);
+            Image(gui, texture, AddRect(gui, texture, size), preserveAspect);
         }
         
         public static void Image(this ImGui gui, Texture texture, ImRect rect, bool preserveAspect = false)
@@ -31,9 +33,13 @@ namespace Imui.Controls
             {
                 rect = rect.WithAspect(texture.width / (float)texture.height);
             }
+
+            var scaleOffset = gui.Canvas.GetTexScaleOffset();
             
             gui.Canvas.PushTexture(texture);
-            gui.Canvas.Rect(rect, ImStyleUtility.White);
+            gui.Canvas.SetTexScaleOffset(new Vector4(1, 1, 0, 0));
+            gui.Canvas.Rect(rect, White);
+            gui.Canvas.SetTexScaleOffset(scaleOffset);
             gui.Canvas.PopTexture();
         }
     }
