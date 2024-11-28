@@ -21,6 +21,12 @@ namespace Imui.Controls
             return gui.AddSingleRowRect(size);
         }
 
+        public static Color ColorEdit(this ImGui gui, Color color, ImSize size = default)
+        {
+            ColorEdit(gui, ref color, size);
+            return color;
+        }
+
         public static bool ColorEdit(this ImGui gui, ref Color color, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();

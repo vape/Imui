@@ -1,6 +1,6 @@
 using Imui.Controls;
-using Imui.Controls.Windows;
 using Imui.Core;
+using Imui.Examples;
 using Imui.IO.UGUI;
 using UnityEngine;
 
@@ -8,6 +8,7 @@ namespace Imui.Demo
 {
     public class DemoRoot : MonoBehaviour
     {
+        [SerializeField] private Camera cam;
         [SerializeField] private Canvas canvas;
         [SerializeField] private ImCanvasBackend graphic;
         [SerializeField] private Font font;
@@ -35,12 +36,26 @@ namespace Imui.Demo
         {
             gui.BeginPopup();
             
-            gui.BeginMenuBar(gui.Canvas.ScreenRect.SplitTop(gui.GetRowHeight()));
+            gui.BeginMenuBar(gui.Canvas.ScreenRect.TakeTop(gui.GetRowHeight()));
+            
             if (gui.BeginMenuBarItem("Demo"))
             {
                 gui.MenuItem("Show Demo", ref demoOpen);
                 gui.EndMenuBarItem();
             }
+            
+            if (gui.BeginMenuBarItem("View"))
+            {
+                gui.AddSpacingIfLayoutFrameNotEmpty();
+                gui.BeginHorizontal();
+                gui.Text("Clear Color");
+                gui.AddSpacing(20);
+                cam.backgroundColor = gui.ColorEdit(cam.backgroundColor);
+                gui.EndHorizontal();
+                
+                gui.EndMenuBarItem();
+            }
+            
             gui.EndMenuBar();
             
             gui.EndPopup();

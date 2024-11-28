@@ -1,4 +1,26 @@
 ### TODO
+- Plotting control
+- Inspector example window
+- Controls optimization
+- Text edit preview hint
+- Draw without UnityUI's Canvas
+
+### Later
+- Tables
+- In code documentation
+- Rich text
+- Fix touch keyboard in webgl
+  - Apparently, it is bug in unity that prevents touchkeybaord to open in WebGL builds in versions prior to 2022.1 https://discussions.unity.com/t/touch-screen-keyboard-in-web-gl/892662/18 
+- Better demo window organization 
+- Unit tests
+- Property drawers, like in Unity's IMGUI
+- Show min/max value inside slider
+- Range slider
+- Progress bar
+- Text clipping without additional draw call
+- Draw inside unity's editor window
+
+### 0.5
 - ~~Color picker~~
 - ~~Style using palettes~~
 - ~~Context menus~~
@@ -9,23 +31,7 @@
 - ~~Do not allow to move title bar outside screen rect~~
 - ~~Controls should have their own reasonable minimal size~~
 - ~~Theme editor~~
-
-### Later
-- Plotting control
-- Tables
-- In code documentation
-- Rich text
-- Fix touch keyboard in webgl
-  - Apparently, it is bug in unity that prevents touchkeybaord to open in WebGL builds in versions prior to 2022.1 https://discussions.unity.com/t/touch-screen-keyboard-in-web-gl/892662/18 
-- Reorder demo controls from basic to more advanced
-- Unit tests
-- More demo windows
-  - Inspector
-- Text edit preview hint
-- Property drawers, like in Unity's IMGUI
-- Show min/max value inside slider
-- Implement slider inside numeric editor
-- Controls optimization
+- ~~Implement slider inside numeric editor~~
 
 ### 0.4
 - ~~Handle double clicks in ImTextEdit to select words~~
