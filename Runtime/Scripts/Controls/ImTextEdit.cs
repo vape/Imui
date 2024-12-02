@@ -105,12 +105,12 @@ namespace Imui.Controls
             return text;
         }
 
-        public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, bool? multiline = null, ImTextEditFilter filter = null)
+        public static bool TextEdit(this ImGui gui, ref string text, ImSize size = default, bool? multiline = null, ImTextEditFilter filter = null)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = AddRect(gui, size, multiline, out var actuallyMultiline);
-            TextEdit(gui, ref text, rect, actuallyMultiline, filter);
+            return TextEdit(gui, ref text, rect, actuallyMultiline, filter);
         }
 
         public static string TextEdit(this ImGui gui, string text, ImRect rect, bool multiline, ImTextEditFilter filter = null)
@@ -119,12 +119,12 @@ namespace Imui.Controls
             return text;
         }
 
-        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = default)
+        public static bool TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = default)
         {
-            TextEdit(gui, ref text, rect, true, filter);
+            return TextEdit(gui, ref text, rect, true, filter);
         }
 
-        public static void TextEdit(this ImGui gui,
+        public static bool TextEdit(this ImGui gui,
                                     ref string text,
                                     ImRect rect,
                                     bool multiline,
@@ -134,7 +134,7 @@ namespace Imui.Controls
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            TextEdit(gui, id, ref text, ref state, rect, multiline, filter, adjacency);
+            return TextEdit(gui, id, ref text, ref state, rect, multiline, filter, adjacency);
         }
 
         public static bool TextEdit(this ImGui gui,
@@ -163,7 +163,7 @@ namespace Imui.Controls
             return TextEdit(gui, id, ref buffer, ref state, rect, multiline, filter, adjacency);
         }
 
-        public static void TextEdit(this ImGui gui,
+        public static bool TextEdit(this ImGui gui,
                                     uint id,
                                     ref string text,
                                     ref ImTextEditState state,
@@ -178,6 +178,8 @@ namespace Imui.Controls
             {
                 text = buffer.GetString();
             }
+
+            return changed;
         }
 
         public static unsafe bool TextEdit(ImGui gui,
