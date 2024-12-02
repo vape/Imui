@@ -196,7 +196,7 @@ namespace Imui.Controls
             {
                 var closeButtonRect = contentRect.TakeRight(gui.GetRowHeight() - gui.Style.Layout.InnerSpacing, out contentRect).WithAspect(1.0f);
                 
-                using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Window.TitleBar.CloseButton))
+                using (gui.StyleScope(ref gui.Style.Button, in gui.Style.Window.TitleBar.CloseButton))
                 {
                     closeClicked = gui.Button(closeButtonRect, out var buttonState);
 

@@ -110,7 +110,7 @@ namespace Imui.Controls
                     gui.TextEditReadonly(label, previewRect, false, ImAdjacency.Left);
                     break;
                 case ImDropdownPreviewType.Default:
-                    using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
+                    using (gui.StyleScope(ref gui.Style.Button, in gui.Style.Dropdown.Button))
                     {
                         clicked |= gui.Button(id, label, previewRect, adjacency: ImAdjacency.Left);
                     }
@@ -154,7 +154,7 @@ namespace Imui.Controls
         {
             bool clicked;
 
-            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
+            using (gui.StyleScope(ref gui.Style.Button, in gui.Style.Dropdown.Button))
             {
                 clicked = gui.Button(id, rect, out var state, adjacency: adjacency);
 

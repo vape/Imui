@@ -274,7 +274,7 @@ namespace Imui.Controls
             active = (state->Selected == id && (!isExpandable || state->Fixed == default)) || state->Fixed == id;
 
             ref var buttonStyle = ref (active ? ref gui.Style.Menu.ItemActive : ref gui.Style.Menu.ItemNormal);
-            using var _ = new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in buttonStyle);
+            using var _ = gui.StyleScope(ref gui.Style.Button, in buttonStyle);
 
             var clicked = gui.Button(id, contentRect, out var buttonState, ImButtonFlag.ActOnPress) && !isExpandable;
             var frontColor = ImButton.GetStateFrontColor(gui, buttonState);

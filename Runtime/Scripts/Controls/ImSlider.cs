@@ -109,7 +109,7 @@ namespace Imui.Controls
             var handleY = handleBounds.Y + (handleBounds.H / 2.0f) - (handleH / 2.0f);
             var handleRect = new ImRect(handleX, handleY, handleW, handleH);
 
-            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, gui.Style.Slider.Handle))
+            using (gui.StyleScope(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
                 if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPress))
                 {

@@ -54,7 +54,7 @@ namespace Imui.Controls
             
             var changed = false;
 
-            using (new ImStyleScope<ImStyleTextEdit>(ref gui.Style.TextEdit))
+            using (gui.StyleScope(ref gui.Style.TextEdit))
             {
                 gui.Style.TextEdit.Alignment.X = 0.5f;
 

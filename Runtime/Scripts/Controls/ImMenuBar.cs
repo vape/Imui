@@ -75,7 +75,7 @@ namespace Imui.Controls
             var clicked = false;
             
             ref var buttonStyle = ref (barState.Selected == id ? ref gui.Style.MenuBar.ItemActive : ref gui.Style.MenuBar.ItemNormal);
-            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in buttonStyle))
+            using (gui.StyleScope(ref gui.Style.Button, in buttonStyle))
             {
                 clicked = gui.Button(id, label, rect);
             }

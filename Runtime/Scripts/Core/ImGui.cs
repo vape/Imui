@@ -19,8 +19,8 @@ namespace Imui.Core
         public uint Id;
         public int Type;
     }
-
-    public class ImGui : IDisposable
+    
+    public unsafe class ImGui : IDisposable
     {
         private const int CONTROL_IDS_STACK_CAPACITY = 32;
 
@@ -35,10 +35,23 @@ namespace Imui.Core
         private const int HOVERED_GROUPS_CAPACITY = 16;
         private const int READONLY_STACK_CAPACITY = 4;
         private const int CONTROL_SCOPE_STACK_CAPACITY = 64;
+        private const int STYLE_SCOPE_STACK_CAPACITY = 16;
 
         private const int INITIAL_STORAGE_ENTRIES = 256;
         private const int DEFAULT_ARENA_CAPACITY = 1024 * 1024;
 
+        private struct StyleProp
+        {
+            public int Offset;
+            public void* Original;
+
+            public StyleProp(int offset, void* original)
+            {
+                Offset = offset;
+                Original = original;
+            }
+        }
+        
         private struct ControlId
         {
             public uint Id;
@@ -124,6 +137,7 @@ namespace Imui.Core
         private uint lastControl;
         private ImRect lastControlRect;
         private ImDynamicArray<ImControlScope> controlScopesStack;
+        private ImDynamicArray<StyleProp> styleStack;
 
         private bool disposed;
 
@@ -147,6 +161,7 @@ namespace Imui.Core
             idsStack = new ImDynamicArray<ControlId>(CONTROL_IDS_STACK_CAPACITY);
             readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
             controlScopesStack = new ImDynamicArray<ImControlScope>(CONTROL_SCOPE_STACK_CAPACITY);
+            styleStack = new ImDynamicArray<StyleProp>(STYLE_SCOPE_STACK_CAPACITY);
 
             Input.SetRaycaster(Raycast);
             SetTheme(ImThemeBuiltin.Light());
@@ -255,6 +270,38 @@ namespace Imui.Core
 
             id = default;
             return false;
+        }
+
+        public void PushStyle<T>(ref T style) where T: unmanaged
+        {
+            PushStyle<T>(ref style, in style);
+        }
+        
+        public void PushStyle<T>(ref T style, in T value) where T: unmanaged
+        {
+            var original = Arena.AllocPtr<T>();
+            *original = style;
+            style = value;
+
+            fixed (void* start = &Style)
+            fixed (void* prop = &style)
+            {
+                var offset = (int)((byte*)prop - (byte*)start);
+
+                ImAssert.IsTrue(offset > 0, "offset > 0");
+                ImAssert.IsTrue(offset < sizeof(ImStyleSheet), "offset < sizeof(ImStyleSheet)");
+
+                styleStack.Push(new StyleProp(offset, original));
+            }
+        }
+
+        public void PopStyle<T>() where T: unmanaged
+        {
+            var prop = styleStack.Pop();
+            fixed (void* start = &Style)
+            {
+                *(T*)((byte*)start + prop.Offset) = *(T*)prop.Original;
+            }
         }
 
         public uint GetNextControlId()

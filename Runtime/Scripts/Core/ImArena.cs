@@ -33,6 +33,11 @@ namespace Imui.Core
             return ref *(T*)Reserve(sizeof(T), false);
         }
         
+        public T* AllocPtr<T>() where T : unmanaged
+        {
+            return (T*)Reserve(sizeof(T), false);
+        }
+        
         public Span<T> AllocArray<T>(int length) where T : unmanaged
         {
             return new Span<T>(Reserve(sizeof(T) * length, false), length);
