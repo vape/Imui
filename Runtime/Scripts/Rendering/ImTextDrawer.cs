@@ -331,27 +331,25 @@ namespace Imui.Rendering
             ImProfiler.EndSample();
         }
 
-#if IMUI_DEBUG
         private void AddControlGlyphQuad(char c, float px, float py, float scale)
         {
             var tmpColor = Color;
-            Color.SetAlpha(0.5f * Color.GetAlpha());
+            Style.ImColorUtility.SetAlpha(ref Color, 0.5f * Style.ImColorUtility.GetAlpha(Color));
             
             ref var backSlash = ref glyphsLookup['\\'];
             
             switch (c)
             {
                 case '\n':
-                    AddGlyphQuad(ref glyphsLookup['n'], px + AddGlyphQuad(ref backSlash, px, py, scale), py, scale);
+                    AddGlyphQuad(in glyphsLookup['n'], px + AddGlyphQuad(in backSlash, px, py, scale), py, scale);
                     break;
                 case '\t':
-                    AddGlyphQuad(ref glyphsLookup['t'], px + AddGlyphQuad(ref backSlash, px, py, scale), py, scale);
+                    AddGlyphQuad(in glyphsLookup['t'], px + AddGlyphQuad(in backSlash, px, py, scale), py, scale);
                     break;
             }
 
             Color = tmpColor;
         }
-#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [SuppressMessage("ReSharper", "InconsistentNaming")]

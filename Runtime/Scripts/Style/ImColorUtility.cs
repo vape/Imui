@@ -21,7 +21,7 @@ namespace Imui.Style
             color.a = (byte)(255 * Mathf.Clamp01(alpha));
         }
         
-        public static float GetAlpha(this ref Color32 color)
+        public static float GetAlpha(this Color32 color)
         {
             return color.a / 255.0f;
         }
