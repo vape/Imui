@@ -501,16 +501,21 @@ namespace Imui.Examples
         {
             gui.Text("Theme");
             gui.BeginHorizontal();
-            if (gui.Dropdown(ref selectedThemeIndex, themeNames, defaultLabel: "Unknown", size: (gui.GetLayoutWidth() * 0.75f, gui.GetRowHeight())))
+            if (gui.Dropdown(ref selectedThemeIndex, themeNames, defaultLabel: "Unknown", size: (gui.GetLayoutWidth() * 0.6f, gui.GetRowHeight())))
             {
                 gui.SetTheme(themes[selectedThemeIndex]);
             }
             gui.AddSpacing();
-            if (gui.Button("Reset", size: ImSizeMode.Fill))
+            if (gui.Button("Reset", size: (gui.GetLayoutWidth() * 0.5f, gui.GetRowHeight())))
             {
                 themes[selectedThemeIndex] = CreateTheme(selectedThemeIndex); 
                 gui.SetTheme(themes[selectedThemeIndex]);
             }
+            if (gui.Button("Copy", size: ImSizeMode.Fill))
+            {
+                gui.Input.Clipboard = ImThemeEditor.BuildCodeString(in themes[selectedThemeIndex]);
+            }
+            gui.TooltipAtLastControl("Copies theme as code into clipboard");
             gui.EndHorizontal();
 
             if (ImThemeEditor.DrawEditor(gui, ref themes[selectedThemeIndex]))
