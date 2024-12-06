@@ -114,6 +114,9 @@ namespace Imui.Controls
             {
                 case ImMouseEventType.Scroll when groupHovered:
                     var factor = gui.Style.Layout.TextSize;
+#if UNITY_6000_0_OR_NEWER
+                    factor *= 0.0075f;
+#endif
                     dx += evt.Delta.x * factor;
                     dy += evt.Delta.y * factor;
                     deferredUseMouseEvent = true;
