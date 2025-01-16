@@ -6,20 +6,53 @@ using UnityEngine;
 
 namespace Imui.Core
 {
+    /// <summary>
+    /// Contextual canvas settings
+    /// </summary>
     public struct ImCanvasSettings
     {
+        /// <summary>
+        /// Material used to draw anything by canvas
+        /// </summary>
         public Material Material;
+        /// <summary>
+        /// Hardware clip rect
+        /// </summary>
         public ImMeshClipRect ClipRect;
+        /// <summary>
+        /// Shader masked rectangle with variable radius
+        /// </summary>
         public ImMeshMaskRect MaskRect;
+        /// <summary>
+        /// Main texture
+        /// </summary>
         public Texture MainTex;
+        /// <summary>
+        /// Font texture
+        /// </summary>
         public Texture FontTex;
+        /// <summary>
+        /// Order or drawing for current draw call
+        /// </summary>
         public int Order;
+        /// <summary>
+        /// Inverse color multiplier, from 0 to 1 (color * (1 - InvColorMul))
+        /// </summary>
         public float InvColorMul;
     }
 
+    /// <summary>
+    /// Builtin canvas texture
+    /// </summary>
     public enum ImCanvasBuiltinTex
     {
+        /// <summary>
+        /// Plain white square
+        /// </summary>
         Primary,
+        /// <summary>
+        /// Checkrboard pattern
+        /// </summary>
         Checkerboard
     }
     
@@ -47,6 +80,10 @@ namespace Imui.Core
         public const int MAIN_ATLAS_W = 64;
         public const int MAIN_ATLAS_H = 32;
         
+        /// <summary>
+        /// Generates the main texture atlas used by the canvas.
+        /// </summary>
+        /// <returns>A new Texture2D representing the main atlas.</returns>
         private static Texture2D CreateMainAtlas()
         {
             var pixels = new Color32[MAIN_ATLAS_W * MAIN_ATLAS_H];
@@ -78,6 +115,11 @@ namespace Imui.Core
             return texture;
         }
         
+        /// <summary>
+        /// Gets the texture scale and offset for the specified built-in texture type.
+        /// </summary>
+        /// <param name="texture">The type of built-in texture to retrieve the scale and offset for.</param>
+        /// <returns>A Vector4 representing the texture scale (xy) and offset (zw).</returns>
         public static Vector4 GetTexScaleOffsetFor(ImCanvasBuiltinTex texture)
         {
             switch (texture)
@@ -91,6 +133,9 @@ namespace Imui.Core
             }
         }
 
+        /// <summary>
+        /// Controls how settings should be applied.
+        /// </summary>
         private struct SettingsPref
         {
             public readonly bool RequiresNextMesh;
@@ -101,10 +146,22 @@ namespace Imui.Core
             }
         }
 
+        /// <summary>
+        /// Whole screen rect
+        /// </summary>
         public ImRect ScreenRect => new ImRect(Vector2.zero, ScreenSize);
+        /// <summary>
+        /// Size of screen
+        /// </summary>
         public Vector2 ScreenSize => screenSize;
+        /// <summary>
+        /// Screen scale
+        /// </summary>
         public float ScreenScale => screenScale;
 
+        /// <summary>
+        /// Z coordinate for all generated meshes
+        /// </summary>
         public int DrawingDepth = 0;
         
         private Shader shader;
@@ -138,17 +195,30 @@ namespace Imui.Core
             settingsPrefStack = new ImDynamicArray<SettingsPref>(SETTINGS_CAPACITY);
         }
         
+        /// <summary>
+        /// Sets the size and scale of the virtual canvas screen.
+        /// </summary>
+        /// <param name="screenSize">The size of the screen.</param>
+        /// <param name="screenScale">The scale of the screen.</param>
         public void SetScreen(Vector2 screenSize, float screenScale)
         {
             this.screenSize = screenSize;
             this.screenScale = screenScale;
         }
 
+        /// <summary>
+        /// Clears the mesh drawer. Does not actually release nor zero memory.
+        /// </summary>
         public void Clear()
         {
             meshDrawer.Clear();
         }
 
+        /// <summary>
+        /// Pushes canvas settings onto the settings stack and applies them.
+        /// Starts a new draw call if required.
+        /// </summary>
+        /// <param name="settings">The canvas settings to push.</param>
         public void PushSettings(in ImCanvasSettings settings)
         {
             var pref = new SettingsPref(true);
@@ -163,6 +233,12 @@ namespace Imui.Core
             }
         }
         
+        /// <summary>
+        /// Pushes canvas settings onto the settings stack and applies them.
+        /// Additional option can control how settings should be applied.
+        /// </summary>
+        /// <param name="settings">The canvas settings to push.</param>
+        /// <param name="pref">How to apply given settings.</param>
         private void PushSettings(in ImCanvasSettings settings, in SettingsPref pref)
         {
             settingsStack.Push(in settings);
@@ -176,6 +252,10 @@ namespace Imui.Core
             ApplySettings();
         }
         
+        /// <summary>
+        /// Pops canvas settings from the stack and applies the previous settings.
+        /// Starts a new draw call if required.
+        /// </summary>
         public void PopSettings()
         {
             var pref = settingsPrefStack.Pop();
@@ -192,26 +272,46 @@ namespace Imui.Core
             }
         }
 
+        /// <summary>
+        /// Retrieves the current texture scale and offset used by mesh drawer.
+        /// </summary>
+        /// <returns>A Vector4 representing the current texture scale and offset.</returns>
         public Vector4 GetTexScaleOffset()
         {
             return texScaleOffset;
         }
         
+        /// <summary>
+        /// Sets the current texture scale and offset used by mesh drawer.
+        /// </summary>
+        /// <param name="scaleOffset">The texture scale and offset to set.</param>
         public void SetTexScaleOffset(Vector4 scaleOffset)
         {
             texScaleOffset = scaleOffset;
         }
 
+        /// <summary>
+        /// Retrieves a reference to currently active canvas settings.
+        /// </summary>
+        /// <returns>Reference to active <see cref="ImCanvasSettings"/>.</returns>
         internal ref readonly ImCanvasSettings GetActiveSettings()
         {
             return ref settingsStack.Peek();
         }
         
+        /// <summary>
+        /// Retrieves a copy of the currently active canvas settings.
+        /// </summary>
+        /// <returns>A copy of the current <see cref="ImCanvasSettings"/>.</returns>
         public ImCanvasSettings GetActiveSettingsCopy()
         {
             return settingsStack.Peek();
         }
         
+        /// <summary>
+        /// Creates a set of default canvas settings.
+        /// </summary>
+        /// <returns>A new instance of <see cref="ImCanvasSettings"/> with default values.</returns>
         public ImCanvasSettings CreateDefaultSettings()
         {
             return new ImCanvasSettings()
@@ -228,6 +328,9 @@ namespace Imui.Core
             };
         }
 
+        /// <summary>
+        /// Applies topmost settings on the stack.
+        /// </summary>
         private void ApplySettings()
         {
             ref var mesh = ref meshDrawer.GetMesh();
@@ -245,6 +348,10 @@ namespace Imui.Core
             textClipRect = new ImTextClipRect(cullingRect.Left, cullingRect.Right, cullingRect.Top, cullingRect.Bottom);
         }
         
+        /// <summary>
+        /// Given active screen, clip rect and mask rect, calculates final rectangle for culling on CPU.
+        /// </summary>
+        /// <returns>Cull rect</returns>
         private ImRect CalculateCullRect()
         {
             var result = ScreenRect;
@@ -263,24 +370,49 @@ namespace Imui.Core
             return result;
         }
         
+        /// <summary>
+        /// Checks if the specified rectangle is outside the culling area.
+        /// </summary>
+        /// <param name="rect">The rectangle to check.</param>
+        /// <returns>True if the rectangle should be culled; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Cull(ImRect rect)
         {
             return !cullingRect.Overlaps(rect);
         }
 
+        /// <summary>
+        /// Draws a circle at the specified position with the given radius and color.
+        /// </summary>
+        /// <param name="position">The center position of the circle.</param>
+        /// <param name="radius">The radius of the circle.</param>
+        /// <param name="color">The color of the circle.</param>
         public void Circle(Vector2 position, float radius, Color32 color)
         {
             var rect = new ImRect(position.x - radius, position.y - radius, radius * 2, radius * 2);
             Ellipse(rect, color);
         }
         
+        /// <summary>
+        /// Draws a circle with an outline.
+        /// </summary>
+        /// <param name="position">The center position of the circle.</param>
+        /// <param name="radius">The radius of the circle.</param>
+        /// <param name="color">The fill color of the circle.</param>
+        /// <param name="outlineColor">The color of the outline.</param>
+        /// <param name="thickness">The thickness of the outline.</param>
+        /// <param name="bias">Controls where thickness grows. From 0 to 1. 0 - inside, 1 - outside.</param>
         public void CircleWithOutline(Vector2 position, float radius, Color32 color, Color32 outlineColor, float thickness, float bias = 0.0f)
         {
             var rect = new ImRect(position.x - radius, position.y - radius, radius * 2, radius * 2);
             EllipseWithOutline(rect, color, outlineColor, thickness, bias);
         }
 
+        /// <summary>
+        /// Draws an ellipse within the specified rectangle.
+        /// </summary>
+        /// <param name="rect">The bounding rectangle of the ellipse.</param>
+        /// <param name="color">The color of the ellipse.</param>
         public void Ellipse(ImRect rect, Color32 color)
         {
             if (Cull(rect))
@@ -292,6 +424,14 @@ namespace Imui.Core
             ConvexFill(path, color);
         }
         
+        /// <summary>
+        /// Draws an ellipse with an outline.
+        /// </summary>
+        /// <param name="rect">The bounding rectangle of the ellipse.</param>
+        /// <param name="color">The fill color of the ellipse.</param>
+        /// <param name="outlineColor">The color of the outline.</param>
+        /// <param name="thickness">The thickness of the outline.</param>
+        /// <param name="bias">Controls where thickness grows. From 0 to 1. 0 - inside, 1 - outside.</param>
         public void EllipseWithOutline(ImRect rect, Color32 color, Color32 outlineColor, float thickness, float bias = 0.0f)
         {
             if (Cull(rect))
@@ -308,6 +448,11 @@ namespace Imui.Core
             }
         }
         
+        /// <summary>
+        /// Draws a rectangle with the specified color.
+        /// </summary>
+        /// <param name="rect">The rectangle to draw.</param>
+        /// <param name="color">The color of the rectangle.</param>
         public void Rect(ImRect rect, Color32 color)
         {
             if (Cull(rect))
@@ -322,6 +467,12 @@ namespace Imui.Core
             meshDrawer.AddQuadTextured(rect.X, rect.Y, rect.W, rect.H);
         }
         
+        /// <summary>
+        /// Draws a rectangle with rounded corners.
+        /// </summary>
+        /// <param name="rect">The bounding rectangle of the shape.</param>
+        /// <param name="color">The color of the rectangle.</param>
+        /// <param name="radius">The corner radius of the rectangle.</param>
         public void Rect(ImRect rect, Color32 color, ImRectRadius radius)
         {
             if (Cull(rect))
@@ -333,6 +484,14 @@ namespace Imui.Core
             ConvexFillTextured(path, color, in rect);
         }
 
+        /// <summary>
+        /// Draws an outline around a rectangular area.
+        /// </summary>
+        /// <param name="rect">The rectangle bounds.</param>
+        /// <param name="color">The color of the outline.</param>
+        /// <param name="thickness">The thickness of the outline.</param>
+        /// <param name="radius">Corner radius for rounded rectangles.</param>
+        /// <param name="bias">Controls where thickness grows. From 0 to 1. 0 - inside, 1 - outside.</param>
         public void RectOutline(ImRect rect, Color32 color, float thickness, ImRectRadius radius = default, float bias = 0.0f)
         {
             if (Cull(rect) || thickness < LINE_THICKNESS_THRESHOLD)
@@ -344,6 +503,15 @@ namespace Imui.Core
             Line(path, color, true, GetScaledLineThickness(thickness), bias);
         }
 
+        /// <summary>
+        /// Draws a filled rectangle with an outline.
+        /// </summary>
+        /// <param name="rect">The rectangle bounds.</param>
+        /// <param name="color">The fill color.</param>
+        /// <param name="outlineColor">The color of the outline.</param>
+        /// <param name="thickness">The thickness of the outline.</param>
+        /// <param name="radius">Corner radius for rounded rectangles.</param>
+        /// <param name="bias">Controls where thickness grows. From 0 to 1. 0 - inside, 1 - outside.</param>
         public void RectWithOutline(ImRect rect, Color32 color, Color32 outlineColor, float thickness, ImRectRadius radius = default, float bias = 0.0f)
         {
             if (Cull(rect))
@@ -360,6 +528,11 @@ namespace Imui.Core
             }
         }
 
+        /// <summary>
+        /// Scales line thickness to ensure consistent rendering based on screen scale.
+        /// </summary>
+        /// <param name="thickness">The input line thickness.</param>
+        /// <returns>The scaled line thickness.</returns>
         private float GetScaledLineThickness(float thickness)
         {
             var pixelWidth = thickness * screenScale;
@@ -371,6 +544,13 @@ namespace Imui.Core
             return thickness + (1 - pixelWidth) / screenScale;
         }
 
+        /// <summary>
+        /// Renders text at a specific position with given layout.
+        /// </summary>
+        /// <param name="text">The text to render.</param>
+        /// <param name="color">The color of the text.</param>
+        /// <param name="position">The position to render the text.</param>
+        /// <param name="layout">The layout for the text.</param>
         public void Text(ReadOnlySpan<char> text, Color32 color, Vector2 position, in ImTextLayout layout)
         {
             var rect = new ImRect(position.x + layout.OffsetX, position.y - layout.Height + layout.OffsetY, layout.Width, layout.Height);
@@ -384,7 +564,13 @@ namespace Imui.Core
             textDrawer.AddTextWithLayout(text, in layout, position.x, position.y, in textClipRect);
         }
 
-        // TODO (artem-s): use few parameters instead of textsettings here and add extension that acceps text settings for convenience
+        /// <summary>
+        /// Automatically generates layout and renders text within a rectangle using specific text settings.
+        /// </summary>
+        /// <param name="text">The text to render.</param>
+        /// <param name="color">The color of the text.</param>
+        /// <param name="rect">The bounding rectangle for the text.</param>
+        /// <param name="settings">The settings for text alignment, size, and wrapping.</param>
         public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings)
         {
             ref readonly var layout = ref textDrawer.BuildTempLayout(
@@ -393,6 +579,17 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
 
+        /// <summary>
+        /// Automatically generates layout and renders text within a rectangle with configurable options.
+        /// </summary>
+        /// <param name="text">The text to render.</param>
+        /// <param name="color">The color of the text.</param>
+        /// <param name="rect">The bounding rectangle for the text.</param>
+        /// <param name="size">The font size of the text.</param>
+        /// <param name="alignX">Horizontal alignment (default 0.5f for center).</param>
+        /// <param name="alignY">Vertical alignment (default 0.5f for center).</param>
+        /// <param name="wrap">Specifies whether text wrapping is enabled.</param>
+        /// <param name="overflow">Specifies how text overflows its bounds.</param>
         public void Text(ReadOnlySpan<char> text,
                          Color32 color,
                          ImRect rect,
@@ -408,6 +605,14 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
         
+        /// <summary>
+        /// Automatically generates layout and renders text and outputs the rectangle bounds of the rendered text.
+        /// </summary>
+        /// <param name="text">The text to render.</param>
+        /// <param name="color">The color of the text.</param>
+        /// <param name="rect">The bounding rectangle for the text.</param>
+        /// <param name="settings">The settings for text alignment, size, and wrapping.</param>
+        /// <param name="textRect">Outputs the rectangle bounds of the rendered text.</param>
         public void Text(ReadOnlySpan<char> text, Color32 color, ImRect rect, in ImTextSettings settings, out ImRect textRect)
         {
             ref readonly var layout = ref textDrawer.BuildTempLayout(
@@ -423,6 +628,15 @@ namespace Imui.Core
             Text(text, color, rect.TopLeft, in layout);
         }
 
+        /// <summary>
+        /// Draws a line between two points.
+        /// </summary>
+        /// <param name="p0">The starting point of the line.</param>
+        /// <param name="p1">The ending point of the line.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="closed">Indicates whether the line should be closed into a loop.</param>
+        /// <param name="thickness">The thickness of the line.</param>
+        /// <param name="bias">Controls where thickness grows. From 0 to 1.</param>
         public void Line(Vector2 p0, Vector2 p1, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)
@@ -439,6 +653,14 @@ namespace Imui.Core
             meshDrawer.AddLine(stackalloc Vector2[2] { p0, p1 }, closed, thickness, bias, 1.0f - bias);
         }
         
+        /// <summary>
+        /// Draws a line following a given path of points.
+        /// </summary>
+        /// <param name="path">The series of points defining the line path.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="closed">Indicates whether the line should be closed into a loop.</param>
+        /// <param name="thickness">The thickness of the line.</param>
+        /// <param name="bias">Controls where thickness grows. From 0 to 1.</param>
         public void Line(ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)
@@ -454,7 +676,15 @@ namespace Imui.Core
             meshDrawer.Depth = DrawingDepth;
             meshDrawer.AddLine(path, closed, thickness, bias, 1.0f - bias);
         }
-
+        
+        /// <summary>
+        /// Draws a line with miter joints following a given path of points.
+        /// </summary>
+        /// <param name="path">The series of points defining the line path.</param>
+        /// <param name="color">The color of the line.</param>
+        /// <param name="closed">Indicates whether the line should be closed into a loop.</param>
+        /// <param name="thickness">The thickness of the line.</param>
+        /// <param name="bias">Controls where thickness grows. From 0 to 1.</param>
         public void LineMiter(ReadOnlySpan<Vector2> path, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
             if (thickness <= 0)
@@ -471,6 +701,11 @@ namespace Imui.Core
             meshDrawer.AddLineMiter(path, closed, thickness, bias, 1.0f - bias);
         }
 
+        /// <summary>
+        /// Fills a convex polygon defined by a series of points with a solid color.
+        /// </summary>
+        /// <param name="points">The series of points defining the convex polygon.</param>
+        /// <param name="color">The fill color.</param>
         public void ConvexFill(ReadOnlySpan<Vector2> points, Color32 color)
         {
             meshDrawer.Color = color;
@@ -480,6 +715,12 @@ namespace Imui.Core
             meshDrawer.AddFilledConvexMesh(points);
         }
         
+        /// <summary>
+        /// Fills a convex polygon defined by a series of points with a textured fill.
+        /// </summary>
+        /// <param name="points">The series of points defining the convex polygon.</param>
+        /// <param name="color">The fill color.</param>
+        /// <param name="bounds">The texture bounds for the fill.</param>
         public void ConvexFillTextured(ReadOnlySpan<Vector2> points, Color32 color, in ImRect bounds)
         {
             meshDrawer.Color = color;
@@ -489,6 +730,9 @@ namespace Imui.Core
             meshDrawer.AddFilledConvexMeshTextured(points, bounds.X, bounds.Y, bounds.W, bounds.H);
         }
 
+        /// <summary>
+        /// Releases all resources used by canvas.
+        /// </summary>
         public void Dispose()
         {
             if (disposed)

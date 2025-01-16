@@ -1,5 +1,5 @@
 using System;
-using Imui.Core; // TODO (artem-s): styling should not depend on Core module
+using Imui.Core;
 using Imui.Rendering;
 using UnityEngine;
 
