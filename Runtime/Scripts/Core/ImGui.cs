@@ -322,6 +322,16 @@ namespace Imui.Core
             return ImHash.Get(id, parent.Id);
         }
 
+        public uint GetControlId(uint id, uint parent)
+        {
+            return ImHash.Get(id, parent);
+        }
+        
+        public uint GetControlId(ReadOnlySpan<char> name, uint parent)
+        {
+            return ImHash.Get(name, parent);
+        }
+
         public uint GetHoveredControl()
         {
             return frameData.HoveredControl.Id;
