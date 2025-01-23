@@ -109,6 +109,45 @@ namespace Imui.Core
         }
         
         /// <summary>
+        /// Allocates an array of objects of type T. Does not zero memory.
+        /// </summary>
+        /// <param name="length">Number of elements in the array</param>
+        /// <typeparam name="T">Built-in type or unmanaged struct</typeparam>
+        /// <returns>Pointer to array of type T with the given length</returns>
+        public T* AllocArrayPtr<T>(int length) where T : unmanaged
+        {
+            return (T*)Reserve(sizeof(T) * length, false);
+        }
+
+        /// <summary>
+        /// Reallocates an array of objects of type T. If possible, reuses the same memory segment.
+        /// Copies the existing data to the new location if necessary.
+        /// </summary>
+        /// <param name="array">Pointer to the array</param>
+        /// <param name="prevLength">Previous length of the array</param>
+        /// <param name="newLength">New length of the array</param>
+        /// <typeparam name="T">Built-in type or unmanaged struct</typeparam>
+        public void ReallocArrayPtr<T>(ref T* array, int prevLength, int newLength) where T : unmanaged
+        {
+            var arraySize = Align(sizeof(T) * prevLength);
+            var bufferTail = (void*)(buffer + size);
+            
+            if ((byte*)array + arraySize == bufferTail)
+            {
+                size -= arraySize;
+            }
+
+            var newArray = AllocArrayPtr<T>(newLength);
+            
+            if (array != newArray)
+            {
+                UnsafeUtility.MemCpy(newArray, array, sizeof(T) * prevLength);
+            }
+            
+            array = newArray;
+        }
+        
+        /// <summary>
         /// Resets the allocator by setting the used memory size to zero.
         /// Frees all previously allocated chunks of memory.
         /// </summary>
