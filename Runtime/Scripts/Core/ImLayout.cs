@@ -71,6 +71,8 @@ namespace Imui.Core
                 return frame.Axis;
             }
         }
+
+        public int Depth => frames.Count;
         
         private ImDynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
         
@@ -155,6 +157,11 @@ namespace Imui.Core
         public ref readonly ImLayoutFrame GetFrame()
         {
             return ref frames.Peek();
+        }
+        
+        public ref readonly ImLayoutFrame GetParentFrame(int layers = 1)
+        {
+            return ref frames.Array[frames.Count - 1 - layers];
         }
 
         public float GetAvailableWidth()
