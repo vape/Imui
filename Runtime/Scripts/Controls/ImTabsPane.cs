@@ -29,7 +29,7 @@ namespace Imui.Controls
         public static void BeginTabsPane(this ImGui gui, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var state = gui.PushControlScopePtr<ImTabsPaneState>(id);
+            var state = gui.BeginScopeUnsafe<ImTabsPaneState>(id);
             var buttonsRect = rect.TakeTop(GetTabBarHeight(gui), out state->Content);
             
             gui.Layout.Push(ImAxis.Horizontal, buttonsRect);
@@ -41,14 +41,14 @@ namespace Imui.Controls
             gui.EndScrollable(ImScrollFlag.NoVerticalBar | ImScrollFlag.NoHorizontalBar);
             gui.Layout.Pop();
             
-            gui.PopControlScope<ImTabsPaneState>();
+            gui.EndScope<ImTabsPaneState>();
         }
 
         public static bool BeginTab(this ImGui gui, ReadOnlySpan<char> label)
         {
             var id = gui.GetNextControlId();
             var rect = AddButtonRect(gui, label, default);
-            var state = gui.PeekControlScopePtr<ImTabsPaneState>();
+            var state = gui.GetCurrentScopeUnsafe<ImTabsPaneState>();
 
             if (state->Selected == 0)
             {

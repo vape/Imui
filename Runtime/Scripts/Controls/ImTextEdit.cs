@@ -894,7 +894,7 @@ namespace Imui.Controls
         {
             gui.PushId(id);
             var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);
-            var tempBuffer = gui.Storage.GetPtr<ImTextTempFilterBuffer>(tempBufferId);
+            var tempBuffer = gui.Storage.GetUnsafe<ImTextTempFilterBuffer>(tempBufferId);
             gui.PopId();
             
             return tempBuffer;

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Imui.IO;
 using Imui.Rendering;
 using Imui.Style;
@@ -12,12 +13,6 @@ namespace Imui.Core
     {
         None = 0,
         Draggable = 1 << 0
-    }
-    
-    public struct ImControlScope
-    {
-        public uint Id;
-        public int Type;
     }
     
     public unsafe class ImGui : IDisposable
@@ -38,6 +33,7 @@ namespace Imui.Core
         private const int STYLE_SCOPE_STACK_CAPACITY = 16;
 
         private const int INITIAL_STORAGE_ENTRIES = 256;
+        private const int INITIAL_STORAGE_CAPACITY = 1024 * 1024;
         private const int DEFAULT_ARENA_CAPACITY = 1024 * 1024;
 
         private struct StyleProp
@@ -99,6 +95,14 @@ namespace Imui.Core
             }
         }
 
+        internal struct ImControlScope
+        {
+            public uint Id;
+            public int Type;
+        
+            internal void* Ptr;
+        }
+        
         public float UiScale
         {
             get => uiScale;
@@ -150,7 +154,7 @@ namespace Imui.Core
             Canvas = new ImCanvas(MeshDrawer, TextDrawer, Arena);
             MeshRenderer = new ImMeshRenderer();
             Layout = new ImLayout();
-            Storage = new ImStorage(INITIAL_STORAGE_ENTRIES);
+            Storage = new ImStorage(INITIAL_STORAGE_ENTRIES, INITIAL_STORAGE_CAPACITY);
             WindowManager = new ImWindowManager();
             Input = input;
             Renderer = renderer;
@@ -213,7 +217,8 @@ namespace Imui.Core
 
             Canvas.PopSettings();
 
-            Storage.CollectAndCompactIteration();
+            Storage.FindUnused();
+            Storage.Collect();
 
             WindowManager.HandleFrameEnded();
         }
@@ -279,7 +284,7 @@ namespace Imui.Core
         
         public void PushStyle<T>(ref T style, in T value) where T: unmanaged
         {
-            var original = Arena.AllocPtr<T>();
+            var original = Arena.AllocUnsafe<T>();
             *original = style;
             style = value;
 
@@ -463,46 +468,58 @@ namespace Imui.Core
             }
         }
 
-        public unsafe ref TState PushControlScope<TState>(uint id, TState @default = default) where TState: unmanaged => ref *PushControlScopePtr(id, @default);
-
-        public unsafe TState* PushControlScopePtr<TState>(uint id, TState @default = default) where TState: unmanaged
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref TState BeginScope<TState>(uint id, TState @default = default) where TState: unmanaged => ref *BeginScopeUnsafe(id, @default);
+        public unsafe TState* BeginScopeUnsafe<TState>(uint id, TState @default = default) where TState: unmanaged
         {
-            var stateReference = new ImControlScope() { Id = id, Type = typeof(TState).GetHashCode() };
+            var ptr = Storage.GetUnsafe(id, @default);
+            var scope = new ImControlScope()
+            {
+                Id = id, 
+                Type = typeof(TState).GetHashCode(),
+                Ptr = ptr
+            };
 
-            controlScopesStack.Push(in stateReference);
+            controlScopesStack.Push(in scope);
 
-            return Storage.GetPtr(id, @default);
+            return ptr;
         }
 
-        public unsafe ref TState PopControlScope<TState>() where TState: unmanaged => ref *PopControlScopePtr<TState>(out _);
-        public unsafe ref TState PopControlScope<TState>(out uint id) where TState: unmanaged => ref *PopControlScopePtr<TState>(out id);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref TState EndScope<TState>() where TState: unmanaged => ref *EndScopeUnsafe<TState>(out _);
+        public unsafe ref TState EndScope<TState>(out uint id) where TState: unmanaged => ref *EndScopeUnsafe<TState>(out id);
 
-        public unsafe TState* PopControlScopePtr<TState>() where TState: unmanaged => PopControlScopePtr<TState>(out _);
-
-        public unsafe TState* PopControlScopePtr<TState>(out uint id) where TState: unmanaged
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe TState* EndScopeUnsafe<TState>() where TState: unmanaged => EndScopeUnsafe<TState>(out _);
+        public unsafe TState* EndScopeUnsafe<TState>(out uint id) where TState: unmanaged
         {
-            ref var reference = ref FindControlScopeOrFail<TState>(out var index);
+            ref var scope = ref FindControlScopeOrFail<TState>(out var index);
 
-            id = reference.Id;
+            id = scope.Id;
+            var ptr = (TState*)scope.Ptr;
             controlScopesStack.RemoveAtFast(index);
 
-            return Storage.GetPtr<TState>(id);
+            return ptr;
         }
 
-        public unsafe ref TState PeekControlScope<TState>() where TState: unmanaged => ref *PeekControlScopePtr<TState>(out _);
-        public unsafe ref TState PeekControlScope<TState>(out uint id) where TState: unmanaged => ref *PeekControlScopePtr<TState>(out id);
-
-        public unsafe TState* PeekControlScopePtr<TState>() where TState: unmanaged => PeekControlScopePtr<TState>(out _);
-
-        public unsafe TState* PeekControlScopePtr<TState>(out uint id) where TState: unmanaged
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref TState GetCurrentScope<TState>() where TState: unmanaged => ref *GetCurrentScopeUnsafe<TState>(out _);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref TState GetCurrentScope<TState>(out uint id) where TState: unmanaged => ref *GetCurrentScopeUnsafe<TState>(out id);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe TState* GetCurrentScopeUnsafe<TState>() where TState: unmanaged => GetCurrentScopeUnsafe<TState>(out _);
+        public unsafe TState* GetCurrentScopeUnsafe<TState>(out uint id) where TState: unmanaged
         {
-            ref var reference = ref FindControlScopeOrFail<TState>(out _);
+            ref var scope = ref FindControlScopeOrFail<TState>(out _);
 
-            id = reference.Id;
-            return Storage.GetPtr<TState>(id);
+            id = scope.Id;
+            var ptr = (TState*)scope.Ptr;
+            
+            return ptr;
         }
 
-        public unsafe bool TryPeekControlScopePtr<TState>(out TState* state) where TState: unmanaged
+        public unsafe bool TryGetCurrentScopeUnsafe<TState>(out TState* state) where TState: unmanaged
         {
             if (!TryFindControlScope<TState>(out var index))
             {
@@ -510,7 +527,7 @@ namespace Imui.Core
                 return false;
             }
 
-            state = Storage.GetPtr<TState>(controlScopesStack.Array[index].Id);
+            state = (TState*)controlScopesStack.Array[index].Ptr;
             return true;
         }
 
@@ -610,6 +627,7 @@ namespace Imui.Core
             TextDrawer.Dispose();
             MeshRenderer.Dispose();
             Storage.Dispose();
+            Arena.Dispose();
 
             disposed = true;
         }

@@ -64,7 +64,7 @@ namespace Imui.Controls
             }
 
             var id = gui.PushId(name);
-            var state = gui.PushControlScopePtr<ImMenuState>(id);
+            var state = gui.BeginScopeUnsafe<ImMenuState>(id);
 
             ImRect rect;
             
@@ -97,7 +97,7 @@ namespace Imui.Controls
 
         public static void EndMenu(this ImGui gui)
         {
-            var state = gui.PopControlScopePtr<ImMenuState>();
+            var state = gui.EndScopeUnsafe<ImMenuState>();
             
             EndMenu(gui, state);
 
@@ -169,10 +169,10 @@ namespace Imui.Controls
 
         public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
         {
-            var parentState = gui.PeekControlScopePtr<ImMenuState>();
+            var parentState = gui.GetCurrentScopeUnsafe<ImMenuState>();
             
             var id = gui.PushId(label);
-            var state = gui.PushControlScopePtr<ImMenuState>(id);
+            var state = gui.BeginScopeUnsafe<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
 
             MenuItem(gui, id, parentState, label, true, false, out var active, false);
@@ -184,7 +184,7 @@ namespace Imui.Controls
                 state->Fixed = default;
                 state->Selected = default;
                 
-                gui.PopControlScopePtr<ImMenuState>();
+                gui.EndScopeUnsafe<ImMenuState>();
                 gui.PopId();
                 return false;
             }
@@ -198,13 +198,13 @@ namespace Imui.Controls
 
         public static void EndSubMenu(this ImGui gui)
         {
-            var state = gui.PopControlScopePtr<ImMenuState>();
+            var state = gui.EndScopeUnsafe<ImMenuState>();
             var clicked = state->Clicked;
 
             EndMenu(gui, state);
             gui.PopId();
 
-            if (clicked != default && gui.TryPeekControlScopePtr<ImMenuState>(out var parentsState))
+            if (clicked != default && gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var parentsState))
             {
                 parentsState->Clicked = clicked;
             }
@@ -218,7 +218,7 @@ namespace Imui.Controls
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, ref bool enabled)
         {
             var id = gui.GetNextControlId();
-            var state = gui.PeekControlScopePtr<ImMenuState>();
+            var state = gui.GetCurrentScopeUnsafe<ImMenuState>();
             var clicked = MenuItem(gui, id, state, label, false, true, out _, enabled);
 
             if (clicked)
@@ -232,7 +232,7 @@ namespace Imui.Controls
         public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label)
         {
             var id = gui.GetNextControlId();
-            var state = gui.PeekControlScopePtr<ImMenuState>();
+            var state = gui.GetCurrentScopeUnsafe<ImMenuState>();
             
             return MenuItem(gui, id, state, label, false, false, out _, false);
         }

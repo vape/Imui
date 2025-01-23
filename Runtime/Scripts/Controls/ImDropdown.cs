@@ -31,7 +31,7 @@ namespace Imui.Controls
 
             gui.BeginPopup();
 
-            ref var state = ref gui.PeekControlScope<ImDropdownState>();
+            ref var state = ref gui.GetCurrentScope<ImDropdownState>();
 
             if (!gui.BeginMenu(label, ref state.Open, gui.LastControlRect.BottomLeft, gui.LastControlRect.W))
             {
@@ -59,7 +59,7 @@ namespace Imui.Controls
             var id = gui.GetNextControlId();
             var rect = gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight());
 
-            ref var state = ref gui.PushControlScope<ImDropdownState>(id);
+            ref var state = ref gui.BeginScope<ImDropdownState>(id);
 
             var clicked = DropdownButton(gui, id, label, rect, preview);
             if (clicked)
@@ -69,7 +69,7 @@ namespace Imui.Controls
 
             if (!state.Open)
             {
-                gui.PopControlScope<ImDropdownState>();
+                gui.EndScope<ImDropdownState>();
                 return false;
             }
 
@@ -81,12 +81,12 @@ namespace Imui.Controls
         public static void EndDropdown(this ImGui gui)
         {
             gui.PopId();
-            gui.PopControlScope<ImDropdownState>();
+            gui.EndScope<ImDropdownState>();
         }
 
         public static void CloseDropdown(this ImGui gui)
         {
-            if (gui.TryPeekControlScopePtr(out ImDropdownState* state))
+            if (gui.TryGetCurrentScopeUnsafe(out ImDropdownState* state))
             {
                 state->Open = false;
             }

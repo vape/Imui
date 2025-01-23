@@ -47,7 +47,7 @@ namespace Imui.Controls
         public static void BeginMenuBar(ImGui gui, uint id, ImRect rect, int order)
         {
             gui.PushId(id);
-            gui.PushControlScope<ImMenuBarState>(id);
+            gui.BeginScope<ImMenuBarState>(id);
             gui.Layout.Push(ImAxis.Horizontal, rect);
             gui.Canvas.PushOrder(order);
             
@@ -58,13 +58,13 @@ namespace Imui.Controls
         {
             gui.Canvas.PopOrder();
             gui.Layout.Pop();
-            gui.PopControlScope<ImMenuBarState>();
+            gui.EndScope<ImMenuBarState>();
             gui.PopId();
         }
         
         public static bool BeginMenuBarItem(this ImGui gui, ReadOnlySpan<char> label)
         {
-            ref var barState = ref gui.PeekControlScope<ImMenuBarState>();
+            ref var barState = ref gui.GetCurrentScope<ImMenuBarState>();
             
             var id = gui.PushId(label);
             var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.MenuBar.ItemNormal.Alignment);

@@ -40,11 +40,11 @@ namespace Imui.Examples
             
                 var keysSize = gui.Formatter.Format(entriesCount * sizeof(uint));
                 var metaSize = gui.Formatter.Format(entriesCount * sizeof(ImStorage.Metadata));
-                var dataSize = gui.Formatter.Format(gui.Storage.dataSize);
+                var dataSize = gui.Formatter.Format(gui.Storage.GetTotalOccupiedSize());
                 
                 var metaCap = gui.Formatter.Format(entriesCapacity * sizeof(ImStorage.Metadata));
                 var keysCap = gui.Formatter.Format(entriesCapacity * sizeof(uint));
-                var dataCap = gui.Formatter.Format(gui.Storage.dataCapacity);
+                var dataCap = gui.Formatter.Format(gui.Storage.GetTotalCapacity());
 
                 var keys = gui.Formatter.Concat(keysSize, " / ", keysCap);
                 var meta = gui.Formatter.Concat(metaSize, " / ", metaCap);

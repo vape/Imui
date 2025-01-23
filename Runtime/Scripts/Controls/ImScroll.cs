@@ -32,7 +32,7 @@ namespace Imui.Controls
         public static void BeginScrollable(this ImGui gui)
         {
             var id = gui.GetNextControlId();
-            ref var state = ref gui.PushControlScope<ImScrollState>(id);
+            ref var state = ref gui.BeginScope<ImScrollState>(id);
             
             ref readonly var frame = ref gui.Layout.GetFrame();
             var visibleRect = GetVisibleRect(gui, frame.Bounds, state);
@@ -43,7 +43,7 @@ namespace Imui.Controls
         
         public static void EndScrollable(this ImGui gui, ImScrollFlag flags = ImScrollFlag.None)
         {
-            ref var state = ref gui.PopControlScope<ImScrollState>(out var id);
+            ref var state = ref gui.EndScope<ImScrollState>(out var id);
             
             gui.Layout.Pop(out var contentFrame);
 
@@ -54,12 +54,12 @@ namespace Imui.Controls
 
         public static Vector2 GetScrollOffset(this ImGui gui)
         {
-            return gui.PeekControlScope<ImScrollState>().Offset;
+            return gui.GetCurrentScope<ImScrollState>().Offset;
         }
 
         public static void SetScrollOffset(this ImGui gui, Vector2 offset)
         {
-            ref var state = ref gui.PeekControlScope<ImScrollState>();
+            ref var state = ref gui.GetCurrentScope<ImScrollState>();
             state.Offset = offset;
         }
         
