@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Imui.Utility;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine;
 
 namespace Imui.Core
 {
@@ -104,15 +105,28 @@ namespace Imui.Core
             var key = MakeKey<T>(id);
             if (!TryFindIndex(key, out var index))
             {
-                return InsertArray<T>(index, key, count);
+                var result = InsertArray<T>(index, key, count);
+                
+                ImProfiler.EndSample();
+                return result;
             }
             
-            // TODO (artem-s): maintain content when 'count' is changed, but we already have some data stored
-            if (meta[index].Type != TypeHelper<T>.Hash || meta[index].Size != Align(sizeof(T) * count))
+            if (meta[index].Type != TypeHelper<T>.Hash)
             {
                 Delete(index);
                 
-                return InsertArray<T>(index, key, count);
+                var result = InsertArray<T>(index, key, count);
+                
+                ImProfiler.EndSample();
+                return result;
+            }
+
+            if (meta[index].Size != Align(sizeof(T) * count))
+            {
+                var result = ReinsertArray<T>(index, key, count);
+                
+                ImProfiler.EndSample();
+                return result;
             }
 
             meta[index].Flags &= ~MetaFlag.Unused;
@@ -132,14 +146,19 @@ namespace Imui.Core
             var key = MakeKey<T>(id);
             if (!TryFindIndex(key, out var index))
             {
-                return Insert(index, key, def);
+                var result = Insert(index, key, def);
+                
+                ImProfiler.EndSample();
+                return result;
             }
 
             if (meta[index].Type != TypeHelper<T>.Hash)
             {
                 Delete(index);
+                var result = Insert(index, key, def);
                 
-                return Insert(index, key, def);
+                ImProfiler.EndSample();
+                return result;
             }
 
             meta[index].Flags &= ~MetaFlag.Unused;
@@ -158,6 +177,8 @@ namespace Imui.Core
             if (!TryFindIndex(key, out var index) || meta[index].Type != TypeHelper<T>.Hash)
             {
                 value = default;
+                
+                ImProfiler.EndSample();
                 return false;
             }
 
@@ -190,6 +211,8 @@ namespace Imui.Core
                 if ((meta[i].Flags & MetaFlag.Unused) != 0 && (meta[i].Flags & MetaFlag.Pinned) == 0)
                 {
                     Delete(i);
+                    
+                    ImProfiler.EndSample();
                     return true;
                 }
 
@@ -280,8 +303,37 @@ namespace Imui.Core
 
             return ptr;
         }
+
+        private T* ReinsertArray<T>(int index, uint key, int count) where T: unmanaged
+        {
+            ImAssert.IsTrue(index >= 0, "index >= 0");
+            ImAssert.IsTrue(index <= entriesCount, "index <= count");
+
+            var oldMeta = meta[index];
+            var sizeAligned = Align(sizeof(T) * count);
+            var requiredCapacity = sizeAligned > oldMeta.Size ? dataSize + sizeAligned : dataSize + oldMeta.Size;
+            
+            if (dataCapacity < requiredCapacity)
+            {
+                GrowDataToFit(requiredCapacity);
+            }
+            
+            UnsafeUtility.MemCpy(data + dataSize, data + oldMeta.Offset, oldMeta.Size);
+            dataSize += oldMeta.Size;
+            Delete(index);
+            dataSize -= oldMeta.Size;
+
+            var ptr = InsertArray<T>(index, key, count, false);
+            if (sizeAligned > oldMeta.Size)
+            {
+                var toZero = Mathf.Abs(sizeAligned - oldMeta.Size);
+                UnsafeUtility.MemSet(data + dataSize - toZero, 0, toZero);
+            }
+            
+            return ptr;
+        }
         
-        private T* InsertArray<T>(int index, uint key, int count) where T: unmanaged
+        private T* InsertArray<T>(int index, uint key, int count, bool zero = true) where T: unmanaged
         {
             ImAssert.IsTrue(index >= 0, "index >= 0");
             ImAssert.IsTrue(index <= entriesCount, "index <= count");
@@ -313,7 +365,10 @@ namespace Imui.Core
             }
 
             var ptr = (T*)(data + dataSize);
-            UnsafeUtility.MemSet(ptr, 0, sizeAligned);
+            if (zero)
+            {
+                UnsafeUtility.MemSet(ptr, 0, sizeAligned);
+            }
 
             entriesCount++;
             dataSize += sizeAligned;
