@@ -153,6 +153,18 @@ namespace Imui.Core
             ref var frame = ref frames.Peek();
             frame.Offset = offset;
         }
+
+        public Vector2 GetNextPosition(float height = 0.0f)
+        {
+            if (frames.Count == 0)
+            {
+                return default;
+            }
+            
+            ref readonly var frame = ref frames.Peek();
+            
+            return GetNextPosition(in frame, height);
+        }
         
         public ref readonly ImLayoutFrame GetFrame()
         {

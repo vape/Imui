@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Imui.Core;
 using Imui.IO.Events;
 using UnityEngine;
@@ -8,15 +9,17 @@ namespace Imui.Controls
     [Flags]
     public enum ImScrollFlag
     {
-        None            = 0,
-        NoVerticalBar   = 1 << 0,
-        NoHorizontalBar = 1 << 1
+        None = 0,
+        HideVerBar = 1 << 0,
+        HideHorBar = 1 << 1,
+        PersistentHorBar = 1 << 2,
+        PersistentVerBar = 1 << 3
     }
-    
+
     [Flags]
     public enum ImScrollLayoutFlag
     {
-        None          = 0,
+        None = 0,
         VerBarVisible = 1 << 0,
         HorBarVisible = 1 << 1
     }
@@ -25,6 +28,7 @@ namespace Imui.Controls
     {
         public Vector2 Offset;
         public ImScrollLayoutFlag Layout;
+        public ImScrollFlag Flags;
     }
     
     public static class ImScroll
@@ -33,7 +37,7 @@ namespace Imui.Controls
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.BeginScope<ImScrollState>(id);
-            
+
             ref readonly var frame = ref gui.Layout.GetFrame();
             var visibleRect = GetVisibleRect(gui, frame.Bounds, state);
             
@@ -44,17 +48,19 @@ namespace Imui.Controls
         public static void EndScrollable(this ImGui gui, ImScrollFlag flags = ImScrollFlag.None)
         {
             ref var state = ref gui.EndScope<ImScrollState>(out var id);
+            state.Flags = flags;
             
             gui.Layout.Pop(out var contentFrame);
 
             var bounds = gui.Layout.GetBoundsRect();
             
-            Scroll(gui, id, ref state, bounds, contentFrame.Size, flags);
+            Scroll(gui, id, ref state, bounds, contentFrame.Size);
         }
 
-        public static Vector2 GetScrollOffset(this ImGui gui)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe Vector2 GetScrollOffset(this ImGui gui)
         {
-            return gui.GetCurrentScope<ImScrollState>().Offset;
+            return gui.GetCurrentScopeUnsafe<ImScrollState>()->Offset;
         }
 
         public static void SetScrollOffset(this ImGui gui, Vector2 offset)
@@ -63,9 +69,9 @@ namespace Imui.Controls
             state.Offset = offset;
         }
         
-        public static void Scroll(ImGui gui, uint id, ref ImScrollState state, ImRect view, Vector2 size, ImScrollFlag flags)
+        public static void Scroll(ImGui gui, uint id, ref ImScrollState state, ImRect view, Vector2 size)
         {
-            Layout(gui, ref state, view, size, out var adjust, flags);
+            Layout(gui, ref state, view, size, out var adjust);
 
             var dx = 0f;
             var dy = 0f;
@@ -163,7 +169,8 @@ namespace Imui.Controls
 
             var delta = 0f;
             var absoluteSize = axis == 0 ? rect.W : rect.H;
-            var size = Mathf.Clamp01(normalSize) * absoluteSize;
+            var minSize = (axis == 0 ? rect.H : rect.W) - style.BorderThickness;
+            var size = Mathf.Max(minSize, Mathf.Clamp01(normalSize) * absoluteSize);
             var position = Mathf.Clamp01(normalPosition) * (absoluteSize - size);
             
             var handleRect = axis == 0 ? 
@@ -203,7 +210,7 @@ namespace Imui.Controls
 
         public static ImRect GetVisibleRect(ImGui gui, ImRect view, ImScrollState state)
         {
-            if ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0)
+            if ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 || (state.Flags & ImScrollFlag.PersistentHorBar) != 0)
             {
                 var size = GetScrollBarSize(gui, 0);
                 
@@ -211,7 +218,7 @@ namespace Imui.Controls
                 view.H -= size;
             }
 
-            if ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0)
+            if ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 || (state.Flags & ImScrollFlag.PersistentVerBar) != 0)
             {
                 view.W -= GetScrollBarSize(gui, 1);
             }
@@ -241,10 +248,11 @@ namespace Imui.Controls
             return view;
         }
         
-        private static void Layout(ImGui gui, ref ImScrollState state, ImRect view, Vector2 size, out Vector2 adjust, ImScrollFlag flags)
+        private static void Layout(ImGui gui, ref ImScrollState state, ImRect view, Vector2 size, out Vector2 adjust)
         {
             var styleSizeVer = GetScrollBarSize(gui, 1);
             var styleSizeHor = GetScrollBarSize(gui, 0);
+            var flags = state.Flags;
             
             state.Layout = default;
 
@@ -252,12 +260,16 @@ namespace Imui.Controls
             for (int i = 0; i < 2; ++i)
             {
                 state.Layout =
-                    (flags & ImScrollFlag.NoVerticalBar) == 0 && (size.y - (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeVer : 0f))) > 1.0f
+                    ((flags & ImScrollFlag.HideVerBar) == 0 && 
+                    (size.y - (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeVer : 0f))) > 1.0f) ||
+                    (flags & ImScrollFlag.PersistentVerBar) != 0
                         ? (state.Layout | ImScrollLayoutFlag.VerBarVisible)
                         : (state.Layout & ~ImScrollLayoutFlag.VerBarVisible);
 
                 state.Layout =
-                    (flags & ImScrollFlag.NoHorizontalBar) == 0 && (size.x - (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeHor : 0f))) > 1.0f
+                    ((flags & ImScrollFlag.HideHorBar) == 0 && 
+                    (size.x - (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeHor : 0f))) > 1.0f) ||
+                    (flags & ImScrollFlag.PersistentHorBar) != 0
                         ? (state.Layout | ImScrollLayoutFlag.HorBarVisible)
                         : (state.Layout & ~ImScrollLayoutFlag.HorBarVisible);
             }

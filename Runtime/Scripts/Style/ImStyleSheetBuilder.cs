@@ -341,6 +341,13 @@ namespace Imui.Style
             sheet.Tabs.ContainerBox.BorderRadius.TopRight = 0;
             sheet.Tabs.ContainerBox.BorderThickness = sheet.Tabs.Selected.BorderThickness;
             
+            // Table
+            sheet.Table.CellPadding = theme.InnerSpacing;
+            sheet.Table.BorderColor = sheet.Separator.Color;
+            sheet.Table.SelectedColumnColor = palette.Accent;
+            sheet.Table.BorderThickness = sheet.Separator.Thickness;
+            sheet.Table.SelectedColumnThickness = sheet.Table.BorderThickness * 2;
+            
             return sheet;
         }
     }

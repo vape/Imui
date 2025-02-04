@@ -38,7 +38,7 @@ namespace Imui.Controls
 
         public static void EndTabsPane(this ImGui gui)
         {
-            gui.EndScrollable(ImScrollFlag.NoVerticalBar | ImScrollFlag.NoHorizontalBar);
+            gui.EndScrollable(ImScrollFlag.HideVerBar | ImScrollFlag.HideHorBar);
             gui.Layout.Pop();
             
             gui.EndScope<ImTabsPaneState>();

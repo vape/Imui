@@ -6,6 +6,7 @@
 - Draw without UnityUI's Canvas
 
 ### Later
+- Adapt to mobile touch input
 - Tables
 - In code documentation
 - Rich text

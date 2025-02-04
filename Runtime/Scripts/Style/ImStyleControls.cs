@@ -252,4 +252,14 @@ namespace Imui.Style
         public Color32 IndicatorColor;
         public ImStyleBox ContainerBox;
     }
+
+    [Serializable]
+    public struct ImStyleTable
+    {
+        public ImPadding CellPadding;
+        public Color32 BorderColor;
+        public Color32 SelectedColumnColor;
+        public float BorderThickness;
+        public float SelectedColumnThickness;
+    }
 }

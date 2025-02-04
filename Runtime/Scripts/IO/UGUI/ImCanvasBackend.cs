@@ -226,7 +226,7 @@ namespace Imui.IO.UGUI
 
             if (IsTouchSupported() && IsTouchBegan())
             {
-                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
+                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, GetEventModifiers(), eventData.delta / scale));
             }
 
             var btn = (int)eventData.button;
@@ -246,26 +246,26 @@ namespace Imui.IO.UGUI
                 mouseHeldDown = true;
             }
 
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, EventModifiers.None, eventData.delta / scale,
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, GetEventModifiers(), eventData.delta / scale,
                 mouseDownCount[btn]));
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, (int)eventData.button, GetEventModifiers(), eventData.delta / scale));
         }
 
         public void OnDrag(PointerEventData eventData)
         {
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, GetEventModifiers(), eventData.delta / scale));
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, EventModifiers.None, eventData.delta / scale));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, GetEventModifiers(), eventData.delta / scale));
         }
 
         public void OnScroll(PointerEventData eventData)
@@ -295,6 +295,23 @@ namespace Imui.IO.UGUI
             var screenTopRight = RectTransformUtility.WorldToScreenPoint(cam, TempBuffer[2]);
 
             return new Rect(screenBottomLeft.x, screenBottomLeft.y, screenTopRight.x - screenBottomLeft.x, screenTopRight.y - screenBottomLeft.y);
+        }
+
+        private EventModifiers GetEventModifiers()
+        {
+            // TODO (artem-s): add support for new input system
+#if NEW_INPUT_SYSTEM_ENABLED
+            return EventModifiers.None;
+#endif
+
+            var result = EventModifiers.None;
+            
+            if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+            {
+                result |= EventModifiers.Control;
+            }
+            
+            return result;
         }
 
         private bool IsTouchSupported()

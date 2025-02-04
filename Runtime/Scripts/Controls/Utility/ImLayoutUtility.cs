@@ -19,6 +19,11 @@ namespace Imui.Controls
         {
             return gui.TextDrawer.GetLineHeightFromFontSize(gui.Style.Layout.TextSize) + gui.Style.Layout.ExtraRowHeight;
         }
+        
+        public static float GetTextLineHeight(this ImGui gui)
+        {
+            return gui.TextDrawer.GetLineHeightFromFontSize(gui.Style.Layout.TextSize);
+        }
 
         public static float GetRowsHeightWithSpacing(this ImGui gui, int rows)
         {

@@ -26,5 +26,6 @@ namespace Imui.Style
         public ImStyleMenuBar MenuBar;
         public ImStyleColorPicker ColorPicker;
         public ImStyleTab Tabs;
+        public ImStyleTable Table;
     }
 }

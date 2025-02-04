@@ -84,7 +84,7 @@ namespace Imui.Core
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Overlaps(ImRect other)
+        public bool Overlaps(in ImRect other)
         {
             var xMax = X + W;
             var yMax = Y + H;

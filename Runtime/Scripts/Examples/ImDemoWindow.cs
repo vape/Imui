@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Imui.Controls;
 using Imui.Core;
+using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;
 
@@ -83,6 +84,11 @@ namespace Imui.Examples
         private static bool showPlusMinusButtons = true;
         private static bool useNumericSlider = false;
         private static ImDemoEnumFlags demoFlags;
+        private static int largeTableRows = 1024 * 128;
+        private static int largeTableColumns = 512;
+        private static float largeTableColumnSize = 150;
+        private static bool largeTableScrollable = true;
+        private static bool largeTableResizable = true;
 
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
@@ -145,6 +151,14 @@ namespace Imui.Examples
             {
                 gui.BeginIndent();
                 DrawOtherPage(gui);
+                gui.EndIndent();
+                gui.EndFoldout();
+            }
+            
+            if (gui.BeginFoldout("Tables"))
+            {
+                gui.BeginIndent();
+                DrawTablesPage(gui);
                 gui.EndIndent();
                 gui.EndFoldout();
             }
@@ -528,6 +542,115 @@ namespace Imui.Examples
         {
             gui.Checkbox(ref showDebugWindow, "Show Debug Window");
             gui.Checkbox(ref showLogWindow, "Show Log Window");
+        }
+
+        private static void DrawTablesPage(ImGui gui)
+        {
+            if (gui.BeginTreeNode("Simple"))
+            {
+                gui.PrepareState(4);
+                for (int row = 0; row < 5; ++row)
+                {
+                    gui.TableNextRow();
+                    for (int col = 0; col < 4; ++col)
+                    {
+                        gui.TableNextColumn();
+                        gui.Text(gui.Formatter.Concat("Hello At ", gui.Formatter.Format(col), ":", gui.Formatter.Format(row)));
+                    }
+                }
+                gui.EndTable();
+                
+                gui.Separator("Resizable Columns");
+                
+                gui.PrepareState(4, flags: ImTableFlag.ResizableColumns);
+                for (int row = 0; row < 5; ++row)
+                {
+                    gui.TableNextRow();
+                    for (int col = 0; col < 4; ++col)
+                    {
+                        gui.TableNextColumn();
+                        gui.Text(gui.Formatter.Concat("Hello At ", gui.Formatter.Format(col), ":", gui.Formatter.Format(row)), wrap: true);
+                    }
+                }
+                gui.EndTable();
+                
+                gui.EndTreeNode();
+            }
+
+            if (gui.BeginTreeNode("With Scroll Bars"))
+            {
+                gui.PrepareState(4, (gui.GetLayoutWidth(), 200));
+                for (int row = 0; row < 12; ++row)
+                {
+                    gui.TableNextRow();
+                    for (int col = 0; col < 4; ++col)
+                    {
+                        gui.TableNextColumn();
+                        gui.Text(gui.Formatter.Concat("Hello At ", gui.Formatter.Format(col), ":", gui.Formatter.Format(row)), true);
+                    }
+                }
+                gui.EndTable();
+                
+                gui.EndTreeNode();
+            }
+
+            if (gui.BeginTreeNode("Large Tables"))
+            {
+                NumEditWithLabel(gui, ref largeTableRows, "Rows", min: 1, max: 1024 * 1024 * 4);
+                NumEditWithLabel(gui, ref largeTableColumns, "Columns", min: 1, max: 4096);
+                NumEditWithLabel(gui, ref largeTableColumnSize, "Col. Size", min: 50, max: 300);
+                
+                gui.Checkbox(ref largeTableResizable, "Resizable Columns");
+                gui.Checkbox(ref largeTableScrollable, "Scrollable");
+
+                var size = largeTableScrollable ? new ImSize(gui.GetLayoutWidth(), 300) : new ImSize(ImSizeMode.Auto);
+                var flags = largeTableResizable ? ImTableFlag.ResizableColumns : ImTableFlag.None;
+                
+                ref var state = ref gui.PrepareState(largeTableColumns, size, flags);
+                
+                gui.TableSetRowsHeight(gui.GetTextLineHeight() + gui.Style.Table.CellPadding.Vertical);
+                for (int i = 0; i < largeTableColumns; ++i)
+                {
+                    gui.TableSetColumnWidth(i, largeTableColumnSize);
+                }
+
+                var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, new ImAlignment(0.5f, 0.5f), overflow: ImTextOverflow.Ellipsis);
+                var rowsRange = gui.TableGetVisibleRows(largeTableRows);
+                var colsRange = gui.TableGetVisibleColumns();
+                
+                for (int row = rowsRange.Min; row < rowsRange.Max; ++row)
+                {
+                    gui.TableSetRow(row, ref state);
+                    
+                    for (int col = colsRange.Min; col < colsRange.Max; ++col)
+                    {
+                        gui.TableSetColumn(col, ref state);
+                        gui.Text(gui.Formatter.Concat(gui.Formatter.Format(col), "x", gui.Formatter.Format(row)), textSettings);
+                    }
+                }
+                
+                gui.EndTable();
+                
+                gui.EndTreeNode();
+            }
+        }
+
+        private static void NumEditWithLabel(ImGui gui, ref int value, ReadOnlySpan<char> label, int min, int max)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            gui.BeginHorizontal();
+            gui.Text(label, gui.Layout.AddRect(150, gui.GetRowHeight()));
+            gui.NumericEdit(ref value, min: min, max: max, flags: ImNumericEditFlag.PlusMinus);
+            gui.EndHorizontal();
+        }
+        
+        private static void NumEditWithLabel(ImGui gui, ref float value, ReadOnlySpan<char> label, float min, float max)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            gui.BeginHorizontal();
+            gui.Text(label, gui.Layout.AddRect(150, gui.GetRowHeight()));
+            gui.NumericEdit(ref value, min: min, max: max, flags: ImNumericEditFlag.PlusMinus);
+            gui.EndHorizontal();
         }
 
         public static void DrawBouncingBall(ImGui gui)

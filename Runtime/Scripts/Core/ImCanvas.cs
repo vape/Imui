@@ -172,6 +172,7 @@ namespace Imui.Core
         private Vector2 screenSize;
         private float screenScale;
         private bool disposed;
+        // TODO (artem-s): use AABB for faster clipping
         private ImRect cullingRect;
         private ImTextClipRect textClipRect;
         private Vector4 texScaleOffset;
@@ -369,16 +370,25 @@ namespace Imui.Core
 
             return result;
         }
+
+        /// <summary>
+        /// Gets culling rect.
+        /// </summary>
+        /// <returns>Cull rect.</returns>
+        public ImRect GetCullRect()
+        {
+            return cullingRect;
+        }
         
         /// <summary>
-        /// Checks if the specified rectangle is outside the culling area.
+        /// Checks if the specified rectangle is outside the clipping area.
         /// </summary>
         /// <param name="rect">The rectangle to check.</param>
         /// <returns>True if the rectangle should be culled; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Cull(ImRect rect)
+        public bool Cull(in ImRect rect)
         {
-            return !cullingRect.Overlaps(rect);
+            return !cullingRect.Overlaps(in rect);
         }
 
         /// <summary>
@@ -533,7 +543,7 @@ namespace Imui.Core
         /// </summary>
         /// <param name="thickness">The input line thickness.</param>
         /// <returns>The scaled line thickness.</returns>
-        private float GetScaledLineThickness(float thickness)
+        public float GetScaledLineThickness(float thickness)
         {
             var pixelWidth = thickness * screenScale;
             if (pixelWidth >= 1.0f)
@@ -634,11 +644,13 @@ namespace Imui.Core
         /// <param name="p0">The starting point of the line.</param>
         /// <param name="p1">The ending point of the line.</param>
         /// <param name="color">The color of the line.</param>
-        /// <param name="closed">Indicates whether the line should be closed into a loop.</param>
+        /// <param name="closed">Indicates whether the line should be closed into a loop.</param> // wtf? TODO (artem-s): remove
         /// <param name="thickness">The thickness of the line.</param>
         /// <param name="bias">Controls where thickness grows. From 0 to 1.</param>
         public void Line(Vector2 p0, Vector2 p1, Color32 color, bool closed, float thickness, float bias = 0.5f)
         {
+            // TODO (artem-s): add clipping
+            
             if (thickness <= 0)
             {
                 return;

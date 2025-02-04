@@ -99,6 +99,7 @@ namespace Imui.Rendering
             }
         }
 
+        // TODO (artem-s): use ellipsis character (…) instead for fonts that support it
         private const string ELLIPSIS = "...";
         private const char NEW_LINE = '\n';
         private const char SPACE = ' ';
