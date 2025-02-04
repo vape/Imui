@@ -11,8 +11,8 @@ namespace Imui.IO.UGUI
 {
     [RequireComponent(typeof(CanvasRenderer))]
     [ExecuteAlways]
-    public class ImCanvasBackend : Graphic, IImRenderingBackend, IImInputBackend, IPointerDownHandler, IPointerUpHandler, IDragHandler, IBeginDragHandler,
-                                   IScrollHandler
+    public class ImCanvasBackend: Graphic, IImRenderingBackend, IImInputBackend, IPointerDownHandler, IPointerUpHandler, IDragHandler, IBeginDragHandler,
+                                  IScrollHandler
     {
         private const int COMMAND_BUFFER_POOL_INITIAL_SIZE = 2;
         private const int MOUSE_EVENTS_QUEUE_SIZE = 4;
@@ -305,12 +305,12 @@ namespace Imui.IO.UGUI
 #endif
 
             var result = EventModifiers.None;
-            
+
             if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
             {
                 result |= EventModifiers.Control;
             }
-            
+
             return result;
         }
 

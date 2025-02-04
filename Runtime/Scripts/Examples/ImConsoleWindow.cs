@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Imui.Examples
 {
-    public class ImConsoleWindow : IDisposable
+    public class ImConsoleWindow: IDisposable
     {
         [Flags]
         public enum TypeMask
@@ -58,7 +58,7 @@ namespace Imui.Examples
             var warnColor1 = new Color32(255, 160, 32, 48);
             var erroColor0 = new Color32(255, 0, 0, 32);
             var erroColor1 = new Color32(255, 0, 0, 48);
-            
+
             gui.AddSpacing();
             gui.BeginHorizontal();
             gui.Radio(ref typeMask);
@@ -130,14 +130,14 @@ namespace Imui.Examples
 
                 gui.EndMenuBarItem();
             }
-            
+
             if (gui.BeginMenuBarItem("View"))
             {
                 if (gui.MenuItem("Clear Messages"))
                 {
                     Clear();
                 }
-                
+
                 gui.EndMenuBarItem();
             }
 
@@ -157,7 +157,7 @@ namespace Imui.Examples
                 {
                     Debug.LogError("Error Message");
                 }
-                
+
                 if (gui.MenuItem("Send Expection"))
                 {
                     Debug.LogException(new Exception("Example exception"));

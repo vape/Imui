@@ -7,13 +7,13 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace Imui.Utility
 {
     // (artem-s): all of that just use enums in somewhat generic way *without* gc allocations
-    
+
     internal readonly struct ImEnumValue<TEnum> where TEnum: struct, Enum
     {
         private readonly long longValue;
         private readonly ulong ulongValue;
         private readonly bool signed;
-        
+
         public ImEnumValue(long value)
         {
             longValue = value;
@@ -32,32 +32,32 @@ namespace Imui.Utility
         {
             return val0.signed ? val0.longValue | val1.longValue : val0.ulongValue | val1.ulongValue;
         }
-        
+
         public static ImEnumValue<TEnum> operator &(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
             return val0.signed ? val0.longValue & val1.longValue : val0.ulongValue & val1.ulongValue;
         }
-        
+
         public static ImEnumValue<TEnum> operator ~(ImEnumValue<TEnum> val)
         {
             return val.signed ? ~val.longValue : ~val.ulongValue;
         }
-        
+
         public static bool operator ==(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
             return val0.Equals(val1);
         }
-        
+
         public static bool operator !=(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
             return !val0.Equals(val1);
         }
-        
+
         public static bool operator ==(ImEnumValue<TEnum> val0, int val1)
         {
             return val0.Equals(val1);
         }
-        
+
         public static bool operator !=(ImEnumValue<TEnum> val0, int val1)
         {
             return !val0.Equals(val1);
@@ -71,7 +71,7 @@ namespace Imui.Utility
         {
             return signed ? ImEnumUtility<TEnum>.FromValueSigned(longValue) : ImEnumUtility<TEnum>.FromValueUnsigned(ulongValue);
         }
-        
+
         public bool Equals(ImEnumValue<TEnum> other)
         {
             return signed == other.signed && signed ? longValue == other.longValue : ulongValue == other.ulongValue;
@@ -86,9 +86,8 @@ namespace Imui.Utility
         {
             return HashCode.Combine(longValue, ulongValue, signed);
         }
-
     }
-    
+
     internal static class ImEnumUtility<TEnum> where TEnum: struct, Enum
     {
         public static readonly bool IsFlags = typeof(TEnum).GetCustomAttribute<FlagsAttribute>() != null;
@@ -96,12 +95,12 @@ namespace Imui.Utility
         public static readonly TEnum[] Values = Enum.GetValues(typeof(TEnum)) as TEnum[];
         public static readonly Type Type = Enum.GetUnderlyingType(typeof(TEnum));
         public static readonly bool Signed = Type == typeof(SByte) || Type == typeof(Int16) || Type == typeof(Int32) || Type == typeof(Int64);
-        
+
         public static ImEnumValue<TEnum> ToValue(TEnum e)
         {
             return Signed ? ToValueSigned(e) : ToValueUnsigned(e);
         }
-        
+
         public static TEnum FromValueUnsigned(ulong value)
         {
             if (Type == typeof(Byte))
@@ -123,7 +122,7 @@ namespace Imui.Utility
             {
                 return UnsafeUtility.As<UInt64, TEnum>(ref value);
             }
-            
+
             throw new Exception($"Underlying type of {typeof(TEnum)} is signed");
         }
 
@@ -148,10 +147,10 @@ namespace Imui.Utility
             {
                 return UnsafeUtility.As<Int64, TEnum>(ref value);
             }
-            
+
             throw new Exception($"Underlying type of {typeof(TEnum)} is unsigned");
         }
-        
+
         public static long ToValueSigned(TEnum value)
         {
             if (Type == typeof(SByte))
@@ -170,10 +169,10 @@ namespace Imui.Utility
             {
                 UnsafeUtility.As<TEnum, Int64>(ref value);
             }
-            
+
             throw new Exception($"Underlying type of {typeof(TEnum)} is unsigned");
         }
-        
+
         public static ulong ToValueUnsigned(TEnum value)
         {
             if (Type == typeof(Byte))

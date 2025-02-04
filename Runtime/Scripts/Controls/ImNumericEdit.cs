@@ -18,7 +18,7 @@ namespace Imui.Controls
         PlusMinus = 1,
         Slider = 2
     }
-    
+
     public static class ImNumericEdit
     {
         public static readonly ByteFilter FilterByte = new();
@@ -35,7 +35,7 @@ namespace Imui.Controls
             id = gui.GetNextControlId();
             rect = ImTextEdit.AddRect(gui, size, false, out _);
         }
-        
+
         public static bool NumericEdit(this ImGui gui,
                                        ref byte value,
                                        ImSize size = default,
@@ -49,7 +49,7 @@ namespace Imui.Controls
 
             return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
         }
-        
+
         public static bool NumericEdit(this ImGui gui,
                                        ref short value,
                                        ImSize size = default,
@@ -105,7 +105,7 @@ namespace Imui.Controls
 
             return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
         }
-        
+
         public static bool NumericEdit(this ImGui gui,
                                        ref double value,
                                        ImSize size = default,
@@ -116,7 +116,7 @@ namespace Imui.Controls
                                        ImNumericEditFlag flags = default)
         {
             GetIdAndRect(gui, size, out var id, out var rect);
-            
+
             return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
         }
 
@@ -199,28 +199,28 @@ namespace Imui.Controls
         }
 
         public static unsafe bool NumericEditControl<T>(ImGui gui,
-                                                 uint id,
-                                                 ref T value,
-                                                 NumericFilter<T> filter,
-                                                 ImRect rect,
-                                                 ReadOnlySpan<char> format,
-                                                 double step,
-                                                 T min,
-                                                 T max,
-                                                 ImNumericEditFlag flags)
+                                                        uint id,
+                                                        ref T value,
+                                                        NumericFilter<T> filter,
+                                                        ImRect rect,
+                                                        ReadOnlySpan<char> format,
+                                                        double step,
+                                                        T min,
+                                                        T max,
+                                                        ImNumericEditFlag flags)
         {
             var delta = 0.0d;
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
             var useSlider = (flags & ImNumericEditFlag.Slider) != 0;
             var usePlusMinusButtons = !useSlider && (flags & ImNumericEditFlag.PlusMinus) != 0;
-            
+
             ref readonly var evt = ref gui.Input.MouseEvent;
-            
+
             if (!active && useSlider)
             {
                 gui.PushId(id);
-                
+
                 var sliderId = gui.GetNextControlId();
                 // (artem-s): when double clicking, pass control to text editor
                 if (evt.LeftButton && (evt.Type != ImMouseEventType.Down || evt.Count < 2))
@@ -228,25 +228,25 @@ namespace Imui.Controls
                     var sliderMin = filter.AsDouble(min);
                     var sliderMax = filter.AsDouble(max);
                     var sliderDelta = NumericSlider(gui, id, sliderId, sliderMin, sliderMax, step, rect);
-                    
+
                     if (filter.IsInteger)
                     {
                         sliderDelta = Math.Round(sliderDelta);
                     }
-                    
+
                     delta += sliderDelta;
                 }
-                
+
                 gui.PopId();
             }
-            
+
             if (usePlusMinusButtons)
             {
                 gui.PushId(id);
                 delta = PlusMinusButtons(gui, ref rect) * step;
                 gui.PopId();
             }
-            
+
             var buffer = new ImTextEditBuffer();
             buffer.MakeMutable();
 
@@ -261,7 +261,7 @@ namespace Imui.Controls
 
             var adjacency = usePlusMinusButtons ? ImAdjacency.Left : ImAdjacency.None;
             var changed = false;
-            
+
             if (!active && useSlider)
             {
                 ref readonly var style = ref gui.Style.TextEdit.Normal.Box;
@@ -273,19 +273,21 @@ namespace Imui.Controls
                     radius.BottomRight = 0;
                     radius.TopRight = 0;
                 }
-                
+
                 var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(gui.Style.Layout.TextSize), 0.0f) / 2.0f;
-                var textRect = rect.WithPadding(left: gui.Style.Layout.InnerSpacing, right: gui.Style.Layout.InnerSpacing, top: halfVertPadding, bottom: halfVertPadding);
-                
+                var textRect = rect.WithPadding(left: gui.Style.Layout.InnerSpacing, right: gui.Style.Layout.InnerSpacing, top: halfVertPadding,
+                    bottom: halfVertPadding);
+
                 gui.Canvas.RectWithOutline(rect, style.BackColor, style.BorderColor, style.BorderThickness, radius);
-                gui.Canvas.Text(buffer, style.FrontColor, textRect, gui.Style.Layout.TextSize, alignX: align.X, alignY: align.Y, false, ImTextOverflow.Ellipsis);
-                
+                gui.Canvas.Text(buffer, style.FrontColor, textRect, gui.Style.Layout.TextSize, alignX: align.X, alignY: align.Y, false,
+                    ImTextOverflow.Ellipsis);
+
                 gui.RegisterControl(id, rect);
-                
+
                 if (hovered && evt is { Type: ImMouseEventType.Down, LeftButton: true, Count: >= 2 })
                 {
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
-                    
+
                     ImTextEdit.GetTempFilterBuffer(gui, id)->Populate(buffer);
                 }
             }
@@ -293,7 +295,7 @@ namespace Imui.Controls
             {
                 changed = gui.TextEdit(id, ref buffer, rect, false, filter, adjacency);
             }
-            
+
             if (changed && filter.TryParse(buffer, out var newValue))
             {
                 value = newValue;
@@ -335,13 +337,13 @@ namespace Imui.Controls
 
             return delta;
         }
-        
+
         public static double NumericSlider(ImGui gui, uint hoveredId, uint id, double min, double max, double step, ImRect rect)
         {
             var hovered = gui.IsControlHovered(hoveredId);
             var active = gui.IsControlActive(id);
             var delta = 0.0d;
-            
+
             gui.RegisterControl(id, rect);
 
             ref readonly var evt = ref gui.Input.MouseEvent;
@@ -364,11 +366,11 @@ namespace Imui.Controls
                     gui.ResetActiveControl();
                     break;
             }
-            
+
             return delta;
         }
 
-        public abstract class NumericFilter<T> : ImTextEditFilter
+        public abstract class NumericFilter<T>: ImTextEditFilter
         {
             // allow to use comma as decimal separator
             protected static readonly CultureInfo DeutschCulture = new("de");
@@ -420,7 +422,7 @@ namespace Imui.Controls
             }
         }
 
-        public sealed class ByteFilter : NumericFilter<Byte>
+        public sealed class ByteFilter: NumericFilter<Byte>
         {
             public override double AsDouble(byte value) => value;
             public override Byte Add(Byte value0, double value1) => (Byte)Add(value0, value1, Byte.MinValue, Byte.MaxValue);
@@ -433,7 +435,7 @@ namespace Imui.Controls
                 value.TryFormat(buffer, out length, format);
         }
 
-        public sealed class Int16Filter : NumericFilter<Int16>
+        public sealed class Int16Filter: NumericFilter<Int16>
         {
             public override double AsDouble(Int16 value) => value;
             public override Int16 Add(Int16 value0, double value1) => (Int16)Add(value0, value1, byte.MinValue, byte.MaxValue);
@@ -446,7 +448,7 @@ namespace Imui.Controls
                 value.TryFormat(buffer, out length, format);
         }
 
-        public sealed class Int32Filter : NumericFilter<Int32>
+        public sealed class Int32Filter: NumericFilter<Int32>
         {
             public override double AsDouble(Int32 value) => value;
             public override Int32 Add(Int32 value0, double value1) => (Int32)Add(value0, value1, Int32.MinValue, Int32.MaxValue);
@@ -459,7 +461,7 @@ namespace Imui.Controls
                 value.TryFormat(buffer, out length, format);
         }
 
-        public sealed class Int64Filter : NumericFilter<Int64>
+        public sealed class Int64Filter: NumericFilter<Int64>
         {
             public override double AsDouble(Int64 value) => value;
             public override Int64 Add(Int64 value0, double value1) => (Int64)Add(value0, value1, Int64.MinValue, Int64.MaxValue);
@@ -472,10 +474,10 @@ namespace Imui.Controls
                 value.TryFormat(buffer, out length, format);
         }
 
-        public sealed class SingleFilter : NumericFilter<Single>
+        public sealed class SingleFilter: NumericFilter<Single>
         {
             public override bool IsInteger => false;
-            
+
             public override double AsDouble(Single value) => value;
             public override Single Add(Single value0, double value1) => (Single)Add(value0, value1, Single.MinValue, Single.MaxValue);
             public override Single Clamp(Single value, Single min, Single max) => value > max ? max : value < min ? min : value;
@@ -490,10 +492,10 @@ namespace Imui.Controls
                 value.TryFormat(buffer, out length, format.IsEmpty ? "G" : format);
         }
 
-        public sealed class DoubleFilter : NumericFilter<Double>
+        public sealed class DoubleFilter: NumericFilter<Double>
         {
             public override bool IsInteger => false;
-            
+
             public override double AsDouble(Double value) => value;
             public override Double Add(Double value0, double value1) => (Double)Add(value0, value1, Double.MinValue, Double.MaxValue);
             public override Double Clamp(Double value, Double min, Double max) => value > max ? max : value < min ? min : value;

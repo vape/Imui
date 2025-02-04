@@ -6,7 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Imui.Core
 {
-    public sealed unsafe class ImStorage : IDisposable
+    public sealed unsafe class ImStorage: IDisposable
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Align(int size) => (sizeof(IntPtr) * ((size + sizeof(IntPtr) - 1) / sizeof(IntPtr)));
@@ -26,7 +26,7 @@ namespace Imui.Core
         }
 
         [Flags]
-        internal enum MetaFlag : byte
+        internal enum MetaFlag: byte
         {
             None = 0,
             Unused = 1
@@ -37,7 +37,7 @@ namespace Imui.Core
             public readonly int Type;
             public readonly int Size;
             public readonly byte Block;
-            
+
             public int Offset;
             public MetaFlag Flags;
 
@@ -72,7 +72,7 @@ namespace Imui.Core
         internal Metadata* meta;
         internal int entriesCount;
         internal int entriesCapacity;
-        
+
         private ImDynamicArray<ImArena.MemoryBlock> blocks;
         private ImDynamicArray<UnpairedSegment> unpairedSegments;
         private bool disposed;
@@ -100,7 +100,7 @@ namespace Imui.Core
 
             return sum;
         }
-        
+
         public int GetTotalCapacity()
         {
             var sum = 0;
@@ -114,25 +114,26 @@ namespace Imui.Core
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> GetArray<T>(uint id, int count) where T: unmanaged => new(GetArrayUnsafe<T>(id, count), count);
+
         public T* GetArrayUnsafe<T>(uint id, int count) where T: unmanaged
         {
             ImProfiler.BeginSample("ImStorage.GetArrayUnsafe<T>");
-            
+
             var key = MakeKey<T>(id);
             if (!TryFindIndex(key, out var index))
             {
                 var result = InsertArray<T>(index, key, count);
-                
+
                 ImProfiler.EndSample();
                 return result;
             }
-            
+
             if (meta[index].Type != TypeHelper<T>.Hash)
             {
                 Delete(index);
-                
+
                 var result = InsertArray<T>(index, key, count);
-                
+
                 ImProfiler.EndSample();
                 return result;
             }
@@ -140,7 +141,7 @@ namespace Imui.Core
             if (meta[index].Size != Align(sizeof(T) * count))
             {
                 var result = ResizeArray<T>(index, key, count);
-                
+
                 ImProfiler.EndSample();
                 return result;
             }
@@ -152,9 +153,10 @@ namespace Imui.Core
             ImProfiler.EndSample();
             return ptr;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T Get<T>(uint id, T def = default) where T: unmanaged => ref *GetUnsafe(id, def);
+
         public T* GetUnsafe<T>(uint id, T def = default) where T: unmanaged
         {
             ImProfiler.BeginSample("ImStorage.GetUnsafe<T>");
@@ -163,7 +165,7 @@ namespace Imui.Core
             if (!TryFindIndex(key, out var index))
             {
                 var result = Insert(index, key, def);
-                
+
                 ImProfiler.EndSample();
                 return result;
             }
@@ -172,7 +174,7 @@ namespace Imui.Core
             {
                 Delete(index);
                 var result = Insert(index, key, def);
-                
+
                 ImProfiler.EndSample();
                 return result;
             }
@@ -182,7 +184,7 @@ namespace Imui.Core
             var ptr = (T*)(blocks.Array[m->Block].Ptr + m->Offset);
 
             ImProfiler.EndSample();
-            
+
             return ptr;
         }
 
@@ -203,7 +205,7 @@ namespace Imui.Core
             ImProfiler.BeginSample("ImStorage.FindUnused");
 
             var limit = unpairedSegments.Array.Length - unpairedSegments.Count;
-            
+
             for (int i = 0; i < entriesCount && limit > 0; ++i)
             {
                 if ((meta[i].Flags & MetaFlag.Unused) != 0)
@@ -215,22 +217,22 @@ namespace Imui.Core
 
                 meta[i].Flags |= MetaFlag.Unused;
             }
-            
+
             ImProfiler.EndSample();
         }
-        
+
         public bool Collect()
         {
             ImProfiler.BeginSample("ImStorage.Collect");
 
             ImProfiler.BeginSample("ImStorage.Collect/SortUnpairedSegments");
-            
+
             var k = 1;
             while (k < unpairedSegments.Count)
             {
                 var s = unpairedSegments.Array[k];
                 var j = k - 1;
-                
+
                 while (j >= 0 && unpairedSegments.Array[j].Offset > s.Offset)
                 {
                     unpairedSegments.Array[j + 1] = unpairedSegments.Array[j];
@@ -240,21 +242,21 @@ namespace Imui.Core
                 unpairedSegments.Array[j + 1] = s;
                 ++k;
             }
-            
+
             ImProfiler.EndSample();
-            
+
             for (int i = unpairedSegments.Count - 1; i >= 0; --i)
             {
                 Release(unpairedSegments.Array[i]);
             }
-            
+
             unpairedSegments.Clear(false);
-            
+
             ImProfiler.EndSample();
 
             return false;
         }
-        
+
         private void Delete(int index)
         {
             ImAssert.IsTrue(entriesCount > 0, "entriesCount > 0");
@@ -275,7 +277,7 @@ namespace Imui.Core
             entriesCount--;
 
             var merged = false;
-            
+
             for (int i = 0; i < unpairedSegments.Count; ++i)
             {
                 ref var p = ref unpairedSegments.Array[i];
@@ -283,7 +285,7 @@ namespace Imui.Core
                 {
                     continue;
                 }
-                
+
                 if (p.Offset == (offset + size))
                 {
                     p.Offset = offset;
@@ -291,7 +293,7 @@ namespace Imui.Core
                     merged = true;
                     break;
                 }
-                
+
                 if (offset == (p.Offset + p.Size))
                 {
                     p.Size += size;
@@ -299,8 +301,9 @@ namespace Imui.Core
                     break;
                 }
             }
-            
-            if (!merged) {
+
+            if (!merged)
+            {
                 unpairedSegments.Add(new UnpairedSegment(offset, size, block));
             }
 
@@ -311,15 +314,15 @@ namespace Imui.Core
         {
             ImAssert.IsTrue(segment.Block >= 0, "segment.Block >= 0");
             ImAssert.IsTrue(segment.Block < blocks.Count, "segment.Block < blocks.Count");
-            
+
             ref var block = ref blocks.Array[segment.Block];
-            
-            ImAssert.IsTrue(segment.Offset > 0, "segment.Offset > 0");   
+
+            ImAssert.IsTrue(segment.Offset > 0, "segment.Offset > 0");
             ImAssert.IsTrue(segment.Offset < block.Capacity, "segment.Offset < dataSize");
             ImAssert.IsTrue(segment.Size <= block.Size, "segment.Size <= dataSize");
-            
+
             block.Dealloc((void*)(block.Ptr + segment.Offset), segment.Size);
-            
+
             for (int i = 0; i < entriesCount; ++i)
             {
                 var m = &meta[i];
@@ -337,7 +340,7 @@ namespace Imui.Core
 
             var sizeAligned = Align(sizeof(T));
             var blockIndex = FindBlockToFit(sizeAligned);
-            
+
             ImAssert.IsTrue(blockIndex <= byte.MaxValue, "blockIndex <= byte.MaxValue");
             ImAssert.IsTrue(blockIndex >= 0, "blockIndex >= 0");
             ImAssert.IsTrue(blockIndex < blocks.Count, "blockIndex < blocks.Count");
@@ -360,7 +363,7 @@ namespace Imui.Core
 
             var ptr = (T*)block.Alloc(sizeAligned, false);
             *ptr = value;
-            
+
             return ptr;
         }
 
@@ -371,18 +374,18 @@ namespace Imui.Core
 
             var m = &meta[index];
             ref var block = ref blocks.Array[m->Block];
-            
+
             var oldPtr = (T*)(block.Ptr + m->Offset);
             var oldSize = m->Size;
-            
+
             Delete(index);
             var ptr = InsertArray<T>(index, key, count);
-            
+
             UnsafeUtility.MemCpy(ptr, oldPtr, oldSize);
 
             return ptr;
         }
-        
+
         private T* InsertArray<T>(int index, uint key, int count, bool zero = true) where T: unmanaged
         {
             ImAssert.IsTrue(index >= 0, "index >= 0");
@@ -390,9 +393,9 @@ namespace Imui.Core
 
             var sizeAligned = Align(sizeof(T) * count);
             var blockIndex = FindBlockToFit(sizeAligned);
-            
+
             ImAssert.IsTrue(blockIndex <= byte.MaxValue, "block <= byte.MaxValue");
-            
+
             ref var block = ref blocks.Array[blockIndex];
 
             if (entriesCapacity <= entriesCount)
@@ -408,7 +411,7 @@ namespace Imui.Core
             keys[index] = key;
             meta[index] = new Metadata(TypeHelper<T>.Hash, block.Size, sizeAligned, (byte)blockIndex);
             entriesCount++;
-            
+
             return (T*)block.Alloc(sizeAligned, zero);
         }
 
@@ -426,7 +429,7 @@ namespace Imui.Core
         private bool TryFindIndex(uint key, out int index)
         {
             ImProfiler.BeginSample("ImStorage.TryFindIndex");
-            
+
             var l = 0;
             var h = entriesCount - 1;
 
@@ -437,7 +440,7 @@ namespace Imui.Core
                 if (keys[m] == key)
                 {
                     index = m;
-                    
+
                     ImProfiler.EndSample();
                     return true;
                 }
@@ -453,7 +456,7 @@ namespace Imui.Core
             }
 
             index = l;
-            
+
             ImProfiler.EndSample();
             return false;
         }
@@ -494,12 +497,12 @@ namespace Imui.Core
             {
                 requiredCapacity *= 2;
             }
-            
+
             blocks.Add(new ImArena.MemoryBlock(requiredCapacity));
 
             return blocks.Count - 1;
         }
-        
+
         public void Dispose()
         {
             Dispose(true);

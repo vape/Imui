@@ -7,15 +7,14 @@ namespace Imui.Style
     {
         public float Vertical => Top + Bottom;
         public float Horizontal => Left + Right;
-        
+
         public float Left;
         public float Right;
         public float Top;
         public float Bottom;
 
-        public ImPadding(float padding) : this(padding, padding, padding, padding)
-        { }
-        
+        public ImPadding(float padding): this(padding, padding, padding, padding) { }
+
         public ImPadding(float left, float right, float top, float bottom)
         {
             Left = left;
@@ -33,19 +32,19 @@ namespace Imui.Style
         }
 
         public static implicit operator ImPadding(float padding) => new(padding);
-        
-        public static ImPadding operator +(ImPadding padding, float value) 
+
+        public static ImPadding operator +(ImPadding padding, float value)
         {
             padding.Add(value);
             return padding;
         }
-        
-        public static ImPadding operator -(ImPadding padding, float value) 
+
+        public static ImPadding operator -(ImPadding padding, float value)
         {
             padding.Add(-value);
             return padding;
         }
-        
+
         public static ImPadding operator -(ImPadding padding)
         {
             padding.Left = -padding.Left;

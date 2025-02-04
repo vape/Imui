@@ -17,7 +17,7 @@ namespace Imui.Style
         public float BorderRadius;
         public float BorderThickness;
         public float ReadOnlyColorMultiplier;
-        
+
         public Color Background;
         public Color Foreground;
         public Color Control;
@@ -29,8 +29,9 @@ namespace Imui.Style
     {
         public static ImTheme Light()
         {
-            return new ImTheme { 
-                TextSize = 20f, 
+            return new ImTheme
+            {
+                TextSize = 20f,
                 Spacing = 3f,
                 InnerSpacing = 5f,
                 Indent = 12f,
@@ -48,11 +49,12 @@ namespace Imui.Style
                 Variance = 0.05f
             };
         }
-        
+
         public static ImTheme Dark()
         {
-            return new ImTheme {
-                TextSize = 20f, 
+            return new ImTheme
+            {
+                TextSize = 20f,
                 Spacing = 3f,
                 InnerSpacing = 5f,
                 Indent = 12f,
@@ -70,11 +72,12 @@ namespace Imui.Style
                 Variance = 0.15f,
             };
         }
-        
+
         public static ImTheme Dear()
         {
-            return new ImTheme {
-                TextSize = 20f, 
+            return new ImTheme
+            {
+                TextSize = 20f,
                 Spacing = 3f,
                 InnerSpacing = 3f,
                 Indent = 8f,
@@ -92,11 +95,12 @@ namespace Imui.Style
                 Variance = 0.2f,
             };
         }
-        
+
         public static ImTheme Orange()
         {
-            return new ImTheme {
-                TextSize = 20f, 
+            return new ImTheme
+            {
+                TextSize = 20f,
                 Spacing = 3f,
                 InnerSpacing = 5f,
                 Indent = 12f,
@@ -114,11 +118,12 @@ namespace Imui.Style
                 Variance = 0.22f,
             };
         }
-        
+
         public static ImTheme Terminal()
         {
-            return new ImTheme {
-                TextSize = 18f, 
+            return new ImTheme
+            {
+                TextSize = 18f,
                 Spacing = 1f,
                 InnerSpacing = 2f,
                 Indent = 8f,

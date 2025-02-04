@@ -15,7 +15,7 @@ namespace Imui.Rendering
         Ellipsis,
         Truncate
     }
-    
+
     public struct ImTextLine
     {
         public int Start;
@@ -55,10 +55,10 @@ namespace Imui.Rendering
         }
     }
 
-    public class ImTextDrawer : IDisposable
+    public class ImTextDrawer: IDisposable
     {
         [Flags]
-        public enum GlyphFlag : int
+        public enum GlyphFlag: int
         {
             None = 0,
             Empty = 1
@@ -247,9 +247,9 @@ namespace Imui.Rendering
                 var boundRight = float.MaxValue;
                 if ((line.Width - layout.OverflowWidth) > 1.0f)
                 {
-                    boundRight = 
+                    boundRight =
                         layout.Overflow == ImTextOverflow.Ellipsis ? sx + layout.OverflowWidth - ellipsisWidth * layout.Scale :
-                        layout.Overflow == ImTextOverflow.Truncate ? sx + layout.OverflowWidth : 
+                        layout.Overflow == ImTextOverflow.Truncate ? sx + layout.OverflowWidth :
                         boundRight;
                 }
 
@@ -264,11 +264,11 @@ namespace Imui.Rendering
                     {
                         break;
                     }
-                    
+
                     if (c < GLYPH_LOOKUP_CAPACITY)
                     {
                         ref readonly var glyph = ref glyphsLookup[c];
-                        
+
                         var advance = glyph.advance * layout.Scale;
                         if (x + advance > boundRight)
                         {
@@ -280,10 +280,10 @@ namespace Imui.Rendering
                                     x += AddGlyphQuad(in glyphEllipsis, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                                 }
                             }
-                            
+
                             break;
                         }
-                        
+
                         if ((glyph.flag & GlyphFlag.Empty) != 0)
                         {
                             x += advance;
@@ -300,7 +300,7 @@ namespace Imui.Rendering
                         }
 
                         var glyph = new GlyphData(character.glyph);
-                        
+
                         var advance = glyph.advance * layout.Scale;
                         if (x + advance > boundRight)
                         {
@@ -312,10 +312,10 @@ namespace Imui.Rendering
                                     x += AddGlyphQuad(in glyphEllipsis, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                                 }
                             }
-                            
+
                             break;
                         }
-                        
+
                         x += AddGlyphQuad(in glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                     }
                 }
@@ -336,9 +336,9 @@ namespace Imui.Rendering
         {
             var tmpColor = Color;
             Style.ImColorUtility.SetAlpha(ref Color, 0.5f * Style.ImColorUtility.GetAlpha(Color));
-            
+
             ref var backSlash = ref glyphsLookup['\\'];
-            
+
             switch (c)
             {
                 case '\n':
@@ -458,7 +458,7 @@ namespace Imui.Rendering
             {
                 return;
             }
-            
+
             ImProfiler.BeginSample("ImTextDrawer.FillLayout");
 
             wrap &= boundsWidth > 0;
@@ -574,7 +574,7 @@ namespace Imui.Rendering
             layout.Width = maxLineWidth;
             layout.Height = layout.LineHeight * layout.LinesCount;
             layout.OffsetY = -(boundsHeight - layout.LinesCount * layout.LineHeight) * alignY;
-            
+
             ImProfiler.EndSample();
         }
 

@@ -18,7 +18,7 @@ namespace Imui.Rendering
             Vertices = new ImVertex[verticesCapacity];
             Indices = new int[indicesCapacity];
             Meshes = new ImMeshData[meshesCapacity];
-            
+
             Clear();
         }
 
@@ -35,7 +35,7 @@ namespace Imui.Rendering
                 meshData = ref Meshes[--MeshesCount - 1];
             }
         }
-        
+
         public void Sort()
         {
             var meshes = new Span<ImMeshData>(Meshes, 0, MeshesCount);
@@ -54,14 +54,14 @@ namespace Imui.Rendering
                 ++i;
             }
         }
-        
+
         public void Clear()
         {
             MeshesCount = 0;
             VerticesCount = 0;
             IndicesCount = 0;
         }
-        
+
         public void NextMesh()
         {
             if (MeshesCount > 0)
@@ -73,15 +73,15 @@ namespace Imui.Rendering
                     return;
                 }
             }
-            
+
             EnsureMeshesCapacity(MeshesCount + 1);
 
             ref var mesh = ref Meshes[MeshesCount++];
             mesh.Clear();
             mesh.IndicesOffset = IndicesCount;
-            mesh.VerticesOffset = VerticesCount; 
+            mesh.VerticesOffset = VerticesCount;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureMeshesCapacity(int size)
         {
@@ -90,7 +90,7 @@ namespace Imui.Rendering
                 Array.Resize(ref Meshes, Mathf.NextPowerOfTwo(size));
             }
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureVerticesCapacity(int size)
         {
@@ -108,7 +108,7 @@ namespace Imui.Rendering
                 Array.Resize(ref Indices, Mathf.NextPowerOfTwo(size));
             }
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddIndices(int count)
         {
@@ -125,11 +125,11 @@ namespace Imui.Rendering
                 ImAssert.IsTrue(Indices[i] >= 0 && Indices[i] < Vertices.Length, $"Invalid index {Indices[i]} at {i}");
             }
 #endif
-            
+
             IndicesCount += count;
             Meshes[MeshesCount - 1].IndicesCount += count;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddVertices(int count)
         {
@@ -152,7 +152,7 @@ namespace Imui.Rendering
                 }
             }
 #endif
-            
+
             VerticesCount += count;
             Meshes[MeshesCount - 1].VerticesCount += count;
         }

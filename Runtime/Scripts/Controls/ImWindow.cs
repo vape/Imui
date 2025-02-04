@@ -195,7 +195,7 @@ namespace Imui.Controls
             if ((state.Flags & ImWindowFlag.NoCloseButton) == 0)
             {
                 var closeButtonRect = contentRect.TakeRight(gui.GetRowHeight() - gui.Style.Layout.InnerSpacing, out contentRect).WithAspect(1.0f);
-                
+
                 using (gui.StyleScope(ref gui.Style.Button, in gui.Style.Window.TitleBar.CloseButton))
                 {
                     closeClicked = gui.Button(closeButtonRect, out var buttonState);
@@ -217,7 +217,7 @@ namespace Imui.Controls
                     gui.Canvas.Line(path, color, false, width);
                 }
             }
-            
+
             gui.Canvas.Text(text, style.TitleBar.FrontColor, contentRect, in textSettings);
         }
 
@@ -263,7 +263,7 @@ namespace Imui.Controls
                 case ImMouseEventType.Drag when active:
                     var widthDelta = Mathf.Max(state.NextRect.W + evt.Delta.x, MIN_WIDTH) - state.NextRect.W;
                     var heightDelta = Mathf.Max(state.NextRect.H + -evt.Delta.y, MIN_HEIGHT) - state.NextRect.H;
-                    
+
                     state.NextRect.W += widthDelta;
                     state.NextRect.H += heightDelta;
                     state.NextRect.Y -= heightDelta;
@@ -357,7 +357,7 @@ namespace Imui.Controls
             var right = screenRect.Right - titleBarHeight;
             var top = screenRect.Top - size.y;
             var bottom = screenRect.Bottom - size.y + titleBarHeight;
-            
+
             position.x = Mathf.Clamp(position.x, left, right);
             position.y = Mathf.Clamp(position.y, bottom, top);
 

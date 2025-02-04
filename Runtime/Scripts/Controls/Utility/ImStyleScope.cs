@@ -3,7 +3,7 @@ using Imui.Core;
 
 namespace Imui.Style
 {
-    public ref struct ImStyleScope<T> where T : unmanaged
+    public ref struct ImStyleScope<T> where T: unmanaged
     {
         private ImGui gui;
         private bool disposed;
@@ -15,7 +15,7 @@ namespace Imui.Style
 
             disposed = false;
         }
-        
+
         public ImStyleScope(ImGui gui, ref T property)
         {
             this.gui = gui;
@@ -23,14 +23,14 @@ namespace Imui.Style
 
             disposed = false;
         }
-        
+
         public void Dispose()
         {
             if (disposed)
             {
                 return;
             }
-            
+
             gui.PopStyle<T>();
         }
     }
@@ -42,7 +42,7 @@ namespace Imui.Style
         {
             return new ImStyleScope<T>(gui, ref prop, in style);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ImStyleScope<T> StyleScope<T>(this ImGui gui, ref T prop) where T: unmanaged
         {

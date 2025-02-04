@@ -25,7 +25,7 @@ namespace Imui.IO.Utility
 
             return false;
         }
-        
+
         public static ImKeyboardCommandFlag ParseKeyboardCommand(Event evt)
         {
             var result = ImKeyboardCommandFlag.None;
@@ -43,7 +43,7 @@ namespace Imui.IO.Utility
                 jump = evt.modifiers.HasFlag(EventModifiers.Control);
                 control = evt.modifiers.HasFlag(EventModifiers.Control);
             }
-            
+
             if (arrow && evt.modifiers.HasFlag(EventModifiers.Shift))
             {
                 result |= ImKeyboardCommandFlag.Selection;
@@ -68,7 +68,7 @@ namespace Imui.IO.Utility
             {
                 result |= ImKeyboardCommandFlag.Paste;
             }
-            
+
             return result;
         }
     }

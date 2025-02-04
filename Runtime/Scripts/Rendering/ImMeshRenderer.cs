@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace Imui.Rendering
 {
-    public class ImMeshRenderer : IDisposable
+    public class ImMeshRenderer: IDisposable
     {
         private const MeshUpdateFlags MESH_UPDATE_FLAGS =
             MeshUpdateFlags.DontNotifyMeshUsers |
@@ -20,20 +20,20 @@ namespace Imui.Rendering
         private static readonly int MaskRectId = Shader.PropertyToID("_MaskRect");
         private static readonly int MaskCornerRadiusId = Shader.PropertyToID("_MaskCornerRadius");
         private static readonly int InvColorMul = Shader.PropertyToID("_InvColorMul");
-        
-        #if IMUI_DEBUG
+
+#if IMUI_DEBUG
         public bool Wireframe;
-        #endif
-        
+#endif
+
         private readonly MaterialPropertyBlock properties;
-        
+
         private Mesh mesh;
         private bool disposed;
-        
+
         public ImMeshRenderer()
         {
             properties = new MaterialPropertyBlock();
-            
+
             mesh = new Mesh();
             mesh.MarkDynamic();
         }
@@ -41,17 +41,17 @@ namespace Imui.Rendering
         public void Render(CommandBuffer cmd, ImMeshBuffer buffer, Vector2 screenSize, float screenScale, Vector2Int targetSize)
         {
             ImProfiler.BeginSample("ImMeshRenderer.Render");
-            
+
             mesh.Clear(true);
-            
+
             buffer.Trim();
-            
+
             mesh.SetIndexBufferParams(buffer.IndicesCount, IndexFormat.UInt32);
             mesh.SetVertexBufferParams(buffer.VerticesCount, ImVertex.VertexAttributes);
 
             mesh.SetVertexBufferData(buffer.Vertices, 0, 0, buffer.VerticesCount, 0, MESH_UPDATE_FLAGS);
             mesh.SetIndexBufferData(buffer.Indices, 0, 0, buffer.IndicesCount, MESH_UPDATE_FLAGS);
-            
+
             if (mesh.subMeshCount != buffer.MeshesCount)
             {
                 mesh.subMeshCount = buffer.MeshesCount;
@@ -65,11 +65,11 @@ namespace Imui.Rendering
 
                 var desc = new SubMeshDescriptor()
                 {
-                    #if IMUI_DEBUG
+#if IMUI_DEBUG
                     topology = Wireframe ? MeshTopology.Lines : info.Topology,
-                    #else
+#else
                     topology = info.Topology,
-                    #endif
+#endif
                     indexStart = info.IndicesOffset,
                     indexCount = info.IndicesCount,
                     baseVertex = 0,
@@ -84,13 +84,13 @@ namespace Imui.Rendering
 
             var maskScale = screenScale * new Vector2(targetSize.x / screenSize.x, targetSize.y / screenSize.y);
             var maskRadiusScale = Mathf.Min(maskScale.x, maskScale.y);
-            
+
             screenSize /= screenScale;
-            
+
             var view = Matrix4x4.identity;
             var proj = Matrix4x4.Ortho(0, screenSize.x, 0, screenSize.y, short.MinValue, short.MaxValue);
             var gpuProj = GL.GetGPUProjectionMatrix(proj, true);
-            
+
             cmd.SetGlobalMatrix(ViewProjectionId, view * gpuProj);
 
             for (int i = 0; i < buffer.MeshesCount; ++i)
@@ -100,7 +100,7 @@ namespace Imui.Rendering
                 properties.SetTexture(MainTexId, meshData.MainTex);
                 properties.SetTexture(FontTexId, meshData.FontTex);
                 properties.SetFloat(InvColorMul, meshData.InvColorMul);
-                
+
                 if (meshData.MaskRect.Enabled)
                 {
                     var radius = meshData.MaskRect.Radius * maskRadiusScale;
@@ -117,7 +117,7 @@ namespace Imui.Rendering
                 {
                     properties.SetInteger(MaskEnabledId, 0);
                 }
-                
+
                 if (meshData.ClipRect.Enabled)
                 {
                     var x = meshData.ClipRect.Rect.xMin * maskScale.x;
@@ -125,18 +125,18 @@ namespace Imui.Rendering
                     var w = meshData.ClipRect.Rect.width * maskScale.x;
                     var h = meshData.ClipRect.Rect.height * maskScale.y;
                     var clip = new Rect(x, y, w, h);
-                    
+
                     cmd.EnableScissorRect(clip);
                 }
-                
+
                 cmd.DrawMesh(mesh, Matrix4x4.identity, meshData.Material, submeshIndex: i, -1, properties);
-                
+
                 if (meshData.ClipRect.Enabled)
                 {
                     cmd.DisableScissorRect();
                 }
             }
-            
+
             ImProfiler.EndSample();
         }
 
@@ -146,7 +146,7 @@ namespace Imui.Rendering
             {
                 return;
             }
-            
+
             ImUnityUtility.Destroy(mesh);
             mesh = null;
 

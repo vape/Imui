@@ -6,13 +6,13 @@ namespace Imui.Utility
     {
         public int Count;
         public T[] Array;
-        
+
         public ImDynamicArray(int capacity)
         {
             Array = new T[capacity];
             Count = 0;
         }
-        
+
         public bool RemoveAtFast(int index)
         {
             if (index < 0 || index >= Count)
@@ -34,13 +34,13 @@ namespace Imui.Utility
 
             System.Array.Copy(Array, index + 1, Array, index, --Count - index);
         }
-        
+
         public void Add(T value)
         {
             EnsureCapacity(Count + 1);
-            Array[Count++] = value; 
+            Array[Count++] = value;
         }
-        
+
         public void Push(in T value)
         {
             EnsureCapacity(Count + 1);
@@ -58,11 +58,11 @@ namespace Imui.Utility
             value = default;
             return false;
         }
-        
+
         public T Pop()
         {
             ImAssert.IsTrue(Count > 0, "Count > 0");
-            
+
             return Array[--Count];
         }
 
@@ -75,7 +75,7 @@ namespace Imui.Utility
 
             return Peek();
         }
-        
+
         public bool TryPeek(out T value)
         {
             if (Count == 0)
@@ -87,11 +87,11 @@ namespace Imui.Utility
             value = Peek();
             return true;
         }
-        
+
         public ref T Peek()
         {
             ImAssert.IsTrue(Count > 0, "Count > 0");
-            
+
             return ref Array[Count - 1];
         }
 
@@ -116,7 +116,7 @@ namespace Imui.Utility
             }
 
             var newLength = Array.Length * 2;
-            
+
             while (newLength < count)
             {
                 newLength *= 2;

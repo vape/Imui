@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Imui.Controls
 {
     [Flags]
-    public enum ImTableColumnFlag : byte
+    public enum ImTableColumnFlag: byte
     {
         None = 0,
         SizeIsAbsolute = 1,
@@ -17,7 +17,7 @@ namespace Imui.Controls
     }
 
     [Flags]
-    public enum ImTableFlag : byte
+    public enum ImTableFlag: byte
     {
         None = 0,
         ResizableColumns = 1,
@@ -25,7 +25,7 @@ namespace Imui.Controls
     }
 
     [Flags]
-    public enum ImTableStateFlags : byte
+    public enum ImTableStateFlags: byte
     {
         None = 0,
         LayoutBuilt = 1,

@@ -5,12 +5,12 @@ namespace Imui.Controls
 {
     public enum ImSizeMode
     {
-        Auto  = 0,
+        Auto = 0,
         Fixed = 1,
-        Fit   = 2,
-        Fill  = 3
+        Fit = 2,
+        Fill = 3
     }
-    
+
     public struct ImSize
     {
         public float Width;

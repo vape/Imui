@@ -29,7 +29,7 @@ namespace Imui.Rendering
             UV = uv;
             Atlas = atlas;
         }
-        
+
         public ImVertex(ImVertex vertex)
         {
             Position = vertex.Position;

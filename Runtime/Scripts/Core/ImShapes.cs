@@ -8,11 +8,11 @@ namespace Imui.Core
     {
         private const int SIN_TABLE_PRECISION = 512;
         private const int COS_TABLE_PRECISION = 512;
-        
+
         private const int MIN_SEGMENTS = 2;
         private const int MAX_SEGMENTS = 16;
         private const float SEGMENT_MAX_ERROR = 2;
-        
+
         private const int SEGMENT_TABLE_SIZE = 200;
         private const float SEGMENT_TABLE_RES = 0.1f;
         private const int SEGMENT_TABLE_SIZE_MAX = (int)(SEGMENT_TABLE_SIZE * SEGMENT_TABLE_RES);
@@ -20,7 +20,7 @@ namespace Imui.Core
         private const float PI = Mathf.PI;
         private const float HALF_PI = PI / 2;
         private const float TWO_PI = PI * 2;
-        
+
         private static float[] sinTable;
         private static float[] cosTable;
         private static int[] segmentTable;
@@ -30,18 +30,18 @@ namespace Imui.Core
             if (sinTable == null)
             {
                 sinTable = new float[SIN_TABLE_PRECISION];
-                
+
                 for (int i = 0; i < SIN_TABLE_PRECISION; ++i)
                 {
                     var value = Mathf.Sin((TWO_PI * i) / SIN_TABLE_PRECISION);
                     sinTable[i] = value;
                 }
             }
-            
+
             if (cosTable == null)
             {
                 cosTable = new float[COS_TABLE_PRECISION];
-                
+
                 for (int i = 0; i < COS_TABLE_PRECISION; ++i)
                 {
                     var value = Mathf.Cos((TWO_PI * i) / COS_TABLE_PRECISION);
@@ -55,8 +55,9 @@ namespace Imui.Core
                 for (int i = 0; i < SEGMENT_TABLE_SIZE; ++i)
                 {
                     var radius = i * SEGMENT_TABLE_RES;
-                    var segments = Mathf.Clamp(Mathf.CeilToInt(Mathf.PI / Mathf.Acos(1 - Mathf.Min(SEGMENT_MAX_ERROR, radius) / radius)), MIN_SEGMENTS, MAX_SEGMENTS);
-                    
+                    var segments = Mathf.Clamp(Mathf.CeilToInt(Mathf.PI / Mathf.Acos(1 - Mathf.Min(SEGMENT_MAX_ERROR, radius) / radius)), MIN_SEGMENTS,
+                        MAX_SEGMENTS);
+
                     segmentTable[i] = ((segments + 1) / 2) * 2;
                 }
             }
@@ -73,7 +74,7 @@ namespace Imui.Core
             {
                 return segmentTable[(int)(radius / SEGMENT_TABLE_RES)];
             }
-            
+
             var segments = Mathf.Clamp(Mathf.CeilToInt(Mathf.PI / Mathf.Acos(1 - Mathf.Min(SEGMENT_MAX_ERROR, radius) / radius)), MIN_SEGMENTS, MAX_SEGMENTS);
             return ((segments + 1) / 2) * 2;
         }
@@ -91,7 +92,7 @@ namespace Imui.Core
         public static void Ellipse(ImRect rect, Span<Vector2> buffer, int segments)
         {
             ImProfiler.BeginSample("ImShapes.Ellipse");
-            
+
             var step = (1f / segments) * PI * 2;
             var rx = rect.W / 2.0f;
             var ry = rect.H / 2.0f;
@@ -104,7 +105,7 @@ namespace Imui.Core
                 buffer[i].x = cx + cosTable[(int)(COS_TABLE_PRECISION * (a % TWO_PI) / TWO_PI)] * rx;
                 buffer[i].y = cy + sinTable[(int)(SIN_TABLE_PRECISION * (a % TWO_PI) / TWO_PI)] * ry;
             }
-            
+
             ImProfiler.EndSample();
         }
 
@@ -122,7 +123,7 @@ namespace Imui.Core
 
             return span;
         }
-        
+
         public static int Rect(in ImRect rect,
                                in ImRectRadius radius,
                                ref Span<Vector2> buffer,
@@ -138,7 +139,7 @@ namespace Imui.Core
             var step = (1f / segmentsBottomRight) * HALF_PI;
             var cx = rect.X + rect.W - radius.BottomRight;
             var cy = rect.Y + radius.BottomRight;
-            
+
             ref var bp = ref buffer[p];
             bp.x = cx + cosTable[(int)(COS_TABLE_PRECISION * 0.75f)] * radius.BottomRight;
             bp.y = cy + sinTable[(int)(SIN_TABLE_PRECISION * 0.75f)] * radius.BottomRight;

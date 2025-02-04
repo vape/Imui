@@ -10,7 +10,7 @@ namespace Imui.Controls
         public static void BeginList(this ImGui gui, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             BeginList(gui, gui.AddSingleRowRect(size));
         }
 
@@ -21,7 +21,7 @@ namespace Imui.Controls
 
             var layoutRect = rect.WithPadding(gui.Style.List.Padding);
             var maskRect = rect.WithPadding(gui.Style.List.Box.BorderThickness);
-            
+
             gui.Layout.Push(ImAxis.Vertical, layoutRect);
             gui.Canvas.PushRectMask(maskRect, gui.Style.List.Box.BorderRadius);
             gui.Canvas.PushClipRect(maskRect); // need this to properly handle clicking outside drawing area

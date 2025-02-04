@@ -9,14 +9,14 @@ namespace Imui.Examples
 {
     public static class ImThemeEditor
     {
-        public struct LabeledScope : IDisposable
+        public struct LabeledScope: IDisposable
         {
             private ImGui gui;
-            
+
             public LabeledScope(ImGui gui, ReadOnlySpan<char> label)
             {
                 this.gui = gui;
-                
+
                 gui.AddSpacingIfLayoutFrameNotEmpty();
                 gui.BeginHorizontal();
                 var rect = gui.AddLayoutRect(gui.GetLayoutWidth() * 0.4f, gui.GetRowHeight());
@@ -36,7 +36,7 @@ namespace Imui.Examples
             var changed = false;
 
             gui.Separator("Colors");
-            
+
             using (new LabeledScope(gui, nameof(theme.Foreground))) changed |= gui.ColorEdit(ref theme.Foreground);
             using (new LabeledScope(gui, nameof(theme.Background))) changed |= gui.ColorEdit(ref theme.Background);
             using (new LabeledScope(gui, nameof(theme.Accent))) changed |= gui.ColorEdit(ref theme.Accent);
@@ -56,14 +56,14 @@ namespace Imui.Examples
             using (new LabeledScope(gui, nameof(theme.BorderRadius))) changed |= gui.Slider(ref theme.BorderRadius, 0.0f, 16.0f);
             using (new LabeledScope(gui, nameof(theme.BorderThickness))) changed |= gui.Slider(ref theme.BorderThickness, 0.0f, 8.0f);
             using (new LabeledScope(gui, nameof(theme.ReadOnlyColorMultiplier))) changed |= gui.Slider(ref theme.ReadOnlyColorMultiplier, 0.0f, 8.0f);
-            
+
             return changed;
         }
 
         public static string BuildCodeString(in ImTheme theme)
         {
             byte AsByte(float component) => (byte)(255 * component);
-            
+
             return "new ImTheme()\n" +
                    "{\n" +
                    $"    TextSize = {theme.TextSize:0.##}f,\n" +

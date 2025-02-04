@@ -12,16 +12,16 @@ namespace Imui.IO.Events
 
     // TODO (artem-s): add cut command
     [Flags]
-    public enum ImKeyboardCommandFlag : uint
+    public enum ImKeyboardCommandFlag: uint
     {
-        None      = 0,
+        None = 0,
         Selection = 1 << 0,
-        NextWord  = 1 << 1,
+        NextWord = 1 << 1,
         SelectAll = 1 << 2,
-        Copy      = 1 << 3,
-        Paste     = 1 << 4
+        Copy = 1 << 3,
+        Paste = 1 << 4
     }
-    
+
     public readonly struct ImKeyboardEvent
     {
         public readonly ImKeyboardEventType Type;
@@ -38,7 +38,7 @@ namespace Imui.IO.Events
             Command = command;
             Char = c;
         }
-        
+
         public override string ToString()
         {
             return $"type:{Type} key:{Key} mod:{Modifiers} cmd:{Command} char:{Char}";

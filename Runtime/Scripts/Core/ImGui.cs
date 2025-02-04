@@ -14,8 +14,8 @@ namespace Imui.Core
         None = 0,
         Draggable = 1 << 0
     }
-    
-    public unsafe class ImGui : IDisposable
+
+    public unsafe class ImGui: IDisposable
     {
         private const int CONTROL_IDS_STACK_CAPACITY = 32;
 
@@ -47,7 +47,7 @@ namespace Imui.Core
                 Original = original;
             }
         }
-        
+
         private struct ControlId
         {
             public uint Id;
@@ -99,10 +99,10 @@ namespace Imui.Core
         {
             public uint Id;
             public int Type;
-        
+
             internal void* Ptr;
         }
-        
+
         public float UiScale
         {
             get => uiScale;
@@ -281,7 +281,7 @@ namespace Imui.Core
         {
             PushStyle<T>(ref style, in style);
         }
-        
+
         public void PushStyle<T>(ref T style, in T value) where T: unmanaged
         {
             var original = Arena.AllocUnsafe<T>();
@@ -331,7 +331,7 @@ namespace Imui.Core
         {
             return ImHash.Get(id, parent);
         }
-        
+
         public uint GetControlId(ReadOnlySpan<char> name, uint parent)
         {
             return ImHash.Get(name, parent);
@@ -470,12 +470,13 @@ namespace Imui.Core
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe ref TState BeginScope<TState>(uint id, TState @default = default) where TState: unmanaged => ref *BeginScopeUnsafe(id, @default);
+
         public unsafe TState* BeginScopeUnsafe<TState>(uint id, TState @default = default) where TState: unmanaged
         {
             var ptr = Storage.GetUnsafe(id, @default);
             var scope = new ImControlScope()
             {
-                Id = id, 
+                Id = id,
                 Type = typeof(TState).GetHashCode(),
                 Ptr = ptr
             };
@@ -487,10 +488,12 @@ namespace Imui.Core
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe ref TState EndScope<TState>() where TState: unmanaged => ref *EndScopeUnsafe<TState>(out _);
+
         public unsafe ref TState EndScope<TState>(out uint id) where TState: unmanaged => ref *EndScopeUnsafe<TState>(out id);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe TState* EndScopeUnsafe<TState>() where TState: unmanaged => EndScopeUnsafe<TState>(out _);
+
         public unsafe TState* EndScopeUnsafe<TState>(out uint id) where TState: unmanaged
         {
             ref var scope = ref FindControlScopeOrFail<TState>(out var index);
@@ -504,18 +507,20 @@ namespace Imui.Core
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe ref TState GetCurrentScope<TState>() where TState: unmanaged => ref *GetCurrentScopeUnsafe<TState>(out _);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe ref TState GetCurrentScope<TState>(out uint id) where TState: unmanaged => ref *GetCurrentScopeUnsafe<TState>(out id);
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe TState* GetCurrentScopeUnsafe<TState>() where TState: unmanaged => GetCurrentScopeUnsafe<TState>(out _);
+
         public unsafe TState* GetCurrentScopeUnsafe<TState>(out uint id) where TState: unmanaged
         {
             ref var scope = ref FindControlScopeOrFail<TState>(out _);
 
             id = scope.Id;
             var ptr = (TState*)scope.Ptr;
-            
+
             return ptr;
         }
 
@@ -577,7 +582,7 @@ namespace Imui.Core
         public void Render()
         {
             ImProfiler.BeginSample("ImGui.Render");
-            
+
             nextFrameData.VerticesCount = MeshDrawer.buffer.VerticesCount;
             nextFrameData.IndicesCount = MeshDrawer.buffer.IndicesCount;
             nextFrameData.ArenaSize = Arena.Size;
@@ -589,7 +594,7 @@ namespace Imui.Core
             MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale, targetSize);
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
-            
+
             ImProfiler.EndSample();
         }
 

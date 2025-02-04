@@ -29,7 +29,7 @@ namespace Imui.Core
             ref readonly var settings = ref GetActiveSettings();
             return settings.Order;
         }
-        
+
         /// <summary>
         /// Removes the most recently pushed order setting from the stack.
         /// </summary>

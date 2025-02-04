@@ -21,21 +21,21 @@ namespace Imui.Controls
             }
 
             var columnWidth = (rect.W - (spacing * (columns - 1))) / columns;
-            
+
             for (int i = 0; i < columns; ++i)
             {
                 output[i] = new ImRect(rect.X, rect.Y, columnWidth, rect.H);
                 rect.X += spacing + columnWidth;
             }
         }
-        
+
         public static ImRect TakeTop(this ImRect rect, float height)
         {
             rect.Y += rect.H - height;
             rect.H = height;
             return rect;
         }
-        
+
         public static ImRect TakeTop(this ImRect rect, float height, out ImRect bottom)
         {
             bottom = rect;
@@ -44,13 +44,13 @@ namespace Imui.Controls
             rect.H = height;
             return rect;
         }
-        
+
         public static ImRect TakeBottom(this ImRect rect, float height)
         {
             rect.H = height;
             return rect;
         }
-        
+
         public static ImRect TakeBottom(this ImRect rect, float height, out ImRect top)
         {
             top = rect;
@@ -65,7 +65,7 @@ namespace Imui.Controls
             rect.W = width;
             return rect;
         }
-        
+
         public static ImRect TakeLeft(this ImRect rect, float width, out ImRect right)
         {
             right = rect;
@@ -81,7 +81,7 @@ namespace Imui.Controls
             rect.W = width;
             return rect;
         }
-        
+
         public static ImRect TakeRight(this ImRect rect, float width, out ImRect left)
         {
             left = rect;
@@ -90,7 +90,7 @@ namespace Imui.Controls
             rect.X += left.W;
             return rect;
         }
-        
+
         public static ImRect TakeLeft(this ImRect rect, float width, float space, out ImRect right)
         {
             right = rect;
@@ -99,7 +99,7 @@ namespace Imui.Controls
             rect.W = width;
             return rect;
         }
-        
+
         public static ImRect TakeRight(this ImRect rect, float width, float space, out ImRect left)
         {
             left = rect;
@@ -108,7 +108,7 @@ namespace Imui.Controls
             rect.X += left.W + space;
             return rect;
         }
-        
+
         public static ImRect WithAspect(this ImRect rect, float aspect)
         {
             var rectAspect = rect.W / rect.H;
@@ -116,10 +116,10 @@ namespace Imui.Controls
             var h = rectAspect > aspect ? rect.H : rect.H * (rectAspect / aspect);
             var x = rect.X + (0.5f * (rect.W - w));
             var y = rect.Y + (0.5f * (rect.H - h));
-            
+
             return new ImRect(x, y, w, h);
         }
-        
+
         public static ImRect WithPadding(this ImRect rect, ImPadding padding)
         {
             rect.X += padding.Left;
@@ -139,7 +139,7 @@ namespace Imui.Controls
 
             return rect;
         }
-        
+
         public static ImRect WithPadding(this ImRect rect, float size)
         {
             rect.X += size;
@@ -149,7 +149,7 @@ namespace Imui.Controls
 
             return rect;
         }
-        
+
         public static void AddPadding(this ref ImRect rect, ImPadding padding)
         {
             rect.X += padding.Left;
@@ -157,7 +157,7 @@ namespace Imui.Controls
             rect.W -= padding.Left + padding.Right;
             rect.H -= padding.Top + padding.Bottom;
         }
-        
+
         public static void AddPadding(this ref ImRect rect, float left = 0, float right = 0, float top = 0, float bottom = 0)
         {
             rect.X += left;
@@ -165,7 +165,7 @@ namespace Imui.Controls
             rect.W -= left + right;
             rect.H -= top + bottom;
         }
-        
+
         public static void AddPadding(this ref ImRect rect, float padding)
         {
             rect.X += padding;
@@ -173,12 +173,12 @@ namespace Imui.Controls
             rect.W -= padding * 2;
             rect.H -= padding * 2;
         }
-        
+
         public static ImRect ScaleFromCenter(this ImRect rect, float scale)
         {
             var w = rect.W;
             var h = rect.H;
-            
+
             rect.W *= scale;
             rect.H *= scale;
             rect.X += (w - rect.W) * 0.5f;
@@ -186,12 +186,12 @@ namespace Imui.Controls
 
             return rect;
         }
-        
+
         public static ImRect ScaleFromCenter(this ImRect rect, Vector2 scale)
         {
             var w = rect.W;
             var h = rect.H;
-            
+
             rect.W *= scale.x;
             rect.H *= scale.y;
             rect.X += (w - rect.W) * 0.5f;

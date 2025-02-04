@@ -11,19 +11,19 @@ namespace Imui.Controls
         None = 0,
         AlphaOnePreview = 1
     }
-    
+
     public static class ImColorButton
     {
         public static bool ColorPickerButton(this ImGui gui, ref Color color, ImSize size = default, ImColorButtonFlag flags = ImColorButtonFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             var id = gui.GetNextControlId();
             var rect = gui.AddSingleRowRect(size, gui.GetRowHeight());
-            
+
             return ColorPickerButton(gui, id, ref color, rect, flags);
         }
-        
+
         public static bool ColorPickerButton(this ImGui gui, uint id, ref Color color, ImRect rect, ImColorButtonFlag flags = ImColorButtonFlag.None)
         {
             ref var open = ref gui.Storage.Get(id, false);
@@ -40,12 +40,12 @@ namespace Imui.Controls
 
             gui.PushId(id);
             gui.BeginPopup();
-            
+
             var pickerId = gui.GetNextControlId();
             var pickerRect = FindColorPickerPopupRect(gui, rect);
             gui.Box(pickerRect, gui.Style.Tooltip.Box);
             var changed = gui.ColorPicker(pickerId, ref color, pickerRect.WithPadding(gui.Style.Tooltip.Padding));
-            
+
             gui.EndPopupWithCloseButton(out var close);
             gui.PopId();
 
@@ -60,7 +60,7 @@ namespace Imui.Controls
         public static bool ColorButton(this ImGui gui, Color color, ImSize size = default, ImColorButtonFlag flags = ImColorButtonFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             var id = gui.GetNextControlId();
             var rect = gui.AddSingleRowRect(size, gui.GetRowHeight());
 
@@ -75,7 +75,7 @@ namespace Imui.Controls
             {
                 return clicked;
             }
-            
+
             ref readonly var stateStyle = ref ImButton.GetStateStyle(gui, state);
             var boxStyle = new ImStyleBox
             {
@@ -91,36 +91,36 @@ namespace Imui.Controls
             {
                 var leftBoxColor = color;
                 leftBoxColor.a = 1.0f;
-            
+
                 gui.Canvas.Rect(rect.TakeLeft(rect.W / 2.0f), leftBoxColor);
             }
-            
+
             gui.Box(rect, boxStyle);
-            
+
             return clicked;
         }
-        
+
         public static void DrawCheckerboardPattern(ImGui gui, ImRect rect)
         {
             void SetPatternAspect(float aspect)
             {
                 var scaleOffset = ImCanvas.GetTexScaleOffsetFor(ImCanvasBuiltinTex.Checkerboard);
                 scaleOffset.x *= aspect;
-                
+
                 gui.Canvas.SetTexScaleOffset(scaleOffset);
             }
-            
+
             var count = Mathf.CeilToInt(rect.W / rect.H);
             var tmp = gui.Canvas.GetTexScaleOffset();
 
             var color = (Color32)Color.white;
             var width = rect.W;
-            
+
             while (count > 0)
             {
                 var w = Mathf.Min(width, rect.H);
                 var r = new ImRect(rect.X + (rect.W - width), rect.Y, w, rect.H);
-                
+
                 SetPatternAspect(w / rect.H);
                 gui.Canvas.Rect(r, color);
 

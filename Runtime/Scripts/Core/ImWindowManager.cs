@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Imui.Core
 {
     [Flags]
-    public enum ImWindowFlag : ulong
+    public enum ImWindowFlag: ulong
     {
         None = 0,
         NoResizing = 1 << 0,

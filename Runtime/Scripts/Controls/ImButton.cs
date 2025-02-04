@@ -123,10 +123,10 @@ namespace Imui.Controls
             }
 
             ref readonly var evt = ref gui.Input.MouseEvent;
-            var leftButton = evt.LeftButton || 
+            var leftButton = evt.LeftButton ||
                              (flag & ImButtonFlag.ReactToAnyButton) != 0 ||
                              ((flag & ImButtonFlag.ReactToRightButton) != 0 && evt.Button == 1);
-            
+
             switch (evt.Type)
             {
                 case ImMouseEventType.Down when leftButton && hovered:
@@ -199,8 +199,8 @@ namespace Imui.Controls
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             var leftButton = evt.Button == 0 ||
-                                (flag & ImButtonFlag.ReactToAnyButton) != 0 ||
-                                ((flag & ImButtonFlag.ReactToRightButton) != 0 && evt.Button == 1);
+                             (flag & ImButtonFlag.ReactToAnyButton) != 0 ||
+                             ((flag & ImButtonFlag.ReactToRightButton) != 0 && evt.Button == 1);
             switch (evt.Type)
             {
                 case ImMouseEventType.Down when leftButton && !pressed && hovered && (flag & ImButtonFlag.ActOnPress) != 0:

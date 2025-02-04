@@ -14,7 +14,7 @@ namespace Imui.Controls
         {
             var overBaseOrder = Mathf.Max(0, gui.Canvas.GetOrder() - POPUP_BASE_ORDER);
             var order = POPUP_BASE_ORDER + ((overBaseOrder / POPUP_ORDER_STEP) * POPUP_ORDER_STEP + POPUP_ORDER_STEP);
-            
+
             gui.Canvas.PushNoClipRect();
             gui.Canvas.PushNoRectMask();
             gui.Canvas.PushOrder(order);
@@ -26,11 +26,11 @@ namespace Imui.Controls
             gui.Canvas.PopClipRect();
             gui.Canvas.PopRectMask();
         }
-        
+
         public static void EndPopupWithCloseButton(this ImGui gui, out bool close)
         {
             var order = gui.Canvas.GetOrder() + POPUP_CLOSE_BUTTON_ORDER_OFFSET;
-            
+
             gui.Canvas.PopOrder();
             gui.Canvas.PopClipRect();
             gui.Canvas.PopRectMask();
@@ -45,15 +45,15 @@ namespace Imui.Controls
             gui.RegisterRaycastTarget(gui.Canvas.ScreenRect);
 
             var id = gui.GetNextControlId();
-            
+
             ref readonly var mouseEvent = ref gui.Input.MouseEvent;
             if (mouseEvent.Type == ImMouseEventType.Scroll || mouseEvent.Type == ImMouseEventType.Drag)
             {
                 gui.Input.UseMouseEvent();
             }
-            
+
             var clicked = gui.InvisibleButton(id, gui.Canvas.ScreenRect, ImButtonFlag.ActOnPress | ImButtonFlag.ReactToAnyButton);
-            
+
             gui.Canvas.PopOrder();
             gui.Canvas.PopClipRect();
 

@@ -5,7 +5,7 @@ namespace Imui.Core
     public class ImFormatter
     {
         private ImArena arena;
-        
+
         public ImFormatter(ImArena arena)
         {
             this.arena = arena;
@@ -21,7 +21,7 @@ namespace Imui.Core
             valueSpan.CopyTo(span[size..]);
             return span;
         }
-        
+
         public Span<char> Concat(ReadOnlySpan<char> str, float value)
         {
             var valueSpan = Format(value);
@@ -37,29 +37,29 @@ namespace Imui.Core
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length);
             var size = 0;
-            str0.CopyTo(span[size..]); 
+            str0.CopyTo(span[size..]);
             size += str0.Length;
             str1.CopyTo(span[size..]);
             return span;
         }
-        
+
         public Span<char> Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length + str2.Length);
             var size = 0;
-            str0.CopyTo(span[size..]); 
+            str0.CopyTo(span[size..]);
             size += str0.Length;
             str1.CopyTo(span[size..]);
             size += str1.Length;
             str2.CopyTo(span[size..]);
             return span;
         }
-        
+
         public Span<char> Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length + str2.Length + str3.Length);
             var size = 0;
-            str0.CopyTo(span[size..]); 
+            str0.CopyTo(span[size..]);
             size += str0.Length;
             str1.CopyTo(span[size..]);
             size += str1.Length;
@@ -68,12 +68,12 @@ namespace Imui.Core
             str3.CopyTo(span[size..]);
             return span;
         }
-        
+
         public Span<char> Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3, ReadOnlySpan<char> str4)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length + str2.Length + str3.Length + str4.Length);
             var size = 0;
-            str0.CopyTo(span[size..]); 
+            str0.CopyTo(span[size..]);
             size += str0.Length;
             str1.CopyTo(span[size..]);
             size += str1.Length;
@@ -84,23 +84,23 @@ namespace Imui.Core
             str4.CopyTo(span[size..]);
             return span;
         }
-        
-        
+
+
         public Span<char> ConcatDuplicate(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, int repeat)
         {
             var span = arena.AllocArray<char>(str0.Length + str1.Length * (repeat < 0 ? 0 : repeat));
             var size = 0;
-            str0.CopyTo(span[size..]); 
+            str0.CopyTo(span[size..]);
             size += str0.Length;
             for (int i = 0; i < repeat; ++i)
             {
                 str1.CopyTo(span[size..]);
                 size += str1.Length;
             }
-            
+
             return span;
         }
-        
+
         public Span<char> Format(float value, ReadOnlySpan<char> format = default)
         {
             const int MAX_LEN = 64;
@@ -109,7 +109,7 @@ namespace Imui.Core
             value.TryFormat(span, out var written, format);
             return span[..written];
         }
-        
+
         public Span<char> Format(int value, ReadOnlySpan<char> format = default)
         {
             const int MAX_LEN = 11;
@@ -118,7 +118,7 @@ namespace Imui.Core
             value.TryFormat(span, out var written, format);
             return span[..written];
         }
-        
+
         public Span<char> Format(uint value, ReadOnlySpan<char> format = default)
         {
             const int MAX_LEN = 10;

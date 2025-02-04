@@ -9,7 +9,7 @@ namespace Imui.Core
     /// <summary>
     /// Arena allocator
     /// </summary>
-    public unsafe class ImArena : IDisposable
+    public unsafe class ImArena: IDisposable
     {
         /// <summary>
         /// Total system memory currently allocated 
@@ -19,7 +19,7 @@ namespace Imui.Core
             get
             {
                 var sum = 0;
-                
+
                 for (int i = 0; i < blocks.Count; ++i)
                 {
                     sum += blocks.Array[i].Capacity;
@@ -37,7 +37,7 @@ namespace Imui.Core
             get
             {
                 var sum = 0;
-                
+
                 for (int i = 0; i < blocks.Count; ++i)
                 {
                     sum += blocks.Array[i].Size;
@@ -50,7 +50,7 @@ namespace Imui.Core
         private int lastBlock;
         private ImDynamicArray<MemoryBlock> blocks;
         private bool disposed;
-        
+
         /// <summary>
         /// Initializes a new instance of the ImArena class with the specified capacity.
         /// Allocates a buffer of the given size.
@@ -63,27 +63,27 @@ namespace Imui.Core
             blocks = new ImDynamicArray<MemoryBlock>(4);
             blocks.Add(new MemoryBlock(capacity));
         }
-        
+
         /// <summary>
         /// Allocates an object of type T. Does not zero memory.
         /// </summary>
         /// <typeparam name="T">Built-in type or unmanaged struct</typeparam>
         /// <returns>Reference to the allocated object</returns>
-        public ref T Alloc<T>() where T : unmanaged
+        public ref T Alloc<T>() where T: unmanaged
         {
             return ref *(T*)Reserve(sizeof(T), false);
         }
-        
+
         /// <summary>
         /// Allocates an object of type T. Does not zero memory.
         /// </summary>
         /// <typeparam name="T">Built-in type or unmanaged struct</typeparam>
         /// <returns>Pointer to the allocated object</returns>
-        public T* AllocUnsafe<T>() where T : unmanaged
+        public T* AllocUnsafe<T>() where T: unmanaged
         {
             return (T*)Reserve(sizeof(T), false);
         }
-        
+
         /// <summary>
         /// Allocates an array of objects of type T. Does not zero memory.
         /// </summary>
@@ -91,7 +91,7 @@ namespace Imui.Core
         /// <param name="zero">Whether to clear allocated memory</param>
         /// <typeparam name="T">Built-in type or unmanaged struct</typeparam>
         /// <returns>Span of type T with the given length</returns>
-        public Span<T> AllocArray<T>(int length, bool zero = false) where T : unmanaged
+        public Span<T> AllocArray<T>(int length, bool zero = false) where T: unmanaged
         {
             return new Span<T>(Reserve(sizeof(T) * length, zero), length);
         }
@@ -104,14 +104,14 @@ namespace Imui.Core
         /// <param name="length">New length of the array</param>
         /// <typeparam name="T">Built-in type or unmanaged struct</typeparam>
         /// <returns>Span of newly allocated array</returns>
-        public Span<T> ReallocArray<T>(ref Span<T> array, int length) where T : unmanaged
+        public Span<T> ReallocArray<T>(ref Span<T> array, int length) where T: unmanaged
         {
             fixed (T* ptr = array)
             {
                 return new Span<T>(ReallocArrayUnsafe(ptr, array.Length, length), length);
             }
         }
-        
+
         /// <summary>
         /// Allocates an array of objects of type T.
         /// </summary>
@@ -119,7 +119,7 @@ namespace Imui.Core
         /// <param name="zero">Whether to clear allocated memory</param>
         /// <typeparam name="T">Built-in type or unmanaged struct</typeparam>
         /// <returns>Pointer to array of type T with the given length</returns>
-        public T* AllocArrayUnsafe<T>(int length, bool zero = false) where T : unmanaged
+        public T* AllocArrayUnsafe<T>(int length, bool zero = false) where T: unmanaged
         {
             return (T*)Reserve(sizeof(T) * length, zero);
         }
@@ -133,37 +133,37 @@ namespace Imui.Core
         /// <param name="newLength">New length of the array</param>
         /// <typeparam name="T">Built-in type or unmanaged struct</typeparam>
         /// <returns>Pointer to newly allocated array</returns>
-        public T* ReallocArrayUnsafe<T>(T* array, int prevLength, int newLength) where T : unmanaged
+        public T* ReallocArrayUnsafe<T>(T* array, int prevLength, int newLength) where T: unmanaged
         {
             var prevLengthAligned = Align(sizeof(T) * prevLength);
             var newLengthAligned = Align(sizeof(T) * newLength);
-            
+
             if (lastBlock >= 0)
             {
                 ref var block = ref blocks.Array[lastBlock];
                 var tail = (void*)(block.Ptr + block.Size);
-            
-                if ((byte*)array + prevLengthAligned == tail && 
+
+                if ((byte*)array + prevLengthAligned == tail &&
                     (block.Capacity - block.Size - prevLengthAligned) >= newLengthAligned)
                 {
                     block.Size -= prevLengthAligned;
-                    return (T*)block.Alloc(newLengthAligned, false);;
+                    return (T*)block.Alloc(newLengthAligned, false);
                 }
             }
-            
+
             var newArray = AllocArrayUnsafe<T>(newLength);
             UnsafeUtility.MemCpy(newArray, array, prevLengthAligned);
 
             return newArray;
         }
-        
+
         /// <summary>
         /// Resets the allocator by setting the used memory size to zero.
         /// </summary>
         public void Clear()
         {
             lastBlock = -1;
-            
+
             for (int i = 0; i < blocks.Count; ++i)
             {
                 blocks.Array[i].Size = 0;
@@ -181,12 +181,12 @@ namespace Imui.Core
         private void* Reserve(int bytes, bool zero)
         {
             ImAssert.IsTrue(bytes > 0, "bytes > 0");
-            
+
             bytes = Align(bytes);
 
             lastBlock = FindBlockToFit(bytes);
             ref var block = ref blocks.Array[lastBlock];
-            
+
             return block.Alloc(bytes, zero);
         }
 
@@ -213,12 +213,12 @@ namespace Imui.Core
             {
                 requiredCapacity *= 2;
             }
-            
+
             blocks.Add(new MemoryBlock(requiredCapacity));
 
             return blocks.Count - 1;
         }
-        
+
         /// <summary>
         /// Aligns the given size to a multiple of the pointer size.
         /// </summary>
@@ -228,7 +228,7 @@ namespace Imui.Core
         {
             return (sizeof(IntPtr) * ((size + sizeof(IntPtr) - 1) / sizeof(IntPtr)));
         }
-        
+
         public void Dispose()
         {
             if (disposed)
@@ -240,16 +240,16 @@ namespace Imui.Core
             {
                 blocks.Array[i].Dispose();
             }
-            
+
             blocks = default;
             disposed = true;
         }
-        
-        internal unsafe struct MemoryBlock : IDisposable
+
+        internal unsafe struct MemoryBlock: IDisposable
         {
             public readonly int Capacity;
             public readonly IntPtr Ptr;
-            
+
             public int Size;
 
             public MemoryBlock(int capacity)
@@ -258,20 +258,20 @@ namespace Imui.Core
                 Capacity = capacity;
                 Ptr = Marshal.AllocHGlobal(capacity);
             }
-            
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void* Alloc(int sizeAligned, bool zero)
             {
                 ImAssert.IsTrue(sizeAligned > 0, "sizeAligned > 0");
-                
+
                 var ptr = (void*)(Ptr + Size);
                 if (zero)
                 {
                     UnsafeUtility.MemSet(ptr, 0, sizeAligned);
                 }
-                
+
                 Size += sizeAligned;
-            
+
                 return ptr;
             }
 
@@ -280,11 +280,11 @@ namespace Imui.Core
             {
                 ImAssert.IsTrue(ptr >= (byte*)Ptr, "ptr >= Ptr");
                 ImAssert.IsTrue(ptr < (byte*)(Ptr + Size), "ptr < (Ptr + Size)");
-                
+
                 var remaining = ((byte*)Ptr + Size) - ((byte*)ptr + size);
-                
+
                 ImAssert.IsTrue(remaining >= 0, "remaining >= 0");
-                
+
                 UnsafeUtility.MemMove(ptr, (byte*)ptr + size, remaining);
                 Size -= size;
             }

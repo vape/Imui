@@ -13,7 +13,7 @@ namespace Imui.IO.Events
         Drag,
         Hold
     }
-    
+
     public readonly struct ImMouseEvent
     {
         public readonly ImMouseEventType Type;

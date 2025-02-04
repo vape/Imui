@@ -82,7 +82,7 @@ namespace Imui.Controls
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
-            
+
             step = Mathf.Abs(step);
 
             var normValue = Mathf.InverseLerp(min, max, value);
@@ -93,7 +93,7 @@ namespace Imui.Controls
             backgroundRect.Y += (rect.H - backgroundRect.H) * 0.5f;
             backgroundRect.W -= (rect.H - backgroundRect.H);
             backgroundRect.X += (rect.H - backgroundRect.H) * 0.5f;
-            
+
             ref readonly var style = ref (active ? ref gui.Style.Slider.Selected : ref gui.Style.Slider.Normal);
             gui.Box(backgroundRect, in style);
 
@@ -127,7 +127,7 @@ namespace Imui.Controls
 
             var textSize = gui.TextDrawer.GetFontSizeFromLineHeight(backgroundRect.H);
             var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f, overflow: gui.Style.Slider.TextOverflow);
-            
+
             gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Normal.FrontColor, backgroundRect);
 
             if (gui.IsReadOnly)
@@ -162,7 +162,7 @@ namespace Imui.Controls
             }
 
             value = Mathf.Lerp(min, max, normValue);
-            
+
             if (step > 0)
             {
                 var precision = 1.0f / step;

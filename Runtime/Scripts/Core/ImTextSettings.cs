@@ -11,7 +11,7 @@ namespace Imui.Core
         public ImAlignment Align;
         public bool Wrap;
         public ImTextOverflow Overflow;
-        
+
         public ImTextSettings(float size, float alignX = 0.0f, float alignY = 0.0f, bool wrap = false, ImTextOverflow overflow = ImTextOverflow.Overflow)
         {
             Size = size;

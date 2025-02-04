@@ -145,7 +145,7 @@ namespace Imui.Controls
                 {
                     state |= ImTreeNodeState.Selected;
                 }
-                
+
                 changed = true;
             }
 

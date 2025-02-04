@@ -235,7 +235,7 @@ namespace Imui.Controls
 
             var textRect = rect.WithPadding(textPadding);
             var layout = gui.TextDrawer.BuildTempLayout(
-                buffer, textRect.W, textRect.H, textAlignment.X, textAlignment.Y, textSize, 
+                buffer, textRect.W, textRect.H, textAlignment.X, textAlignment.Y, textSize,
                 style.TextWrap, ImTextOverflow.Overflow);
 
             gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
@@ -889,14 +889,14 @@ namespace Imui.Controls
                 gui.Canvas.Rect(lineSelectionRect, style.SelectionColor);
             }
         }
-        
+
         public static unsafe ImTextTempFilterBuffer* GetTempFilterBuffer(ImGui gui, uint id)
         {
             gui.PushId(id);
             var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);
             var tempBuffer = gui.Storage.GetUnsafe<ImTextTempFilterBuffer>(tempBufferId);
             gui.PopId();
-            
+
             return tempBuffer;
         }
     }

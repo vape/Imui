@@ -7,9 +7,9 @@ namespace Imui.IO
     {
         CommandBuffer CreateCommandBuffer();
         void ReleaseCommandBuffer(CommandBuffer cmd);
-        
+
         Rect GetScreenRect();
-        
+
         Vector2Int SetupRenderTarget(CommandBuffer cmd);
         void Execute(CommandBuffer cmd);
     }
