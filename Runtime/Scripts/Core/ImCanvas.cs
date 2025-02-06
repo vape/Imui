@@ -182,9 +182,8 @@ namespace Imui.Core
         private float screenScale;
 
         private bool disposed;
-
-        // TODO (artem-s): use AABB for faster clipping
-        private ImRect cullingRect;
+        
+        private ImAABB cullingBounds;
         private ImTextClipRect textClipRect;
         private Vector4 texScaleOffset;
 
@@ -352,15 +351,15 @@ namespace Imui.Core
             mesh.MaskRect = settings.MaskRect;
             mesh.InvColorMul = settings.InvColorMul;
 
-            cullingRect = CalculateCullRect();
-            textClipRect = new ImTextClipRect(cullingRect.Left, cullingRect.Right, cullingRect.Top, cullingRect.Bottom);
+            cullingBounds = CalculateCullingBounds();
+            textClipRect = new ImTextClipRect(cullingBounds.Left, cullingBounds.Right, cullingBounds.Top, cullingBounds.Bottom);
         }
 
         /// <summary>
         /// Given active screen, clip rect and mask rect, calculates final rectangle for culling on CPU.
         /// </summary>
         /// <returns>Cull rect</returns>
-        private ImRect CalculateCullRect()
+        private ImAABB CalculateCullingBounds()
         {
             var result = ScreenRect;
 
@@ -375,16 +374,16 @@ namespace Imui.Core
                 result = result.Intersection((ImRect)settings.MaskRect.Rect);
             }
 
-            return result;
+            return new ImAABB(result);
         }
 
         /// <summary>
-        /// Gets culling rect.
+        /// Gets culling bounds.
         /// </summary>
-        /// <returns>Cull rect.</returns>
-        public ImRect GetCullRect()
+        /// <returns>Culling bounds.</returns>
+        public ref readonly ImAABB GetCullingBounds()
         {
-            return cullingRect;
+            return ref cullingBounds;
         }
 
         /// <summary>
@@ -395,7 +394,7 @@ namespace Imui.Core
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Cull(in ImRect rect)
         {
-            return !cullingRect.Overlaps(in rect);
+            return !cullingBounds.Overlaps(in rect);
         }
 
         /// <summary>

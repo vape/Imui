@@ -445,14 +445,12 @@ namespace Imui.Controls
             ImProfiler.BeginSample("ImTable.DrawColumnSeparators");
 
             ref readonly var frame = ref gui.Layout.GetFrame();
-
+            ref readonly var cullingBounds = ref gui.Canvas.GetCullingBounds();
+            
             var count = (state->Flags & ImTableFlag.ResizableColumns) != 0 ? state->ColumnsCount : state->ColumnsCount - 1;
             var defaultThickness = gui.Canvas.GetScaledLineThickness(gui.Style.Table.BorderThickness);
             var selectedThickness = gui.Canvas.GetScaledLineThickness(gui.Style.Table.SelectedColumnThickness);
             var maxThickness = Mathf.Max(defaultThickness, selectedThickness);
-            var cullRect = gui.Canvas.GetCullRect();
-            var cullRectLeft = cullRect.X - maxThickness;
-            var cullRectRight = cullRect.X + cullRect.W + maxThickness;
 
             var y0 = state->Position.y - ((state->StateFlags & ImTableStateFlags.Enclosed) != 0 ? frame.Bounds.H + frame.Offset.y : state->Height);
             var y1 = state->Position.y - ((state->StateFlags & ImTableStateFlags.Enclosed) != 0 ? frame.Offset.y : 0.0f);
@@ -460,12 +458,12 @@ namespace Imui.Controls
             for (int i = 0; i < count; ++i)
             {
                 var x = state->Position.x + state->Columns[i].Offset * state->Width;
-                if (x < cullRectLeft)
+                if (x < cullingBounds.Left)
                 {
                     continue;
                 }
 
-                if (x > cullRectRight)
+                if (x > cullingBounds.Right)
                 {
                     break;
                 }
