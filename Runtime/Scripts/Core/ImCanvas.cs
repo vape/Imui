@@ -651,10 +651,9 @@ namespace Imui.Core
         /// <param name="p0">The starting point of the line.</param>
         /// <param name="p1">The ending point of the line.</param>
         /// <param name="color">The color of the line.</param>
-        /// <param name="closed">Indicates whether the line should be closed into a loop.</param> // wtf? TODO (artem-s): remove
         /// <param name="thickness">The thickness of the line.</param>
         /// <param name="bias">Controls where thickness grows. From 0 to 1.</param>
-        public void Line(Vector2 p0, Vector2 p1, Color32 color, bool closed, float thickness, float bias = 0.5f)
+        public void Line(Vector2 p0, Vector2 p1, Color32 color, float thickness, float bias = 0.5f)
         {
             // TODO (artem-s): add clipping
 
@@ -669,7 +668,7 @@ namespace Imui.Core
             meshDrawer.ScaleOffset = texScaleOffset;
             meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DrawingDepth;
-            meshDrawer.AddLine(stackalloc Vector2[2] { p0, p1 }, closed, thickness, bias, 1.0f - bias);
+            meshDrawer.AddLine(stackalloc Vector2[2] { p0, p1 }, false, thickness, bias, 1.0f - bias);
         }
 
         /// <summary>

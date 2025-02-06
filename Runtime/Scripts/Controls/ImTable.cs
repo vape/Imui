@@ -435,7 +435,7 @@ namespace Imui.Controls
             var p0 = new Vector2(x0, y);
             var p1 = new Vector2(x1, y);
 
-            gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
+            gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, gui.Style.Separator.Thickness);
 
             ImProfiler.EndSample();
         }
@@ -474,7 +474,7 @@ namespace Imui.Controls
                 var color = state->SelectedColumn == i ? gui.Style.Table.SelectedColumnColor : gui.Style.Table.BorderColor;
                 var thickness = state->SelectedColumn == i ? selectedThickness : defaultThickness;
 
-                gui.Canvas.Line(p0, p1, color, false, thickness);
+                gui.Canvas.Line(p0, p1, color, thickness);
             }
 
             ImProfiler.EndSample();
