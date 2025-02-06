@@ -98,9 +98,9 @@ namespace Imui.Rendering
                 uv1y = (y + h) / FONT_ATLAS_H;
             }
         }
-
-        // TODO (artem-s): use ellipsis character (…) instead for fonts that support it
-        private const string ELLIPSIS = "...";
+        
+        private const string ELLIPSIS_FALLBACK = "...";
+        private const string ELLIPSIS_ONE_CHAR = "…";
         private const char NEW_LINE = '\n';
         private const char SPACE = ' ';
         private const char TAB = '\t';
@@ -127,7 +127,10 @@ namespace Imui.Rendering
         private float renderSize;
         private float descentLine;
         private GlyphData[] glyphsLookup;
+        
         private float ellipsisWidth;
+        private GlyphData[] ellipsisGlyphs;
+        private string ellipsisStr;
 
         private readonly ImMeshBuffer buffer;
 
@@ -137,6 +140,7 @@ namespace Imui.Rendering
         {
             this.buffer = buffer;
             this.glyphsLookup = new GlyphData[256];
+            this.ellipsisGlyphs = new GlyphData[ELLIPSIS_FALLBACK.Length];
         }
 
         public void LoadFont(Font font, float? size = null)
@@ -166,9 +170,22 @@ namespace Imui.Rendering
             glyphsLookup[TAB].advance = glyphsLookup[SPACE].advance * TAB_SPACES;
 
             ellipsisWidth = 0.0f;
-            for (int i = 0; i < ELLIPSIS.Length; ++i)
+            
+            if (fontAsset.HasCharacter(ELLIPSIS_ONE_CHAR[0], tryAddCharacter: true))
             {
-                ellipsisWidth += glyphsLookup[ELLIPSIS[i]].advance;
+                ellipsisGlyphs[0] = new GlyphData(fontAsset.characterLookupTable[ELLIPSIS_ONE_CHAR[0]].glyph);
+                ellipsisWidth += ellipsisGlyphs[0].advance;
+                ellipsisStr = ELLIPSIS_ONE_CHAR;
+            }
+            else
+            {   
+                for (int i = 0; i < ELLIPSIS_FALLBACK.Length; ++i)
+                {
+                    ellipsisGlyphs[i] = glyphsLookup[ELLIPSIS_FALLBACK[i]];
+                    ellipsisWidth += ellipsisGlyphs[i].advance;
+                }
+
+                ellipsisStr = ELLIPSIS_FALLBACK;
             }
 
             fontAsset.atlasTexture.Apply();
@@ -274,10 +291,10 @@ namespace Imui.Rendering
                         {
                             if (layout.Overflow == ImTextOverflow.Ellipsis && layout.OverflowWidth > (ellipsisWidth * layout.Scale))
                             {
-                                for (int j = 0; j < ELLIPSIS.Length; ++j)
+                                for (int j = 0; j < ellipsisStr.Length; ++j)
                                 {
-                                    ref readonly var glyphEllipsis = ref glyphsLookup[ELLIPSIS[j]];
-                                    x += AddGlyphQuad(in glyphEllipsis, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                                    ref readonly var g = ref ellipsisGlyphs[j];
+                                    x += AddGlyphQuad(in g, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                                 }
                             }
 
@@ -306,10 +323,10 @@ namespace Imui.Rendering
                         {
                             if (layout.Overflow == ImTextOverflow.Ellipsis)
                             {
-                                for (int j = 0; j < ELLIPSIS.Length; ++j)
+                                for (int j = 0; j < ellipsisStr.Length; ++j)
                                 {
-                                    ref readonly var glyphEllipsis = ref glyphsLookup[ELLIPSIS[j]];
-                                    x += AddGlyphQuad(in glyphEllipsis, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                                    ref readonly var g = ref ellipsisGlyphs[j];
+                                    x += AddGlyphQuad(in g, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                                 }
                             }
 
