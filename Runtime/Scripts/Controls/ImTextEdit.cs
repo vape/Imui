@@ -264,7 +264,9 @@ namespace Imui.Controls
                     }
                     break;
 
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
+                case ImMouseEventType.Click when evt.Device == ImMouseDevice.Touch && hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.Device == ImMouseDevice.Mouse && evt.LeftButton && hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.Device == ImMouseDevice.Touch && evt.LeftButton && hovered && selected:
                     if (!selected)
                     {
                         gui.SetActiveControl(id, ImControlFlag.Draggable);
@@ -324,6 +326,7 @@ namespace Imui.Controls
                         textChanged = buffer.Length != 0 || textEvent.Text.Length != 0;
                         buffer.Clear(textEvent.Text.Length);
                         Insert(ref state, ref buffer, textEvent.Text);
+                        gui.Input.UseTextEvent();
                         break;
                     default:
                         if (editable)
