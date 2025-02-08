@@ -109,12 +109,27 @@ namespace Imui.Controls
             var handleY = handleBounds.Y + (handleBounds.H / 2.0f) - (handleH / 2.0f);
             var handleRect = new ImRect(handleX, handleY, handleW, handleH);
 
+            ref readonly var evt = ref gui.Input.MouseEvent;
+
             using (gui.StyleScope(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
-                if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPress))
+                var buttonFlags = ImButtonFlag.ActOnPress;
+                if (evt.Device == ImMouseDevice.Touch)
+                {
+                    // do not catch mouse down for touch input, allowing to freely scroll 
+                    buttonFlags &= ~ImButtonFlag.ActOnPress;
+                }
+
+                if (gui.Button(id, handleRect, out _, buttonFlags))
                 {
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
-                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    changed = true;
+
+                    if ((buttonFlags & ImButtonFlag.ActOnPress) != 0)
+                    {
+                        // if button is activated on press, select control, so we can continue to scroll while mouse is down
+                        gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    }
                 }
             }
 
@@ -135,10 +150,9 @@ namespace Imui.Controls
                 return false;
             }
 
-            ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered && IsScrollingHorizontally(in evt):
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     changed = true;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
@@ -180,6 +194,11 @@ namespace Imui.Controls
             }
 
             return gui.Formatter.ConcatDuplicate("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
+        }
+
+        private static bool IsScrollingHorizontally(in ImMouseEvent e)
+        {
+            return e.Device == ImMouseDevice.Mouse || Mathf.Abs(e.Delta.x) > Mathf.Abs(e.Delta.y);
         }
     }
 }

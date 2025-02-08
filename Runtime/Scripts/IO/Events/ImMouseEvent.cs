@@ -17,6 +17,7 @@ namespace Imui.IO.Events
 
     public enum ImMouseDevice
     {
+        Unknown,
         Mouse,
         Touch
     }
