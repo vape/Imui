@@ -33,18 +33,23 @@ namespace Imui.Examples
     public static class ImDemoWindow
     {
         private static int selectedThemeIndex = 0;
-        private static ImTheme[] themes = { CreateTheme(0), CreateTheme(1), CreateTheme(2), CreateTheme(3), CreateTheme(4) };
+        private static ImTheme[] themes =
+        {
+            CreateTheme(0), CreateTheme(1), CreateTheme(2), CreateTheme(3), CreateTheme(4), CreateTheme(5), CreateTheme(6)
+        };
 
         private static string[] themeNames =
         {
             nameof(ImThemeBuiltin.Light), nameof(ImThemeBuiltin.Dark), nameof(ImThemeBuiltin.Dear), nameof(ImThemeBuiltin.Orange),
-            nameof(ImThemeBuiltin.Terminal)
+            nameof(ImThemeBuiltin.Terminal), nameof(ImThemeBuiltin.LightTouch), nameof(ImThemeBuiltin.DarkTouch)
         };
 
         private static ImTheme CreateTheme(int index)
         {
             return index switch
             {
+                6 => ImThemeBuiltin.DarkTouch(),
+                5 => ImThemeBuiltin.LightTouch(),
                 4 => ImThemeBuiltin.Terminal(),
                 3 => ImThemeBuiltin.Orange(),
                 2 => ImThemeBuiltin.Dear(),
