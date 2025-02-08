@@ -189,7 +189,7 @@ namespace Imui.Controls
 
             if (!active)
             {
-                state.NextRect.Position = KeepWindowInsideScreen(gui, state.NextRect.Position, state.NextRect.Size);
+                state.NextRect.Position = KeepWindowWithinSafeArea(gui, state.NextRect.Position, state.NextRect.Size);
             }
 
             if ((state.Flags & ImWindowFlag.NoCloseButton) == 0)
@@ -349,10 +349,10 @@ namespace Imui.Controls
             return new ImRect(position.x, position.y, width, height);
         }
 
-        private static Vector2 KeepWindowInsideScreen(ImGui gui, Vector2 position, Vector2 size)
+        private static Vector2 KeepWindowWithinSafeArea(ImGui gui, Vector2 position, Vector2 size)
         {
+            var screenRect = gui.Canvas.SafeScreenRect;
             var titleBarHeight = GetTitleBarHeight(gui);
-            var screenRect = gui.Canvas.ScreenRect;
             var left = screenRect.Left - size.x + titleBarHeight * 2; // close button
             var right = screenRect.Right - titleBarHeight;
             var top = screenRect.Top - size.y;

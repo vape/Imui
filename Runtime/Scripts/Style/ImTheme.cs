@@ -93,7 +93,7 @@ namespace Imui.Style
                 Foreground = new Color32(224, 224, 224, 255),
                 Accent = new Color32(0, 125, 219, 255),
                 Control = new Color32(255, 255, 255, 8),
-                Variance = 0.15f,
+                Variance = 0.18f,
             };
         }
 
