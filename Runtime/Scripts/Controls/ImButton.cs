@@ -17,10 +17,12 @@ namespace Imui.Controls
     public enum ImButtonFlag
     {
         None = 0,
-        ActOnPress = 1,
-        ReactToHeldDown = 2,
-        ReactToRightButton = 4,
-        ReactToAnyButton = 8
+        ActOnPressMouse = 1,
+        ActOnPressTouch = 2,
+        ReactToHeldDown = 4,
+        ReactToRightButton = 8,
+        ReactToAnyButton = 16,
+        ActOnPress = ActOnPressMouse | ActOnPressMouse,
     }
 
     public static class ImButton
@@ -123,14 +125,20 @@ namespace Imui.Controls
             }
 
             ref readonly var evt = ref gui.Input.MouseEvent;
+            
             var leftButton = evt.LeftButton ||
                              (flag & ImButtonFlag.ReactToAnyButton) != 0 ||
                              ((flag & ImButtonFlag.ReactToRightButton) != 0 && evt.Button == 1);
+            
+            var actOnPress = 
+                (evt.Device == ImMouseDevice.Mouse & (flag & ImButtonFlag.ActOnPressMouse) != 0) |
+                (evt.Device == ImMouseDevice.Touch & (flag & ImButtonFlag.ActOnPressTouch) != 0);
+                
 
             switch (evt.Type)
             {
                 case ImMouseEventType.Down when leftButton && hovered:
-                    if ((flag & ImButtonFlag.ActOnPress) != 0)
+                    if (actOnPress)
                     {
                         clicked = true;
                         gui.Input.UseMouseEvent();
@@ -147,7 +155,7 @@ namespace Imui.Controls
                     gui.ResetActiveControl();
                     clicked = hovered;
 
-                    if (clicked & (flag & ImButtonFlag.ActOnPress) == 0)
+                    if (clicked & actOnPress)
                     {
                         gui.Input.UseMouseEvent();
                     }
@@ -198,12 +206,18 @@ namespace Imui.Controls
             }
 
             ref readonly var evt = ref gui.Input.MouseEvent;
+            
             var leftButton = evt.Button == 0 ||
                              (flag & ImButtonFlag.ReactToAnyButton) != 0 ||
                              ((flag & ImButtonFlag.ReactToRightButton) != 0 && evt.Button == 1);
+
+            var actOnPress = 
+                (evt.Device == ImMouseDevice.Mouse & (flag & ImButtonFlag.ActOnPressMouse) != 0) |
+                (evt.Device == ImMouseDevice.Touch & (flag & ImButtonFlag.ActOnPressTouch) != 0);
+                
             switch (evt.Type)
             {
-                case ImMouseEventType.Down when leftButton && !pressed && hovered && (flag & ImButtonFlag.ActOnPress) != 0:
+                case ImMouseEventType.Down when leftButton && !pressed && hovered && actOnPress:
                     clicked = true;
                     gui.Input.UseMouseEvent();
                     break;

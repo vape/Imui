@@ -113,19 +113,14 @@ namespace Imui.Controls
 
             using (gui.StyleScope(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
-                var buttonFlags = ImButtonFlag.ActOnPress;
-                if (evt.Device == ImMouseDevice.Touch)
-                {
-                    // do not catch mouse down for touch input, allowing to freely scroll 
-                    buttonFlags &= ~ImButtonFlag.ActOnPress;
-                }
+                var device = evt.Device;
 
-                if (gui.Button(id, handleRect, out _, buttonFlags))
+                if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPressMouse))
                 {
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     changed = true;
 
-                    if ((buttonFlags & ImButtonFlag.ActOnPress) != 0)
+                    if (device == ImMouseDevice.Mouse)
                     {
                         // if button is activated on press, select control, so we can continue to scroll while mouse is down
                         gui.SetActiveControl(id, ImControlFlag.Draggable);

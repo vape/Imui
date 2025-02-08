@@ -129,23 +129,14 @@ namespace Imui.Controls
             var changed = false;
             var buttonState = ImButtonState.Normal;
             var expandButtonRect = selectable ? arrowRect : rect;
-
-            ref readonly var evt = ref gui.Input.MouseEvent;
             
-            var buttonFlags = ImButtonFlag.ActOnPress;
-            if (evt.Device == ImMouseDevice.Touch)
-            {
-                // do not catch mouse down for touch input, allowing to freely scroll 
-                buttonFlags &= ~ImButtonFlag.ActOnPress;
-            }
-
-            if (expandable && gui.InvisibleButton(expandButtonRect, out buttonState, buttonFlags))
+            if (expandable && gui.InvisibleButton(expandButtonRect, out buttonState, ImButtonFlag.ActOnPressMouse))
             {
                 state ^= ImTreeNodeState.Expanded;
                 changed = true;
             }
 
-            if (selectable && gui.InvisibleButton(labelRect, out buttonState, buttonFlags))
+            if (selectable && gui.InvisibleButton(labelRect, out buttonState, ImButtonFlag.ActOnPressMouse))
             {
                 if ((flags & ImTreeNodeFlags.UnselectOnClick) != 0)
                 {
