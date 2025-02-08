@@ -113,6 +113,7 @@ namespace Imui.Controls
 
             using (gui.StyleScope(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
+                var type = evt.Type;
                 var device = evt.Device;
 
                 if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPressMouse))
@@ -120,7 +121,7 @@ namespace Imui.Controls
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     changed = true;
 
-                    if (device == ImMouseDevice.Mouse)
+                    if (type == ImMouseEventType.Down && device == ImMouseDevice.Mouse)
                     {
                         // if button is activated on press, select control, so we can continue to scroll while mouse is down
                         gui.SetActiveControl(id, ImControlFlag.Draggable);
@@ -147,7 +148,12 @@ namespace Imui.Controls
 
             switch (evt.Type)
             {
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered && IsScrollingHorizontally(in evt):
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when
+                    evt.LeftButton &&
+                    hovered &&
+                    IsScrollingHorizontally(in evt) &&
+                    !gui.ActiveControlIs(ImControlFlag.Draggable):
+
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     changed = true;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
