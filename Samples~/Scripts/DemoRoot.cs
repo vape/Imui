@@ -35,8 +35,13 @@ namespace Imui.Demo
         private void DrawRootMenu()
         {
             gui.BeginPopup();
+
+            var menuBarHeight = gui.GetRowHeight();
+            var menuBarRect = gui.Canvas.ScreenRect.TakeTop(menuBarHeight);
+
+            gui.Canvas.SafeAreaPadding.Top += menuBarHeight;
             
-            gui.BeginMenuBar(gui.Canvas.ScreenRect.TakeTop(gui.GetRowHeight()));
+            gui.BeginMenuBar(menuBarRect);
             
             if (gui.BeginMenuBarItem("Demo"))
             {

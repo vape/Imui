@@ -186,11 +186,9 @@ namespace Imui.Core
             Input.SetScale(UiScale);
             Input.Pull();
 
-            Canvas.SetScreen(scaledScreenSize, uiScale);
             Canvas.Clear();
+            Canvas.ConfigureScreen(scaledScreenSize, uiScale);
             Canvas.PushSettings(Canvas.CreateDefaultSettings());
-
-            WindowManager.SetScreenSize(scaledScreenSize);
 
             Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledScreenSize));
 

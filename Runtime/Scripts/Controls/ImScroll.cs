@@ -21,9 +21,11 @@ namespace Imui.Controls
     {
         None = 0,
         VerBarVisible = 1 << 0,
-        HorBarVisible = 1 << 1
+        HorBarVisible = 1 << 1,
+        VerScrollable = 1 << 2,
+        HorScrollable = 1 << 3
     }
-
+    
     public struct ImScrollState
     {
         public Vector2 Offset;
@@ -71,6 +73,8 @@ namespace Imui.Controls
 
         public static void Scroll(ImGui gui, uint id, ref ImScrollState state, ImRect view, Vector2 size)
         {
+            const ImScrollLayoutFlag ANY_AXES_SCROLLABLE = ImScrollLayoutFlag.HorScrollable | ImScrollLayoutFlag.VerScrollable;
+            
             Layout(gui, ref state, view, size, out var adjust);
 
             var dx = 0f;
@@ -114,6 +118,7 @@ namespace Imui.Controls
             var deferredUseMouseEvent = false;
             var groupHovered = gui.IsGroupHovered(id);
             var active = gui.IsControlActive(id);
+            var scrollable = (state.Layout & ANY_AXES_SCROLLABLE) != 0;
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -127,8 +132,8 @@ namespace Imui.Controls
                     dy += evt.Delta.y * factor;
                     deferredUseMouseEvent = true;
                     break;
-
-                case ImMouseEventType.BeginDrag when groupHovered && !active && !gui.ActiveControlIs(ImControlFlag.Draggable):
+                
+                case ImMouseEventType.BeginDrag when scrollable && groupHovered && !active && !gui.ActiveControlIs(ImControlFlag.Draggable):
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     break;
 
@@ -246,7 +251,7 @@ namespace Imui.Controls
 
             return view;
         }
-
+        
         private static void Layout(ImGui gui, ref ImScrollState state, ImRect view, Vector2 size, out Vector2 adjust)
         {
             var styleSizeVer = GetScrollBarSize(gui, 1);
@@ -258,16 +263,20 @@ namespace Imui.Controls
             // doing calculations twice because showing one bar may require showing another
             for (int i = 0; i < 2; ++i)
             {
+                var fitsInContainerVer = (size.y - (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeVer : 0f))) > 1.0f;
+                var fitsInContainerHor = (size.x - (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeHor : 0f))) > 1.0f;
+                
+                state.Layout = fitsInContainerVer ? (state.Layout | ImScrollLayoutFlag.VerScrollable) : (state.Layout & ~ImScrollLayoutFlag.VerScrollable);
+                state.Layout = fitsInContainerHor ? (state.Layout | ImScrollLayoutFlag.HorScrollable) : (state.Layout & ~ImScrollLayoutFlag.HorScrollable);
+                
                 state.Layout =
-                    ((flags & ImScrollFlag.HideVerBar) == 0 &&
-                     (size.y - (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeVer : 0f))) > 1.0f) ||
+                    ((flags & ImScrollFlag.HideVerBar) == 0 && (state.Layout & ImScrollLayoutFlag.VerScrollable) != 0) ||
                     (flags & ImScrollFlag.PersistentVerBar) != 0
                         ? (state.Layout | ImScrollLayoutFlag.VerBarVisible)
                         : (state.Layout & ~ImScrollLayoutFlag.VerBarVisible);
 
                 state.Layout =
-                    ((flags & ImScrollFlag.HideHorBar) == 0 &&
-                     (size.x - (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeHor : 0f))) > 1.0f) ||
+                    ((flags & ImScrollFlag.HideHorBar) == 0 && (state.Layout & ImScrollLayoutFlag.HorScrollable) != 0) ||
                     (flags & ImScrollFlag.PersistentHorBar) != 0
                         ? (state.Layout | ImScrollLayoutFlag.HorBarVisible)
                         : (state.Layout & ~ImScrollLayoutFlag.HorBarVisible);

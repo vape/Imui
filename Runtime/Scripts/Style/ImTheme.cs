@@ -27,6 +27,30 @@ namespace Imui.Style
 
     public static class ImThemeBuiltin
     {
+        public static ImTheme LightTouch()
+        {
+            var theme = Light();
+
+            theme.TextSize = 23f;
+            theme.Spacing = 5f;
+            theme.InnerSpacing = 6.5f;
+            theme.ExtraRowHeight = 11f;
+
+            return theme;
+        }
+        
+        public static ImTheme DarkTouch()
+        {
+            var theme = Dark();
+
+            theme.TextSize = 23f;
+            theme.Spacing = 5f;
+            theme.InnerSpacing = 6.5f;
+            theme.ExtraRowHeight = 11f;
+
+            return theme;
+        }
+        
         public static ImTheme Light()
         {
             return new ImTheme
@@ -69,7 +93,7 @@ namespace Imui.Style
                 Foreground = new Color32(224, 224, 224, 255),
                 Accent = new Color32(0, 125, 219, 255),
                 Control = new Color32(255, 255, 255, 8),
-                Variance = 0.15f,
+                Variance = 0.18f,
             };
         }
 

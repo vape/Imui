@@ -74,7 +74,7 @@ namespace Imui.Controls
             textRect.W -= gui.Style.Layout.InnerSpacing;
             gui.Canvas.Text(label, gui.Style.Text.Color, textRect, textSettings);
 
-            if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPress))
+            if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPressMouse))
             {
                 value = !value;
                 changed = true;

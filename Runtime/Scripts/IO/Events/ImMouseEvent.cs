@@ -11,7 +11,15 @@ namespace Imui.IO.Events
         Scroll,
         BeginDrag,
         Drag,
-        Hold
+        Hold,
+        Click
+    }
+
+    public enum ImMouseDevice
+    {
+        Unknown,
+        Mouse,
+        Touch
     }
 
     public readonly struct ImMouseEvent
@@ -22,8 +30,9 @@ namespace Imui.IO.Events
         public readonly Vector2 Delta;
         public readonly int Count;
         public readonly bool LeftButton;
+        public readonly ImMouseDevice Device;
 
-        public ImMouseEvent(ImMouseEventType type, int button, EventModifiers modifiers, Vector2 delta, int count = 1)
+        public ImMouseEvent(ImMouseEventType type, int button, EventModifiers modifiers, Vector2 delta, ImMouseDevice device, int count = 1)
         {
             Type = type;
             Button = button;
@@ -31,6 +40,7 @@ namespace Imui.IO.Events
             Delta = delta;
             Count = count;
             LeftButton = button == 0;
+            Device = device;
         }
 
         public override string ToString()

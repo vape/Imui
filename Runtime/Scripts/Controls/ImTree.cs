@@ -1,5 +1,6 @@
 using System;
 using Imui.Core;
+using Imui.IO.Events;
 using Imui.Style;
 
 namespace Imui.Controls
@@ -128,14 +129,14 @@ namespace Imui.Controls
             var changed = false;
             var buttonState = ImButtonState.Normal;
             var expandButtonRect = selectable ? arrowRect : rect;
-
-            if (expandable && gui.InvisibleButton(expandButtonRect, out buttonState, ImButtonFlag.ActOnPress))
+            
+            if (expandable && gui.InvisibleButton(expandButtonRect, out buttonState, ImButtonFlag.ActOnPressMouse))
             {
                 state ^= ImTreeNodeState.Expanded;
                 changed = true;
             }
 
-            if (selectable && gui.InvisibleButton(labelRect, out buttonState, ImButtonFlag.ActOnPress))
+            if (selectable && gui.InvisibleButton(labelRect, out buttonState, ImButtonFlag.ActOnPressMouse))
             {
                 if ((flags & ImTreeNodeFlags.UnselectOnClick) != 0)
                 {

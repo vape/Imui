@@ -23,7 +23,6 @@ namespace Imui.Core
 
         private ImDynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
         private ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
-        private Vector2 screenSize;
 
         public ref ImWindowState BeginWindow(uint id, string title, ImRect initialRect, ImWindowFlag flags)
         {
@@ -119,12 +118,7 @@ namespace Imui.Core
 
             MoveToTop(index);
         }
-
-        internal void SetScreenSize(Vector2 size)
-        {
-            screenSize = size;
-        }
-
+        
         internal void HandleFrameEnded()
         {
             for (int i = 0; i < windows.Count; ++i)

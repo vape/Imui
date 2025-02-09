@@ -101,7 +101,7 @@ namespace Imui.Style
 
             sheet.Window.ResizeHandleNormalColor = palette.ControlBorder;
             sheet.Window.ResizeHandleActiveColor = palette.Accent;
-            sheet.Window.ResizeHandleSize = Mathf.Max(theme.BorderRadius * 2.0f, theme.TextSize * 1.5f);
+            sheet.Window.ResizeHandleSize = Mathf.Max(theme.BorderRadius * 2.0f, (theme.TextSize + theme.ExtraRowHeight) * 1.25f);
 
             sheet.Window.Box.BackColor = palette.BackPrimary;
             sheet.Window.Box.FrontColor = palette.Front;

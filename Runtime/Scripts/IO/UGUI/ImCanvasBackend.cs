@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Imui.IO.Events;
 using Imui.IO.Utility;
 using Imui.Utility;
@@ -21,6 +22,8 @@ namespace Imui.IO.UGUI
         private const float HELD_DOWN_DELAY = 0.2f;
         private const float MULTI_CLICK_TIME_THRESHOLD = 0.2f;
         private const float MULTI_CLICK_POS_THRESHOLD = 20.0f;
+        private const float CLICK_POS_THRESHOLD = 8.0f;
+        private const int MAX_MOUSE_BUTTONS = 3;
 
         private static Texture2D ClearTexture;
         private static readonly Vector3[] TempBuffer = new Vector3[4];
@@ -46,9 +49,11 @@ namespace Imui.IO.UGUI
         private bool elementHovered;
 
         private bool mouseHeldDown;
-        private float[] mouseDownTime = new float[3];
-        private int[] mouseDownCount = new int[3];
-        private Vector2[] mouseDownPos = new Vector2[3];
+        private ImMouseDevice mouseDownDevice;
+        private float[] mouseDownTime = new float[MAX_MOUSE_BUTTONS];
+        private int[] mouseDownCount = new int[MAX_MOUSE_BUTTONS];
+        private Vector2[] mouseDownPos = new Vector2[MAX_MOUSE_BUTTONS];
+        private bool[] possibleClick = new bool[MAX_MOUSE_BUTTONS];
 
         protected override void Awake()
         {
@@ -184,13 +189,27 @@ namespace Imui.IO.UGUI
                 var delta = new Vector2(Time.unscaledTime - mouseDownTime[mouseBtnLeft], 0);
                 var count = mouseDownCount[mouseBtnLeft];
 
-                mouseEvent = new ImMouseEvent(ImMouseEventType.Hold, mouseBtnLeft, EventModifiers.None, delta, count);
+                mouseEvent = new ImMouseEvent(ImMouseEventType.Hold, mouseBtnLeft, EventModifiers.None, delta, mouseDownDevice, count);
             }
             else
             {
                 mouseEvent = default;
             }
 
+            for (int i = 0; i < possibleClick.Length; ++i)
+            {
+                if (!possibleClick[i])
+                {
+                    continue;
+                }
+
+                var distance = Vector2.Distance(mousePosition, mouseDownPos[i]);
+                if (distance > CLICK_POS_THRESHOLD)
+                {
+                    possibleClick[i] = false;
+                }
+            }
+            
             (nextKeyboardEvents, keyboardEvents) = (keyboardEvents, nextKeyboardEvents);
             nextKeyboardEvents.Clear();
 
@@ -224,9 +243,11 @@ namespace Imui.IO.UGUI
             // (artem-s): with touch input, defer down event one frame so controls first could understand they are hovered
             // before processing actual click
 
-            if (IsTouchSupported() && IsTouchBegan())
+            var device = GetDeviceType(eventData);
+            if (device == ImMouseDevice.Touch && IsAnyTouchBegan())
             {
-                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, GetEventModifiers(), eventData.delta / scale));
+                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, GetEventModifiers(), eventData.delta / scale,
+                    device));
             }
 
             var btn = (int)eventData.button;
@@ -240,6 +261,8 @@ namespace Imui.IO.UGUI
             mouseDownPos[btn] = pos;
             mouseDownCount[btn] += 1;
             mouseDownTime[btn] = Time.unscaledTime;
+            possibleClick[btn] = true;
+            mouseDownDevice = device;
 
             if (eventData.button == PointerEventData.InputButton.Left)
             {
@@ -247,25 +270,45 @@ namespace Imui.IO.UGUI
             }
 
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, GetEventModifiers(), eventData.delta / scale,
-                mouseDownCount[btn]));
+                device, mouseDownCount[btn]));
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            var device = GetDeviceType(eventData);
+            var button = (int)eventData.button;
+
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, (int)eventData.button, GetEventModifiers(), eventData.delta / scale));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, button, GetEventModifiers(), eventData.delta / scale, device));
+
+            if (!possibleClick[button])
+            {
+                return;
+            }
+
+            var distance = Vector2.Distance(mouseDownPos[button], GetMousePosition()); 
+            if (distance < CLICK_POS_THRESHOLD)
+            {
+                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Click, button, GetEventModifiers(), default, device));
+                possibleClick[button] = false;
+            }
         }
 
         public void OnDrag(PointerEventData eventData)
         {
+            var device = GetDeviceType(eventData);
+
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, GetEventModifiers(), eventData.delta / scale));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, GetEventModifiers(), eventData.delta / scale, device));
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            var device = GetDeviceType(eventData);
+
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, GetEventModifiers(), eventData.delta / scale));
+            mouseEventsQueue.PushFront(
+                new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, GetEventModifiers(), eventData.delta / scale, device));
         }
 
         public void OnScroll(PointerEventData eventData)
@@ -281,8 +324,9 @@ namespace Imui.IO.UGUI
             dy = dy / 3.0f;
 #endif
 
+            var device = GetDeviceType(eventData);
             var delta = new Vector2(dx, -dy);
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Scroll, (int)eventData.button, EventModifiers.None, delta));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Scroll, (int)eventData.button, EventModifiers.None, delta, device));
         }
 
         public Rect GetScreenRect()
@@ -314,18 +358,12 @@ namespace Imui.IO.UGUI
             return result;
         }
 
-        private bool IsTouchSupported()
+        private ImMouseDevice GetDeviceType(PointerEventData e)
         {
-#if UNITY_EDITOR
-            var isRunningInDeviceSimulator = UnityEngine.Device.SystemInfo.deviceType != DeviceType.Desktop;
-#else
-            var isRunningInDeviceSimulator = false;
-#endif
-
-            return isRunningInDeviceSimulator || Input.touchSupported;
+            return e.pointerId >= 0 ? ImMouseDevice.Touch : ImMouseDevice.Mouse;
         }
 
-        private bool IsTouchBegan()
+        private bool IsAnyTouchBegan()
         {
             var touches = Input.touches;
             var count = Input.touchCount;
