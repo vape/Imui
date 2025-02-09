@@ -9,9 +9,9 @@ namespace Imui.Controls
     public enum ImMenuStateFlag
     {
         None = 0,
-        Dismissed = 1,
-        LayoutBuilt = 2,
-        LayoutRoot = 4
+        Dismissed = 1 << 0,
+        LayoutBuilt = 1 << 1,
+        LayoutRoot = 1 << 2
     }
 
     public struct ImMenuPosition

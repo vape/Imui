@@ -9,15 +9,15 @@ namespace Imui.Controls
     public enum ImTreeNodeState
     {
         None = 0,
-        Expanded = 1,
-        Selected = 2
+        Expanded = 1 << 0,
+        Selected = 1 << 1
     }
 
     [Flags]
     public enum ImTreeNodeFlags
     {
         None = 0,
-        UnselectOnClick = 1
+        UnselectOnClick = 1 << 0
     }
 
     public static class ImTree

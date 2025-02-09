@@ -15,8 +15,8 @@ namespace Imui.Controls
     public enum ImNumericEditFlag
     {
         None = 0,
-        PlusMinus = 1,
-        Slider = 2
+        PlusMinus = 1 << 0,
+        Slider = 1 << 1
     }
 
     public static class ImNumericEdit

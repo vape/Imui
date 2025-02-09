@@ -9,7 +9,7 @@ namespace Imui.Controls
     public enum ImColorButtonFlag
     {
         None = 0,
-        AlphaOnePreview = 1
+        AlphaOnePreview = 1 << 0
     }
 
     public static class ImColorButton

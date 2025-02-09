@@ -9,8 +9,8 @@ namespace Imui.Controls
     [Flags]
     public enum ImSliderFlag
     {
-        None,
-        DynamicHandle
+        None = 0,
+        DynamicHandle = 1 << 0
     }
 
     public static class ImSlider

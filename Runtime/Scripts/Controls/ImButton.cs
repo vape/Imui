@@ -17,11 +17,11 @@ namespace Imui.Controls
     public enum ImButtonFlag
     {
         None = 0,
-        ActOnPressMouse = 1,
-        ActOnPressTouch = 2,
-        ReactToHeldDown = 4,
-        ReactToRightButton = 8,
-        ReactToAnyButton = 16,
+        ActOnPressMouse = 1 << 0,
+        ActOnPressTouch = 1 << 1,
+        ReactToHeldDown = 1 << 2,
+        ReactToRightButton = 1 << 3,
+        ReactToAnyButton = 1 << 4,
         ActOnPress = ActOnPressMouse | ActOnPressMouse,
     }
 

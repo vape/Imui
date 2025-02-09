@@ -8,8 +8,8 @@ namespace Imui.Controls
     public enum ImTooltipShow
     {
         None = 0,
-        OnHover = 1,
-        OnActive = 2
+        OnHover = 1 << 0,
+        OnActive = 1 << 1
     }
 
     public static class ImTooltip

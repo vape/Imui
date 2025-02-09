@@ -11,25 +11,25 @@ namespace Imui.Controls
     public enum ImTableColumnFlag: byte
     {
         None = 0,
-        SizeIsAbsolute = 1,
-        SizeSetByHost = 2,
-        Resized = 4
+        SizeIsAbsolute = 1 << 0,
+        SizeSetByHost = 1 << 1,
+        Resized = 1 << 2
     }
 
     [Flags]
     public enum ImTableFlag: byte
     {
         None = 0,
-        ResizableColumns = 1,
-        DisableClipping = 2
+        ResizableColumns = 1 << 0,
+        DisableClipping = 1 << 1
     }
 
     [Flags]
     public enum ImTableStateFlags: byte
     {
         None = 0,
-        LayoutBuilt = 1,
-        Enclosed = 2
+        LayoutBuilt = 1 << 0,
+        Enclosed = 1 << 1
     }
 
     public readonly struct ImTableRowsRange
