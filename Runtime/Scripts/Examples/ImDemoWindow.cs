@@ -513,7 +513,6 @@ namespace Imui.Examples
             gui.EndGrid(in grid);
         }
 
-        // TODO (artem-s): this does not reflect actual changes in theme
         private static void DrawStylePage(ImGui gui)
         {
             gui.Text("Theme");
