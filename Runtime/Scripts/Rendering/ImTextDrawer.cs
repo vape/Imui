@@ -115,6 +115,7 @@ namespace Imui.Rendering
 
         public Texture2D FontAtlas => fontAsset.atlasTexture;
         public FontAsset FontAsset => fontAsset;
+        public bool IsFontLoaded => FontAsset;
 
         public float Depth;
         public Color32 Color;
@@ -139,15 +140,17 @@ namespace Imui.Rendering
         public ImTextDrawer(ImMeshBuffer buffer)
         {
             this.buffer = buffer;
-            this.glyphsLookup = new GlyphData[256];
-            this.ellipsisGlyphs = new GlyphData[ELLIPSIS_FALLBACK.Length];
+            
+            glyphsLookup = new GlyphData[256];
+            ellipsisGlyphs = new GlyphData[ELLIPSIS_FALLBACK.Length];
         }
 
-        public void LoadFont(Font font, float? size = null)
+        public void LoadFont(Font font) => LoadFont(font, font.fontSize);
+        public void LoadFont(Font font, int sampleSize)
         {
             UnloadFont();
 
-            fontAsset = FontAsset.CreateFontAsset(font, (int)(size ?? font.fontSize), FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
+            fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
                 (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
 
             renderSize = fontAsset.faceInfo.pointSize;

@@ -71,8 +71,6 @@ namespace Imui.Core
 
         private const float LINE_THICKNESS_THRESHOLD = 0.01f;
 
-        private const string SHADER_NAME = "imui_default";
-
         public const int PRIM_TEX_X = 0;
         public const int PRIM_TEX_Y = 0;
         public const int PRIM_TEX_W = 4;
@@ -214,7 +212,7 @@ namespace Imui.Core
             this.textDrawer = textDrawer;
             this.arena = arena;
 
-            shader = Resources.Load<Shader>(SHADER_NAME);
+            shader = Resources.Load<Shader>("Imui/imui_default");
             material = new Material(shader);
             defaultTexture = CreateMainAtlas();
             settingsStack = new ImDynamicArray<ImCanvasSettings>(SETTINGS_CAPACITY);

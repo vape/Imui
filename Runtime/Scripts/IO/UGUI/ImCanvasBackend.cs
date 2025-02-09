@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using Imui.IO.Events;
 using Imui.IO.Utility;
 using Imui.Utility;

@@ -173,6 +173,11 @@ namespace Imui.Core
 
         public void BeginFrame()
         {
+            if (!TextDrawer.IsFontLoaded)
+            {
+                LoadDefaultFont();
+            }
+            
             Arena.Clear();
 
             idsStack.Clear(false);
@@ -219,6 +224,11 @@ namespace Imui.Core
             Storage.Collect();
 
             WindowManager.HandleFrameEnded();
+        }
+
+        public void LoadDefaultFont()
+        {
+            TextDrawer.LoadFont(Resources.Load<Font>("Imui/FiraMono-Regular"));
         }
 
         public void BeginReadOnly(bool isReadOnly)
