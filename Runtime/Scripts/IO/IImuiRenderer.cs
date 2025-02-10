@@ -3,12 +3,12 @@ using UnityEngine.Rendering;
 
 namespace Imui.IO
 {
-    public interface IImRenderingBackend
+    public interface IImuiRenderer
     {
+        Vector2 GetTargetSize();
+        
         CommandBuffer CreateCommandBuffer();
         void ReleaseCommandBuffer(CommandBuffer cmd);
-
-        Rect GetScreenRect();
 
         Vector2Int SetupRenderTarget(CommandBuffer cmd);
         void Execute(CommandBuffer cmd);

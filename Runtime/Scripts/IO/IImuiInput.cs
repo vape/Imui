@@ -7,7 +7,7 @@ namespace Imui.IO
 {
     public delegate bool ImInputRaycaster(float x, float y);
 
-    public interface IImInputBackend
+    public interface IImuiInput
     {
         string Clipboard
         {

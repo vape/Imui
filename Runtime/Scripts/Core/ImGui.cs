@@ -122,8 +122,8 @@ namespace Imui.Core
         public readonly ImLayout Layout;
         public readonly ImStorage Storage;
         public readonly ImWindowManager WindowManager;
-        public readonly IImInputBackend Input;
-        public readonly IImRenderingBackend Renderer;
+        public readonly IImuiInput Input;
+        public readonly IImuiRenderer Renderer;
         public readonly ImFormatter Formatter;
 
         public ImStyleSheet Style;
@@ -145,7 +145,7 @@ namespace Imui.Core
 
         private bool disposed;
 
-        public ImGui(IImRenderingBackend renderer, IImInputBackend input)
+        public ImGui(IImuiRenderer renderer, IImuiInput input)
         {
             MeshBuffer = new ImMeshBuffer(INIT_MESHES_COUNT, INIT_VERTICES_COUNT, INIT_INDICES_COUNT);
             MeshDrawer = new ImMeshDrawer(MeshBuffer);
@@ -185,17 +185,16 @@ namespace Imui.Core
             (nextFrameData, frameData) = (frameData, nextFrameData);
             nextFrameData.Clear();
 
-            var screenRect = Renderer.GetScreenRect();
-            var scaledScreenSize = screenRect.size / uiScale;
+            var scaledTargetSize = Renderer.GetTargetSize() / uiScale;
 
             Input.SetScale(UiScale);
             Input.Pull();
 
             Canvas.Clear();
-            Canvas.ConfigureScreen(scaledScreenSize, uiScale);
+            Canvas.ConfigureScreen(scaledTargetSize, uiScale);
             Canvas.PushSettings(Canvas.CreateDefaultSettings());
 
-            Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledScreenSize));
+            Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledTargetSize));
 
             idsStack.Push(new ControlId(ImHash.Get("root", 0)));
         }
@@ -596,7 +595,7 @@ namespace Imui.Core
             nextFrameData.ArenaSize = Arena.Size;
 
             var renderCmd = Renderer.CreateCommandBuffer();
-            var screenSize = Renderer.GetScreenRect().size;
+            var screenSize = Renderer.GetTargetSize();
             var targetSize = Renderer.SetupRenderTarget(renderCmd);
 
             MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale, targetSize);
