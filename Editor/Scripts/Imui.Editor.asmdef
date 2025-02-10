@@ -1,0 +1,18 @@
+{
+    "name": "Imui.Editor",
+    "rootNamespace": "Imui.Editor",
+    "references": [
+        "GUID:7cb6614c359f14459a58a452946721b8"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

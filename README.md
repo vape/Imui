@@ -8,7 +8,7 @@ Immediate mode GUI framework made specifically for Unity. Written in pure C#, ha
 
 ## How it works
 
-The basic principle is the same as in Dear ImGui: every frame, we generate a mesh with all the controls in it, split into different draw calls when needed, and render it to the render texture. For simple cases, the UI can be drawn with a single draw call (when no masks or different materials are involved). Using the `ImCanvasBackend` component, the whole UI can be integrated into the `Canvas` hierarchy and used like any other UGUI component.
+The basic principle is the same as in Dear ImGui: every frame, we generate a mesh with all the controls in it, split into different draw calls when needed, and render it to the render texture. For simple cases, the UI can be drawn with a single draw call (when no masks or different materials are involved). Using the `ImuiUnityGUIBackend` component, the whole UI can be integrated into the `Canvas` hierarchy and used like any other UGUI component.
 
 ## Installation
 

@@ -11,8 +11,8 @@ namespace Imui.IO.UGUI
 {
     [RequireComponent(typeof(CanvasRenderer))]
     [ExecuteAlways]
-    public class ImCanvasBackend: Graphic, IImRenderingBackend, IImInputBackend, IPointerDownHandler, IPointerUpHandler, IDragHandler, IBeginDragHandler,
-                                  IScrollHandler
+    public class ImuiUnityGUIBackend: Graphic, IImRenderingBackend, IImInputBackend, IPointerDownHandler, IPointerUpHandler, IDragHandler, IBeginDragHandler,
+                                      IScrollHandler
     {
         private const int COMMAND_BUFFER_POOL_INITIAL_SIZE = 2;
         private const int MOUSE_EVENTS_QUEUE_SIZE = 4;
@@ -208,7 +208,7 @@ namespace Imui.IO.UGUI
                     possibleClick[i] = false;
                 }
             }
-            
+
             (nextKeyboardEvents, keyboardEvents) = (keyboardEvents, nextKeyboardEvents);
             nextKeyboardEvents.Clear();
 
@@ -285,7 +285,7 @@ namespace Imui.IO.UGUI
                 return;
             }
 
-            var distance = Vector2.Distance(mouseDownPos[button], GetMousePosition()); 
+            var distance = Vector2.Distance(mouseDownPos[button], GetMousePosition());
             if (distance < CLICK_POS_THRESHOLD)
             {
                 mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Click, button, GetEventModifiers(), default, device));
