@@ -420,6 +420,15 @@ namespace Imui.Controls
                             state.Caret = buffer.Length;
                             stateChanged = true;
                             break;
+                        
+                        case ImKeyboardCommandFlag.Cut:
+                            gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
+                            if (editable)
+                            {
+                                textChanged |= DeleteSelection(ref state, ref buffer);
+                            }
+                            stateChanged = true;
+                            break;
 
                         case ImKeyboardCommandFlag.Copy:
                             gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
