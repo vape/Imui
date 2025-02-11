@@ -214,7 +214,7 @@ namespace Imui.Examples
             gui.Radio(ref dropdownPreview);
             gui.EndHorizontal();
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Dropdown without value selected", preview: dropdownPreview);
-            if (gui.BeginDropdownMenu("Custom Dropdown", preview: dropdownPreview))
+            if (gui.BeginDropdown("Custom Dropdown", preview: dropdownPreview))
             {
                 if (gui.MenuItem("Menu Item"))
                 {
@@ -230,7 +230,7 @@ namespace Imui.Examples
                 gui.Checkbox(ref checkboxValue, "Checkbox");
                 gui.Separator("Nested dropdown, if that's want you really want");
                 gui.Dropdown(ref selectedValue, values, defaultLabel: "Nothing", preview: dropdownPreview);
-                gui.EndDropdownMenu();
+                gui.EndDropdown();
             }
             gui.Separator("Text editors");
             gui.TextEdit(ref singleLineText, multiline: false);

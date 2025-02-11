@@ -19,12 +19,12 @@ namespace Imui.Controls
 
     public static unsafe class ImDropdown
     {
-        public static bool BeginDropdownMenu(this ImGui gui,
-                                             ReadOnlySpan<char> label,
-                                             ImSize size = default,
-                                             ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        public static bool BeginDropdown(this ImGui gui,
+                                         ReadOnlySpan<char> label,
+                                         ImSize size = default,
+                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
-            if (!BeginDropdown(gui, label, size, preview))
+            if (!BeginDropdownButton(gui, label, size, preview))
             {
                 return false;
             }
@@ -42,17 +42,17 @@ namespace Imui.Controls
             return true;
         }
 
-        public static void EndDropdownMenu(this ImGui gui)
+        public static void EndDropdown(this ImGui gui)
         {
             gui.EndMenu();
             gui.EndPopup();
-            gui.EndDropdown();
+            gui.EndDropdownButton();
         }
 
-        public static bool BeginDropdown(this ImGui gui,
-                                         ReadOnlySpan<char> label,
-                                         ImSize size = default,
-                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        public static bool BeginDropdownButton(this ImGui gui,
+                                               ReadOnlySpan<char> label,
+                                               ImSize size = default,
+                                               ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
@@ -78,7 +78,7 @@ namespace Imui.Controls
             return state.Open;
         }
 
-        public static void EndDropdown(this ImGui gui)
+        public static void EndDropdownButton(this ImGui gui)
         {
             gui.PopId();
             gui.EndScope<ImDropdownState>();
@@ -131,7 +131,7 @@ namespace Imui.Controls
         {
             var changed = false;
 
-            if (BeginDropdownMenu(gui, selected < 0 || selected >= items.Length ? defaultLabel : items[selected], size, preview))
+            if (BeginDropdown(gui, selected < 0 || selected >= items.Length ? defaultLabel : items[selected], size, preview))
             {
                 for (int i = 0; i < items.Length; ++i)
                 {
@@ -144,7 +144,7 @@ namespace Imui.Controls
                     }
                 }
 
-                EndDropdownMenu(gui);
+                EndDropdown(gui);
             }
 
             return changed;
