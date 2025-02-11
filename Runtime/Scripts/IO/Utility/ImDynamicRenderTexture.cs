@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace Imui.IO.Utility
 {
-    public class ImTextureRenderer: IDisposable
+    public class ImDynamicRenderTexture: IDisposable
     {
         private const int RES_MIN = 32;
         private const int RES_MAX = 4096;
@@ -29,10 +29,7 @@ namespace Imui.IO.Utility
 
         private bool SetupTexture(Vector2Int size, float scale, out Vector2Int targetSize)
         {
-            if (disposed)
-            {
-                throw new ObjectDisposedException(nameof(ImTextureRenderer));
-            }
+            AssertDisposed();
 
             var w = Mathf.Clamp((int)(size.x * scale), RES_MIN, RES_MAX);
             var h = Mathf.Clamp((int)(size.y * scale), RES_MIN, RES_MAX);
@@ -66,11 +63,12 @@ namespace Imui.IO.Utility
             }
         }
 
+        [HideInCallstack]
         private void AssertDisposed()
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(ImTextureRenderer));
+                throw new ObjectDisposedException(nameof(ImDynamicRenderTexture));
             }
         }
 

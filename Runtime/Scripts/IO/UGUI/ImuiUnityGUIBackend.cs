@@ -42,7 +42,7 @@ namespace Imui.IO.UGUI
         public ref readonly ImTextEvent TextEvent => ref textEvent;
         public int KeyboardEventsCount => keyboardEvents.Count;
 
-        public override Texture mainTexture => textureRenderer?.Texture == null ? ClearTexture : textureRenderer.Texture;
+        public override Texture mainTexture => texture?.Texture == null ? ClearTexture : texture.Texture;
         
         public float CustomScale
         {
@@ -60,7 +60,7 @@ namespace Imui.IO.UGUI
         [SerializeField] private float customScale = 1.0f;
         
         private IImuiInput.RaycasterDelegate raycaster;
-        private ImTextureRenderer textureRenderer;
+        private ImDynamicRenderTexture texture;
         private ImDynamicArray<CommandBuffer> commandBufferPool;
         private ImCircularBuffer<ImMouseEvent> mouseEventsQueue;
         private ImCircularBuffer<ImKeyboardEvent> nextKeyboardEvents;
@@ -89,10 +89,10 @@ namespace Imui.IO.UGUI
         {
             base.OnDestroy();
 
-            if (textureRenderer != null)
+            if (texture != null)
             {
-                textureRenderer.Dispose();
-                textureRenderer = null;
+                texture.Dispose();
+                texture = null;
             }
 
             if (touchKeyboardHandler != null)
@@ -134,7 +134,7 @@ namespace Imui.IO.UGUI
             }
 
             touchKeyboardHandler ??= new ImTouchKeyboard();
-            textureRenderer ??= new ImTextureRenderer();
+            texture ??= new ImDynamicRenderTexture();
         }
 
         // ReSharper disable once ParameterHidesMember
@@ -431,7 +431,7 @@ namespace Imui.IO.UGUI
         {
             var rect = GetWorldRect();
             var size = new Vector2Int((int)rect.width, (int)rect.height);
-            var targetSize = textureRenderer.SetupRenderTarget(cmd, size, out var textureChanged);
+            var targetSize = texture.SetupRenderTarget(cmd, size, out var textureChanged);
 
             if (textureChanged)
             {
