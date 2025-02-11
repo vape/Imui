@@ -515,6 +515,11 @@ namespace Imui.Examples
 
         private static void DrawStylePage(ImGui gui)
         {
+            var buttonStyle = gui.Style.Button;
+            buttonStyle.Overflow = ImTextOverflow.Ellipsis;
+            
+            using var _ = gui.StyleScope(ref gui.Style.Button, in buttonStyle);
+            
             gui.Text("Theme");
             gui.BeginHorizontal();
             if (gui.Dropdown(ref selectedThemeIndex, themeNames, defaultLabel: "Unknown", size: (gui.GetLayoutWidth() * 0.6f, gui.GetRowHeight())))
