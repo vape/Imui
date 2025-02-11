@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Imui.Core;
 using Imui.IO.Events;
 using Imui.IO.Touch;
+using Imui.IO.Utility;
 using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;
@@ -382,22 +383,24 @@ namespace Imui.Controls
                 return false;
             }
 
+            ImKeyboardCommandsHelper.TryGetCommand(evt, out var command);
+
             switch (evt.Key)
             {
                 case KeyCode.LeftArrow:
-                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, -1, evt.Command);
+                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, -1, command);
                     break;
 
                 case KeyCode.RightArrow:
-                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, +1, evt.Command);
+                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, +1, command);
                     break;
 
                 case KeyCode.UpArrow:
-                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, +1, evt.Command);
+                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, +1, command);
                     break;
 
                 case KeyCode.DownArrow:
-                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, -1, evt.Command);
+                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, -1, command);
                     break;
 
                 case KeyCode.Delete when editable:
@@ -410,7 +413,7 @@ namespace Imui.Controls
 
                 default:
                 {
-                    switch (evt.Command)
+                    switch (command)
                     {
                         case ImKeyboardCommandFlag.SelectAll:
                             state.Selection = -buffer.Length;

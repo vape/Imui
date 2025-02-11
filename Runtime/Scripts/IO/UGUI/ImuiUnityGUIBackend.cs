@@ -254,10 +254,19 @@ namespace Imui.IO.UGUI
                 return;
             }
 
-            ImKeyboardEventsUtility.TryParse(evt, ref nextKeyboardEvents);
+            var keyboardEventType = evt.type switch
+            {
+                EventType.KeyDown => ImKeyboardEventType.Down,
+                EventType.KeyUp => ImKeyboardEventType.Up,
+                _ => ImKeyboardEventType.None
+            };
+
+            if (keyboardEventType != ImKeyboardEventType.None)
+            {
+                nextKeyboardEvents.PushFront(new ImKeyboardEvent(keyboardEventType, evt.keyCode, evt.modifiers, evt.character));
+            }
         }
-
-
+        
         public void OnPointerDown(PointerEventData eventData)
         {
             // (artem-s): with touch input, defer down event one frame so controls first could understand they are hovered
