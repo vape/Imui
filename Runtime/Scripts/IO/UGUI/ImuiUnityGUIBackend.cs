@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using Imui.IO.Events;
 using Imui.IO.Utility;
 using Imui.Utility;
@@ -15,6 +14,15 @@ namespace Imui.IO.UGUI
     public class ImuiUnityGUIBackend: Graphic, IImuiRenderer, IImuiInput, IPointerDownHandler, IPointerUpHandler, IDragHandler, IBeginDragHandler,
                                       IScrollHandler
     {
+        public enum ScalingMode
+        {
+            Inherited,
+            Custom
+        }
+        
+        private const float CUSTOM_SCALE_MIN = 0.05f;
+        private const float CUSTOM_SCALE_MAX = 16.0f;
+
         private const int COMMAND_BUFFER_POOL_INITIAL_SIZE = 2;
         private const int MOUSE_EVENTS_QUEUE_SIZE = 4;
         private const int KEYBOARD_EVENTS_QUEUE_SIZE = 16;
@@ -34,11 +42,25 @@ namespace Imui.IO.UGUI
         public int KeyboardEventsCount => keyboardEvents.Count;
 
         public override Texture mainTexture => textureRenderer?.Texture == null ? ClearTexture : textureRenderer.Texture;
+        
+        public float CustomScale
+        {
+            get => customScale;
+            set => customScale = Mathf.Clamp(value, CUSTOM_SCALE_MIN, CUSTOM_SCALE_MAX);
+        }
 
-        private ImInputRaycaster raycaster;
+        public ScalingMode Scaling
+        {
+            get => scalingMode;
+            set => scalingMode = value;
+        }
+
+        [SerializeField] private ScalingMode scalingMode = ScalingMode.Inherited;
+        [SerializeField] private float customScale = 1.0f;
+        
+        private IImuiInput.RaycasterDelegate raycaster;
         private ImTextureRenderer textureRenderer;
         private ImDynamicArray<CommandBuffer> commandBufferPool;
-        private float scale;
         private ImCircularBuffer<ImMouseEvent> mouseEventsQueue;
         private ImCircularBuffer<ImKeyboardEvent> nextKeyboardEvents;
         private ImCircularBuffer<ImKeyboardEvent> keyboardEvents;
@@ -114,7 +136,8 @@ namespace Imui.IO.UGUI
             textureRenderer ??= new ImTextureRenderer();
         }
 
-        public void SetRaycaster(ImInputRaycaster raycaster)
+        // ReSharper disable once ParameterHidesMember
+        public void UseRaycaster(IImuiInput.RaycasterDelegate raycaster)
         {
             this.raycaster = raycaster;
             SetRaycastDirty();
@@ -127,6 +150,7 @@ namespace Imui.IO.UGUI
                 return false;
             }
 
+            var scale = GetScale();
             var screenRect = GetWorldRect();
             sp -= screenRect.position;
 
@@ -162,12 +186,7 @@ namespace Imui.IO.UGUI
         {
             textEvent = default;
         }
-
-        public void SetScale(float scale)
-        {
-            this.scale = scale;
-        }
-
+        
         public void Pull()
         {
 #if UNITY_EDITOR
@@ -218,7 +237,7 @@ namespace Imui.IO.UGUI
 
         public Vector2 GetMousePosition()
         {
-            return ((Vector2)Input.mousePosition - GetWorldRect().position) / scale;
+            return ((Vector2)Input.mousePosition - GetWorldRect().position) / GetScale();
         }
 
         public void RequestTouchKeyboard(uint owner, ReadOnlySpan<char> text, ImTouchKeyboardSettings settings)
@@ -246,7 +265,7 @@ namespace Imui.IO.UGUI
             var device = GetDeviceType(eventData);
             if (device == ImMouseDevice.Touch && IsAnyTouchBegan())
             {
-                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / scale,
+                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / GetScale(),
                     device));
             }
 
@@ -269,7 +288,7 @@ namespace Imui.IO.UGUI
                 mouseHeldDown = true;
             }
 
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / scale,
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / GetScale(),
                 device, mouseDownCount[btn]));
         }
 
@@ -279,7 +298,7 @@ namespace Imui.IO.UGUI
             var button = (int)eventData.button;
 
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, button, GetMouseEventModifiers(), eventData.delta / scale, device));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, button, GetMouseEventModifiers(), eventData.delta / GetScale(), device));
 
             if (!possibleClick[button])
             {
@@ -299,7 +318,7 @@ namespace Imui.IO.UGUI
             var device = GetDeviceType(eventData);
 
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / scale, device));
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / GetScale(), device));
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -308,7 +327,7 @@ namespace Imui.IO.UGUI
 
             mouseHeldDown = false;
             mouseEventsQueue.PushFront(
-                new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / scale, device));
+                new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / GetScale(), device));
         }
 
         public void OnScroll(PointerEventData eventData)
@@ -379,9 +398,14 @@ namespace Imui.IO.UGUI
             return new Rect(screenBottomLeft.x, screenBottomLeft.y, screenTopRight.x - screenBottomLeft.x, screenTopRight.y - screenBottomLeft.y);
         }
         
-        Vector2 IImuiRenderer.GetTargetSize()
+        public Vector2 GetScreenSize()
         {
             return GetWorldRect().size;
+        }
+
+        public float GetScale()
+        {
+            return scalingMode == ScalingMode.Inherited ? canvas.scaleFactor : customScale;
         }
 
         CommandBuffer IImuiRenderer.CreateCommandBuffer()

@@ -23,9 +23,6 @@ namespace Imui.Core
         private const int INIT_VERTICES_COUNT = 1024 * 16;
         private const int INIT_INDICES_COUNT = INIT_VERTICES_COUNT * 3;
 
-        private const float UI_SCALE_MIN = 0.05f;
-        private const float UI_SCALE_MAX = 16.0f;
-
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
         private const int READONLY_STACK_CAPACITY = 4;
@@ -102,13 +99,7 @@ namespace Imui.Core
 
             internal void* Ptr;
         }
-
-        public float UiScale
-        {
-            get => uiScale;
-            set => uiScale = Mathf.Clamp(value, UI_SCALE_MIN, UI_SCALE_MAX);
-        }
-
+        
         public bool IsReadOnly => readOnlyStack.TryPeek(@default: false);
         public uint LastControl => lastControl;
         public ImRect LastControlRect => lastControlRect;
@@ -133,7 +124,6 @@ namespace Imui.Core
         internal FrameData frameData;
         // ReSharper restore InconsistentNaming
 
-        private float uiScale = 1.0f;
         private ImDynamicArray<ControlId> idsStack;
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
@@ -167,7 +157,7 @@ namespace Imui.Core
             controlScopesStack = new ImDynamicArray<ImControlScope>(CONTROL_SCOPE_STACK_CAPACITY);
             styleStack = new ImDynamicArray<StyleProp>(STYLE_SCOPE_STACK_CAPACITY);
 
-            Input.SetRaycaster(Raycast);
+            Input.UseRaycaster(Raycast);
             SetTheme(ImThemeBuiltin.Light());
         }
 
@@ -185,9 +175,9 @@ namespace Imui.Core
             (nextFrameData, frameData) = (frameData, nextFrameData);
             nextFrameData.Clear();
 
-            var scaledTargetSize = Renderer.GetTargetSize() / uiScale;
+            var uiScale = Renderer.GetScale();
+            var scaledTargetSize = Renderer.GetScreenSize() / Renderer.GetScale();
 
-            Input.SetScale(UiScale);
             Input.Pull();
 
             Canvas.Clear();
@@ -595,10 +585,11 @@ namespace Imui.Core
             nextFrameData.ArenaSize = Arena.Size;
 
             var renderCmd = Renderer.CreateCommandBuffer();
-            var screenSize = Renderer.GetTargetSize();
+            var screenSize = Renderer.GetScreenSize();
+            var uiScale = Renderer.GetScale();
             var targetSize = Renderer.SetupRenderTarget(renderCmd);
 
-            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale, targetSize);
+            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, uiScale, targetSize);
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
 
@@ -634,7 +625,7 @@ namespace Imui.Core
                 return;
             }
 
-            Input.SetRaycaster(null);
+            Input.UseRaycaster(null);
             Canvas.Dispose();
             TextDrawer.Dispose();
             MeshRenderer.Dispose();

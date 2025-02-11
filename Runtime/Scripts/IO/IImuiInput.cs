@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace Imui.IO
 {
-    public delegate bool ImInputRaycaster(float x, float y);
-
     public interface IImuiInput
     {
+        public delegate bool RaycasterDelegate(float x, float y);
+        
         string Clipboard
         {
             get { return GUIUtility.systemCopyBuffer ?? string.Empty; }
@@ -16,19 +16,19 @@ namespace Imui.IO
         }
 
         Vector2 MousePosition { get; }
+        
         ref readonly ImMouseEvent MouseEvent { get; }
-        ref readonly ImTextEvent TextEvent { get; }
-        int KeyboardEventsCount { get; }
-
-        ref readonly ImKeyboardEvent GetKeyboardEvent(int index);
-
-        void UseKeyboardEvent(int index);
         void UseMouseEvent();
+        
+        ref readonly ImTextEvent TextEvent { get; }
         void UseTextEvent();
-
-        void SetRaycaster(ImInputRaycaster raycaster);
-        void SetScale(float scale);
-        void Pull();
+        
+        int KeyboardEventsCount { get; }
+        ref readonly ImKeyboardEvent GetKeyboardEvent(int index);
+        void UseKeyboardEvent(int index);
         void RequestTouchKeyboard(uint owner, ReadOnlySpan<char> text, ImTouchKeyboardSettings settings);
+
+        void UseRaycaster(RaycasterDelegate raycaster);
+        void Pull();
     }
 }

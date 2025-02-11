@@ -5,7 +5,8 @@ namespace Imui.IO
 {
     public interface IImuiRenderer
     {
-        Vector2 GetTargetSize();
+        Vector2 GetScreenSize();
+        float GetScale();
         
         CommandBuffer CreateCommandBuffer();
         void ReleaseCommandBuffer(CommandBuffer cmd);

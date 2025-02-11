@@ -45,7 +45,7 @@ namespace Imui.IO.Events
 
         public override string ToString()
         {
-            return $"type:{Type} btn:{Button} mod:{Modifiers} dt:{Delta}";
+            return $"type:{Type} btn:{Button} mod:{Modifiers} dt:{Delta} count:{Count} device:{Device}";
         }
     }
 }
