@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Imui.Core;
 using Imui.IO.Events;
-using Imui.IO.Utility;
+using Imui.IO.Touch;
 using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;

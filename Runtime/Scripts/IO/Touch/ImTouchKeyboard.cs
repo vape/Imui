@@ -2,7 +2,7 @@ using System;
 using Imui.IO.Events;
 using UnityEngine;
 
-namespace Imui.IO.Utility
+namespace Imui.IO.Touch
 {
     public enum ImTouchKeyboardType
     {
