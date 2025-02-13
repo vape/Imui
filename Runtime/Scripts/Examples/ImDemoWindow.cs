@@ -33,10 +33,7 @@ namespace Imui.Examples
     public static class ImDemoWindow
     {
         private static int selectedThemeIndex = 0;
-        private static ImTheme[] themes =
-        {
-            CreateTheme(0), CreateTheme(1), CreateTheme(2), CreateTheme(3), CreateTheme(4), CreateTheme(5), CreateTheme(6)
-        };
+        private static ImTheme[] themes = { CreateTheme(0), CreateTheme(1), CreateTheme(2), CreateTheme(3), CreateTheme(4), CreateTheme(5), CreateTheme(6) };
 
         private static string[] themeNames =
         {
@@ -515,11 +512,6 @@ namespace Imui.Examples
 
         private static void DrawStylePage(ImGui gui)
         {
-            var buttonStyle = gui.Style.Button;
-            buttonStyle.Overflow = ImTextOverflow.Ellipsis;
-            
-            using var _ = gui.StyleScope(ref gui.Style.Button, in buttonStyle);
-            
             gui.Text("Theme");
             gui.BeginHorizontal();
             if (gui.Dropdown(ref selectedThemeIndex, themeNames, defaultLabel: "Unknown", size: (gui.GetLayoutWidth() * 0.6f, gui.GetRowHeight())))
@@ -527,15 +519,20 @@ namespace Imui.Examples
                 gui.SetTheme(themes[selectedThemeIndex]);
             }
             gui.AddSpacing();
-            if (gui.Button("Reset", size: (gui.GetLayoutWidth() * 0.5f, gui.GetRowHeight())))
+
+#if UNITY_WEBGL
+            if (gui.Button("Copy"))
+            {
+                gui.Input.Clipboard = ImThemeEditor.BuildCodeString(in themes[selectedThemeIndex]);
+            }
+#endif
+            
+            if (gui.Button("Reset", ImSizeMode.Fill))
             {
                 themes[selectedThemeIndex] = CreateTheme(selectedThemeIndex);
                 gui.SetTheme(themes[selectedThemeIndex]);
             }
-            if (gui.Button("Copy", size: ImSizeMode.Fill))
-            {
-                gui.Input.Clipboard = ImThemeEditor.BuildCodeString(in themes[selectedThemeIndex]);
-            }
+
             gui.TooltipAtLastControl("Copies theme as code into clipboard");
             gui.EndHorizontal();
 
