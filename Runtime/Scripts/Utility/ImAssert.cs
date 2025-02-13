@@ -3,9 +3,9 @@ using System.Diagnostics;
 
 // ReSharper disable CheckNamespace
 
-internal class ImuiAssertException : Exception
+internal class ImuiAssertException: Exception
 {
-    public ImuiAssertException(string message) : base(message) { }
+    public ImuiAssertException(string message): base(message) { }
 }
 
 internal static class ImAssert
@@ -18,7 +18,7 @@ internal static class ImAssert
             throw new ImuiAssertException(message);
         }
     }
-    
+
     [Conditional("IMUI_DEBUG")]
     public static void IsFalse(bool value, string message)
     {

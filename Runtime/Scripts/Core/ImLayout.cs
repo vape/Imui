@@ -7,13 +7,13 @@ namespace Imui.Core
     [Flags]
     public enum ImLayoutFlag
     {
-        None              = 0,
-        Root              = 1 << 0,
-        FixedBoundsWidth  = 1 << 1,
+        None = 0,
+        Root = 1 << 0,
+        FixedBoundsWidth = 1 << 1,
         FixedBoundsHeight = 1 << 2,
-        FixedBounds       = FixedBoundsWidth | FixedBoundsHeight
+        FixedBounds = FixedBoundsWidth | FixedBoundsHeight
     }
-    
+
     public struct ImLayoutFrame
     {
         public ImAxis Axis;
@@ -27,7 +27,7 @@ namespace Imui.Core
         {
             Append(size.x, size.y);
         }
-        
+
         public void Append(float width, float height)
         {
             switch (Axis)
@@ -58,7 +58,7 @@ namespace Imui.Core
             }
         }
     }
-    
+
     public class ImLayout
     {
         private const int FRAME_STACK_CAPACITY = 32;
@@ -71,18 +71,20 @@ namespace Imui.Core
                 return frame.Axis;
             }
         }
-        
+
+        public int Depth => frames.Count;
+
         private ImDynamicArray<ImLayoutFrame> frames = new(FRAME_STACK_CAPACITY);
-        
+
         public void Push(ImAxis axis, float width = 0, float height = 0)
         {
             Push(axis, new Vector2(width, height));
         }
-        
+
         public void Push(ImAxis axis, Vector2 size)
         {
             var flags = ImLayoutFlag.FixedBounds;
-            
+
             if (size.x == 0)
             {
                 size.x = GetAvailableWidth();
@@ -94,15 +96,15 @@ namespace Imui.Core
                 size.y = GetAvailableHeight();
                 flags &= ~ImLayoutFlag.FixedBoundsHeight;
             }
-            
+
             Push(axis, GetRect(size), flags);
         }
-        
+
         public void Push(ImAxis axis, ImRect rect)
         {
             Push(axis, rect, ImLayoutFlag.Root | ImLayoutFlag.FixedBounds);
         }
-        
+
         public void Push(ImAxis axis, ImRect rect, ImLayoutFlag flags)
         {
             var frame = new ImLayoutFrame
@@ -117,25 +119,26 @@ namespace Imui.Core
         }
 
         public void Pop() => Pop(out _);
+
         public void Pop(out ImLayoutFrame frame)
-        { 
+        {
             frame = frames.Pop();
-            
+
             if ((frame.Flags & ImLayoutFlag.Root) == 0 && frames.Count > 0)
             {
                 ref var active = ref frames.Peek();
-                
+
                 var size = frame.Size;
                 if ((frame.Flags & ImLayoutFlag.FixedBoundsWidth) != 0)
                 {
                     size.x = frame.Bounds.W;
                 }
-                
+
                 if ((frame.Flags & ImLayoutFlag.FixedBoundsHeight) != 0)
                 {
                     size.y = frame.Bounds.H;
                 }
-                
+
                 active.Append(size);
             }
         }
@@ -151,10 +154,27 @@ namespace Imui.Core
             ref var frame = ref frames.Peek();
             frame.Offset = offset;
         }
-        
+
+        public Vector2 GetNextPosition(float height = 0.0f)
+        {
+            if (frames.Count == 0)
+            {
+                return default;
+            }
+
+            ref readonly var frame = ref frames.Peek();
+
+            return GetNextPosition(in frame, height);
+        }
+
         public ref readonly ImLayoutFrame GetFrame()
         {
             return ref frames.Peek();
+        }
+
+        public ref readonly ImLayoutFrame GetParentFrame(int layers = 1)
+        {
+            return ref frames.Array[frames.Count - 1 - layers];
         }
 
         public float GetAvailableWidth()
@@ -162,19 +182,19 @@ namespace Imui.Core
             ref readonly var frame = ref GetFrame();
             return frame.Axis == ImAxis.Horizontal ? frame.Bounds.W - frame.Size.x : frame.Bounds.W - frame.Indent;
         }
-        
+
         public float GetAvailableHeight()
         {
             ref readonly var frame = ref GetFrame();
             return frame.Axis == ImAxis.Vertical ? frame.Bounds.H - frame.Size.y : frame.Bounds.H;
         }
-        
+
         public Vector2 GetAvailableSize()
         {
             ref readonly var frame = ref GetFrame();
             var w = frame.Bounds.W;
             var h = frame.Bounds.H;
-            
+
             switch (frame.Axis)
             {
                 case ImAxis.Vertical:
@@ -187,7 +207,7 @@ namespace Imui.Core
                 default:
                     throw new NotImplementedException();
             }
-            
+
             return new Vector2(w, h);
         }
 
@@ -214,12 +234,12 @@ namespace Imui.Core
             var h = frame.Size.y;
             return new ImRect(x, y, w, h);
         }
-        
+
         public ImRect GetRect(Vector2 size)
         {
             return GetRect(size.x, size.y);
         }
-        
+
         public ImRect GetRect(float width, float height)
         {
             ref readonly var frame = ref frames.Peek();
@@ -231,7 +251,7 @@ namespace Imui.Core
         {
             return AddRect(size.x, size.y);
         }
-        
+
         public ImRect AddRect(float width, float height)
         {
             ref var frame = ref frames.Peek();
@@ -266,8 +286,8 @@ namespace Imui.Core
             var vm = frame.Axis == ImAxis.Vertical ? 1 : 0;
 
             var x = frame.Bounds.X + frame.Offset.x + (frame.Size.x * hm) + (frame.Indent * vm);
-            var y = frame.Bounds.Y + frame.Offset.y + frame.Bounds.H + - (frame.Size.y * vm) - height;
-            
+            var y = frame.Bounds.Y + frame.Offset.y + frame.Bounds.H + -(frame.Size.y * vm) - height;
+
             return new Vector2(x, y);
         }
     }

@@ -12,7 +12,7 @@ namespace Imui.Controls
         public int X;
         public int Y;
     }
-    
+
     public static class ImGrid
     {
         public static ImGridState BeginGrid(this ImGui gui, int columns, float cellHeight = 0)
@@ -24,16 +24,16 @@ namespace Imui.Controls
 
             return BeginGrid(gui, new Vector2(cellWidth, cellHeight), spacing);
         }
-        
+
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize)
         {
             return BeginGrid(gui, cellSize, GetDefaultSpacing(gui));
         }
-        
+
         public static ImGridState BeginGrid(this ImGui gui, Vector2 cellSize, Vector2 spacing)
         {
             ref readonly var frame = ref gui.Layout.GetFrame();
-            
+
             var width = gui.Layout.GetAvailableWidth();
             var columns = Mathf.Max(1, (width + spacing.x) / (cellSize.x + spacing.x));
             var state = new ImGridState()
@@ -64,7 +64,7 @@ namespace Imui.Controls
 
             var x = state.Origin.x + state.X * (state.CellSize.x + state.Spacing.x);
             var y = state.Origin.y - state.Y * (state.CellSize.y + state.Spacing.y);
-            
+
             state.X++;
 
             return new ImRect(x, y - state.CellSize.y, state.CellSize.x, state.CellSize.y);

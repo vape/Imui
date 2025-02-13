@@ -25,7 +25,7 @@ namespace Imui.Utility
             {
                 throw new ArgumentNullException(nameof(array));
             }
-            
+
             Capacity = array.Length;
 
             Head = 0;
@@ -37,12 +37,12 @@ namespace Imui.Utility
         {
             return ref Array[(Head + index) % Capacity];
         }
-        
+
         public void Set(int index, T value)
         {
             Array[(Head + index) % Capacity] = value;
         }
-        
+
         public void Clear()
         {
             Head = 0;
@@ -79,7 +79,7 @@ namespace Imui.Utility
             Count--;
             return true;
         }
-        
+
         public void PushFront(T value)
         {
             Array[(Head + Count) % Capacity] = value;

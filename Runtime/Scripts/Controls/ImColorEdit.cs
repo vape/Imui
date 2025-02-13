@@ -30,7 +30,7 @@ namespace Imui.Controls
         public static bool ColorEdit(this ImGui gui, ref Color color, ImSize size = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
-            
+
             var id = gui.GetNextControlId();
             var rect = AddRect(gui, size);
 
@@ -51,10 +51,10 @@ namespace Imui.Controls
 
             Span<ImRect> rects = stackalloc ImRect[5];
             rect.SplitHorizontal(ref rects, rects.Length, gui.Style.Layout.InnerSpacing);
-            
+
             var changed = false;
 
-            using (new ImStyleScope<ImStyleTextEdit>(ref gui.Style.TextEdit))
+            using (gui.StyleScope(ref gui.Style.TextEdit))
             {
                 gui.Style.TextEdit.Alignment.X = 0.5f;
 
@@ -83,7 +83,7 @@ namespace Imui.Controls
 
             return changed;
         }
-        
+
         public static void ColorIndicator(ImGui gui, ImRect rect, Color32 color, in ImStyleBox style)
         {
             var radius = new ImRectRadius(bottomRight: style.BorderRadius.BottomRight, bottomLeft: style.BorderRadius.BottomLeft);

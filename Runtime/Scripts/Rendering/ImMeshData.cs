@@ -7,14 +7,14 @@ namespace Imui.Rendering
         public bool Enabled;
         public Rect Rect;
     }
-    
+
     public struct ImMeshMaskRect
     {
         public bool Enabled;
         public Rect Rect;
         public float Radius;
     }
-    
+
     public struct ImMeshData
     {
         public Texture MainTex;
@@ -29,7 +29,7 @@ namespace Imui.Rendering
         public ImMeshClipRect ClipRect;
         public ImMeshMaskRect MaskRect;
         public float InvColorMul;
-        
+
         public void ClearOptions()
         {
             MainTex = null;
@@ -41,14 +41,14 @@ namespace Imui.Rendering
             MaskRect = default;
             InvColorMul = default;
         }
-        
+
         public void Clear()
         {
             IndicesOffset = 0;
             VerticesOffset = 0;
             VerticesCount = 0;
             IndicesCount = 0;
-            
+
             ClearOptions();
         }
     }

@@ -19,14 +19,14 @@ namespace Imui.Controls
             Value = v;
         }
     }
-    
+
     public static class ImColorPicker
     {
         public static float GetHeight(ImGui gui, float width)
         {
             return width - (gui.GetRowHeight() + gui.Style.Layout.InnerSpacing) * 2;
         }
-        
+
         public static ImRect AddRect(ImGui gui, ImSize size = default)
         {
             if (size.Mode == ImSizeMode.Fixed)
@@ -55,14 +55,14 @@ namespace Imui.Controls
 
             return ColorPicker(gui, id, ref color, rect);
         }
-        
+
         public static bool ColorPicker(this ImGui gui, uint id, ref Color color, ImRect rect)
         {
             gui.PushId(id);
 
             ref var state = ref GetState(gui, id, color);
             var alpha = color.a;
-            
+
             var changed = false;
             var svBarId = gui.GetNextControlId();
             var hueBarId = gui.GetNextControlId();
@@ -105,7 +105,7 @@ namespace Imui.Controls
             v2.Color = black;
             v3.Color = black;
             gui.MeshDrawer.AddQuadTextured(v0, v1, v2, v3);
-            
+
             gui.Canvas.RectOutline(rect, gui.Style.ColorPicker.BorderColor, gui.Style.ColorPicker.BorderThickness);
 
             var point = rect.GetPointAtNormalPosition(s, v);
@@ -159,7 +159,7 @@ namespace Imui.Controls
                 v0 = v3;
                 v1 = v2;
             }
-            
+
             gui.Canvas.RectOutline(rect, gui.Style.ColorPicker.BorderColor, gui.Style.ColorPicker.BorderThickness);
 
             return SliderVertical(gui, id, rect.WithPadding(gui.Style.ColorPicker.BorderThickness), ref h);
@@ -170,7 +170,7 @@ namespace Imui.Controls
             CheckerboardPatternVertical(gui, rect);
 
             var clear = color;
-            
+
             clear.a = 0.0f;
             color.a = 1.0f;
 
@@ -180,7 +180,7 @@ namespace Imui.Controls
             var v3 = new ImVertex(rect.BottomLeft, clear, default, default);
             gui.MeshDrawer.AddQuadTextured(v0, v1, v2, v3);
             gui.Canvas.RectOutline(rect, gui.Style.ColorPicker.BorderColor, gui.Style.ColorPicker.BorderThickness);
-            
+
             return SliderVertical(gui, id, rect.WithPadding(gui.Style.ColorPicker.BorderThickness), ref a);
         }
 
@@ -188,7 +188,7 @@ namespace Imui.Controls
         {
             const float SIZE = 6;
             const float SHADOW_SIZE = 1;
-            
+
             rect.AddPadding(top: SIZE / 2, bottom: SIZE / 2);
 
             var shadowColor = Color.black;
@@ -196,7 +196,7 @@ namespace Imui.Controls
             var arrowPoint = rect.GetPointAtNormalPosition(0.0f, value);
             var shadowRect = new ImRect(arrowPoint.x, arrowPoint.y - SIZE / 2.0f, rect.W, SIZE);
             var arrowRect = shadowRect.WithPadding(SHADOW_SIZE);
-            
+
             gui.Canvas.Rect(shadowRect, shadowColor);
             gui.Canvas.Rect(arrowRect, arrowColor);
         }
@@ -204,7 +204,7 @@ namespace Imui.Controls
         public static bool SliderVertical(ImGui gui, uint id, ImRect rect, ref float value)
         {
             SliderPointer(gui, ref rect, value);
-            
+
             gui.RegisterControl(id, rect);
 
             var changed = false;
@@ -225,7 +225,7 @@ namespace Imui.Controls
 
             return changed;
         }
-        
+
         public static void CheckerboardPatternVertical(ImGui gui, ImRect rect)
         {
             var count = Mathf.CeilToInt(rect.H / rect.W);
@@ -257,16 +257,16 @@ namespace Imui.Controls
                 gui.Canvas.SetTexScaleOffset(scaleOffset);
             }
         }
-        
+
         public static float GetBrightness(Color color)
         {
             return 0.2125f * color.r + 0.7152f * color.g + 0.0722f * color.b;
         }
-        
+
         public static ref ImColorPickerState GetState(ImGui gui, uint id, Color color)
         {
             Color.RGBToHSV(color, out var h, out var s, out var v);
-            
+
             ref var state = ref gui.Storage.Get(id, new ImColorPickerState(h, s, v));
 
             // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -281,7 +281,7 @@ namespace Imui.Controls
             }
 
             state.Value = v;
-            
+
             return ref state;
         }
     }

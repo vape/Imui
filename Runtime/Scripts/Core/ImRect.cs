@@ -6,13 +6,13 @@ using UnityEngine;
 namespace Imui.Core
 {
     [Serializable]
-    public struct ImRect : IEquatable<ImRect>
+    public struct ImRect: IEquatable<ImRect>
     {
         public float Top => Y + H;
         public float Bottom => Y;
         public float Right => X + W;
         public float Left => X;
-        
+
         public Vector2 TopLeft => new Vector2(X, Y + H);
         public Vector2 TopRight => new Vector2(X + W, Y + H);
         public Vector2 BottomLeft => Position;
@@ -28,10 +28,7 @@ namespace Imui.Core
 
         public Vector2 Position
         {
-            get
-            {
-                return new Vector2(X, Y);
-            }
+            get { return new Vector2(X, Y); }
             set
             {
                 X = value.x;
@@ -41,10 +38,7 @@ namespace Imui.Core
 
         public Vector2 Size
         {
-            get
-            {
-                return new Vector2(W, H);
-            }
+            get { return new Vector2(W, H); }
             set
             {
                 W = value.x;
@@ -65,13 +59,9 @@ namespace Imui.Core
             H = h;
         }
 
-        public ImRect(Vector2 p, Vector2 s) : this(p.x, p.y, s.x, s.y)
-        {
-        }
+        public ImRect(Vector2 p, Vector2 s): this(p.x, p.y, s.x, s.y) { }
 
-        public ImRect(ImRect rect) : this(rect.X, rect.Y, rect.W, rect.H)
-        {
-        }
+        public ImRect(ImRect rect): this(rect.X, rect.Y, rect.W, rect.H) { }
 
         public bool Contains(Vector2 point)
         {
@@ -84,7 +74,7 @@ namespace Imui.Core
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Overlaps(ImRect other)
+        public bool Overlaps(in ImRect other)
         {
             var xMax = X + W;
             var yMax = Y + H;
@@ -104,7 +94,7 @@ namespace Imui.Core
             var y1 = Mathf.Max(Y, other.Y);
             var x2 = Mathf.Min(X + W, other.X + other.W);
             var y2 = Mathf.Min(Y + H, other.Y + other.H);
-            
+
             return new ImRect(x1, y1, x2 - x1, y2 - y1);
         }
 
@@ -138,17 +128,17 @@ namespace Imui.Core
         {
             return new Vector2(Mathf.LerpUnclamped(X, X + W, x), Mathf.LerpUnclamped(Y, Y + H, y));
         }
-        
+
         public Vector2 GetPointAtNormalPosition(Vector2 point)
         {
             return new Vector2(Mathf.LerpUnclamped(X, X + W, point.x), Mathf.LerpUnclamped(Y, Y + H, point.y));
         }
-        
+
         public Vector2 GetNormalPositionAtPoint(float x, float y)
         {
             return new Vector2(Mathf.InverseLerp(X, X + W, x), Mathf.InverseLerp(Y, Y + H, y));
         }
-        
+
         public Vector2 GetNormalPositionAtPoint(Vector2 point)
         {
             return new Vector2(Mathf.InverseLerp(X, X + W, point.x), Mathf.InverseLerp(Y, Y + H, point.y));
@@ -183,7 +173,7 @@ namespace Imui.Core
         {
             return new Vector4(rect.X, rect.Y, rect.W, rect.H);
         }
-        
+
         public static explicit operator ImTextClipRect(ImRect rect)
         {
             return new ImTextClipRect(rect.X, rect.X + rect.W, rect.Y + rect.H, rect.Y);
@@ -193,7 +183,7 @@ namespace Imui.Core
         {
             return new ImRect(rect.x, rect.y, rect.width, rect.height);
         }
-        
+
         public static bool operator ==(ImRect r0, ImRect r1) => r0.Equals(r1);
         public static bool operator !=(ImRect r0, ImRect r1) => !r0.Equals(r1);
     }
@@ -213,7 +203,7 @@ namespace Imui.Core
             BottomRight = bottomRight;
             BottomLeft = bottomLeft;
         }
-        
+
         public ImRectRadius(float radius)
         {
             TopLeft = radius;
@@ -250,7 +240,7 @@ namespace Imui.Core
             radius.BottomRight -= delta;
             radius.TopLeft -= delta;
             radius.TopRight -= delta;
-            
+
             return radius;
         }
     }

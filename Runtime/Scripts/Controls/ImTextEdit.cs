@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Imui.Core;
 using Imui.IO.Events;
+using Imui.IO.Touch;
 using Imui.IO.Utility;
 using Imui.Rendering;
 using Imui.Style;
@@ -105,12 +106,12 @@ namespace Imui.Controls
             return text;
         }
 
-        public static void TextEdit(this ImGui gui, ref string text, ImSize size = default, bool? multiline = null, ImTextEditFilter filter = null)
+        public static bool TextEdit(this ImGui gui, ref string text, ImSize size = default, bool? multiline = null, ImTextEditFilter filter = null)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = AddRect(gui, size, multiline, out var actuallyMultiline);
-            TextEdit(gui, ref text, rect, actuallyMultiline, filter);
+            return TextEdit(gui, ref text, rect, actuallyMultiline, filter);
         }
 
         public static string TextEdit(this ImGui gui, string text, ImRect rect, bool multiline, ImTextEditFilter filter = null)
@@ -119,12 +120,12 @@ namespace Imui.Controls
             return text;
         }
 
-        public static void TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = default)
+        public static bool TextEdit(this ImGui gui, ref string text, ImRect rect, ImTextEditFilter filter = default)
         {
-            TextEdit(gui, ref text, rect, true, filter);
+            return TextEdit(gui, ref text, rect, true, filter);
         }
 
-        public static void TextEdit(this ImGui gui,
+        public static bool TextEdit(this ImGui gui,
                                     ref string text,
                                     ImRect rect,
                                     bool multiline,
@@ -134,7 +135,7 @@ namespace Imui.Controls
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            TextEdit(gui, id, ref text, ref state, rect, multiline, filter, adjacency);
+            return TextEdit(gui, id, ref text, ref state, rect, multiline, filter, adjacency);
         }
 
         public static bool TextEdit(this ImGui gui,
@@ -163,7 +164,7 @@ namespace Imui.Controls
             return TextEdit(gui, id, ref buffer, ref state, rect, multiline, filter, adjacency);
         }
 
-        public static void TextEdit(this ImGui gui,
+        public static bool TextEdit(this ImGui gui,
                                     uint id,
                                     ref string text,
                                     ref ImTextEditState state,
@@ -178,6 +179,8 @@ namespace Imui.Controls
             {
                 text = buffer.GetString();
             }
+
+            return changed;
         }
 
         public static unsafe bool TextEdit(ImGui gui,
@@ -233,7 +236,7 @@ namespace Imui.Controls
 
             var textRect = rect.WithPadding(textPadding);
             var layout = gui.TextDrawer.BuildTempLayout(
-                buffer, textRect.W, textRect.H, textAlignment.X, textAlignment.Y, textSize, 
+                buffer, textRect.W, textRect.H, textAlignment.X, textAlignment.Y, textSize,
                 style.TextWrap, ImTextOverflow.Overflow);
 
             gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
@@ -262,7 +265,9 @@ namespace Imui.Controls
                     }
                     break;
 
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
+                case ImMouseEventType.Click when evt.Device == ImMouseDevice.Touch && hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.Device == ImMouseDevice.Mouse && evt.LeftButton && hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.Device == ImMouseDevice.Touch && evt.LeftButton && hovered && selected:
                     if (!selected)
                     {
                         gui.SetActiveControl(id, ImControlFlag.Draggable);
@@ -322,6 +327,7 @@ namespace Imui.Controls
                         textChanged = buffer.Length != 0 || textEvent.Text.Length != 0;
                         buffer.Clear(textEvent.Text.Length);
                         Insert(ref state, ref buffer, textEvent.Text);
+                        gui.Input.UseTextEvent();
                         break;
                     default:
                         if (editable)
@@ -341,7 +347,7 @@ namespace Imui.Controls
 
             gui.RegisterControl(id, rect);
 
-            gui.EndScrollable(multiline ? ImScrollFlag.None : ImScrollFlag.NoHorizontalBar | ImScrollFlag.NoVerticalBar);
+            gui.EndScrollable(multiline ? ImScrollFlag.None : ImScrollFlag.HideHorBar | ImScrollFlag.HideVerBar);
             gui.Layout.Pop();
             gui.Canvas.PopRectMask();
 
@@ -377,22 +383,24 @@ namespace Imui.Controls
                 return false;
             }
 
+            ImKeyboardCommandsHelper.TryGetCommand(evt, out var command);
+
             switch (evt.Key)
             {
                 case KeyCode.LeftArrow:
-                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, -1, evt.Command);
+                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, -1, command);
                     break;
 
                 case KeyCode.RightArrow:
-                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, +1, evt.Command);
+                    stateChanged |= MoveCaretHorizontal(ref state, in buffer, +1, command);
                     break;
 
                 case KeyCode.UpArrow:
-                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, +1, evt.Command);
+                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, +1, command);
                     break;
 
                 case KeyCode.DownArrow:
-                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, -1, evt.Command);
+                    stateChanged |= MoveCaretVertical(gui, textRect, in layout, ref state, in buffer, -1, command);
                     break;
 
                 case KeyCode.Delete when editable:
@@ -405,11 +413,20 @@ namespace Imui.Controls
 
                 default:
                 {
-                    switch (evt.Command)
+                    switch (command)
                     {
                         case ImKeyboardCommandFlag.SelectAll:
                             state.Selection = -buffer.Length;
                             state.Caret = buffer.Length;
+                            stateChanged = true;
+                            break;
+                        
+                        case ImKeyboardCommandFlag.Cut:
+                            gui.Input.Clipboard = new string(GetSelectedText(in state, in buffer));
+                            if (editable)
+                            {
+                                textChanged |= DeleteSelection(ref state, ref buffer);
+                            }
                             stateChanged = true;
                             break;
 
@@ -887,14 +904,14 @@ namespace Imui.Controls
                 gui.Canvas.Rect(lineSelectionRect, style.SelectionColor);
             }
         }
-        
+
         public static unsafe ImTextTempFilterBuffer* GetTempFilterBuffer(ImGui gui, uint id)
         {
             gui.PushId(id);
             var tempBufferId = gui.GetControlId(TEMP_BUFFER_TAG);
-            var tempBuffer = gui.Storage.GetPtr<ImTextTempFilterBuffer>(tempBufferId);
+            var tempBuffer = gui.Storage.GetUnsafe<ImTextTempFilterBuffer>(tempBufferId);
             gui.PopId();
-            
+
             return tempBuffer;
         }
     }

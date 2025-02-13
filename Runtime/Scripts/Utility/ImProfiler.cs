@@ -10,14 +10,14 @@ namespace Imui.Utility
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void BeginSample(string name)
         {
-           Profiler.BeginSample(name);
+            Profiler.BeginSample(name);
         }
 
         [Conditional("IMUI_PROFILE")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void EndSample()
         {
-           Profiler.EndSample();
+            Profiler.EndSample();
         }
     }
 }

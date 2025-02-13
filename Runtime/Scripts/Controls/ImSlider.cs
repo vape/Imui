@@ -9,8 +9,8 @@ namespace Imui.Controls
     [Flags]
     public enum ImSliderFlag
     {
-        None,
-        DynamicHandle
+        None = 0,
+        DynamicHandle = 1 << 0
     }
 
     public static class ImSlider
@@ -82,7 +82,7 @@ namespace Imui.Controls
             var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
-            
+
             step = Mathf.Abs(step);
 
             var normValue = Mathf.InverseLerp(min, max, value);
@@ -93,7 +93,7 @@ namespace Imui.Controls
             backgroundRect.Y += (rect.H - backgroundRect.H) * 0.5f;
             backgroundRect.W -= (rect.H - backgroundRect.H);
             backgroundRect.X += (rect.H - backgroundRect.H) * 0.5f;
-            
+
             ref readonly var style = ref (active ? ref gui.Style.Slider.Selected : ref gui.Style.Slider.Normal);
             gui.Box(backgroundRect, in style);
 
@@ -109,12 +109,23 @@ namespace Imui.Controls
             var handleY = handleBounds.Y + (handleBounds.H / 2.0f) - (handleH / 2.0f);
             var handleRect = new ImRect(handleX, handleY, handleW, handleH);
 
-            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, gui.Style.Slider.Handle))
+            ref readonly var evt = ref gui.Input.MouseEvent;
+
+            using (gui.StyleScope(ref gui.Style.Button, gui.Style.Slider.Handle))
             {
-                if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPress))
+                var type = evt.Type;
+                var device = evt.Device;
+
+                if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPressMouse))
                 {
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
-                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    changed = true;
+
+                    if (type == ImMouseEventType.Down && device == ImMouseDevice.Mouse)
+                    {
+                        // if button is activated on press, select control, so we can continue to scroll while mouse is down
+                        gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    }
                 }
             }
 
@@ -127,7 +138,7 @@ namespace Imui.Controls
 
             var textSize = gui.TextDrawer.GetFontSizeFromLineHeight(backgroundRect.H);
             var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f, overflow: gui.Style.Slider.TextOverflow);
-            
+
             gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Normal.FrontColor, backgroundRect);
 
             if (gui.IsReadOnly)
@@ -135,10 +146,14 @@ namespace Imui.Controls
                 return false;
             }
 
-            ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when
+                    evt.LeftButton &&
+                    hovered &&
+                    IsScrollingHorizontally(in evt) &&
+                    !gui.ActiveControlIs(ImControlFlag.Draggable):
+
                     normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
                     changed = true;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
@@ -162,7 +177,7 @@ namespace Imui.Controls
             }
 
             value = Mathf.Lerp(min, max, normValue);
-            
+
             if (step > 0)
             {
                 var precision = 1.0f / step;
@@ -180,6 +195,11 @@ namespace Imui.Controls
             }
 
             return gui.Formatter.ConcatDuplicate("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
+        }
+
+        private static bool IsScrollingHorizontally(in ImMouseEvent e)
+        {
+            return e.Device == ImMouseDevice.Mouse || Mathf.Abs(e.Delta.x) > Mathf.Abs(e.Delta.y);
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Imui.Style
         public float BorderRadius;
         public float BorderThickness;
         public float ReadOnlyColorMultiplier;
-        
+
         public Color Background;
         public Color Foreground;
         public Color Control;
@@ -27,10 +27,35 @@ namespace Imui.Style
 
     public static class ImThemeBuiltin
     {
+        public static ImTheme LightTouch()
+        {
+            var theme = Light();
+
+            theme.TextSize = 23f;
+            theme.Spacing = 5f;
+            theme.InnerSpacing = 6.5f;
+            theme.ExtraRowHeight = 11f;
+
+            return theme;
+        }
+        
+        public static ImTheme DarkTouch()
+        {
+            var theme = Dark();
+
+            theme.TextSize = 23f;
+            theme.Spacing = 5f;
+            theme.InnerSpacing = 6.5f;
+            theme.ExtraRowHeight = 11f;
+
+            return theme;
+        }
+        
         public static ImTheme Light()
         {
-            return new ImTheme { 
-                TextSize = 20f, 
+            return new ImTheme
+            {
+                TextSize = 20f,
                 Spacing = 3f,
                 InnerSpacing = 5f,
                 Indent = 12f,
@@ -48,11 +73,12 @@ namespace Imui.Style
                 Variance = 0.05f
             };
         }
-        
+
         public static ImTheme Dark()
         {
-            return new ImTheme {
-                TextSize = 20f, 
+            return new ImTheme
+            {
+                TextSize = 20f,
                 Spacing = 3f,
                 InnerSpacing = 5f,
                 Indent = 12f,
@@ -67,14 +93,15 @@ namespace Imui.Style
                 Foreground = new Color32(224, 224, 224, 255),
                 Accent = new Color32(0, 125, 219, 255),
                 Control = new Color32(255, 255, 255, 8),
-                Variance = 0.15f,
+                Variance = 0.18f,
             };
         }
-        
+
         public static ImTheme Dear()
         {
-            return new ImTheme {
-                TextSize = 20f, 
+            return new ImTheme
+            {
+                TextSize = 20f,
                 Spacing = 3f,
                 InnerSpacing = 3f,
                 Indent = 8f,
@@ -92,11 +119,12 @@ namespace Imui.Style
                 Variance = 0.2f,
             };
         }
-        
+
         public static ImTheme Orange()
         {
-            return new ImTheme {
-                TextSize = 20f, 
+            return new ImTheme
+            {
+                TextSize = 20f,
                 Spacing = 3f,
                 InnerSpacing = 5f,
                 Indent = 12f,
@@ -114,11 +142,12 @@ namespace Imui.Style
                 Variance = 0.22f,
             };
         }
-        
+
         public static ImTheme Terminal()
         {
-            return new ImTheme {
-                TextSize = 18f, 
+            return new ImTheme
+            {
+                TextSize = 18f,
                 Spacing = 1f,
                 InnerSpacing = 2f,
                 Indent = 8f,

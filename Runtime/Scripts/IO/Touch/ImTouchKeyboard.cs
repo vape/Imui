@@ -2,22 +2,22 @@ using System;
 using Imui.IO.Events;
 using UnityEngine;
 
-namespace Imui.IO.Utility
+namespace Imui.IO.Touch
 {
     public enum ImTouchKeyboardType
     {
         Default,
         Numeric
     }
-    
+
     public struct ImTouchKeyboardSettings
     {
         public bool Muiltiline;
         public ImTouchKeyboardType Type;
         public int CharactersLimit;
     }
-    
-    public class ImTouchKeyboard : IDisposable
+
+    public class ImTouchKeyboard: IDisposable
     {
         private const int TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD = 3;
 
@@ -25,14 +25,14 @@ namespace Imui.IO.Utility
 
         private uint touchKeyboardOwner;
         private int touchKeyboardRequestFrame;
-        
+
         public void RequestTouchKeyboard(uint owner, ReadOnlySpan<char> text, ImTouchKeyboardSettings settings)
         {
-            #if UNITY_WEBGL
+#if UNITY_WEBGL
             // TODO (artem-s): fix touch keyboard handling for webgl
             return;
-            #endif
-            
+#endif
+
             if (!TouchScreenKeyboard.isSupported)
             {
                 return;
@@ -49,8 +49,8 @@ namespace Imui.IO.Utility
             {
                 touchKeyboardOwner = owner;
                 TouchKeyboard = TouchScreenKeyboard.Open(
-                    new string(text), 
-                    GetType(settings.Type), 
+                    new string(text),
+                    GetType(settings.Type),
                     false,
                     settings.Muiltiline);
                 TouchKeyboard.characterLimit = settings.CharactersLimit;
@@ -60,7 +60,7 @@ namespace Imui.IO.Utility
             {
                 TouchKeyboard.active = true;
             }
-            
+
             touchKeyboardRequestFrame = Time.frameCount;
         }
 
@@ -78,11 +78,11 @@ namespace Imui.IO.Utility
         public void HandleTouchKeyboard(out ImTextEvent textEvent)
         {
             textEvent = default;
-            
+
             if (TouchKeyboard != null)
             {
                 var shouldHide = Mathf.Abs(Time.frameCount - touchKeyboardRequestFrame) > TOUCH_KEYBOARD_CLOSE_FRAMES_THRESHOLD;
-                
+
                 switch (TouchKeyboard.status)
                 {
                     case TouchScreenKeyboard.Status.Canceled:
@@ -94,7 +94,7 @@ namespace Imui.IO.Utility
                         shouldHide = true;
                         break;
                 }
-                
+
                 if (shouldHide)
                 {
                     TouchKeyboard.active = false;

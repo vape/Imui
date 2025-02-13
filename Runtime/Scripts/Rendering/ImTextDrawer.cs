@@ -15,7 +15,7 @@ namespace Imui.Rendering
         Ellipsis,
         Truncate
     }
-    
+
     public struct ImTextLine
     {
         public int Start;
@@ -55,10 +55,10 @@ namespace Imui.Rendering
         }
     }
 
-    public class ImTextDrawer : IDisposable
+    public class ImTextDrawer: IDisposable
     {
         [Flags]
-        public enum GlyphFlag : int
+        public enum GlyphFlag: int
         {
             None = 0,
             Empty = 1
@@ -98,8 +98,9 @@ namespace Imui.Rendering
                 uv1y = (y + h) / FONT_ATLAS_H;
             }
         }
-
-        private const string ELLIPSIS = "...";
+        
+        private const string ELLIPSIS_FALLBACK = "...";
+        private const string ELLIPSIS_ONE_CHAR = "…";
         private const char NEW_LINE = '\n';
         private const char SPACE = ' ';
         private const char TAB = '\t';
@@ -114,6 +115,7 @@ namespace Imui.Rendering
 
         public Texture2D FontAtlas => fontAsset.atlasTexture;
         public FontAsset FontAsset => fontAsset;
+        public bool IsFontLoaded => FontAsset;
 
         public float Depth;
         public Color32 Color;
@@ -126,7 +128,10 @@ namespace Imui.Rendering
         private float renderSize;
         private float descentLine;
         private GlyphData[] glyphsLookup;
+        
         private float ellipsisWidth;
+        private GlyphData[] ellipsisGlyphs;
+        private string ellipsisStr;
 
         private readonly ImMeshBuffer buffer;
 
@@ -135,14 +140,17 @@ namespace Imui.Rendering
         public ImTextDrawer(ImMeshBuffer buffer)
         {
             this.buffer = buffer;
-            this.glyphsLookup = new GlyphData[256];
+            
+            glyphsLookup = new GlyphData[256];
+            ellipsisGlyphs = new GlyphData[ELLIPSIS_FALLBACK.Length];
         }
 
-        public void LoadFont(Font font, float? size = null)
+        public void LoadFont(Font font) => LoadFont(font, font.fontSize);
+        public void LoadFont(Font font, int sampleSize)
         {
             UnloadFont();
 
-            fontAsset = FontAsset.CreateFontAsset(font, (int)(size ?? font.fontSize), FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
+            fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
                 (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
 
             renderSize = fontAsset.faceInfo.pointSize;
@@ -165,9 +173,22 @@ namespace Imui.Rendering
             glyphsLookup[TAB].advance = glyphsLookup[SPACE].advance * TAB_SPACES;
 
             ellipsisWidth = 0.0f;
-            for (int i = 0; i < ELLIPSIS.Length; ++i)
+            
+            if (fontAsset.HasCharacter(ELLIPSIS_ONE_CHAR[0], tryAddCharacter: true))
             {
-                ellipsisWidth += glyphsLookup[ELLIPSIS[i]].advance;
+                ellipsisGlyphs[0] = new GlyphData(fontAsset.characterLookupTable[ELLIPSIS_ONE_CHAR[0]].glyph);
+                ellipsisWidth += ellipsisGlyphs[0].advance;
+                ellipsisStr = ELLIPSIS_ONE_CHAR;
+            }
+            else
+            {   
+                for (int i = 0; i < ELLIPSIS_FALLBACK.Length; ++i)
+                {
+                    ellipsisGlyphs[i] = glyphsLookup[ELLIPSIS_FALLBACK[i]];
+                    ellipsisWidth += ellipsisGlyphs[i].advance;
+                }
+
+                ellipsisStr = ELLIPSIS_FALLBACK;
             }
 
             fontAsset.atlasTexture.Apply();
@@ -246,9 +267,9 @@ namespace Imui.Rendering
                 var boundRight = float.MaxValue;
                 if ((line.Width - layout.OverflowWidth) > 1.0f)
                 {
-                    boundRight = 
+                    boundRight =
                         layout.Overflow == ImTextOverflow.Ellipsis ? sx + layout.OverflowWidth - ellipsisWidth * layout.Scale :
-                        layout.Overflow == ImTextOverflow.Truncate ? sx + layout.OverflowWidth : 
+                        layout.Overflow == ImTextOverflow.Truncate ? sx + layout.OverflowWidth :
                         boundRight;
                 }
 
@@ -263,26 +284,26 @@ namespace Imui.Rendering
                     {
                         break;
                     }
-                    
+
                     if (c < GLYPH_LOOKUP_CAPACITY)
                     {
                         ref readonly var glyph = ref glyphsLookup[c];
-                        
+
                         var advance = glyph.advance * layout.Scale;
                         if (x + advance > boundRight)
                         {
                             if (layout.Overflow == ImTextOverflow.Ellipsis && layout.OverflowWidth > (ellipsisWidth * layout.Scale))
                             {
-                                for (int j = 0; j < ELLIPSIS.Length; ++j)
+                                for (int j = 0; j < ellipsisStr.Length; ++j)
                                 {
-                                    ref readonly var glyphEllipsis = ref glyphsLookup[ELLIPSIS[j]];
-                                    x += AddGlyphQuad(in glyphEllipsis, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                                    ref readonly var g = ref ellipsisGlyphs[j];
+                                    x += AddGlyphQuad(in g, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                                 }
                             }
-                            
+
                             break;
                         }
-                        
+
                         if ((glyph.flag & GlyphFlag.Empty) != 0)
                         {
                             x += advance;
@@ -299,22 +320,22 @@ namespace Imui.Rendering
                         }
 
                         var glyph = new GlyphData(character.glyph);
-                        
+
                         var advance = glyph.advance * layout.Scale;
                         if (x + advance > boundRight)
                         {
                             if (layout.Overflow == ImTextOverflow.Ellipsis)
                             {
-                                for (int j = 0; j < ELLIPSIS.Length; ++j)
+                                for (int j = 0; j < ellipsisStr.Length; ++j)
                                 {
-                                    ref readonly var glyphEllipsis = ref glyphsLookup[ELLIPSIS[j]];
-                                    x += AddGlyphQuad(in glyphEllipsis, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
+                                    ref readonly var g = ref ellipsisGlyphs[j];
+                                    x += AddGlyphQuad(in g, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                                 }
                             }
-                            
+
                             break;
                         }
-                        
+
                         x += AddGlyphQuad(in glyph, x + line.OffsetX, y + layout.OffsetY, layout.Scale);
                     }
                 }
@@ -331,27 +352,25 @@ namespace Imui.Rendering
             ImProfiler.EndSample();
         }
 
-#if IMUI_DEBUG
         private void AddControlGlyphQuad(char c, float px, float py, float scale)
         {
             var tmpColor = Color;
-            Color.SetAlpha(0.5f * Color.GetAlpha());
-            
+            Style.ImColorUtility.SetAlpha(ref Color, 0.5f * Style.ImColorUtility.GetAlpha(Color));
+
             ref var backSlash = ref glyphsLookup['\\'];
-            
+
             switch (c)
             {
                 case '\n':
-                    AddGlyphQuad(ref glyphsLookup['n'], px + AddGlyphQuad(ref backSlash, px, py, scale), py, scale);
+                    AddGlyphQuad(in glyphsLookup['n'], px + AddGlyphQuad(in backSlash, px, py, scale), py, scale);
                     break;
                 case '\t':
-                    AddGlyphQuad(ref glyphsLookup['t'], px + AddGlyphQuad(ref backSlash, px, py, scale), py, scale);
+                    AddGlyphQuad(in glyphsLookup['t'], px + AddGlyphQuad(in backSlash, px, py, scale), py, scale);
                     break;
             }
 
             Color = tmpColor;
         }
-#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -459,7 +478,7 @@ namespace Imui.Rendering
             {
                 return;
             }
-            
+
             ImProfiler.BeginSample("ImTextDrawer.FillLayout");
 
             wrap &= boundsWidth > 0;
@@ -575,7 +594,7 @@ namespace Imui.Rendering
             layout.Width = maxLineWidth;
             layout.Height = layout.LineHeight * layout.LinesCount;
             layout.OffsetY = -(boundsHeight - layout.LinesCount * layout.LineHeight) * alignY;
-            
+
             ImProfiler.EndSample();
         }
 

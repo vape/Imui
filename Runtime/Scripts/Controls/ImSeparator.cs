@@ -31,7 +31,7 @@ namespace Imui.Controls
             var p0 = rect.LeftCenter;
             var p1 = rect.RightCenter;
 
-            gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
+            gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, gui.Style.Separator.Thickness);
         }
 
         public static void Separator(ImGui gui, ReadOnlySpan<char> label, ImRect rect)
@@ -55,12 +55,12 @@ namespace Imui.Controls
 
             if (p0.x < p1.x)
             {
-                gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
+                gui.Canvas.Line(p0, p1, gui.Style.Separator.Color, gui.Style.Separator.Thickness);
             }
 
             if (p2.x < p3.x)
             {
-                gui.Canvas.Line(p2, p3, gui.Style.Separator.Color, false, gui.Style.Separator.Thickness);
+                gui.Canvas.Line(p2, p3, gui.Style.Separator.Color, gui.Style.Separator.Thickness);
             }
 
             gui.Text(label, textSettings, gui.Style.Separator.TextColor, textRect);

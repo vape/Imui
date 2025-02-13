@@ -363,6 +363,8 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  scalingMode: 0
+  customScale: 1
 --- !u!222 &1315082255
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -385,9 +387,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cam: {fileID: 347743684}
   canvas: {fileID: 1934553029}
-  graphic: {fileID: 1315082254}
-  font: {fileID: 12800000, guid: 2e601d9349a22409988f9d46642f3331, type: 3}
-  fontSize: 48
+  backend: {fileID: 1315082254}
 --- !u!1 &1927174627
 GameObject:
   m_ObjectHideFlags: 0

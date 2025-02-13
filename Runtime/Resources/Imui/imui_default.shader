@@ -1,4 +1,4 @@
-﻿Shader "Imui/Default"
+﻿Shader "Hidden/Imui/Default"
 {
     Properties
     {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Imui.Controls;
 using Imui.Core;
+using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;
 
@@ -32,20 +33,20 @@ namespace Imui.Examples
     public static class ImDemoWindow
     {
         private static int selectedThemeIndex = 0;
-        private static ImTheme[] themes = { CreateTheme(0), CreateTheme(1), CreateTheme(2), CreateTheme(3), CreateTheme(4) };
+        private static ImTheme[] themes = { CreateTheme(0), CreateTheme(1), CreateTheme(2), CreateTheme(3), CreateTheme(4), CreateTheme(5), CreateTheme(6) };
+
         private static string[] themeNames =
         {
-            nameof(ImThemeBuiltin.Light), 
-            nameof(ImThemeBuiltin.Dark), 
-            nameof(ImThemeBuiltin.Dear),
-            nameof(ImThemeBuiltin.Orange),
-            nameof(ImThemeBuiltin.Terminal)
+            nameof(ImThemeBuiltin.Light), nameof(ImThemeBuiltin.Dark), nameof(ImThemeBuiltin.Dear), nameof(ImThemeBuiltin.Orange),
+            nameof(ImThemeBuiltin.Terminal), nameof(ImThemeBuiltin.LightTouch), nameof(ImThemeBuiltin.DarkTouch)
         };
 
         private static ImTheme CreateTheme(int index)
         {
             return index switch
             {
+                6 => ImThemeBuiltin.DarkTouch(),
+                5 => ImThemeBuiltin.LightTouch(),
                 4 => ImThemeBuiltin.Terminal(),
                 3 => ImThemeBuiltin.Orange(),
                 2 => ImThemeBuiltin.Dear(),
@@ -53,7 +54,7 @@ namespace Imui.Examples
                 _ => ImThemeBuiltin.Light()
             };
         }
-        
+
         private static char[] formatBuffer = new char[256];
 
         private static bool checkboxValue;
@@ -83,18 +84,23 @@ namespace Imui.Examples
         private static bool showPlusMinusButtons = true;
         private static bool useNumericSlider = false;
         private static ImDemoEnumFlags demoFlags;
+        private static int largeTableRows = 1024 * 128;
+        private static int largeTableColumns = 512;
+        private static float largeTableColumnSize = 150;
+        private static bool largeTableScrollable = true;
+        private static bool largeTableResizable = true;
 
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
+
         private static readonly ImDemoTreeNode[] treeNodes = new[]
         {
-            new ImDemoTreeNode("Node 0", 
-                new ImDemoTreeNode("Node 1"), 
+            new ImDemoTreeNode("Node 0",
+                new ImDemoTreeNode("Node 1"),
                 new ImDemoTreeNode("Node 2")),
-            new ImDemoTreeNode("Node 3"),
-            new ImDemoTreeNode("Node 4", 
-                new ImDemoTreeNode("Node 5", 
-                    new ImDemoTreeNode("Node 6"), 
+            new ImDemoTreeNode("Node 3"), new ImDemoTreeNode("Node 4",
+                new ImDemoTreeNode("Node 5",
+                    new ImDemoTreeNode("Node 6"),
                     new ImDemoTreeNode("Node 7")))
         };
 
@@ -117,7 +123,7 @@ namespace Imui.Examples
                 gui.BeginIndent();
                 DrawControlsPage(gui, ref open);
                 gui.EndIndent();
-                
+
                 gui.EndFoldout();
             }
 
@@ -128,7 +134,7 @@ namespace Imui.Examples
                 gui.BeginIndent();
                 DrawLayoutPage(gui);
                 gui.EndIndent();
-                
+
                 gui.EndFoldout();
             }
 
@@ -137,7 +143,7 @@ namespace Imui.Examples
                 gui.BeginIndent();
                 DrawStylePage(gui);
                 gui.EndIndent();
-                
+
                 gui.EndFoldout();
             }
 
@@ -149,6 +155,14 @@ namespace Imui.Examples
                 gui.EndFoldout();
             }
 
+            if (gui.BeginFoldout("Tables"))
+            {
+                gui.BeginIndent();
+                DrawTablesPage(gui);
+                gui.EndIndent();
+                gui.EndFoldout();
+            }
+
             gui.EndReadOnly();
 
             gui.EndWindow();
@@ -156,7 +170,7 @@ namespace Imui.Examples
             gui.PushId("DemoDebugWindow");
             ImDebugWindow.Draw(gui, ref showDebugWindow);
             gui.PopId();
-            
+
             if (showLogWindow && consoleWindow == null)
             {
                 consoleWindow = new ImConsoleWindow();
@@ -197,14 +211,14 @@ namespace Imui.Examples
             gui.Radio(ref dropdownPreview);
             gui.EndHorizontal();
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Dropdown without value selected", preview: dropdownPreview);
-            if (gui.BeginDropdownMenu("Custom Dropdown", preview: dropdownPreview))
+            if (gui.BeginDropdown("Custom Dropdown", preview: dropdownPreview))
             {
                 if (gui.MenuItem("Menu Item"))
                 {
                     gui.CloseDropdown();
                 }
                 gui.TooltipAtLastControl("Will close dropdown on click");
-                
+
                 if (gui.BeginSubMenu("Sub Menu Inside Dropdown"))
                 {
                     gui.Text("Hello there");
@@ -213,7 +227,7 @@ namespace Imui.Examples
                 gui.Checkbox(ref checkboxValue, "Checkbox");
                 gui.Separator("Nested dropdown, if that's want you really want");
                 gui.Dropdown(ref selectedValue, values, defaultLabel: "Nothing", preview: dropdownPreview);
-                gui.EndDropdownMenu();
+                gui.EndDropdown();
             }
             gui.Separator("Text editors");
             gui.TextEdit(ref singleLineText, multiline: false);
@@ -245,7 +259,7 @@ namespace Imui.Examples
             gui.Checkbox(ref showPlusMinusButtons, "Enable Plus/Minus buttons");
             gui.EndReadOnly();
             gui.Checkbox(ref useNumericSlider, "Enable Slider");
-            
+
             var numericFlag = ImNumericEditFlag.None;
             numericFlag |= showPlusMinusButtons ? ImNumericEditFlag.PlusMinus : ImNumericEditFlag.None;
             numericFlag |= useNumericSlider ? ImNumericEditFlag.Slider : ImNumericEditFlag.None;
@@ -280,7 +294,7 @@ namespace Imui.Examples
             gui.BeginMenuBar();
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
-            
+
             gui.Separator("Tabs");
             gui.AddSpacing();
             gui.BeginTabsPane(gui.AddLayoutRect(gui.GetLayoutWidth(), gui.GetRowsHeightWithSpacing(2)));
@@ -301,7 +315,7 @@ namespace Imui.Examples
         private static void DrawSelectableTreeDemo(ImGui gui)
         {
             gui.Checkbox(ref selectMultipleValues, "Select multiple values");
-            
+
             gui.BeginHorizontal();
             gui.Text("Selected nodes: ");
             foreach (var name in selectedNodes)
@@ -327,7 +341,7 @@ namespace Imui.Examples
                     selectedNodes.Remove(name);
                 }
             }
-            
+
             void Node(ref ImDemoTreeNode node)
             {
                 var flags = selectMultipleValues ? ImTreeNodeFlags.UnselectOnClick : ImTreeNodeFlags.None;
@@ -345,14 +359,14 @@ namespace Imui.Examples
                     SetSelected(node.Name, isSelected);
                     return;
                 }
-                
+
                 SetSelected(node.Name, isSelected);
-                    
+
                 for (int i = 0; i < node.Childrens.Length; ++i)
                 {
                     Node(ref node.Childrens[i]);
                 }
-                    
+
                 gui.EndTreeNode();
             }
 
@@ -416,7 +430,7 @@ namespace Imui.Examples
                 gui.BeginVertical(width: 300);
                 DrawSlidersDemo(gui);
                 gui.EndVertical();
-                
+
                 gui.EndSubMenu();
             }
             if (gui.BeginSubMenu("Recursive"))
@@ -426,7 +440,7 @@ namespace Imui.Examples
             }
             gui.Separator();
             if (gui.BeginSubMenu("Test"))
-            {           
+            {
                 if (gui.BeginSubMenu("Same name submenu"))
                 {
                     gui.MenuItem("Item");
@@ -440,7 +454,7 @@ namespace Imui.Examples
                     gui.EndSubMenu();
                 }
                 gui.PopId();
-                
+
                 gui.EndSubMenu();
             }
             gui.Separator();
@@ -462,7 +476,7 @@ namespace Imui.Examples
                 showDebugWindow = true;
             }
         }
-        
+
         private static void DrawLayoutPage(ImGui gui)
         {
             gui.AddSpacing();
@@ -496,21 +510,30 @@ namespace Imui.Examples
             gui.EndGrid(in grid);
         }
 
-        // TODO (artem-s): this does not reflect actual changes in theme
         private static void DrawStylePage(ImGui gui)
         {
             gui.Text("Theme");
             gui.BeginHorizontal();
-            if (gui.Dropdown(ref selectedThemeIndex, themeNames, defaultLabel: "Unknown", size: (gui.GetLayoutWidth() * 0.75f, gui.GetRowHeight())))
+            if (gui.Dropdown(ref selectedThemeIndex, themeNames, defaultLabel: "Unknown", size: (gui.GetLayoutWidth() * 0.6f, gui.GetRowHeight())))
             {
                 gui.SetTheme(themes[selectedThemeIndex]);
             }
             gui.AddSpacing();
-            if (gui.Button("Reset", size: ImSizeMode.Fill))
+
+#if UNITY_WEBGL
+            if (gui.Button("Copy"))
             {
-                themes[selectedThemeIndex] = CreateTheme(selectedThemeIndex); 
+                gui.Input.Clipboard = ImThemeEditor.BuildCodeString(in themes[selectedThemeIndex]);
+            }
+#endif
+            
+            if (gui.Button("Reset", ImSizeMode.Fill))
+            {
+                themes[selectedThemeIndex] = CreateTheme(selectedThemeIndex);
                 gui.SetTheme(themes[selectedThemeIndex]);
             }
+
+            gui.TooltipAtLastControl("Copies theme as code into clipboard");
             gui.EndHorizontal();
 
             if (ImThemeEditor.DrawEditor(gui, ref themes[selectedThemeIndex]))
@@ -523,6 +546,115 @@ namespace Imui.Examples
         {
             gui.Checkbox(ref showDebugWindow, "Show Debug Window");
             gui.Checkbox(ref showLogWindow, "Show Log Window");
+        }
+
+        private static void DrawTablesPage(ImGui gui)
+        {
+            if (gui.BeginTreeNode("Simple"))
+            {
+                gui.PrepareState(4);
+                for (int row = 0; row < 5; ++row)
+                {
+                    gui.TableNextRow();
+                    for (int col = 0; col < 4; ++col)
+                    {
+                        gui.TableNextColumn();
+                        gui.Text(gui.Formatter.Concat("Hello At ", gui.Formatter.Format(col), ":", gui.Formatter.Format(row)));
+                    }
+                }
+                gui.EndTable();
+
+                gui.Separator("Resizable Columns");
+
+                gui.PrepareState(4, flags: ImTableFlag.ResizableColumns);
+                for (int row = 0; row < 5; ++row)
+                {
+                    gui.TableNextRow();
+                    for (int col = 0; col < 4; ++col)
+                    {
+                        gui.TableNextColumn();
+                        gui.Text(gui.Formatter.Concat("Hello At ", gui.Formatter.Format(col), ":", gui.Formatter.Format(row)), wrap: true);
+                    }
+                }
+                gui.EndTable();
+
+                gui.EndTreeNode();
+            }
+
+            if (gui.BeginTreeNode("With Scroll Bars"))
+            {
+                gui.PrepareState(4, (gui.GetLayoutWidth(), 200));
+                for (int row = 0; row < 12; ++row)
+                {
+                    gui.TableNextRow();
+                    for (int col = 0; col < 4; ++col)
+                    {
+                        gui.TableNextColumn();
+                        gui.Text(gui.Formatter.Concat("Hello At ", gui.Formatter.Format(col), ":", gui.Formatter.Format(row)), true);
+                    }
+                }
+                gui.EndTable();
+
+                gui.EndTreeNode();
+            }
+
+            if (gui.BeginTreeNode("Large Tables"))
+            {
+                NumEditWithLabel(gui, ref largeTableRows, "Rows", min: 1, max: 1024 * 1024 * 4);
+                NumEditWithLabel(gui, ref largeTableColumns, "Columns", min: 1, max: 4096);
+                NumEditWithLabel(gui, ref largeTableColumnSize, "Col. Size", min: 50, max: 300);
+
+                gui.Checkbox(ref largeTableResizable, "Resizable Columns");
+                gui.Checkbox(ref largeTableScrollable, "Scrollable");
+
+                var size = largeTableScrollable ? new ImSize(gui.GetLayoutWidth(), 300) : new ImSize(ImSizeMode.Auto);
+                var flags = largeTableResizable ? ImTableFlag.ResizableColumns : ImTableFlag.None;
+
+                ref var state = ref gui.PrepareState(largeTableColumns, size, flags);
+
+                gui.TableSetRowsHeight(gui.GetTextLineHeight() + gui.Style.Table.CellPadding.Vertical);
+                for (int i = 0; i < largeTableColumns; ++i)
+                {
+                    gui.TableSetColumnWidth(i, largeTableColumnSize);
+                }
+
+                var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, new ImAlignment(0.5f, 0.5f), overflow: ImTextOverflow.Ellipsis);
+                var rowsRange = gui.TableGetVisibleRows(largeTableRows);
+                var colsRange = gui.TableGetVisibleColumns();
+
+                for (int row = rowsRange.Min; row < rowsRange.Max; ++row)
+                {
+                    gui.TableSetRow(row, ref state);
+
+                    for (int col = colsRange.Min; col < colsRange.Max; ++col)
+                    {
+                        gui.TableSetColumn(col, ref state);
+                        gui.Text(gui.Formatter.Concat(gui.Formatter.Format(col), "x", gui.Formatter.Format(row)), textSettings);
+                    }
+                }
+
+                gui.EndTable();
+
+                gui.EndTreeNode();
+            }
+        }
+
+        private static void NumEditWithLabel(ImGui gui, ref int value, ReadOnlySpan<char> label, int min, int max)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            gui.BeginHorizontal();
+            gui.Text(label, gui.Layout.AddRect(150, gui.GetRowHeight()));
+            gui.NumericEdit(ref value, min: min, max: max, flags: ImNumericEditFlag.PlusMinus);
+            gui.EndHorizontal();
+        }
+
+        private static void NumEditWithLabel(ImGui gui, ref float value, ReadOnlySpan<char> label, float min, float max)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            gui.BeginHorizontal();
+            gui.Text(label, gui.Layout.AddRect(150, gui.GetRowHeight()));
+            gui.NumericEdit(ref value, min: min, max: max, flags: ImNumericEditFlag.PlusMinus);
+            gui.EndHorizontal();
         }
 
         public static void DrawBouncingBall(ImGui gui)
@@ -550,7 +682,7 @@ namespace Imui.Examples
                 gui.Canvas.Circle(p, bouncingBallSize * 0.5f, c);
             }
         }
-        
+
         public static void NestedFoldout(ImGui gui, int current, ref int total)
         {
             const int MAX = 8;
@@ -561,7 +693,7 @@ namespace Imui.Examples
             {
                 return;
             }
-            
+
             gui.BeginIndent();
             if (current < total)
             {
@@ -583,10 +715,10 @@ namespace Imui.Examples
                 }
             }
             gui.EndIndent();
-                
+
             gui.EndFoldout();
         }
-        
+
         private static ReadOnlySpan<char> Format(ReadOnlySpan<char> prefix, float value, ReadOnlySpan<char> format = default)
         {
             var dst = new Span<char>(formatBuffer);

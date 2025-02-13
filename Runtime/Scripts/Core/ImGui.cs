@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Imui.IO;
 using Imui.Rendering;
 using Imui.Style;
@@ -13,14 +14,8 @@ namespace Imui.Core
         None = 0,
         Draggable = 1 << 0
     }
-    
-    public struct ImControlScope
-    {
-        public uint Id;
-        public int Type;
-    }
 
-    public class ImGui : IDisposable
+    public unsafe class ImGui: IDisposable
     {
         private const int CONTROL_IDS_STACK_CAPACITY = 32;
 
@@ -28,16 +23,27 @@ namespace Imui.Core
         private const int INIT_VERTICES_COUNT = 1024 * 16;
         private const int INIT_INDICES_COUNT = INIT_VERTICES_COUNT * 3;
 
-        private const float UI_SCALE_MIN = 0.05f;
-        private const float UI_SCALE_MAX = 16.0f;
-
         private const int FLOATING_CONTROLS_CAPACITY = 128;
         private const int HOVERED_GROUPS_CAPACITY = 16;
         private const int READONLY_STACK_CAPACITY = 4;
         private const int CONTROL_SCOPE_STACK_CAPACITY = 64;
+        private const int STYLE_SCOPE_STACK_CAPACITY = 16;
 
         private const int INITIAL_STORAGE_ENTRIES = 256;
+        private const int INITIAL_STORAGE_CAPACITY = 1024 * 1024;
         private const int DEFAULT_ARENA_CAPACITY = 1024 * 1024;
+
+        private struct StyleProp
+        {
+            public int Offset;
+            public void* Original;
+
+            public StyleProp(int offset, void* original)
+            {
+                Offset = offset;
+                Original = original;
+            }
+        }
 
         private struct ControlId
         {
@@ -86,12 +92,14 @@ namespace Imui.Core
             }
         }
 
-        public float UiScale
+        internal struct ImControlScope
         {
-            get => uiScale;
-            set => uiScale = Mathf.Clamp(value, UI_SCALE_MIN, UI_SCALE_MAX);
-        }
+            public uint Id;
+            public int Type;
 
+            internal void* Ptr;
+        }
+        
         public bool IsReadOnly => readOnlyStack.TryPeek(@default: false);
         public uint LastControl => lastControl;
         public ImRect LastControlRect => lastControlRect;
@@ -105,8 +113,8 @@ namespace Imui.Core
         public readonly ImLayout Layout;
         public readonly ImStorage Storage;
         public readonly ImWindowManager WindowManager;
-        public readonly IImInputBackend Input;
-        public readonly IImRenderingBackend Renderer;
+        public readonly IImuiInput Input;
+        public readonly IImuiRenderer Renderer;
         public readonly ImFormatter Formatter;
 
         public ImStyleSheet Style;
@@ -116,7 +124,6 @@ namespace Imui.Core
         internal FrameData frameData;
         // ReSharper restore InconsistentNaming
 
-        private float uiScale = 1.0f;
         private ImDynamicArray<ControlId> idsStack;
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
@@ -124,10 +131,11 @@ namespace Imui.Core
         private uint lastControl;
         private ImRect lastControlRect;
         private ImDynamicArray<ImControlScope> controlScopesStack;
+        private ImDynamicArray<StyleProp> styleStack;
 
         private bool disposed;
 
-        public ImGui(IImRenderingBackend renderer, IImInputBackend input)
+        public ImGui(IImuiRenderer renderer, IImuiInput input)
         {
             MeshBuffer = new ImMeshBuffer(INIT_MESHES_COUNT, INIT_VERTICES_COUNT, INIT_INDICES_COUNT);
             MeshDrawer = new ImMeshDrawer(MeshBuffer);
@@ -136,7 +144,7 @@ namespace Imui.Core
             Canvas = new ImCanvas(MeshDrawer, TextDrawer, Arena);
             MeshRenderer = new ImMeshRenderer();
             Layout = new ImLayout();
-            Storage = new ImStorage(INITIAL_STORAGE_ENTRIES);
+            Storage = new ImStorage(INITIAL_STORAGE_ENTRIES, INITIAL_STORAGE_CAPACITY);
             WindowManager = new ImWindowManager();
             Input = input;
             Renderer = renderer;
@@ -147,13 +155,19 @@ namespace Imui.Core
             idsStack = new ImDynamicArray<ControlId>(CONTROL_IDS_STACK_CAPACITY);
             readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
             controlScopesStack = new ImDynamicArray<ImControlScope>(CONTROL_SCOPE_STACK_CAPACITY);
+            styleStack = new ImDynamicArray<StyleProp>(STYLE_SCOPE_STACK_CAPACITY);
 
-            Input.SetRaycaster(Raycast);
+            Input.UseRaycaster(Raycast);
             SetTheme(ImThemeBuiltin.Light());
         }
 
         public void BeginFrame()
         {
+            if (!TextDrawer.IsFontLoaded)
+            {
+                LoadDefaultFont();
+            }
+            
             Arena.Clear();
 
             idsStack.Clear(false);
@@ -161,19 +175,16 @@ namespace Imui.Core
             (nextFrameData, frameData) = (frameData, nextFrameData);
             nextFrameData.Clear();
 
-            var screenRect = Renderer.GetScreenRect();
-            var scaledScreenSize = screenRect.size / uiScale;
+            var uiScale = Renderer.GetScale();
+            var scaledTargetSize = Renderer.GetScreenSize() / Renderer.GetScale();
 
-            Input.SetScale(UiScale);
             Input.Pull();
 
-            Canvas.SetScreen(scaledScreenSize, uiScale);
             Canvas.Clear();
+            Canvas.ConfigureScreen(scaledTargetSize, uiScale);
             Canvas.PushSettings(Canvas.CreateDefaultSettings());
 
-            WindowManager.SetScreenSize(scaledScreenSize);
-
-            Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledScreenSize));
+            Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledTargetSize));
 
             idsStack.Push(new ControlId(ImHash.Get("root", 0)));
         }
@@ -198,9 +209,15 @@ namespace Imui.Core
 
             Canvas.PopSettings();
 
-            Storage.CollectAndCompactIteration();
+            Storage.FindUnused();
+            Storage.Collect();
 
             WindowManager.HandleFrameEnded();
+        }
+
+        public void LoadDefaultFont()
+        {
+            TextDrawer.LoadFont(Resources.Load<Font>("Imui/FiraMono-Regular"));
         }
 
         public void BeginReadOnly(bool isReadOnly)
@@ -257,6 +274,38 @@ namespace Imui.Core
             return false;
         }
 
+        public void PushStyle<T>(ref T style) where T: unmanaged
+        {
+            PushStyle<T>(ref style, in style);
+        }
+
+        public void PushStyle<T>(ref T style, in T value) where T: unmanaged
+        {
+            var original = Arena.AllocUnsafe<T>();
+            *original = style;
+            style = value;
+
+            fixed (void* start = &Style)
+            fixed (void* prop = &style)
+            {
+                var offset = (int)((byte*)prop - (byte*)start);
+
+                ImAssert.IsTrue(offset > 0, "offset > 0");
+                ImAssert.IsTrue(offset < sizeof(ImStyleSheet), "offset < sizeof(ImStyleSheet)");
+
+                styleStack.Push(new StyleProp(offset, original));
+            }
+        }
+
+        public void PopStyle<T>() where T: unmanaged
+        {
+            var prop = styleStack.Pop();
+            fixed (void* start = &Style)
+            {
+                *(T*)((byte*)start + prop.Offset) = *(T*)prop.Original;
+            }
+        }
+
         public uint GetNextControlId()
         {
             ref var parent = ref idsStack.Peek();
@@ -273,6 +322,16 @@ namespace Imui.Core
         {
             ref var parent = ref idsStack.Peek();
             return ImHash.Get(id, parent.Id);
+        }
+
+        public uint GetControlId(uint id, uint parent)
+        {
+            return ImHash.Get(id, parent);
+        }
+
+        public uint GetControlId(ReadOnlySpan<char> name, uint parent)
+        {
+            return ImHash.Get(name, parent);
         }
 
         public uint GetHoveredControl()
@@ -406,46 +465,63 @@ namespace Imui.Core
             }
         }
 
-        public unsafe ref TState PushControlScope<TState>(uint id, TState @default = default) where TState: unmanaged => ref *PushControlScopePtr(id, @default);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref TState BeginScope<TState>(uint id, TState @default = default) where TState: unmanaged => ref *BeginScopeUnsafe(id, @default);
 
-        public unsafe TState* PushControlScopePtr<TState>(uint id, TState @default = default) where TState: unmanaged
+        public unsafe TState* BeginScopeUnsafe<TState>(uint id, TState @default = default) where TState: unmanaged
         {
-            var stateReference = new ImControlScope() { Id = id, Type = typeof(TState).GetHashCode() };
+            var ptr = Storage.GetUnsafe(id, @default);
+            var scope = new ImControlScope()
+            {
+                Id = id,
+                Type = typeof(TState).GetHashCode(),
+                Ptr = ptr
+            };
 
-            controlScopesStack.Push(in stateReference);
+            controlScopesStack.Push(in scope);
 
-            return Storage.GetPtr(id, @default);
+            return ptr;
         }
 
-        public unsafe ref TState PopControlScope<TState>() where TState: unmanaged => ref *PopControlScopePtr<TState>(out _);
-        public unsafe ref TState PopControlScope<TState>(out uint id) where TState: unmanaged => ref *PopControlScopePtr<TState>(out id);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref TState EndScope<TState>() where TState: unmanaged => ref *EndScopeUnsafe<TState>(out _);
 
-        public unsafe TState* PopControlScopePtr<TState>() where TState: unmanaged => PopControlScopePtr<TState>(out _);
+        public unsafe ref TState EndScope<TState>(out uint id) where TState: unmanaged => ref *EndScopeUnsafe<TState>(out id);
 
-        public unsafe TState* PopControlScopePtr<TState>(out uint id) where TState: unmanaged
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe TState* EndScopeUnsafe<TState>() where TState: unmanaged => EndScopeUnsafe<TState>(out _);
+
+        public unsafe TState* EndScopeUnsafe<TState>(out uint id) where TState: unmanaged
         {
-            ref var reference = ref FindControlScopeOrFail<TState>(out var index);
+            ref var scope = ref FindControlScopeOrFail<TState>(out var index);
 
-            id = reference.Id;
+            id = scope.Id;
+            var ptr = (TState*)scope.Ptr;
             controlScopesStack.RemoveAtFast(index);
 
-            return Storage.GetPtr<TState>(id);
+            return ptr;
         }
 
-        public unsafe ref TState PeekControlScope<TState>() where TState: unmanaged => ref *PeekControlScopePtr<TState>(out _);
-        public unsafe ref TState PeekControlScope<TState>(out uint id) where TState: unmanaged => ref *PeekControlScopePtr<TState>(out id);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref TState GetCurrentScope<TState>() where TState: unmanaged => ref *GetCurrentScopeUnsafe<TState>(out _);
 
-        public unsafe TState* PeekControlScopePtr<TState>() where TState: unmanaged => PeekControlScopePtr<TState>(out _);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe ref TState GetCurrentScope<TState>(out uint id) where TState: unmanaged => ref *GetCurrentScopeUnsafe<TState>(out id);
 
-        public unsafe TState* PeekControlScopePtr<TState>(out uint id) where TState: unmanaged
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe TState* GetCurrentScopeUnsafe<TState>() where TState: unmanaged => GetCurrentScopeUnsafe<TState>(out _);
+
+        public unsafe TState* GetCurrentScopeUnsafe<TState>(out uint id) where TState: unmanaged
         {
-            ref var reference = ref FindControlScopeOrFail<TState>(out _);
+            ref var scope = ref FindControlScopeOrFail<TState>(out _);
 
-            id = reference.Id;
-            return Storage.GetPtr<TState>(id);
+            id = scope.Id;
+            var ptr = (TState*)scope.Ptr;
+
+            return ptr;
         }
 
-        public unsafe bool TryPeekControlScopePtr<TState>(out TState* state) where TState: unmanaged
+        public unsafe bool TryGetCurrentScopeUnsafe<TState>(out TState* state) where TState: unmanaged
         {
             if (!TryFindControlScope<TState>(out var index))
             {
@@ -453,7 +529,7 @@ namespace Imui.Core
                 return false;
             }
 
-            state = Storage.GetPtr<TState>(controlScopesStack.Array[index].Id);
+            state = (TState*)controlScopesStack.Array[index].Ptr;
             return true;
         }
 
@@ -503,19 +579,20 @@ namespace Imui.Core
         public void Render()
         {
             ImProfiler.BeginSample("ImGui.Render");
-            
+
             nextFrameData.VerticesCount = MeshDrawer.buffer.VerticesCount;
             nextFrameData.IndicesCount = MeshDrawer.buffer.IndicesCount;
             nextFrameData.ArenaSize = Arena.Size;
 
             var renderCmd = Renderer.CreateCommandBuffer();
-            var screenSize = Renderer.GetScreenRect().size;
+            var screenSize = Renderer.GetScreenSize();
+            var uiScale = Renderer.GetScale();
             var targetSize = Renderer.SetupRenderTarget(renderCmd);
 
-            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, UiScale, targetSize);
+            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, uiScale, targetSize);
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
-            
+
             ImProfiler.EndSample();
         }
 
@@ -548,11 +625,12 @@ namespace Imui.Core
                 return;
             }
 
-            Input.SetRaycaster(null);
+            Input.UseRaycaster(null);
             Canvas.Dispose();
             TextDrawer.Dispose();
             MeshRenderer.Dispose();
             Storage.Dispose();
+            Arena.Dispose();
 
             disposed = true;
         }

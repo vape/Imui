@@ -19,19 +19,19 @@ namespace Imui.Controls
 
     public static unsafe class ImDropdown
     {
-        public static bool BeginDropdownMenu(this ImGui gui,
-                                             ReadOnlySpan<char> label,
-                                             ImSize size = default,
-                                             ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        public static bool BeginDropdown(this ImGui gui,
+                                         ReadOnlySpan<char> label,
+                                         ImSize size = default,
+                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
-            if (!BeginDropdown(gui, label, size, preview))
+            if (!BeginDropdownButton(gui, label, size, preview))
             {
                 return false;
             }
 
             gui.BeginPopup();
 
-            ref var state = ref gui.PeekControlScope<ImDropdownState>();
+            ref var state = ref gui.GetCurrentScope<ImDropdownState>();
 
             if (!gui.BeginMenu(label, ref state.Open, gui.LastControlRect.BottomLeft, gui.LastControlRect.W))
             {
@@ -42,24 +42,24 @@ namespace Imui.Controls
             return true;
         }
 
-        public static void EndDropdownMenu(this ImGui gui)
+        public static void EndDropdown(this ImGui gui)
         {
             gui.EndMenu();
             gui.EndPopup();
-            gui.EndDropdown();
+            gui.EndDropdownButton();
         }
 
-        public static bool BeginDropdown(this ImGui gui,
-                                         ReadOnlySpan<char> label,
-                                         ImSize size = default,
-                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        public static bool BeginDropdownButton(this ImGui gui,
+                                               ReadOnlySpan<char> label,
+                                               ImSize size = default,
+                                               ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var id = gui.GetNextControlId();
             var rect = gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight());
 
-            ref var state = ref gui.PushControlScope<ImDropdownState>(id);
+            ref var state = ref gui.BeginScope<ImDropdownState>(id);
 
             var clicked = DropdownButton(gui, id, label, rect, preview);
             if (clicked)
@@ -69,7 +69,7 @@ namespace Imui.Controls
 
             if (!state.Open)
             {
-                gui.PopControlScope<ImDropdownState>();
+                gui.EndScope<ImDropdownState>();
                 return false;
             }
 
@@ -78,15 +78,15 @@ namespace Imui.Controls
             return state.Open;
         }
 
-        public static void EndDropdown(this ImGui gui)
+        public static void EndDropdownButton(this ImGui gui)
         {
             gui.PopId();
-            gui.PopControlScope<ImDropdownState>();
+            gui.EndScope<ImDropdownState>();
         }
 
         public static void CloseDropdown(this ImGui gui)
         {
-            if (gui.TryPeekControlScopePtr(out ImDropdownState* state))
+            if (gui.TryGetCurrentScopeUnsafe(out ImDropdownState* state))
             {
                 state->Open = false;
             }
@@ -110,7 +110,7 @@ namespace Imui.Controls
                     gui.TextEditReadonly(label, previewRect, false, ImAdjacency.Left);
                     break;
                 case ImDropdownPreviewType.Default:
-                    using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
+                    using (gui.StyleScope(ref gui.Style.Button, in gui.Style.Dropdown.Button))
                     {
                         clicked |= gui.Button(id, label, previewRect, adjacency: ImAdjacency.Left);
                     }
@@ -131,7 +131,7 @@ namespace Imui.Controls
         {
             var changed = false;
 
-            if (BeginDropdownMenu(gui, selected < 0 || selected >= items.Length ? defaultLabel : items[selected], size, preview))
+            if (BeginDropdown(gui, selected < 0 || selected >= items.Length ? defaultLabel : items[selected], size, preview))
             {
                 for (int i = 0; i < items.Length; ++i)
                 {
@@ -144,7 +144,7 @@ namespace Imui.Controls
                     }
                 }
 
-                EndDropdownMenu(gui);
+                EndDropdown(gui);
             }
 
             return changed;
@@ -154,7 +154,7 @@ namespace Imui.Controls
         {
             bool clicked;
 
-            using (new ImStyleScope<ImStyleButton>(ref gui.Style.Button, in gui.Style.Dropdown.Button))
+            using (gui.StyleScope(ref gui.Style.Button, in gui.Style.Dropdown.Button))
             {
                 clicked = gui.Button(id, rect, out var state, adjacency: adjacency);
 

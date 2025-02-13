@@ -1,15 +1,15 @@
 fileFormatVersion: 2
-guid: 2e601d9349a22409988f9d46642f3331
+guid: 2e9b490edf22d46f080283215ca4034e
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
-  fontSize: 16
+  fontSize: 32
   forceTextureCase: -2
   characterSpacing: 0
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - Open Sans
+  - Fira Mono
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0

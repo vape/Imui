@@ -1,5 +1,5 @@
 using System;
-using Imui.Core; // TODO (artem-s): styling should not depend on Core module
+using Imui.Core;
 using Imui.Rendering;
 using UnityEngine;
 
@@ -33,7 +33,7 @@ namespace Imui.Style
                 BorderRadius.BottomLeft = 0;
                 BorderRadius.BottomRight = 0;
             }
-            
+
             if ((adjacency & ImAdjacency.Bottom) != 0)
             {
                 BorderRadius.TopLeft = 0;
@@ -43,7 +43,7 @@ namespace Imui.Style
             return this;
         }
     }
-    
+
     [Serializable]
     public struct ImStyleLayout
     {
@@ -53,7 +53,7 @@ namespace Imui.Style
         public float InnerSpacing;
         public float Indent;
     }
-    
+
     [Serializable]
     public struct ImStyleButtonState
     {
@@ -61,7 +61,7 @@ namespace Imui.Style
         public Color32 FrontColor;
         public Color32 BorderColor;
     }
-    
+
     [Serializable]
     public struct ImStyleButton
     {
@@ -73,7 +73,7 @@ namespace Imui.Style
         public ImAlignment Alignment;
         public ImTextOverflow Overflow;
     }
-    
+
     [Serializable]
     public struct ImStyleCheckbox
     {
@@ -81,21 +81,21 @@ namespace Imui.Style
         public ImStyleButton Normal;
         public ImStyleButton Checked;
     }
-    
+
     [Serializable]
     public struct ImStyleDropdown
     {
         public float ArrowScale;
         public ImStyleButton Button;
     }
-    
+
     [Serializable]
     public struct ImStyleFoldout
     {
         public float ArrowScale;
         public ImStyleButton Button;
     }
-    
+
     [Serializable]
     public struct ImStyleList
     {
@@ -104,7 +104,7 @@ namespace Imui.Style
         public ImStyleButton ItemNormal;
         public ImStyleButton ItemSelected;
     }
-    
+
     [Serializable]
     public struct ImStyleRadiobox
     {
@@ -112,7 +112,7 @@ namespace Imui.Style
         public ImStyleButton Normal;
         public ImStyleButton Checked;
     }
-    
+
     [Serializable]
     public struct ImStyleScrollBarState
     {
@@ -132,7 +132,7 @@ namespace Imui.Style
         public ImStyleScrollBarState HoveredState;
         public ImStyleScrollBarState PressedState;
     }
-    
+
     [Serializable]
     public struct ImStyleSeparator
     {
@@ -143,7 +143,7 @@ namespace Imui.Style
         public ImPadding TextMargin;
         public ImTextOverflow TextOverflow;
     }
-    
+
     [Serializable]
     public struct ImStyleSlider
     {
@@ -153,20 +153,20 @@ namespace Imui.Style
         public float BackScale;
         public ImTextOverflow TextOverflow;
     }
-        
+
     [Serializable]
     public struct ImStyleText
     {
         public Color32 Color;
     }
-    
+
     [Serializable]
     public struct ImStyleTextEditState
     {
         public ImStyleBox Box;
         public Color32 SelectionColor;
     }
-    
+
     [Serializable]
     public struct ImStyleTextEdit
     {
@@ -176,7 +176,7 @@ namespace Imui.Style
         public ImAlignment Alignment;
         public bool TextWrap;
     }
-    
+
     [Serializable]
     public struct ImStyleTree
     {
@@ -184,7 +184,7 @@ namespace Imui.Style
         public ImStyleButton ItemNormal;
         public ImStyleButton ItemSelected;
     }
-        
+
     [Serializable]
     public struct ImStyleWindowTitleBar
     {
@@ -194,7 +194,7 @@ namespace Imui.Style
         public ImTextOverflow Overflow;
         public ImStyleButton CloseButton;
     }
-        
+
     [Serializable]
     public struct ImStyleWindow
     {
@@ -251,5 +251,15 @@ namespace Imui.Style
         public ImStyleButton Selected;
         public Color32 IndicatorColor;
         public ImStyleBox ContainerBox;
+    }
+
+    [Serializable]
+    public struct ImStyleTable
+    {
+        public ImPadding CellPadding;
+        public Color32 BorderColor;
+        public Color32 SelectedColumnColor;
+        public float BorderThickness;
+        public float SelectedColumnThickness;
     }
 }

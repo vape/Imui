@@ -17,7 +17,7 @@ namespace Imui.IO.Events
             Type = type;
             Text = null;
         }
-        
+
         public ImTextEvent(ImTextEventType type, string text)
         {
             Type = type;
