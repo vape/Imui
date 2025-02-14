@@ -345,16 +345,14 @@ namespace Imui.IO.UGUI
             mouseHeldDown = false;
 
             var dx = eventData.scrollDelta.x;
-            var dy = eventData.scrollDelta.y;
+            var dy = -eventData.scrollDelta.y;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-            // (artem-s): I fucking hate web
-            dx = dx / 3.0f;
-            dy = dy / 3.0f;
+            dx = -dx;
 #endif
 
             var device = GetDeviceType(eventData);
-            var delta = new Vector2(dx, -dy);
+            var delta = new Vector2(dx, dy);
             mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Scroll, (int)eventData.button, EventModifiers.None, delta, device));
         }
 
