@@ -132,6 +132,7 @@ namespace Imui.Rendering
         private float ellipsisWidth;
         private GlyphData[] ellipsisGlyphs;
         private string ellipsisStr;
+        private bool atlasDirty;
 
         private readonly ImMeshBuffer buffer;
 
@@ -203,6 +204,13 @@ namespace Imui.Rendering
 
             UnityEngine.Object.Destroy(fontAsset);
             fontAsset = null;
+        }
+
+        public void ApplyAtlasChanges() {
+            if (atlasDirty) {
+                atlasDirty = false;
+                fontAsset.atlasTexture.Apply();
+            }
         }
 
         public float GetLineHeightFromFontSize(float size)
@@ -510,6 +518,8 @@ namespace Imui.Rendering
                 }
                 else if (fontAsset.HasCharacter(c, tryAddCharacter: true))
                 {
+                    atlasDirty = true;
+                    
                     a = charsTable[c].glyph.metrics.horizontalAdvance;
                 }
                 else
