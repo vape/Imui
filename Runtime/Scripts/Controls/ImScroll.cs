@@ -13,7 +13,9 @@ namespace Imui.Controls
         HideVerBar = 1 << 0,
         HideHorBar = 1 << 1,
         PersistentHorBar = 1 << 2,
-        PersistentVerBar = 1 << 3
+        PersistentVerBar = 1 << 3,
+        DisableInertia = 1 << 4,
+        DisableElasticity = 1 << 5
     }
 
     [Flags]
@@ -29,12 +31,17 @@ namespace Imui.Controls
     public struct ImScrollState
     {
         public Vector2 Offset;
+        public Vector2 Velocity;
         public ImScrollLayoutFlag Layout;
         public ImScrollFlag Flags;
     }
 
     public static class ImScroll
     {
+        public const float DECELERATION_RATE = 0.05f;
+        public const float VELOCITY_SHARPNESS = 15;
+        public const float INERTIA_THRESHOLD = 0.1f;
+        
         public static void BeginScrollable(this ImGui gui)
         {
             var id = gui.GetNextControlId();
@@ -120,6 +127,11 @@ namespace Imui.Controls
             var active = gui.IsControlActive(id);
             var scrollable = (state.Layout & ANY_AXES_SCROLLABLE) != 0;
 
+            if (!active && groupHovered && gui.Input.WasMouseDownThisFrame)
+            {
+                state.Velocity = default;
+            }
+
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
@@ -131,6 +143,7 @@ namespace Imui.Controls
                     break;
                 
                 case ImMouseEventType.BeginDrag when scrollable && groupHovered && !active && !gui.ActiveControlIs(ImControlFlag.Draggable):
+                    state.Velocity = default;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     break;
 
@@ -147,10 +160,23 @@ namespace Imui.Controls
 
             var prevOffset = state.Offset;
 
+            if (!active && (state.Flags & ImScrollFlag.DisableInertia) == 0 && state.Velocity.magnitude > INERTIA_THRESHOLD)
+            {
+                state.Velocity *= Mathf.Pow(DECELERATION_RATE, Time.deltaTime);
+                
+                dx += state.Velocity.x;
+                dy += state.Velocity.y;
+            }
+
             state.Offset.x = Mathf.Clamp(state.Offset.x + dx, Mathf.Min(0, view.W - size.x), 0);
             state.Offset.y = Mathf.Clamp(state.Offset.y + dy, 0, Mathf.Max(size.y - view.H, 0));
 
-            // defer mouse event consumption so we can pass it to parent scroll rect in case offset hasn't changed
+            if (active && (state.Flags & ImScrollFlag.DisableInertia) == 0)
+            {
+                state.Velocity = Vector2.Lerp(state.Velocity, state.Offset - prevOffset, Time.deltaTime * VELOCITY_SHARPNESS);
+            }
+
+            // defer mouse event consumption, so we can pass it to parent scroll rect in case offset hasn't changed
             if (prevOffset != state.Offset && deferredUseMouseEvent)
             {
                 gui.Input.UseMouseEvent();

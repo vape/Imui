@@ -37,6 +37,8 @@ namespace Imui.IO.UGUI
         private static Texture2D ClearTexture;
         private static readonly Vector3[] TempBuffer = new Vector3[4];
 
+        public bool WasMouseDownThisFrame { get; private set; }
+
         public Vector2 MousePosition => mousePosition;
         public ref readonly ImMouseEvent MouseEvent => ref mouseEvent;
         public ref readonly ImTextEvent TextEvent => ref textEvent;
@@ -234,6 +236,8 @@ namespace Imui.IO.UGUI
             nextKeyboardEvents.Clear();
 
             touchKeyboardHandler.HandleTouchKeyboard(out textEvent);
+
+            WasMouseDownThisFrame = mouseEvent.Type == ImMouseEventType.Down;
         }
 
         public Vector2 GetMousePosition()

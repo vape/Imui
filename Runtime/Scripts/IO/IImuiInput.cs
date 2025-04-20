@@ -16,7 +16,9 @@ namespace Imui.IO
         }
 
         Vector2 MousePosition { get; }
-        
+
+        bool WasMouseDownThisFrame { get; }
+
         ref readonly ImMouseEvent MouseEvent { get; }
         void UseMouseEvent();
         
