@@ -15,11 +15,11 @@ namespace Imui.Controls
                 case ImSizeMode.Fill:
                     return gui.AddSingleRowRect(size);
                 default:
-                    var boxSize = gui.Style.Layout.TextSize;
+                    var boxSize = gui.GetRowHeight();
 
                     if (label.IsEmpty)
                     {
-                        return gui.Layout.AddRect(boxSize, gui.GetRowHeight());
+                        return gui.Layout.AddRect(boxSize, boxSize);
                     }
 
                     var textSettings = GetTextSettings(gui);
@@ -59,7 +59,7 @@ namespace Imui.Controls
         public static bool Checkbox(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var boxSize = gui.Style.Layout.TextSize;
+            var boxSize = gui.Style.Layout.TextSize + gui.Style.Layout.ExtraRowHeight;
             var boxRect = rect.TakeLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Checkbox(gui, id, ref value, boxRect);
 
@@ -74,7 +74,7 @@ namespace Imui.Controls
             textRect.W -= gui.Style.Layout.InnerSpacing;
             gui.Canvas.Text(label, gui.Style.Text.Color, textRect, textSettings);
 
-            if (gui.InvisibleButton(id, textRect, ImButtonFlag.ActOnPressMouse))
+            if (gui.InvisibleButton(id, rect, ImButtonFlag.ActOnPressMouse))
             {
                 value = !value;
                 changed = true;
@@ -134,7 +134,7 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings(ImGui gui)
         {
-            return new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f, false);
+            return new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f);
         }
     }
 }
