@@ -63,7 +63,7 @@ namespace Imui.Rendering
             var vc = buffer.VerticesCount;
 
             var generatedIndices = (path.Length - (closed ? 0 : 1)) * 6;
-            var generatedVertices = ((path.Length - (closed ? 0 : 1)) * 4);
+            var generatedVertices = (path.Length - (closed ? 0 : 1)) * 4;
 
             buffer.EnsureIndicesCapacity(ic + generatedIndices);
             buffer.EnsureVerticesCapacity(vc + generatedVertices);
@@ -98,7 +98,8 @@ namespace Imui.Rendering
                 v1.Position.y = a.y + normalY * innerThickness;
                 v1.Position.z = Depth;
                 v1.Color = Color;
-                v1.UV = default;
+                v1.UV.x = ScaleOffset.z;
+                v1.UV.y = ScaleOffset.w + ScaleOffset.y;
                 v1.Atlas = Atlas;
 
                 ref var v2 = ref buffer.Vertices[vc + 2];
@@ -106,7 +107,7 @@ namespace Imui.Rendering
                 v2.Position.y = b.y + normalY * -1 * outerThickness;
                 v2.Position.z = Depth;
                 v2.Color = Color;
-                v2.UV.x = ScaleOffset.z;
+                v2.UV.x = ScaleOffset.z + ScaleOffset.x;
                 v2.UV.y = ScaleOffset.w;
                 v2.Atlas = Atlas;
 
@@ -115,8 +116,8 @@ namespace Imui.Rendering
                 v3.Position.y = b.y + normalY * innerThickness;
                 v3.Position.z = Depth;
                 v3.Color = Color;
-                v3.UV.x = ScaleOffset.z;
-                v3.UV.y = ScaleOffset.w;
+                v3.UV.x = ScaleOffset.z + ScaleOffset.x;
+                v3.UV.y = ScaleOffset.w + ScaleOffset.y;
                 v3.Atlas = Atlas;
 
                 buffer.Indices[ic + 0] = vc + 0;
@@ -157,7 +158,8 @@ namespace Imui.Rendering
                 v1.Position.y = a.y + normalY * innerThickness;
                 v1.Position.z = Depth;
                 v1.Color = Color;
-                v1.UV = default;
+                v1.UV.x = ScaleOffset.z;
+                v1.UV.y = ScaleOffset.w + ScaleOffset.y;
                 v1.Atlas = Atlas;
 
                 ref var v2 = ref buffer.Vertices[vc + 2];
@@ -165,7 +167,7 @@ namespace Imui.Rendering
                 v2.Position.y = b.y + normalY * -1 * outerThickness;
                 v2.Position.z = Depth;
                 v2.Color = Color;
-                v2.UV.x = ScaleOffset.z;
+                v2.UV.x = ScaleOffset.z + ScaleOffset.x;
                 v2.UV.y = ScaleOffset.w;
                 v2.Atlas = Atlas;
 
@@ -174,8 +176,8 @@ namespace Imui.Rendering
                 v3.Position.y = b.y + normalY * innerThickness;
                 v3.Position.z = Depth;
                 v3.Color = Color;
-                v3.UV.x = ScaleOffset.z;
-                v3.UV.y = ScaleOffset.w;
+                v3.UV.x = ScaleOffset.z + ScaleOffset.x;
+                v3.UV.y = ScaleOffset.w + ScaleOffset.y;
                 v3.Atlas = Atlas;
 
                 buffer.Indices[ic + 0] = vc + 0;
@@ -284,8 +286,9 @@ namespace Imui.Rendering
             v1.Position.x = path[0].x + prevNormX * innerThickness;
             v1.Position.y = path[0].y + prevNormY * innerThickness;
             v1.Position.z = Depth;
-            v1.Color = Color;
-            v1.UV = default;
+            v1.Color = Color;                
+            v1.UV.x = ScaleOffset.z;
+            v1.UV.y = ScaleOffset.w + ScaleOffset.y;
             v1.Atlas = Atlas;
 
             for (int i = 0; i < pointsCount; ++i)
@@ -358,7 +361,7 @@ namespace Imui.Rendering
                 v2.Position.z = Depth;
                 v2.Color = Color;
                 v2.UV.x = ScaleOffset.z;
-                v2.UV.y = ScaleOffset.w;
+                v2.UV.y = ScaleOffset.w + ScaleOffset.y;
                 v2.Atlas = Atlas;
 
                 ref var v3 = ref buffer.Vertices[vc + 3];
@@ -366,8 +369,8 @@ namespace Imui.Rendering
                 v3.Position.y = b.y + normalY * innerThickness / scale;
                 v3.Position.z = Depth;
                 v3.Color = Color;
-                v3.UV.x = ScaleOffset.z;
-                v3.UV.y = ScaleOffset.w;
+                v3.UV.x = ScaleOffset.z + ScaleOffset.x;
+                v3.UV.y = ScaleOffset.w + ScaleOffset.y;
                 v3.Atlas = Atlas;
 
                 buffer.Indices[ic + 0] = vc + 0;

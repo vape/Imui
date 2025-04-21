@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using Imui.Rendering;
+using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
 
@@ -60,7 +61,12 @@ namespace Imui.Core
         /// <summary>
         /// Checkrboard pattern
         /// </summary>
-        Checkerboard
+        Checkerboard,
+        
+        /// <summary>
+        /// Texture for AA lines (1-2px)
+        /// </summary>
+        AALine
     }
 
     public partial class ImCanvas: IDisposable
@@ -75,12 +81,18 @@ namespace Imui.Core
         public const int PRIM_TEX_Y = 0;
         public const int PRIM_TEX_W = 4;
         public const int PRIM_TEX_H = 4;
+        public const int PRIM_TEX_PADDING = 1;
 
         public const int CB_TEX_X = PRIM_TEX_W;
         public const int CB_TEX_Y = 0;
         public const int CB_TEX_W = 32;
         public const int CB_TEX_H = 32;
         public const int CB_TEX_S = 8;
+        
+        public const int AALINE_TEX_X = CB_TEX_X + CB_TEX_W;
+        public const int AALINE_TEX_Y = 0;
+        public const int AALINE_TEX_W = 3;
+        public const int AALINE_TEX_H = 9;
 
         public const int MAIN_ATLAS_W = 64;
         public const int MAIN_ATLAS_H = 32;
@@ -112,6 +124,22 @@ namespace Imui.Core
                 }
             }
 
+            var semiTransparent33 = Color.white.WithAlpha(0.33f);
+            var semiTransparent66 = Color.white.WithAlpha(0.66f);
+            
+            for (int x = AALINE_TEX_X; x < AALINE_TEX_X + AALINE_TEX_W; ++x)
+            {
+                pixels[(AALINE_TEX_Y + 0) * MAIN_ATLAS_W + x] = Color.clear;
+                pixels[(AALINE_TEX_Y + 1) * MAIN_ATLAS_W + x] = semiTransparent33;
+                pixels[(AALINE_TEX_Y + 2) * MAIN_ATLAS_W + x] = semiTransparent66;
+                pixels[(AALINE_TEX_Y + 3) * MAIN_ATLAS_W + x] = Color.white;
+                pixels[(AALINE_TEX_Y + 4) * MAIN_ATLAS_W + x] = Color.white;
+                pixels[(AALINE_TEX_Y + 5) * MAIN_ATLAS_W + x] = Color.white;
+                pixels[(AALINE_TEX_Y + 6) * MAIN_ATLAS_W + x] = semiTransparent66;
+                pixels[(AALINE_TEX_Y + 7) * MAIN_ATLAS_W + x] = semiTransparent33;
+                pixels[(AALINE_TEX_Y + 8) * MAIN_ATLAS_W + x] = Color.clear;
+            }
+
             var texture = new Texture2D(MAIN_ATLAS_W, MAIN_ATLAS_H, TextureFormat.RGBA32, false, false, true);
             texture.filterMode = FilterMode.Point;
             texture.SetPixels32(pixels);
@@ -133,8 +161,14 @@ namespace Imui.Core
                     return new Vector4(
                         CB_TEX_W / (float)MAIN_ATLAS_W, CB_TEX_H / (float)MAIN_ATLAS_H,
                         CB_TEX_X / (float)MAIN_ATLAS_W, CB_TEX_Y / (float)MAIN_ATLAS_H);
+                case ImCanvasBuiltinTex.AALine:
+                    return new Vector4(
+                        AALINE_TEX_W / (float)MAIN_ATLAS_W, AALINE_TEX_H / (float)MAIN_ATLAS_H,
+                        AALINE_TEX_X / (float)MAIN_ATLAS_W, AALINE_TEX_Y / (float)MAIN_ATLAS_H);
                 default:
-                    return default;
+                    return new Vector4(
+                        (PRIM_TEX_W - PRIM_TEX_PADDING * 2) / (float)MAIN_ATLAS_W, (PRIM_TEX_H - PRIM_TEX_PADDING * 2) / (float)MAIN_ATLAS_H,
+                        (PRIM_TEX_X + PRIM_TEX_PADDING) / (float)MAIN_ATLAS_W, (PRIM_TEX_Y + PRIM_TEX_PADDING) / (float)MAIN_ATLAS_H);
             }
         }
 
@@ -149,6 +183,15 @@ namespace Imui.Core
             {
                 RequiresNextMesh = requiresNextMesh;
             }
+        }
+
+        /// <summary>
+        /// Line drawing settings
+        /// </summary>
+        private struct LineSettings
+        {
+            public Vector4 TexScaleOffset;
+            public float ExtraScale;
         }
 
         /// <summary>
@@ -199,6 +242,7 @@ namespace Imui.Core
         private ImAABB cullingBounds;
         private ImTextClipRect textClipRect;
         private Vector4 texScaleOffset;
+        private LineSettings[] lineSettings;
 
         private readonly ImMeshDrawer meshDrawer;
         private readonly ImTextDrawer textDrawer;
@@ -217,6 +261,13 @@ namespace Imui.Core
             defaultTexture = CreateMainAtlas();
             settingsStack = new ImDynamicArray<ImCanvasSettings>(SETTINGS_CAPACITY);
             settingsPrefStack = new ImDynamicArray<SettingsPref>(SETTINGS_CAPACITY);
+            
+            SetTexScaleOffset(GetTexScaleOffsetFor(ImCanvasBuiltinTex.Primary));
+
+            var aaLine = new LineSettings() { ExtraScale = 0.4f, TexScaleOffset = GetTexScaleOffsetFor(ImCanvasBuiltinTex.AALine) };
+            var defLine = new LineSettings() { ExtraScale = 0.0f, TexScaleOffset = GetTexScaleOffsetFor(ImCanvasBuiltinTex.Primary) };
+            
+            lineSettings = new[] { aaLine, aaLine, aaLine, defLine };
         }
 
         /// <summary>
@@ -471,13 +522,12 @@ namespace Imui.Core
                 return;
             }
 
-
             var path = ImShapes.Ellipse(arena, rect);
             ConvexFill(path, color);
 
             if (thickness >= LINE_THICKNESS_THRESHOLD)
             {
-                Line(path, outlineColor, true, GetScaledLineThickness(thickness), bias);
+                Line(path, outlineColor, true, thickness, bias);
             }
         }
 
@@ -533,7 +583,7 @@ namespace Imui.Core
             }
 
             var path = ImShapes.Rect(arena, rect, radius);
-            Line(path, color, true, GetScaledLineThickness(thickness), bias);
+            Line(path, color, true, thickness, bias);
         }
 
         /// <summary>
@@ -557,24 +607,8 @@ namespace Imui.Core
 
             if (thickness >= LINE_THICKNESS_THRESHOLD)
             {
-                Line(path, outlineColor, true, GetScaledLineThickness(thickness), bias);
+                Line(path, outlineColor, true, thickness, bias);
             }
-        }
-
-        /// <summary>
-        /// Scales line thickness to ensure consistent rendering based on screen scale.
-        /// </summary>
-        /// <param name="thickness">The input line thickness.</param>
-        /// <returns>The scaled line thickness.</returns>
-        public float GetScaledLineThickness(float thickness)
-        {
-            var pixelWidth = thickness * screenScale;
-            if (pixelWidth >= 1.0f)
-            {
-                return thickness;
-            }
-
-            return thickness + (1 - pixelWidth) / screenScale;
         }
 
         /// <summary>
@@ -678,13 +712,18 @@ namespace Imui.Core
                 return;
             }
 
+            thickness = Mathf.Max(thickness, thickness / screenScale);
             bias = Mathf.Clamp01(bias);
+            
+            var settings = (int)thickness >= lineSettings.Length ? lineSettings[^1] : lineSettings[(int)thickness];
+            var outer = bias + settings.ExtraScale;
+            var inner = 1 - bias + settings.ExtraScale; 
 
             meshDrawer.Color = color;
-            meshDrawer.ScaleOffset = texScaleOffset;
+            meshDrawer.ScaleOffset = settings.TexScaleOffset;
             meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DrawingDepth;
-            meshDrawer.AddLine(stackalloc Vector2[2] { p0, p1 }, false, thickness, bias, 1.0f - bias);
+            meshDrawer.AddLine(stackalloc Vector2[2] { p0, p1 }, false, thickness, outer, inner);
         }
 
         /// <summary>
@@ -702,13 +741,18 @@ namespace Imui.Core
                 return;
             }
 
+            thickness = Mathf.Max(thickness, thickness / screenScale);
             bias = Mathf.Clamp01(bias);
 
+            var settings = (int)thickness >= lineSettings.Length ? lineSettings[^1] : lineSettings[(int)thickness];
+            var outer = bias + settings.ExtraScale;
+            var inner = 1 - bias + settings.ExtraScale; 
+
             meshDrawer.Color = color;
-            meshDrawer.ScaleOffset = texScaleOffset;
+            meshDrawer.ScaleOffset = settings.TexScaleOffset;
             meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DrawingDepth;
-            meshDrawer.AddLine(path, closed, thickness, bias, 1.0f - bias);
+            meshDrawer.AddLine(path, closed, thickness, outer, inner);
         }
 
         /// <summary>
@@ -726,13 +770,17 @@ namespace Imui.Core
                 return;
             }
 
+            thickness = Mathf.Max(thickness, thickness / screenScale);
             bias = Mathf.Clamp01(bias);
+            
+            var outer = bias;
+            var inner = 1 - bias; 
 
             meshDrawer.Color = color;
             meshDrawer.ScaleOffset = texScaleOffset;
             meshDrawer.Atlas = ImMeshDrawer.MAIN_TEX_ID;
             meshDrawer.Depth = DrawingDepth;
-            meshDrawer.AddLineMiter(path, closed, thickness, bias, 1.0f - bias);
+            meshDrawer.AddLineMiter(path, closed, thickness, outer, inner);
         }
 
         /// <summary>

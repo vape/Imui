@@ -54,7 +54,7 @@ namespace Imui.Controls
             var visibleRect = GetVisibleRect(gui, frame.Bounds, state);
 
             gui.Layout.Push(frame.Axis, visibleRect, ImLayoutFlag.None);
-            gui.Layout.SetOffset(state.Offset);
+            gui.Layout.SetOffset(state.Offset.AsInt());
         }
 
         public static void EndScrollable(this ImGui gui, ImScrollFlag flags = ImScrollFlag.None)
