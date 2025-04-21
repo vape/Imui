@@ -347,7 +347,7 @@ namespace Imui.Controls
 
             gui.RegisterControl(id, rect);
 
-            gui.EndScrollable(multiline ? ImScrollFlag.None : ImScrollFlag.HideHorBar | ImScrollFlag.HideVerBar);
+            gui.EndScrollable(ImScrollFlag.DisableElasticity | (multiline ? ImScrollFlag.None : ImScrollFlag.HideHorBar | ImScrollFlag.HideVerBar));
             gui.Layout.Pop();
             gui.Canvas.PopRectMask();
 

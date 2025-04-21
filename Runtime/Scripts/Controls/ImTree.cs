@@ -1,7 +1,5 @@
 using System;
 using Imui.Core;
-using Imui.IO.Events;
-using Imui.Style;
 
 namespace Imui.Controls
 {
