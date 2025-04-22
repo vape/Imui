@@ -221,6 +221,9 @@ namespace Imui.Controls
                     value = Mathf.Clamp01(rect.GetNormalPositionAtPoint(gui.Input.MousePosition).y);
                     changed = true;
                     break;
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
+                    break;
             }
 
             return changed;
