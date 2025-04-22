@@ -26,7 +26,7 @@ namespace Imui.Controls
         HorBarVisible = 1 << 1,
         VerScrollable = 1 << 2,
         HorScrollable = 1 << 3,
-        ScrollWheelUsed = 1 << 4
+        ConventionalScroll = 1 << 4
     }
     
     public struct ImScrollState
@@ -41,7 +41,6 @@ namespace Imui.Controls
     {
         public const float DECELERATION_RATE = 0.05f;
         public const float VELOCITY_SHARPNESS = 15;
-        public const float INERTIA_THRESHOLD = 0.1f;
         public const float MAX_ELASTIC_DISTANCE = 100;
         public const float REBOUND_RATE = 15;
         
@@ -102,6 +101,10 @@ namespace Imui.Controls
                 var normalSize = view.H / size.y;
                 var normalPosition = state.Offset.y / (size.y - view.H);
                 var normalDelta = Bar(verId, gui, rect, normalSize, normalPosition, 1);
+                if (normalDelta != 0)
+                {
+                    state.State |= ImScrollStateFlag.ConventionalScroll;
+                }
 
                 dy -= normalDelta * size.y;
             }
@@ -112,6 +115,10 @@ namespace Imui.Controls
                 var normalSize = view.W / size.x;
                 var normalPosition = (state.Offset.x / (size.x - view.W));
                 var normalDelta = Bar(horId, gui, rect, normalSize, -normalPosition, 0);
+                if (normalDelta != 0)
+                {
+                    state.State |= ImScrollStateFlag.ConventionalScroll;
+                }
 
                 dx -= normalDelta * size.x;
             }
@@ -141,7 +148,7 @@ namespace Imui.Controls
             {
                 case ImMouseEventType.Scroll when groupHovered:
                     var factor = gui.Style.Layout.TextSize;
-                    state.State |= ImScrollStateFlag.ScrollWheelUsed;
+                    state.State |= ImScrollStateFlag.ConventionalScroll;
                     dx += evt.Delta.x * factor;
                     dy += evt.Delta.y * factor;
                     deferredUseMouseEvent = true;
@@ -149,7 +156,7 @@ namespace Imui.Controls
                 
                 case ImMouseEventType.BeginDrag when scrollable && groupHovered && !active && !gui.ActiveControlIs(ImControlFlag.Draggable):
                     state.Velocity = default;
-                    state.State &= ~ImScrollStateFlag.ScrollWheelUsed;
+                    state.State &= ~ImScrollStateFlag.ConventionalScroll;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     break;
 
@@ -196,7 +203,7 @@ namespace Imui.Controls
             
             if ((state.Flags & ImScrollFlag.DisableElasticity) == 0)
             {
-                var elasticAny = (state.State & ImScrollStateFlag.ScrollWheelUsed) == 0 && (state.Flags & ImScrollFlag.DisableElasticity) == 0;
+                var elasticAny = (state.State & ImScrollStateFlag.ConventionalScroll) == 0 && (state.Flags & ImScrollFlag.DisableElasticity) == 0;
                 var elasticVertical = elasticAny && (state.State & ImScrollStateFlag.VerScrollable) != 0;
                 var elasticHorizontal = elasticAny && (state.State & ImScrollStateFlag.HorScrollable) != 0;
                 
