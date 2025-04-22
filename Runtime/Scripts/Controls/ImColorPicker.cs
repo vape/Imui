@@ -132,6 +132,9 @@ namespace Imui.Controls
                     v = Mathf.Clamp01(pnorm.y);
                     changed = true;
                     break;
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
+                    break;
             }
 
             return changed;
