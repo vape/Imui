@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Imui.Utility;
 using UnityEngine;
@@ -152,6 +153,7 @@ namespace Imui.Rendering
 
             fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
                 (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
+            fontAsset.ReadFontAssetDefinition();
 
             renderSize = fontAsset.faceInfo.pointSize;
             lineHeight = fontAsset.faceInfo.lineHeight;
@@ -201,8 +203,12 @@ namespace Imui.Rendering
                 return;
             }
 
+            TextResourceManagerReflectionUtility.RemoveFontAsset(fontAsset);
+            
             UnityEngine.Object.Destroy(fontAsset);
             fontAsset = null;
+            
+            TextResourceManagerReflectionUtility.RebuildFontAssetCache();
         }
 
         public float GetLineHeightFromFontSize(float size)
@@ -605,10 +611,37 @@ namespace Imui.Rendering
                 return;
             }
 
-            ImUnityUtility.Destroy(fontAsset);
-            fontAsset = null;
+            UnloadFont();
 
             disposed = true;
+        }
+
+        public static class TextResourceManagerReflectionUtility
+        {
+            private static MethodInfo removeFontAssetMethod;
+            private static MethodInfo rebuildFontAssetCacheMethod;
+
+            static TextResourceManagerReflectionUtility()
+            {
+                var type = typeof(FontAsset).Assembly.GetType("UnityEngine.TextCore.Text.TextResourceManager");
+                if (type == null)
+                {
+                    return;
+                }
+                
+                removeFontAssetMethod = type.GetMethod("RemoveFontAsset", BindingFlags.Static | BindingFlags.Public);
+                rebuildFontAssetCacheMethod = type.GetMethod("RebuildFontAssetCache", BindingFlags.Static | BindingFlags.NonPublic);
+            }
+            
+            public static void RemoveFontAsset(FontAsset asset)
+            {
+                removeFontAssetMethod?.Invoke(null, new object[] { asset });
+            }
+
+            public static void RebuildFontAssetCache()
+            {
+                rebuildFontAssetCacheMethod?.Invoke(null, null);
+            }
         }
     }
 }
