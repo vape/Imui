@@ -14,8 +14,7 @@ namespace Imui.Controls
         HideHorBar = 1 << 1,
         PersistentHorBar = 1 << 2,
         PersistentVerBar = 1 << 3,
-        DisableInertia = 1 << 4,
-        DisableElasticity = 1 << 5
+        DisableInertia = 1 << 4
     }
 
     [Flags]
@@ -39,10 +38,8 @@ namespace Imui.Controls
 
     public static class ImScroll
     {
-        public const float DECELERATION_RATE = 0.05f;
+        public const float DECELERATION_RATE = 0.15f;
         public const float VELOCITY_SHARPNESS = 15;
-        public const float MAX_ELASTIC_DISTANCE = 100;
-        public const float REBOUND_RATE = 15;
         
         public static void BeginScrollable(this ImGui gui)
         {
@@ -53,7 +50,7 @@ namespace Imui.Controls
             var visibleRect = GetVisibleRect(gui, frame.Bounds, state);
 
             gui.Layout.Push(frame.Axis, visibleRect, ImLayoutFlag.None);
-            gui.Layout.SetOffset(state.Offset.AsInt());
+            gui.Layout.SetOffset(state.Offset);
         }
 
         public static void EndScrollable(this ImGui gui, ImScrollFlag flags = ImScrollFlag.None)
@@ -186,12 +183,6 @@ namespace Imui.Controls
                 Mathf.Clamp(state.Offset.x, Mathf.Min(0, view.W - size.x), 0.0f), 
                 Mathf.Clamp(state.Offset.y, 0.0f, Mathf.Max(size.y - view.H, 0)));
 
-            if (mouseUp)
-            {
-                state.Velocity.x = Mathf.Abs(targetOffset.x - state.Offset.x) > 0.0f ? 0.0f : state.Velocity.x;
-                state.Velocity.y = Mathf.Abs(targetOffset.y - state.Offset.y) > 0.0f ? 0.0f : state.Velocity.y;
-            }
-
             if ((state.Flags & ImScrollFlag.DisableInertia) == 0)
             {
                 ProcessVelocity(active, ref state.Velocity, in prevOffset, in state.Offset);
@@ -201,24 +192,7 @@ namespace Imui.Controls
                 state.Velocity = default;
             }
             
-            if ((state.Flags & ImScrollFlag.DisableElasticity) == 0)
-            {
-                var elasticAny = (state.State & ImScrollStateFlag.ConventionalScroll) == 0 && (state.Flags & ImScrollFlag.DisableElasticity) == 0;
-                var elasticVertical = elasticAny && (state.State & ImScrollStateFlag.VerScrollable) != 0;
-                var elasticHorizontal = elasticAny && (state.State & ImScrollStateFlag.HorScrollable) != 0;
-                
-                ProcessElasticity(active, 
-                    elasticVertical, 
-                    elasticHorizontal, 
-                    dx, dy,
-                    ref state.Velocity, 
-                    ref state.Offset,
-                    in targetOffset);
-            }
-            else
-            {
-                state.Offset = targetOffset;
-            }
+            state.Offset = targetOffset;
 
             // defer mouse event consumption, so we can pass it to parent scroll rect in case offset hasn't changed
             if (prevOffset != state.Offset && deferredUseMouseEvent)
@@ -239,46 +213,6 @@ namespace Imui.Controls
             }
         }
         
-        private static void ProcessElasticity(bool active,
-                                              bool elasticVertical,
-                                              bool elasticHorizontal,
-                                              float dx, float dy,
-                                              ref Vector2 velocity,
-                                              ref Vector2 currentOffset, 
-                                              in Vector2 targetOffset)
-        {
-            if (elasticVertical)
-            {
-                var distance = Mathf.Abs(currentOffset.y - targetOffset.y);
-                currentOffset.y -= dy * (1 - Mathf.Pow(1 - (Mathf.Clamp01(distance / MAX_ELASTIC_DISTANCE)), 3));
-            }
-            else
-            {
-                currentOffset.y = targetOffset.y;
-            }
-            
-            if (elasticHorizontal)
-            {
-                var distance = Mathf.Abs(currentOffset.x - targetOffset.x);
-                currentOffset.x -= dx * (1 - Mathf.Pow(1 - (Mathf.Clamp01(distance / MAX_ELASTIC_DISTANCE)), 3));
-            }
-            else
-            {
-                currentOffset.x = targetOffset.x;
-            }
-
-            if (!active & (elasticVertical | elasticHorizontal))
-            {
-                var delta = currentOffset - targetOffset;
-                if (delta.magnitude > 0.0f)
-                {
-                    var rebound = Mathf.Clamp01(Time.deltaTime * REBOUND_RATE);
-                    velocity *= Mathf.Pow(DECELERATION_RATE, rebound * 0.33f);
-                    currentOffset -= delta * rebound;
-                }
-            }
-        }
-
         public static float Bar(uint id,
                                 ImGui gui,
                                 ImRect rect,
