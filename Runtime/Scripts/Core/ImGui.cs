@@ -180,6 +180,8 @@ namespace Imui.Core
 
             Input.Pull();
 
+            TextDrawer.ApplyAtlasChanges();
+            
             Canvas.Clear();
             Canvas.ConfigureScreen(scaledTargetSize, uiScale);
             Canvas.PushSettings(Canvas.CreateDefaultSettings());

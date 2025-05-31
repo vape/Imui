@@ -133,6 +133,7 @@ namespace Imui.Rendering
         private float ellipsisWidth;
         private GlyphData[] ellipsisGlyphs;
         private string ellipsisStr;
+        private bool atlasDirty;
 
         private readonly ImMeshBuffer buffer;
 
@@ -193,7 +194,7 @@ namespace Imui.Rendering
                 ellipsisStr = ELLIPSIS_FALLBACK;
             }
 
-            fontAsset.atlasTexture.Apply();
+            ApplyAtlasChanges(force: true);
         }
 
         public void UnloadFont()
@@ -203,12 +204,19 @@ namespace Imui.Rendering
                 return;
             }
 
-            TextResourceManagerReflectionUtility.RemoveFontAsset(fontAsset);
+            ReflectionUtility.RemoveFontAsset(fontAsset);
             
             UnityEngine.Object.Destroy(fontAsset);
             fontAsset = null;
             
-            TextResourceManagerReflectionUtility.RebuildFontAssetCache();
+            ReflectionUtility.RebuildFontAssetCache();
+        }
+
+        public void ApplyAtlasChanges(bool force = false) {
+            if (atlasDirty || force) {
+                ReflectionUtility.UpdateAtlasTexturesInQueue();
+                atlasDirty = false;
+            }
         }
 
         public float GetLineHeightFromFontSize(float size)
@@ -516,6 +524,8 @@ namespace Imui.Rendering
                 }
                 else if (fontAsset.HasCharacter(c, tryAddCharacter: true))
                 {
+                    atlasDirty = true;
+                    
                     a = charsTable[c].glyph.metrics.horizontalAdvance;
                 }
                 else
@@ -616,21 +626,27 @@ namespace Imui.Rendering
             disposed = true;
         }
 
-        public static class TextResourceManagerReflectionUtility
+        public static class ReflectionUtility
         {
             private static MethodInfo removeFontAssetMethod;
             private static MethodInfo rebuildFontAssetCacheMethod;
+            private static MethodInfo updateAtlasTexturesInQueueMethod;
 
-            static TextResourceManagerReflectionUtility()
+            static ReflectionUtility()
             {
                 var type = typeof(FontAsset).Assembly.GetType("UnityEngine.TextCore.Text.TextResourceManager");
-                if (type == null)
+                if (type != null)
                 {
-                    return;
+                    removeFontAssetMethod = type.GetMethod("RemoveFontAsset", BindingFlags.Static | BindingFlags.Public);
+                    rebuildFontAssetCacheMethod = type.GetMethod("RebuildFontAssetCache", BindingFlags.Static | BindingFlags.NonPublic);
                 }
-                
-                removeFontAssetMethod = type.GetMethod("RemoveFontAsset", BindingFlags.Static | BindingFlags.Public);
-                rebuildFontAssetCacheMethod = type.GetMethod("RebuildFontAssetCache", BindingFlags.Static | BindingFlags.NonPublic);
+
+                updateAtlasTexturesInQueueMethod = typeof(FontAsset).GetMethod("UpdateAtlasTexturesInQueue", BindingFlags.Static | BindingFlags.NonPublic);
+            }
+
+            public static void UpdateAtlasTexturesInQueue()
+            {
+                updateAtlasTexturesInQueueMethod?.Invoke(null, null);
             }
             
             public static void RemoveFontAsset(FontAsset asset)
