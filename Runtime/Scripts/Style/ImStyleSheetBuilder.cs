@@ -188,7 +188,7 @@ namespace Imui.Style
             // Slider
             var sliderRadius = theme.BorderRadius;
 
-            sheet.Slider.BackScale = 0.75f;
+            sheet.Slider.BackThickness = 0.45f;
             sheet.Slider.TextOverflow = ImTextOverflow.Ellipsis;
 
             sheet.Slider.Normal.BackColor = palette.ControlDark;
@@ -204,7 +204,8 @@ namespace Imui.Style
             sheet.Slider.Selected.FrontColor = palette.Front;
 
             sheet.Slider.Handle.BorderThickness = theme.BorderThickness;
-            sheet.Slider.Handle.BorderRadius = sliderRadius;
+            sheet.Slider.Handle.BorderRadius = 999.9f;
+            sheet.Slider.HandleThickness = 1.0f;
 
             sheet.Slider.Handle.Normal.BackColor = palette.ControlLight;
             sheet.Slider.Handle.Normal.BorderColor = palette.ControlBorder;

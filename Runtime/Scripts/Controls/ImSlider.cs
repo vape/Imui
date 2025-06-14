@@ -89,7 +89,7 @@ namespace Imui.Controls
             var changed = false;
 
             var backgroundRect = rect;
-            backgroundRect.H *= gui.Style.Slider.BackScale;
+            backgroundRect.H *= gui.Style.Slider.BackThickness;
             backgroundRect.Y += (rect.H - backgroundRect.H) * 0.5f;
             backgroundRect.W -= (rect.H - backgroundRect.H);
             backgroundRect.X += (rect.H - backgroundRect.H) * 0.5f;
@@ -100,7 +100,7 @@ namespace Imui.Controls
             var handleBounds = rect;
 
             var handleW = (flags & ImSliderFlag.DynamicHandle) == 0 ? handleBounds.H : Mathf.Max(handleBounds.H, handleBounds.W / ((max - min) / step));
-            var handleH = handleBounds.H;
+            var handleH = handleBounds.H * gui.Style.Slider.HandleThickness;
 
             var xmin = handleBounds.X + handleW / 2.0f;
             var xmax = handleBounds.X + handleBounds.W - handleW / 2.0f;
@@ -118,7 +118,7 @@ namespace Imui.Controls
 
                 if (gui.Button(id, handleRect, out _, ImButtonFlag.ActOnPressMouse))
                 {
-                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - xmin) / (xmax - xmin)));
                     changed = true;
 
                     if (type == ImMouseEventType.Down && device == ImMouseDevice.Mouse)
@@ -154,14 +154,14 @@ namespace Imui.Controls
                     IsScrollingHorizontally(in evt) &&
                     !gui.ActiveControlIs(ImControlFlag.Draggable):
 
-                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - xmin) / (xmax - xmin)));
                     changed = true;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     gui.Input.UseMouseEvent();
                     break;
 
                 case ImMouseEventType.Drag when active:
-                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - rect.Position.x) / rect.W));
+                    normValue = Mathf.InverseLerp(xmin, xmax, Mathf.Lerp(xmin, xmax, (gui.Input.MousePosition.x - xmin) / (xmax - xmin)));
                     changed = true;
                     gui.Input.UseMouseEvent();
                     break;

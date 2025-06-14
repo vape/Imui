@@ -404,7 +404,7 @@ namespace Imui.Examples
             gui.TooltipAtLastControl("Size of the circles in pixels");
             gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
             gui.TooltipAtLastControl("Speed for circles moving");
-            gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
+            gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", step: 32, flags: ImSliderFlag.DynamicHandle);
             gui.TooltipAtLastControl("Number of circles drawn");
         }
 

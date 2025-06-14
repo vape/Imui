@@ -150,7 +150,8 @@ namespace Imui.Style
         public ImStyleBox Normal;
         public ImStyleBox Selected;
         public ImStyleButton Handle;
-        public float BackScale;
+        public float BackThickness;
+        public float HandleThickness;
         public ImTextOverflow TextOverflow;
     }
 
