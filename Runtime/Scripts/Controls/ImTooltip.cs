@@ -31,14 +31,16 @@ namespace Imui.Controls
                 return;
             }
 
-            Tooltip(gui, text, gui.Input.MousePosition + gui.Style.Tooltip.Offset);
+            Tooltip(gui, text, gui.Input.MousePosition + gui.Style.Tooltip.OffsetPixels / gui.Canvas.ScreenScale);
         }
 
         public static void Tooltip(this ImGui gui, ReadOnlySpan<char> text, Vector2 position)
         {
             var textSettings = GetTextSettings(gui);
             var textSize = gui.MeasureTextSize(text, textSettings);
-            var rect = new ImRect(position.x, position.y, textSize.x + gui.Style.Tooltip.Padding.Horizontal, textSize.y + gui.Style.Tooltip.Padding.Vertical);
+            var width = textSize.x + gui.Style.Tooltip.Padding.Horizontal;
+            var height = textSize.y + gui.Style.Tooltip.Padding.Vertical;
+            var rect = new ImRect(position.x, gui.Style.Tooltip.AboveCursor ? position.y : position.y - height, width, height);
 
             Tooltip(gui, text, rect);
         }

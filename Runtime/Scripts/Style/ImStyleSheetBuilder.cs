@@ -290,13 +290,14 @@ namespace Imui.Style
             sheet.Separator.TextMargin = new ImPadding(theme.Spacing, theme.Spacing, 0, 0);
 
             // Tooltip
-            sheet.Tooltip.Offset = new Vector2(10, 10);
+            sheet.Tooltip.OffsetPixels = new Vector2(40, -40);
             sheet.Tooltip.Padding = theme.InnerSpacing;
             sheet.Tooltip.Box.BackColor = palette.BackSecondary;
             sheet.Tooltip.Box.BorderColor = palette.ControlBorder;
             sheet.Tooltip.Box.BorderRadius = theme.BorderRadius;
             sheet.Tooltip.Box.BorderThickness = theme.BorderThickness;
             sheet.Tooltip.Box.FrontColor = palette.Front;
+            sheet.Tooltip.AboveCursor = false;
 
             // Menu
             sheet.Menu.Box = sheet.List.Box;

@@ -214,7 +214,8 @@ namespace Imui.Style
     {
         public ImStyleBox Box;
         public ImPadding Padding;
-        public Vector2 Offset;
+        public Vector2 OffsetPixels;
+        public bool AboveCursor;
     }
 
     [Serializable]
