@@ -1,6 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.IO.Events;
+using Imui.Rendering;
 using Imui.Style;
 using UnityEngine;
 
@@ -10,21 +11,54 @@ namespace Imui.Controls
     public enum ImSliderFlag
     {
         None = 0,
-        DynamicHandle = 1 << 0
+        DynamicHandle = 1 << 0,
+        NoFill = 1 << 1,
+        FillRightSegment = 1 << 2
     }
 
     public static class ImSlider
     {
+        public static void SliderHeader(this ImGui gui,
+                                        ReadOnlySpan<char> label,
+                                        float value,
+                                        ReadOnlySpan<char> valueFormat = default)
+        {
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+            gui.BeginHorizontal();
+            
+            var rowHeight = gui.GetRowHeight();
+            var height = rowHeight * gui.Style.Slider.HeaderScale;
+            var rect = gui.AddLayoutRect(gui.GetLayoutWidth(), height);
+            var barHeight = gui.Style.Slider.BarThickness * rowHeight;
+            var padding = (rowHeight - barHeight) * 0.5f;
+            var fontSize = gui.TextDrawer.GetFontSizeFromLineHeight(height);
+            
+            // (artem-s): align with slider's bar
+            rect.X += padding;
+            rect.W -= padding * 2;
+            
+            // (artem-s): shift rect down by spacing value so there is no gap between header and slider itself
+            rect.Y -= gui.Style.Layout.Spacing;
+            
+            var textSettings = new ImTextSettings(fontSize, 0.0f, 1.0f, overflow: ImTextOverflow.Ellipsis);
+            gui.Text(label, textSettings, rect);
+
+            var valueFormatted = gui.Formatter.Format(value, valueFormat);
+            textSettings.Align.X = 1.0f;
+            gui.Text(valueFormatted, textSettings, rect);
+            
+            gui.EndHorizontal();
+        }
+
         public static int Slider(this ImGui gui,
                                  int value,
                                  int min,
                                  int max,
                                  ImSize size = default,
-                                 ReadOnlySpan<char> format = default,
                                  int step = 1,
                                  ImSliderFlag flags = ImSliderFlag.None)
         {
-            Slider(gui, ref value, min, max, size, format, step, flags);
+            Slider(gui, ref value, min, max, size, step, flags);
             return value;
         }
 
@@ -33,12 +67,11 @@ namespace Imui.Controls
                                   int min,
                                   int max,
                                   ImSize size = default,
-                                  ReadOnlySpan<char> format = default,
                                   int step = 1,
                                   ImSliderFlag flags = ImSliderFlag.None)
         {
             var floatValue = (float)value;
-            var changed = Slider(gui, ref floatValue, min, max, size, format, step, flags);
+            var changed = Slider(gui, ref floatValue, min, max, size, step, flags);
             value = (int)floatValue;
             return changed;
         }
@@ -48,11 +81,10 @@ namespace Imui.Controls
                                    float min,
                                    float max,
                                    ImSize size = default,
-                                   ReadOnlySpan<char> format = default,
                                    float step = 0,
                                    ImSliderFlag flags = ImSliderFlag.None)
         {
-            Slider(gui, ref value, min, max, size, format, step, flags);
+            Slider(gui, ref value, min, max, size, step, flags);
             return value;
         }
 
@@ -61,13 +93,12 @@ namespace Imui.Controls
                                   float min,
                                   float max,
                                   ImSize size = default,
-                                  ReadOnlySpan<char> format = default,
                                   float step = 0,
                                   ImSliderFlag flags = ImSliderFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            return Slider(gui, ref value, min, max, gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight() * 2), format, step, flags);
+            return Slider(gui, ref value, min, max, gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight() * 2), step, flags);
         }
 
         public static bool Slider(this ImGui gui,
@@ -75,7 +106,6 @@ namespace Imui.Controls
                                   float min,
                                   float max,
                                   ImRect rect,
-                                  ReadOnlySpan<char> format = default,
                                   float step = 0,
                                   ImSliderFlag flags = ImSliderFlag.None)
         {
@@ -88,14 +118,31 @@ namespace Imui.Controls
             var normValue = Mathf.InverseLerp(min, max, value);
             var changed = false;
 
-            var backgroundRect = rect;
-            backgroundRect.H *= gui.Style.Slider.BackThickness;
-            backgroundRect.Y += (rect.H - backgroundRect.H) * 0.5f;
-            backgroundRect.W -= (rect.H - backgroundRect.H);
-            backgroundRect.X += (rect.H - backgroundRect.H) * 0.5f;
+            var barRect = rect;
+            barRect.H *= gui.Style.Slider.BarThickness;
+            barRect.Y += (rect.H - barRect.H) * 0.5f;
+            barRect.W -= (rect.H - barRect.H);
+            barRect.X += (rect.H - barRect.H) * 0.5f;
 
             ref readonly var style = ref (active ? ref gui.Style.Slider.Selected : ref gui.Style.Slider.Normal);
-            gui.Box(backgroundRect, in style);
+            gui.Box(barRect, in style);
+            
+            if ((flags & ImSliderFlag.NoFill) == 0)
+            {
+                var fillRect = barRect;
+
+                if ((flags & ImSliderFlag.FillRightSegment) != 0)
+                {
+                    fillRect.X += barRect.W * normValue;
+                    fillRect.W *= 1.0f - normValue;
+                }
+                else
+                {
+                    fillRect.W *= normValue;
+                }
+
+                gui.Box(fillRect, gui.Style.Slider.Fill);
+            }
 
             var handleBounds = rect;
 
@@ -130,16 +177,6 @@ namespace Imui.Controls
             }
 
             gui.RegisterControl(id, rect);
-
-            if (format.IsEmpty)
-            {
-                format = GetFormatForStep(gui, step);
-            }
-
-            var textSize = gui.TextDrawer.GetFontSizeFromLineHeight(backgroundRect.H);
-            var textSettings = new ImTextSettings(textSize, 0.5f, 0.5f, overflow: gui.Style.Slider.TextOverflow);
-
-            gui.Text(gui.Formatter.Format(value, format), in textSettings, gui.Style.Slider.Normal.FrontColor, backgroundRect);
 
             if (gui.IsReadOnly)
             {
@@ -181,22 +218,12 @@ namespace Imui.Controls
             if (step > 0)
             {
                 var precision = 1.0f / step;
-                value = Mathf.Round(value * precision) / precision;
+                value = Mathf.Clamp(Mathf.Round(value * precision) / precision, min, max);
             }
 
             return true;
         }
-
-        public static ReadOnlySpan<char> GetFormatForStep(ImGui gui, float step)
-        {
-            if (step == 0)
-            {
-                return "0.00";
-            }
-
-            return gui.Formatter.ConcatDuplicate("0.", "0", Mathf.CeilToInt(Mathf.Log10(1.0f / Mathf.Abs(step - (int)step))));
-        }
-
+        
         private static bool IsScrollingHorizontally(in ImMouseEvent e)
         {
             return e.Device == ImMouseDevice.Mouse || Mathf.Abs(e.Delta.x) > Mathf.Abs(e.Delta.y);

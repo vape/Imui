@@ -149,9 +149,11 @@ namespace Imui.Style
     {
         public ImStyleBox Normal;
         public ImStyleBox Selected;
+        public ImStyleBox Fill;
         public ImStyleButton Handle;
-        public float BackThickness;
+        public float BarThickness;
         public float HandleThickness;
+        public float HeaderScale;
         public ImTextOverflow TextOverflow;
     }
 

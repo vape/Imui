@@ -188,8 +188,9 @@ namespace Imui.Style
             // Slider
             var sliderRadius = theme.BorderRadius;
 
-            sheet.Slider.BackThickness = 0.45f;
+            sheet.Slider.BarThickness = 0.45f;
             sheet.Slider.TextOverflow = ImTextOverflow.Ellipsis;
+            sheet.Slider.HeaderScale = 0.75f;
 
             sheet.Slider.Normal.BackColor = palette.ControlDark;
             sheet.Slider.Normal.BorderColor = palette.ControlDarkBorder;
@@ -203,15 +204,19 @@ namespace Imui.Style
             sheet.Slider.Selected.BorderRadius = sliderRadius;
             sheet.Slider.Selected.FrontColor = palette.Front;
 
+            sheet.Slider.Fill = sheet.Slider.Normal;
+            sheet.Slider.Fill.BackColor = palette.Accent;
+            sheet.Slider.Fill.BorderColor = palette.AccentDarker;
+
             sheet.Slider.Handle.BorderThickness = theme.BorderThickness;
-            sheet.Slider.Handle.BorderRadius = 999.9f;
+            sheet.Slider.Handle.BorderRadius = theme.BorderRadius >= 1.0f ? 999.9f : 0.0f;
             sheet.Slider.HandleThickness = 1.0f;
 
             sheet.Slider.Handle.Normal.BackColor = palette.ControlLight;
             sheet.Slider.Handle.Normal.BorderColor = palette.ControlBorder;
 
-            sheet.Slider.Handle.Hovered.BackColor = palette.Accent;
-            sheet.Slider.Handle.Hovered.BorderColor = palette.AccentDarker;
+            sheet.Slider.Handle.Hovered = sheet.Slider.Handle.Normal;
+            sheet.Slider.Handle.Hovered.BorderColor = palette.Accent;
 
             sheet.Slider.Handle.Pressed = sheet.Radiobox.Checked.Pressed;
 

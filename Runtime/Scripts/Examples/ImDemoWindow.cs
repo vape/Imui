@@ -400,11 +400,14 @@ namespace Imui.Examples
         private static void DrawSlidersDemo(ImGui gui)
         {
             DrawBouncingBall(gui);
-            gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
+            gui.SliderHeader("Size", bouncingBallSize, "0.00 px");
+            gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight());
             gui.TooltipAtLastControl("Size of the circles in pixels");
-            gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
+            gui.SliderHeader("Speed", bouncingBallSpeed, "0.##");
+            gui.Slider(ref bouncingBallSpeed, -2f, 2f);
             gui.TooltipAtLastControl("Speed for circles moving");
-            gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", step: 32, flags: ImSliderFlag.DynamicHandle);
+            gui.SliderHeader("Trail Length", bouncingBallTrail);
+            gui.Slider(ref bouncingBallTrail, 1, 256, step: 32, flags: ImSliderFlag.DynamicHandle);
             gui.TooltipAtLastControl("Number of circles drawn");
         }
 
