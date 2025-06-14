@@ -242,6 +242,16 @@ namespace Imui.Core
             Canvas.PopInvColorMul();
         }
 
+        public void BeginReadOnlyWithoutStyleChanges(bool isReadOnly)
+        {
+            readOnlyStack.Push(isReadOnly);
+        }
+
+        public void EndReadOnlyWithoutStyleChanges()
+        {
+            readOnlyStack.Pop();
+        }
+
         public void PushId(uint id)
         {
             idsStack.Push(new ControlId(id));

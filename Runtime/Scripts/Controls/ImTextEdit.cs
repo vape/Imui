@@ -94,10 +94,9 @@ namespace Imui.Controls
         {
             var buffer = new ImTextEditBuffer(text);
 
-            // TODO (artem-s): in this case, readonly should not change styling
-            gui.BeginReadOnly(true);
+            gui.BeginReadOnlyWithoutStyleChanges(true);
             TextEdit(gui, ref buffer, rect, multiline, adjacency: adjacency);
-            gui.EndReadOnly();
+            gui.EndReadOnlyWithoutStyleChanges();
         }
 
         public static string TextEdit(this ImGui gui, string text, ImSize size = default, bool? multiline = null, ImTextEditFilter filter = null)
