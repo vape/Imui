@@ -219,10 +219,10 @@ namespace Imui.Examples
                 }
                 gui.TooltipAtLastControl("Will close dropdown on click");
 
-                if (gui.BeginSubMenu("Sub Menu Inside Dropdown"))
+                if (gui.BeginMenuItem("Sub Menu Inside Dropdown"))
                 {
                     gui.Text("Hello there");
-                    gui.EndSubMenu();
+                    gui.EndMenuItem();
                 }
                 gui.Checkbox(ref checkboxValue, "Checkbox");
                 gui.Separator("Nested dropdown, if that's want you really want");
@@ -428,37 +428,37 @@ namespace Imui.Examples
 
         private static void DrawDemoMenu(ImGui gui, ref bool windowOpen)
         {
-            if (gui.BeginSubMenu("Custom Menus"))
+            if (gui.BeginMenuItem("Custom Menus"))
             {
                 gui.BeginVertical(width: 300);
                 DrawSlidersDemo(gui);
                 gui.EndVertical();
 
-                gui.EndSubMenu();
+                gui.EndMenuItem();
             }
-            if (gui.BeginSubMenu("Recursive"))
+            if (gui.BeginMenuItem("Recursive"))
             {
                 DrawDemoMenu(gui, ref windowOpen);
-                gui.EndSubMenu();
+                gui.EndMenuItem();
             }
             gui.Separator();
-            if (gui.BeginSubMenu("Test"))
+            if (gui.BeginMenuItem("Test"))
             {
-                if (gui.BeginSubMenu("Same name submenu"))
+                if (gui.BeginMenuItem("Same name submenu"))
                 {
                     gui.MenuItem("Item");
-                    gui.EndSubMenu();
+                    gui.EndMenuItem();
                 }
 
                 gui.PushId("Next Menu");
-                if (gui.BeginSubMenu("Same name submenu"))
+                if (gui.BeginMenuItem("Same name submenu"))
                 {
                     gui.MenuItem("Item");
-                    gui.EndSubMenu();
+                    gui.EndMenuItem();
                 }
                 gui.PopId();
 
-                gui.EndSubMenu();
+                gui.EndMenuItem();
             }
             gui.Separator();
             if (gui.MenuItem("Close"))

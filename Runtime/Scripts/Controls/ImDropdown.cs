@@ -33,7 +33,7 @@ namespace Imui.Controls
 
             ref var state = ref gui.GetCurrentScope<ImDropdownState>();
 
-            if (!gui.BeginMenu(label, ref state.Open, gui.LastControlRect.BottomLeft, gui.LastControlRect.W))
+            if (!gui.BeginMenuPopup(label, ref state.Open, gui.LastControlRect.BottomLeft, gui.LastControlRect.W))
             {
                 gui.EndPopup();
                 return false;
@@ -44,7 +44,7 @@ namespace Imui.Controls
 
         public static void EndDropdown(this ImGui gui)
         {
-            gui.EndMenu();
+            gui.EndMenuPopup();
             gui.EndPopup();
             gui.EndDropdownButton();
         }

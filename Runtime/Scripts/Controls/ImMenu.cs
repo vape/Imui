@@ -56,7 +56,7 @@ namespace Imui.Controls
 
     public static unsafe class ImMenu
     {
-        public static bool BeginMenu(this ImGui gui, ReadOnlySpan<char> name, ref bool open, ImMenuPosition position = default, float minWidth = 0)
+        public static bool BeginMenuPopup(this ImGui gui, ReadOnlySpan<char> name, ref bool open, ImMenuPosition position = default, float minWidth = 0)
         {
             if (!open)
             {
@@ -90,16 +90,16 @@ namespace Imui.Controls
                 state->Flags &= ~ImMenuStateFlag.Dismissed;
             }
 
-            BeginMenu(gui, state, rect);
+            BeginMenuPopup(gui, state, rect);
 
             return true;
         }
 
-        public static void EndMenu(this ImGui gui)
+        public static void EndMenuPopup(this ImGui gui)
         {
             var state = gui.EndScopeUnsafe<ImMenuState>();
 
-            EndMenu(gui, state);
+            EndMenuPopup(gui, state);
 
             if ((state->Flags & ImMenuStateFlag.LayoutRoot) != 0)
             {
@@ -109,7 +109,7 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static void BeginMenu(ImGui gui, ImMenuState* state, ImRect rect)
+        public static void BeginMenuPopup(ImGui gui, ImMenuState* state, ImRect rect)
         {
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(gui.Style.Menu.Padding));
 
@@ -128,7 +128,7 @@ namespace Imui.Controls
             }
         }
 
-        public static void EndMenu(ImGui gui, ImMenuState* state)
+        public static void EndMenuPopup(ImGui gui, ImMenuState* state)
         {
             var contentRect = gui.Layout.GetContentRect().WithPadding(-gui.Style.Menu.Padding);
 
@@ -167,7 +167,7 @@ namespace Imui.Controls
             gui.Layout.Pop();
         }
 
-        public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool BeginMenuItem(this ImGui gui, ReadOnlySpan<char> label)
         {
             var parentState = gui.GetCurrentScopeUnsafe<ImMenuState>();
 
@@ -191,17 +191,17 @@ namespace Imui.Controls
 
             state->Depth = parentState->Depth + 1;
 
-            BeginMenu(gui, state, GetMenuRectAt(position, state->Size));
+            BeginMenuPopup(gui, state, GetMenuRectAt(position, state->Size));
 
             return true;
         }
 
-        public static void EndSubMenu(this ImGui gui)
+        public static void EndMenuItem(this ImGui gui)
         {
             var state = gui.EndScopeUnsafe<ImMenuState>();
             var clicked = state->Clicked;
 
-            EndMenu(gui, state);
+            EndMenuPopup(gui, state);
             gui.PopId();
 
             if (clicked != default && gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var parentsState))

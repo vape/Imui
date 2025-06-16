@@ -35,7 +35,7 @@ namespace Imui.Controls
         {
             gui.PushId(id);
 
-            if (!gui.BeginMenu("context_menu", ref open, source))
+            if (!gui.BeginMenuPopup("context_menu", ref open, source))
             {
                 gui.PopId();
                 return false;
@@ -46,7 +46,7 @@ namespace Imui.Controls
 
         public static void EndContextMenu(this ImGui gui)
         {
-            gui.EndMenu();
+            gui.EndMenuPopup();
 
             gui.PopId();
         }

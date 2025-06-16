@@ -105,7 +105,7 @@ namespace Imui.Controls
                 return false;
             }
 
-            gui.BeginMenu(label, ref open, source);
+            gui.BeginMenuPopup(label, ref open, source);
 
             if (!open && barState.Selected == id)
             {
@@ -117,7 +117,7 @@ namespace Imui.Controls
 
         public static void EndMenuBarItem(this ImGui gui)
         {
-            gui.EndMenu();
+            gui.EndMenuPopup();
             gui.PopId();
         }
     }
