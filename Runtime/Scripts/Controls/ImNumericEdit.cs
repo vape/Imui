@@ -16,7 +16,8 @@ namespace Imui.Controls
     {
         None = 0,
         PlusMinus = 1 << 0,
-        Slider = 1 << 1
+        Slider = 1 << 1,
+        RightAdjacent = 1 << 2
     }
 
     public static class ImNumericEdit
@@ -260,6 +261,11 @@ namespace Imui.Controls
             }
 
             var adjacency = usePlusMinusButtons ? ImAdjacency.Left : ImAdjacency.None;
+            if ((flags & ImNumericEditFlag.RightAdjacent) != 0)
+            {
+                adjacency |= ImAdjacency.Right;
+            }
+            
             var changed = false;
 
             if (!active && useSlider)

@@ -89,6 +89,11 @@ namespace Imui.Examples
         private static float largeTableColumnSize = 150;
         private static bool largeTableScrollable = true;
         private static bool largeTableResizable = true;
+        private static Vector2 vec2 = new Vector2(1.0f, 2.0f);
+        private static Vector3 vec3 = new Vector3(1.0f, 2.0f, 3.0f);
+        private static Vector4 vec4 = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
+        private static Vector2Int vec2int = new Vector2Int(1, 2);
+        private static Vector3Int vec3int = new Vector3Int(1, 2, 3);
 
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
@@ -279,6 +284,19 @@ namespace Imui.Examples
             gui.EndHorizontal();
             gui.Text(Format(" intValue = ", intValue));
             gui.EndHorizontal();
+            
+            gui.Separator("Vectors (float)");
+            gui.Text("Two component vector");
+            gui.Vector(ref vec2);
+            gui.Text("Three component vector");
+            gui.Vector(ref vec3);
+            gui.Text("Four component vector");
+            gui.Vector(ref vec4);
+            gui.Separator("Vectors (int)");
+            gui.Text("Two component vector");
+            gui.Vector(ref vec2int);
+            gui.Text("Three component vector");
+            gui.Vector(ref vec3int);
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.Separator("Radio buttons (enum flags)");
