@@ -33,9 +33,18 @@ namespace Imui.Core
             {
                 ref var window = ref windows.Array[index];
 
-                window.Flags = flags;
+                var wasVisible = window.Visible;
+                
                 window.Visible = true;
                 window.NextVisible = true;
+                
+                if (!wasVisible)
+                {
+                    MoveToTop(index);
+                    return ref BeginWindow(id, title, initialRect, flags);
+                }
+                
+                window.Flags = flags;
 
                 if ((flags & ImWindowFlag.NoMovingAndResizing) == ImWindowFlag.NoMovingAndResizing)
                 {
