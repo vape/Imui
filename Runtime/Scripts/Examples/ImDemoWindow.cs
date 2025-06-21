@@ -285,19 +285,6 @@ namespace Imui.Examples
             gui.Text(Format(" intValue = ", intValue));
             gui.EndHorizontal();
             
-            gui.Separator("Vectors (float)");
-            gui.Text("Two component vector");
-            gui.Vector(ref vec2);
-            gui.Text("Three component vector");
-            gui.Vector(ref vec3);
-            gui.Text("Four component vector");
-            gui.Vector(ref vec4);
-            gui.Separator("Vectors (int)");
-            gui.Text("Two component vector");
-            gui.Vector(ref vec2int);
-            gui.Text("Three component vector");
-            gui.Vector(ref vec3int);
-
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.Separator("Radio buttons (enum flags)");
             gui.Radio(ref demoFlags);
@@ -326,6 +313,19 @@ namespace Imui.Examples
                 }
             }
             gui.EndTabsPane();
+            
+            gui.Separator("Vectors (float)");
+            gui.Text("Two component vector");
+            gui.Vector(ref vec2);
+            gui.Text("Three component vector");
+            gui.Vector(ref vec3);
+            gui.Text("Four component vector");
+            gui.Vector(ref vec4);
+            gui.Separator("Vectors (int)");
+            gui.Text("Two component vector");
+            gui.Vector(ref vec2int);
+            gui.Text("Three component vector");
+            gui.Vector(ref vec3int);
 
             gui.EndReadOnly();
         }
