@@ -21,19 +21,19 @@ namespace Imui.Rendering
         private static readonly int MaskCornerRadiusId = Shader.PropertyToID("_MaskCornerRadius");
         private static readonly int InvColorMul = Shader.PropertyToID("_InvColorMul");
 
-#if IMUI_DEBUG
-        public bool Wireframe;
-#endif
-
         private readonly MaterialPropertyBlock properties;
-
+        
         private Mesh mesh;
         private bool disposed;
+
+        private Material wireframeMaterial;
+        private Mesh wireframeMesh;
+        private int[] wireframeIndicesBuffer;
 
         public ImMeshRenderer()
         {
             properties = new MaterialPropertyBlock();
-
+            
             mesh = new Mesh();
             mesh.MarkDynamic();
         }
@@ -65,11 +65,7 @@ namespace Imui.Rendering
 
                 var desc = new SubMeshDescriptor()
                 {
-#if IMUI_DEBUG
-                    topology = Wireframe ? MeshTopology.Lines : info.Topology,
-#else
                     topology = info.Topology,
-#endif
                     indexStart = info.IndicesOffset,
                     indexCount = info.IndicesCount,
                     baseVertex = 0,
@@ -140,6 +136,85 @@ namespace Imui.Rendering
             ImProfiler.EndSample();
         }
 
+        #region Wireframe Renderer
+        
+        public void RenderWireframe(CommandBuffer cmd, ImMeshBuffer buffer, Vector2 screenSize, float screenScale)
+        {
+            if (!wireframeMaterial)
+            {
+                wireframeMaterial = new Material(Resources.Load<Shader>("Imui/imui_wireframe"));
+            }
+
+            if (!wireframeMesh)
+            {
+                wireframeMesh = new Mesh();
+                wireframeMesh.MarkDynamic();
+            }
+            
+            ImProfiler.BeginSample("ImMeshRenderer.RenderWireframe");
+        
+            wireframeMesh.Clear(true);
+            
+            var nextSize = Mathf.NextPowerOfTwo(buffer.IndicesCount * 2);
+            wireframeIndicesBuffer ??= new int[nextSize];
+
+            if (wireframeIndicesBuffer.Length < nextSize)
+            {
+                Array.Resize(ref wireframeIndicesBuffer, nextSize);
+            }
+            
+            for (int i = 0; i < buffer.IndicesCount / 3; ++i)
+            {
+                var a = buffer.Indices[(3 * i) + 0];
+                var b = buffer.Indices[(3 * i) + 1];
+                var c = buffer.Indices[(3 * i) + 2];
+        
+                wireframeIndicesBuffer[(i * 6) + 0] = a;
+                wireframeIndicesBuffer[(i * 6) + 1] = b;
+                wireframeIndicesBuffer[(i * 6) + 2] = b;
+                wireframeIndicesBuffer[(i * 6) + 3] = c;
+                wireframeIndicesBuffer[(i * 6) + 4] = c;
+                wireframeIndicesBuffer[(i * 6) + 5] = a;
+            }
+        
+            wireframeMesh.SetIndexBufferParams(buffer.IndicesCount * 2, IndexFormat.UInt32);
+            wireframeMesh.SetVertexBufferParams(buffer.VerticesCount, ImVertex.VertexAttributes);
+        
+            wireframeMesh.SetVertexBufferData(buffer.Vertices, 0, 0, buffer.VerticesCount, 0, MESH_UPDATE_FLAGS);
+            wireframeMesh.SetIndexBufferData(wireframeIndicesBuffer, 0, 0, buffer.IndicesCount * 2, MESH_UPDATE_FLAGS);
+        
+            if (wireframeMesh.subMeshCount != 1)
+            {
+                wireframeMesh.subMeshCount = 1;
+            }
+
+            var desc = new SubMeshDescriptor()
+            {
+                topology = MeshTopology.Lines,
+                indexStart = 0,
+                indexCount = buffer.IndicesCount * 2,
+                baseVertex = 0,
+                firstVertex = 0,
+                vertexCount = buffer.VerticesCount
+            };
+        
+            wireframeMesh.SetSubMesh(0, desc, MESH_UPDATE_FLAGS);
+            wireframeMesh.UploadMeshData(false);
+            
+            screenSize /= screenScale;
+        
+            var view = Matrix4x4.identity;
+            var proj = Matrix4x4.Ortho(0, screenSize.x, 0, screenSize.y, short.MinValue, short.MaxValue);
+            var gpuProj = GL.GetGPUProjectionMatrix(proj, true);
+        
+            cmd.SetGlobalMatrix(ViewProjectionId, view * gpuProj);
+            cmd.DrawMesh(wireframeMesh, Matrix4x4.identity, wireframeMaterial, submeshIndex: 0, -1);
+    
+            ImProfiler.EndSample();
+        }
+        
+        #endregion
+
         public void Dispose()
         {
             if (disposed)
@@ -148,7 +223,21 @@ namespace Imui.Rendering
             }
 
             ImUnityUtility.Destroy(mesh);
+            
+            if (wireframeMesh)
+            {
+                ImUnityUtility.Destroy(wireframeMesh);
+            }
+
+            if (wireframeMaterial)
+            {
+                ImUnityUtility.Destroy(wireframeMaterial);
+            }
+            
             mesh = null;
+            wireframeMesh = null;
+            wireframeMaterial = null;
+            wireframeIndicesBuffer = null;
 
             disposed = true;
         }

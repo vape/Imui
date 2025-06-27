@@ -21,7 +21,7 @@ namespace Imui.Examples
 
         public static unsafe void Draw(ImGui gui, ref bool open)
         {
-            if (!gui.BeginWindow("Imui Debug", ref open, (350, 450)))
+            if (!gui.BeginWindow("Imui Debug", ref open, (400, 550)))
             {
                 return;
             }
@@ -69,10 +69,8 @@ namespace Imui.Examples
             DrawFrametimeGraph(gui);
 
             gui.Checkbox(ref debugOverlay, "Highlight Controls/Groups");
-
-#if IMUI_DEBUG
-            gui.Checkbox(ref gui.MeshRenderer.Wireframe, "Wireframe");
-#endif
+            
+            gui.Radio(ref gui.RenderMode);
 
             gui.EndWindow();
 

@@ -15,6 +15,13 @@ namespace Imui.Core
         Draggable = 1 << 0
     }
 
+    public enum ImGuiRenderMode
+    {
+        Shaded = 0,
+        Wireframe = 1,
+        ShadedWireframe = 2
+    }
+
     public unsafe class ImGui: IDisposable
     {
         private const int CONTROL_IDS_STACK_CAPACITY = 32;
@@ -118,6 +125,7 @@ namespace Imui.Core
         public readonly ImFormatter Formatter;
 
         public ImStyleSheet Style;
+        public ImGuiRenderMode RenderMode;
 
         // ReSharper disable InconsistentNaming
         internal FrameData nextFrameData;
@@ -601,7 +609,16 @@ namespace Imui.Core
             var uiScale = Renderer.GetScale();
             var targetSize = Renderer.SetupRenderTarget(renderCmd);
 
-            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, uiScale, targetSize);
+            if (RenderMode is ImGuiRenderMode.Shaded or ImGuiRenderMode.ShadedWireframe)
+            {
+                MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, uiScale, targetSize);
+            }
+
+            if (RenderMode is ImGuiRenderMode.ShadedWireframe or ImGuiRenderMode.Wireframe)
+            {
+                MeshRenderer.RenderWireframe(renderCmd, MeshBuffer, screenSize, uiScale);
+            }
+            
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
 
