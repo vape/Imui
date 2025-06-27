@@ -206,7 +206,7 @@ namespace Imui.Rendering
 
             ReflectionUtility.RemoveFontAsset(fontAsset);
             
-            UnityEngine.Object.Destroy(fontAsset);
+            ImUnityUtility.Destroy(fontAsset);
             fontAsset = null;
             
             ReflectionUtility.RebuildFontAssetCache();
