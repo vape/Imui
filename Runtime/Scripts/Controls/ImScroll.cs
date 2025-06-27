@@ -133,7 +133,6 @@ namespace Imui.Controls
             var groupHovered = gui.IsGroupHovered(id);
             var active = gui.IsControlActive(id);
             var scrollable = (state.State & ANY_AXES_SCROLLABLE) != 0;
-            var mouseUp = false;
             
             if (!active && groupHovered && gui.Input.WasMouseDownThisFrame)
             {
@@ -164,7 +163,6 @@ namespace Imui.Controls
                     break;
 
                 case ImMouseEventType.Up when active:
-                    mouseUp = true;
                     gui.ResetActiveControl();
                     break;
             }
