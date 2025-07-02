@@ -215,6 +215,25 @@ namespace Imui.Core
                 idsStack.Clear(false);
             }
 
+            if (WindowManager.drawingStack.Count > 0)
+            {
+                Debug.LogError($"There are still {WindowManager.drawingStack.Count} windows in stack. Check BeginWindow/EndWindow calls.");
+                for (int i = 0; i < WindowManager.drawingStack.Count; ++i)
+                {
+                    var index = WindowManager.TryFindWindow(WindowManager.drawingStack.Array[i]);
+                    if (index >= 0)
+                    {
+                        ref readonly var window = ref WindowManager.windows.Array[index];
+                        Debug.LogError($"EndWindow was not called for \"{window.Title}\" window (id: {window.Id})");
+                    }
+                    else
+                    {
+                        Debug.LogError("EndWindow was not called for unknown window");
+                    }
+                }
+                WindowManager.drawingStack.Clear(false);
+            }
+
             Layout.Pop();
 
             Canvas.PopSettings();
