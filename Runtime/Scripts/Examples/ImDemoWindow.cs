@@ -284,10 +284,13 @@ namespace Imui.Examples
             gui.EndHorizontal();
             gui.Text(Format(" intValue = ", intValue));
             gui.EndHorizontal();
-            
+
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.Separator("Radio buttons (enum flags)");
             gui.Radio(ref demoFlags);
+
+            gui.Separator("Dropdown (enum flags)");
+            gui.Dropdown(ref demoFlags);
 
             gui.Separator("Trees");
             DrawTreeDemo(gui);
@@ -313,7 +316,7 @@ namespace Imui.Examples
                 }
             }
             gui.EndTabsPane();
-            
+
             gui.Separator("Vectors (float)");
             gui.Text("Two component vector");
             gui.Vector(ref vec2);
@@ -547,7 +550,7 @@ namespace Imui.Examples
                 gui.Input.Clipboard = ImThemeEditor.BuildCodeString(in themes[selectedThemeIndex]);
             }
 #endif
-            
+
             if (gui.Button("Reset", ImSizeMode.Fill))
             {
                 themes[selectedThemeIndex] = CreateTheme(selectedThemeIndex);

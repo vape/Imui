@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEditor.VersionControl;
 
 // ReSharper disable StaticMemberInGenericType
 
@@ -38,7 +39,7 @@ namespace Imui.Utility
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ImEnumValue<TEnum> operator &(ImEnumValue<TEnum> val0, TEnum val1) => val0 | ImEnumUtility<TEnum>.ToValue(val1); 
+        public static ImEnumValue<TEnum> operator &(ImEnumValue<TEnum> val0, TEnum val1) => val0 & ImEnumUtility<TEnum>.ToValue(val1); 
         public static ImEnumValue<TEnum> operator &(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
             return val0.signed ? val0.longValue & val1.longValue : val0.ulongValue & val1.ulongValue;
@@ -113,6 +114,50 @@ namespace Imui.Utility
             return Signed ? ToValueSigned(e) : ToValueUnsigned(e);
         }
 
+        public static bool IsFlagSet(TEnum value, TEnum flag)
+        {
+            if (!IsFlags)
+            {
+                return false;
+            }
+
+            var flagValue = ToValue(flag);
+            if (flagValue == 0)
+            {
+                return ToValue(value) == 0;
+            }
+
+            return (ToValue(value) & flag) == flag;
+        }
+
+        public static void SetFlag(ref TEnum value, TEnum flag, bool active)
+        {
+            if (!IsFlags)
+            {
+                return;
+            }
+            
+            var enumValue = ToValue(value);
+            
+            var flagValue = ToValue(flag);
+            if (flagValue == 0 && active)
+            {
+                enumValue = 0;
+            }
+
+            if (flagValue != 0 && active)
+            {
+                enumValue |= flagValue;
+            }
+
+            if (flagValue != 0 && !active)
+            {
+                enumValue &= ~flagValue;
+            }
+
+            value = enumValue.ToEnumType();
+        }
+        
         public static int Format(TEnum value, Span<char> output, string flagsSeparator = FLAGS_SEPARATOR)
         {
             if (!IsFlags)

@@ -1,6 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.Style;
+using Imui.Utility;
 using UnityEngine;
 
 namespace Imui.Controls
@@ -19,12 +20,119 @@ namespace Imui.Controls
 
     public static unsafe class ImDropdown
     {
+        public static ImRect GetRect(ImGui gui, ImSize size)
+        {
+            return gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight());
+        }
+
+        public static TEnum Dropdown<TEnum>(this ImGui gui,
+                                            TEnum selected,
+                                            ImSize size = default,
+                                            ImDropdownPreviewType preview = ImDropdownPreviewType.Default) where TEnum: struct, Enum
+        {
+            Dropdown(gui, ref selected, size, preview);
+            return selected;
+        }
+
+        public static bool Dropdown<TEnum>(this ImGui gui,
+                                           ref TEnum selected,
+                                           ImSize size = default,
+                                           ImDropdownPreviewType preview = ImDropdownPreviewType.Default) where TEnum: struct, Enum
+        {
+            bool IsFlagSetOrEqual(TEnum value, TEnum flag) =>
+                ImEnumUtility<TEnum>.IsFlags
+                    ? ImEnumUtility<TEnum>.IsFlagSet(value, flag)
+                    : ImEnumUtility<TEnum>.ToValue(value) == flag;
+
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+
+            var id = gui.GetNextControlId();
+            var rect = GetRect(gui, size);
+
+            var changed = false;
+            var label = preview == ImDropdownPreviewType.Arrow && gui.Canvas.Cull(rect)
+                ? ReadOnlySpan<char>.Empty
+                : gui.Formatter.FormatEnum(selected);
+
+            if (BeginDropdown(gui, id, label, rect, ImEnumUtility<TEnum>.Type.Name, preview))
+            {
+                for (int i = 0; i < ImEnumUtility<TEnum>.Names.Length; ++i)
+                {
+                    var name = ImEnumUtility<TEnum>.Names[i];
+                    var flag = ImEnumUtility<TEnum>.Values[i];
+                    var isSelected = IsFlagSetOrEqual(selected, flag);
+
+                    if (gui.MenuItem(name, isSelected))
+                    {
+                        if (ImEnumUtility<TEnum>.IsFlags)
+                        {
+                            ImEnumUtility<TEnum>.SetFlag(ref selected, flag, !isSelected);
+                        }
+                        else
+                        {
+                            selected = flag;
+                            gui.CloseDropdown();
+                        }
+
+                        changed = true;
+                    }
+                }
+
+                EndDropdown(gui);
+            }
+
+            return changed;
+        }
+
+        public static bool Dropdown(this ImGui gui,
+                                    ref int selected,
+                                    ReadOnlySpan<string> items,
+                                    ImSize size = default,
+                                    ImDropdownPreviewType preview = ImDropdownPreviewType.Default,
+                                    ReadOnlySpan<char> defaultLabel = default)
+        {
+            var changed = false;
+
+            if (BeginDropdown(gui, selected < 0 || selected >= items.Length ? defaultLabel : items[selected], size, preview))
+            {
+                for (int i = 0; i < items.Length; ++i)
+                {
+                    if (gui.MenuItem(items[i], selected == i))
+                    {
+                        selected = i;
+                        changed = true;
+
+                        gui.CloseDropdown();
+                    }
+                }
+
+                EndDropdown(gui);
+            }
+
+            return changed;
+        }
+
         public static bool BeginDropdown(this ImGui gui,
                                          ReadOnlySpan<char> label,
                                          ImSize size = default,
                                          ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
         {
-            if (!BeginDropdownButton(gui, label, size, preview))
+            gui.AddSpacingIfLayoutFrameNotEmpty();
+
+            var id = gui.GetNextControlId();
+            var rect = GetRect(gui, size);
+
+            return BeginDropdown(gui, id, label, rect, label, preview);
+        }
+
+        public static bool BeginDropdown(ImGui gui,
+                                         uint id,
+                                         ReadOnlySpan<char> label,
+                                         ImRect rect,
+                                         ReadOnlySpan<char> menuScopeId,
+                                         ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        {
+            if (!BeginDropdownButton(gui, id, label, rect, preview))
             {
                 return false;
             }
@@ -33,7 +141,7 @@ namespace Imui.Controls
 
             ref var state = ref gui.GetCurrentScope<ImDropdownState>();
 
-            if (!gui.BeginMenuPopup(label, ref state.Open, gui.LastControlRect.BottomLeft, gui.LastControlRect.W))
+            if (!gui.BeginMenuPopup(menuScopeId, ref state.Open, rect.BottomLeft, rect.W, flags: ImMenuFlag.DoNotDismissOnClick))
             {
                 gui.EndPopup();
                 return false;
@@ -57,8 +165,17 @@ namespace Imui.Controls
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var id = gui.GetNextControlId();
-            var rect = gui.AddSingleRowRect(size, minWidth: gui.GetRowHeight());
+            var rect = GetRect(gui, size);
 
+            return BeginDropdownButton(gui, id, label, rect, preview);
+        }
+
+        public static bool BeginDropdownButton(ImGui gui,
+                                               uint id,
+                                               ReadOnlySpan<char> label,
+                                               ImRect rect,
+                                               ImDropdownPreviewType preview = ImDropdownPreviewType.Default)
+        {
             ref var state = ref gui.BeginScope<ImDropdownState>(id);
 
             var clicked = DropdownButton(gui, id, label, rect, preview);
@@ -120,34 +237,6 @@ namespace Imui.Controls
             gui.SetLastControl(id, rect);
 
             return clicked;
-        }
-
-        public static bool Dropdown(this ImGui gui,
-                                    ref int selected,
-                                    ReadOnlySpan<string> items,
-                                    ImSize size = default,
-                                    ImDropdownPreviewType preview = ImDropdownPreviewType.Default,
-                                    ReadOnlySpan<char> defaultLabel = default)
-        {
-            var changed = false;
-
-            if (BeginDropdown(gui, selected < 0 || selected >= items.Length ? defaultLabel : items[selected], size, preview))
-            {
-                for (int i = 0; i < items.Length; ++i)
-                {
-                    if (gui.MenuItem(items[i], selected == i))
-                    {
-                        selected = i;
-                        changed = true;
-
-                        gui.CloseDropdown();
-                    }
-                }
-
-                EndDropdown(gui);
-            }
-
-            return changed;
         }
 
         public static bool ArrowButton(ImGui gui, uint id, ImRect rect, ImAdjacency adjacency = ImAdjacency.None)

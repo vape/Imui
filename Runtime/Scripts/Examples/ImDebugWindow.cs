@@ -104,7 +104,7 @@ namespace Imui.Examples
 
             gui.Checkbox(ref debugOverlay, "Highlight Controls/Groups");
             
-            gui.Radio(ref gui.RenderMode);
+            gui.Dropdown(ref gui.RenderMode);
 
             gui.EndWindow();
 
