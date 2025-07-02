@@ -62,7 +62,7 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static bool BeginMenuBarItem(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool BeginMenuBarItem(this ImGui gui, ReadOnlySpan<char> label, ImMenuFlag flags = ImMenuFlag.None)
         {
             ref var barState = ref gui.GetCurrentScope<ImMenuBarState>();
 
@@ -105,7 +105,7 @@ namespace Imui.Controls
                 return false;
             }
 
-            gui.BeginMenuPopup(label, ref open, source);
+            gui.BeginMenuPopup(label, ref open, source, flags: flags);
 
             if (!open && barState.Selected == id)
             {

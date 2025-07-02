@@ -14,6 +14,13 @@ namespace Imui.Controls
         LayoutRoot = 1 << 2
     }
 
+    [Flags]
+    public enum ImMenuFlag
+    {
+        None = 0,
+        DoNotDismissOnClick = 1
+    }
+
     public struct ImMenuPosition
     {
         public readonly bool IsSet;
@@ -47,7 +54,8 @@ namespace Imui.Controls
         public uint Clicked;
         public uint Depth;
 
-        public ImMenuStateFlag Flags;
+        public ImMenuFlag BehaviourFlags;
+        public ImMenuStateFlag StateFlags;
 
         public Vector2 Size;
 
@@ -56,7 +64,12 @@ namespace Imui.Controls
 
     public static unsafe class ImMenu
     {
-        public static bool BeginMenuPopup(this ImGui gui, ReadOnlySpan<char> name, ref bool open, ImMenuPosition position = default, float minWidth = 0)
+        public static bool BeginMenuPopup(this ImGui gui,
+                                          ReadOnlySpan<char> name,
+                                          ref bool open,
+                                          ImMenuPosition position = default,
+                                          float minWidth = 0,
+                                          ImMenuFlag flags = ImMenuFlag.None)
         {
             if (!open)
             {
@@ -65,6 +78,8 @@ namespace Imui.Controls
 
             var id = gui.PushId(name);
             var state = gui.BeginScopeUnsafe<ImMenuState>(id);
+            
+            state->BehaviourFlags = flags;
 
             ImRect rect;
 
@@ -74,20 +89,20 @@ namespace Imui.Controls
                 rect = ImRectUtility.Clamp(gui.Canvas.ScreenRect, rect);
 
                 gui.Layout.Push(ImAxis.Vertical, rect);
-                state->Flags |= ImMenuStateFlag.LayoutRoot;
+                state->StateFlags |= ImMenuStateFlag.LayoutRoot;
             }
             else
             {
                 rect = gui.AddLayoutRect(state->Size);
-                state->Flags &= ~ImMenuStateFlag.LayoutRoot;
+                state->StateFlags &= ~ImMenuStateFlag.LayoutRoot;
             }
 
             state->MinWidth = minWidth;
 
-            if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
+            if ((state->StateFlags & ImMenuStateFlag.Dismissed) != 0)
             {
                 open = false;
-                state->Flags &= ~ImMenuStateFlag.Dismissed;
+                state->StateFlags &= ~ImMenuStateFlag.Dismissed;
             }
 
             BeginMenuPopup(gui, state, rect);
@@ -101,7 +116,7 @@ namespace Imui.Controls
 
             EndMenuPopup(gui, state);
 
-            if ((state->Flags & ImMenuStateFlag.LayoutRoot) != 0)
+            if ((state->StateFlags & ImMenuStateFlag.LayoutRoot) != 0)
             {
                 gui.Layout.Pop();
             }
@@ -122,7 +137,7 @@ namespace Imui.Controls
                 gui.Canvas.PushOrder(gui.Canvas.GetOrder() + 2);
             }
 
-            if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
+            if ((state->StateFlags & ImMenuStateFlag.LayoutBuilt) == 0)
             {
                 gui.Canvas.PushClipEverything();
             }
@@ -138,7 +153,7 @@ namespace Imui.Controls
             gui.Box(contentRect, gui.Style.Menu.Box);
             gui.Canvas.PopOrder();
 
-            if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
+            if ((state->StateFlags & ImMenuStateFlag.LayoutBuilt) == 0)
             {
                 gui.Canvas.PopClipRect();
             }
@@ -154,10 +169,12 @@ namespace Imui.Controls
                 gui.Canvas.PopOrder();
             }
 
-            state->Flags |= ImMenuStateFlag.LayoutBuilt;
-            state->Flags |= closeButtonClicked | state->Clicked != default ? ImMenuStateFlag.Dismissed : ImMenuStateFlag.None;
+            var dismissOnClick = (state->BehaviourFlags & ImMenuFlag.DoNotDismissOnClick) == 0;
 
-            if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
+            state->StateFlags |= ImMenuStateFlag.LayoutBuilt;
+            state->StateFlags |= closeButtonClicked | (state->Clicked != 0 && dismissOnClick) ? ImMenuStateFlag.Dismissed : ImMenuStateFlag.None;
+
+            if ((state->StateFlags & ImMenuStateFlag.Dismissed) != 0)
             {
                 state->Selected = default;
                 state->Fixed = default;
@@ -175,12 +192,14 @@ namespace Imui.Controls
             var state = gui.BeginScopeUnsafe<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
 
+            state->BehaviourFlags = parentState->BehaviourFlags;
+            
             MenuItem(gui, id, parentState, label, true, false, out var active, false);
 
             if (!active)
             {
                 state->Size = default;
-                state->Flags &= ~ImMenuStateFlag.LayoutBuilt;
+                state->StateFlags &= ~ImMenuStateFlag.LayoutBuilt;
                 state->Fixed = default;
                 state->Selected = default;
 
