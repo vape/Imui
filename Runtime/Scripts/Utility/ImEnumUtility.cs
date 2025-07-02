@@ -1,5 +1,7 @@
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Unity.Collections.LowLevel.Unsafe;
 
 // ReSharper disable StaticMemberInGenericType
@@ -28,11 +30,15 @@ namespace Imui.Utility
             signed = false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ImEnumValue<TEnum> operator |(ImEnumValue<TEnum> val0, TEnum val1) => val0 | ImEnumUtility<TEnum>.ToValue(val1);
         public static ImEnumValue<TEnum> operator |(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
             return val0.signed ? val0.longValue | val1.longValue : val0.ulongValue | val1.ulongValue;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ImEnumValue<TEnum> operator &(ImEnumValue<TEnum> val0, TEnum val1) => val0 | ImEnumUtility<TEnum>.ToValue(val1); 
         public static ImEnumValue<TEnum> operator &(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
             return val0.signed ? val0.longValue & val1.longValue : val0.ulongValue & val1.ulongValue;
@@ -43,11 +49,15 @@ namespace Imui.Utility
             return val.signed ? ~val.longValue : ~val.ulongValue;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(ImEnumValue<TEnum> val0, TEnum val1) => val0 == ImEnumUtility<TEnum>.ToValue(val1);
         public static bool operator ==(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
             return val0.Equals(val1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(ImEnumValue<TEnum> val0, TEnum val1) => val0 != ImEnumUtility<TEnum>.ToValue(val1);
         public static bool operator !=(ImEnumValue<TEnum> val0, ImEnumValue<TEnum> val1)
         {
             return !val0.Equals(val1);
@@ -90,6 +100,8 @@ namespace Imui.Utility
 
     internal static class ImEnumUtility<TEnum> where TEnum: struct, Enum
     {
+        public const string FLAGS_SEPARATOR = " | ";
+        
         public static readonly bool IsFlags = typeof(TEnum).GetCustomAttribute<FlagsAttribute>() != null;
         public static readonly string[] Names = Enum.GetNames(typeof(TEnum));
         public static readonly TEnum[] Values = Enum.GetValues(typeof(TEnum)) as TEnum[];
@@ -101,6 +113,59 @@ namespace Imui.Utility
             return Signed ? ToValueSigned(e) : ToValueUnsigned(e);
         }
 
+        public static int Format(TEnum value, Span<char> output, string flagsSeparator = FLAGS_SEPARATOR)
+        {
+            if (!IsFlags)
+            {
+                var index = Array.IndexOf(Values, value);
+                if (index < 0)
+                {
+                    return 0;
+                }
+
+                return ((ReadOnlySpan<char>)Names[index]).TryCopyTo(output) ? Names[index].Length : 0;
+            }
+
+            var separator = (ReadOnlySpan<char>)flagsSeparator;
+            var written = 0;
+            var enumValue = ToValue(value);
+            var isZero = enumValue == 0;
+            
+            for (int i = 0; i < Values.Length; ++i)
+            {
+                var itemValue = ToValue(Values[i]);
+                if ((itemValue | value) == enumValue && (itemValue != 0 || isZero))
+                {
+                    if (written != 0)
+                    {
+                        if (!separator.TryCopyTo(output[written..]))
+                        {
+                            return written;
+                        }
+
+                        written += separator.Length;
+                    }
+
+                    var name = (ReadOnlySpan<char>)Names[i];
+                    if (name.TryCopyTo(output[written..]))
+                    {
+                        written += name.Length;
+                    }
+                    else
+                    {
+                        return written;
+                    }
+
+                    if (isZero)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return written;
+        }
+        
         public static TEnum FromValueUnsigned(ulong value)
         {
             if (Type == typeof(Byte))

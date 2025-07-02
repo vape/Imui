@@ -1,4 +1,5 @@
 using System;
+using Imui.Utility;
 
 namespace Imui.Core
 {
@@ -126,6 +127,41 @@ namespace Imui.Core
             var span = arena.AllocArray<char>(format.IsEmpty || format.Length < MAX_LEN ? MAX_LEN : format.Length);
             value.TryFormat(span, out var written, format);
             return span[..written];
+        }
+
+        public Span<char> FormatEnum<TEnum>(TEnum value) where TEnum: struct, Enum
+        {
+            const string SEPARATOR = ImEnumUtility<TEnum>.FLAGS_SEPARATOR;
+            
+            var names = ImEnumUtility<TEnum>.Names;
+            var maxLength = 0;
+
+            if (ImEnumUtility<TEnum>.IsFlags)
+            {
+                for (int i = 0; i < names.Length; ++i)
+                {
+                    maxLength += names[i].Length;
+                }
+
+                maxLength += SEPARATOR.Length * (names.Length - 1);
+            }
+            else
+            {
+                for (int i = 0; i < names.Length; ++i)
+                {
+                    maxLength = names[i].Length > maxLength ? names[i].Length : maxLength;
+                }
+            }
+            
+            if (maxLength <= 0)
+            {
+                return Span<char>.Empty;
+            }
+
+            var span = arena.AllocArray<char>(maxLength);
+            var written = ImEnumUtility<TEnum>.Format(value, span, SEPARATOR);
+
+            return arena.ReallocArray(ref span, written);
         }
     }
 }
