@@ -161,6 +161,22 @@ namespace Imui.Core
         }
 
         /// <summary>
+        /// Pushes settings to completely disable masking (both rect mask and clip rect)
+        /// </summary>
+        public void PushNoMasking()
+        {
+            var prop = GetActiveSettingsCopy();
+            prop.MaskRect.Enabled = false;
+            prop.ClipRect.Enabled = false;
+            PushSettings(in prop);
+        }
+
+        /// <summary>
+        /// Pops settings that removed all masking
+        /// </summary>
+        public void PopNoMasking() => PopSettings();
+
+        /// <summary>
         /// Computes the intersection of two rectangles.
         /// </summary>
         /// <param name="r1">The first rectangle.</param>

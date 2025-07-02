@@ -10,9 +10,11 @@ namespace Imui.Examples
     {
         private const int MOVING_AVERAGE_INTERVAL = 90;
         private const int FRAME_TIMES_BUFFER_SIZE = 120;
+        private const int DEBUG_OVERLAY_DRAW_ORDER = int.MaxValue - 100;
 
         private static readonly Color32 GroupColor = new Color32(255, 0, 0, 32);
         private static readonly Color32 ControlColor = new Color32(0, 255, 0, 64);
+        private static readonly Color32 WindowOutlineColor = new Color32(255, 128, 0, 255);
 
         private static bool debugOverlay;
         private static ImCircularBuffer<float> frameTimes = new ImCircularBuffer<float>(FRAME_TIMES_BUFFER_SIZE);
@@ -32,6 +34,7 @@ namespace Imui.Examples
             gui.Text(gui.Formatter.Concat("Hovered: ", gui.Formatter.Format(gui.frameData.HoveredControl.Id)));
             gui.Text(gui.Formatter.Concat("Hovered Order: ", gui.Formatter.Format(gui.frameData.HoveredControl.Order)));
             gui.Text(gui.Formatter.Concat("Active: ", gui.Formatter.Format(gui.GetActiveControl())));
+            gui.Text(gui.Formatter.Concat("Raycast Target:", gui.Raycast(gui.Input.MousePosition.x, gui.Input.MousePosition.y) ? "true" : "false"));
 
             if (gui.BeginTreeNode("Storage"))
             {
@@ -60,6 +63,37 @@ namespace Imui.Examples
                 gui.EndTreeNode();
             }
 
+            if (gui.BeginTreeNode("Windows"))
+            {
+                for (int i = 0; i < gui.WindowManager.windows.Count; ++i)
+                {
+                    var window = gui.WindowManager.windows.Array[i];
+                    gui.PushId(window.Id);
+                    
+                    if (gui.BeginTreeNode(window.Title))
+                    {
+                        gui.Text(gui.Formatter.Concat("Flags: ", gui.Formatter.FormatEnum(window.Flags)));
+                        gui.Text(gui.Formatter.Concat("Id: ", gui.Formatter.Format(window.Id)));
+                        gui.Text(gui.Formatter.Concat("Order: ", gui.Formatter.Format(window.Order)));
+                        gui.EndTreeNode();
+                    }
+
+                    gui.PopId();
+                    
+                    if (gui.IsControlHovered(gui.LastControl))
+                    {
+                        gui.Canvas.PushOrder(DEBUG_OVERLAY_DRAW_ORDER);
+                        gui.Canvas.PushNoMasking();
+                        var points = ImShapes.Rect(gui.Arena, window.Rect, gui.Style.Window.Box.BorderRadius);
+                        gui.Canvas.LineMiter(points, WindowOutlineColor, true, 15, 1.0f);
+                        gui.Canvas.PopNoMasking();
+                        gui.Canvas.PopOrder();
+                    }
+                }
+                
+                gui.EndTreeNode();
+            }
+
             gui.Text(gui.Formatter.Concat("Arena: ", gui.Formatter.Format(gui.frameData.ArenaSize), " bytes"));
             gui.Text(gui.Formatter.Concat("Vertices: ", gui.Formatter.Format(gui.frameData.VerticesCount)));
             gui.Text(gui.Formatter.Concat("Indices: ", gui.Formatter.Format(gui.frameData.IndicesCount)));
@@ -76,7 +110,7 @@ namespace Imui.Examples
 
             if (debugOverlay)
             {
-                gui.Canvas.PushOrder(int.MaxValue);
+                gui.Canvas.PushOrder(DEBUG_OVERLAY_DRAW_ORDER);
 
                 gui.Canvas.Rect(gui.frameData.HoveredControl.Rect, ControlColor);
 
