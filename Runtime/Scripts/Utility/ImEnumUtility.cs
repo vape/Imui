@@ -167,7 +167,7 @@ namespace Imui.Utility
             }
             else if (Type == typeof(Int64))
             {
-                UnsafeUtility.As<TEnum, Int64>(ref value);
+                return UnsafeUtility.As<TEnum, Int64>(ref value);
             }
 
             throw new Exception($"Underlying type of {typeof(TEnum)} is unsigned");
@@ -189,7 +189,7 @@ namespace Imui.Utility
             }
             else if (Type == typeof(UInt64))
             {
-                UnsafeUtility.As<TEnum, UInt64>(ref value);
+                return UnsafeUtility.As<TEnum, UInt64>(ref value);
             }
 
             throw new Exception($"Underlying type of {typeof(TEnum)} is signed");
