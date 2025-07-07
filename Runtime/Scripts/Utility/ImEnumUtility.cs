@@ -1,9 +1,7 @@
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEditor.VersionControl;
 
 // ReSharper disable StaticMemberInGenericType
 
