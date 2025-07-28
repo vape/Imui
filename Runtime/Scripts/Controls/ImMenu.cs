@@ -78,7 +78,7 @@ namespace Imui.Controls
 
             var id = gui.PushId(name);
             var state = gui.BeginScopeUnsafe<ImMenuState>(id);
-            
+
             state->BehaviourFlags = flags;
 
             ImRect rect;
@@ -184,17 +184,20 @@ namespace Imui.Controls
             gui.Layout.Pop();
         }
 
-        public static bool BeginMenuItem(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool BeginMenu(this ImGui gui, ReadOnlySpan<char> label)
         {
-            var parentState = gui.GetCurrentScopeUnsafe<ImMenuState>();
+            if (!gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var parentState))
+            {
+                return ImMenuBar.BeginItem(gui, label);
+            }
 
             var id = gui.PushId(label);
             var state = gui.BeginScopeUnsafe<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
 
             state->BehaviourFlags = parentState->BehaviourFlags;
-            
-            MenuItem(gui, id, parentState, label, true, false, out var active, false);
+
+            Menu(gui, id, parentState, label, true, false, out var active, false);
 
             if (!active)
             {
@@ -215,8 +218,14 @@ namespace Imui.Controls
             return true;
         }
 
-        public static void EndMenuItem(this ImGui gui)
+        public static void EndMenu(this ImGui gui)
         {
+            if (IsRootMenu(gui.GetCurrentScopeUnsafe<ImMenuState>()))
+            {
+                ImMenuBar.EndItem(gui);
+                return;
+            }
+
             var state = gui.EndScopeUnsafe<ImMenuState>();
             var clicked = state->Clicked;
 
@@ -229,16 +238,20 @@ namespace Imui.Controls
             }
         }
 
-        public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, bool enabled)
+        public static bool Menu(this ImGui gui, ReadOnlySpan<char> label, bool enabled)
         {
-            return MenuItem(gui, label, ref enabled);
+            return Menu(gui, label, ref enabled);
         }
 
-        public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, ref bool enabled)
+        public static bool Menu(this ImGui gui, ReadOnlySpan<char> label, ref bool enabled)
         {
+            if (!gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var state))
+            {
+                return ImMenuBar.Button(gui, label);
+            }
+
             var id = gui.GetNextControlId();
-            var state = gui.GetCurrentScopeUnsafe<ImMenuState>();
-            var clicked = MenuItem(gui, id, state, label, false, true, out _, enabled);
+            var clicked = Menu(gui, id, state, label, false, true, out _, enabled);
 
             if (clicked)
             {
@@ -248,22 +261,26 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool Menu(this ImGui gui, ReadOnlySpan<char> label)
         {
-            var id = gui.GetNextControlId();
-            var state = gui.GetCurrentScopeUnsafe<ImMenuState>();
+            if (!gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var state))
+            {
+                return ImMenuBar.Button(gui, label);
+            }
 
-            return MenuItem(gui, id, state, label, false, false, out _, false);
+            var id = gui.GetNextControlId();
+
+            return Menu(gui, id, state, label, false, false, out _, false);
         }
 
-        public static bool MenuItem(ImGui gui,
-                                    uint id,
-                                    ImMenuState* state,
-                                    ReadOnlySpan<char> label,
-                                    bool isExpandable,
-                                    bool isToggleable,
-                                    out bool active,
-                                    bool toggleIsOn)
+        public static bool Menu(ImGui gui,
+                                uint id,
+                                ImMenuState* state,
+                                ReadOnlySpan<char> label,
+                                bool isExpandable,
+                                bool isToggleable,
+                                out bool active,
+                                bool toggleIsOn)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 

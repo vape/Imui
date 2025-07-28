@@ -62,7 +62,7 @@ namespace Imui.Controls
                     var flag = ImEnumUtility<TEnum>.Values[i];
                     var isSelected = IsFlagSetOrEqual(selected, flag);
 
-                    if (gui.MenuItem(name, isSelected))
+                    if (gui.Menu(name, isSelected))
                     {
                         if (ImEnumUtility<TEnum>.IsFlags)
                         {
@@ -97,7 +97,7 @@ namespace Imui.Controls
             {
                 for (int i = 0; i < items.Length; ++i)
                 {
-                    if (gui.MenuItem(items[i], selected == i))
+                    if (gui.Menu(items[i], selected == i))
                     {
                         selected = i;
                         changed = true;

@@ -105,8 +105,12 @@ namespace Imui.Core
             public int Type;
 
             internal void* Ptr;
+
+#if IMUI_DEBUG
+            public string Descriptor;
+#endif
         }
-        
+
         public bool IsReadOnly => readOnlyStack.TryPeek(@default: false);
         public uint LastControl => lastControl;
         public ImRect LastControlRect => lastControlRect;
@@ -175,7 +179,7 @@ namespace Imui.Core
             {
                 LoadDefaultFont();
             }
-            
+
             Arena.Clear();
 
             idsStack.Clear(false);
@@ -189,7 +193,7 @@ namespace Imui.Core
             Input.Pull();
 
             TextDrawer.ApplyAtlasChanges();
-            
+
             Canvas.Clear();
             Canvas.ConfigureScreen(scaledTargetSize, uiScale);
             Canvas.PushSettings(Canvas.CreateDefaultSettings());
@@ -515,6 +519,9 @@ namespace Imui.Core
                 Id = id,
                 Type = typeof(TState).GetHashCode(),
                 Ptr = ptr
+#if IMUI_DEBUG
+                Descriptor = typeof(TState).FullName,
+#endif
             };
 
             controlScopesStack.Push(in scope);
@@ -529,6 +536,25 @@ namespace Imui.Core
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe TState* EndScopeUnsafe<TState>() where TState: unmanaged => EndScopeUnsafe<TState>(out _);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe bool TryEndScopeUnsafe<TState>(out TState* state) where TState: unmanaged => TryEndScopeUnsafe(out state, out _);
+
+        public unsafe bool TryEndScopeUnsafe<TState>(out TState* state, out uint id) where TState: unmanaged
+        {
+            if (!TryFindControlScope<TState>(out var index))
+            {
+                state = null;
+                id = 0;
+                return false;
+            }
+
+            state = (TState*)controlScopesStack.Array[index].Ptr;
+            id = controlScopesStack.Array[index].Id;
+            controlScopesStack.RemoveAtFast(index);
+
+            return true;
+        }
 
         public unsafe TState* EndScopeUnsafe<TState>(out uint id) where TState: unmanaged
         {
@@ -637,7 +663,7 @@ namespace Imui.Core
             {
                 MeshRenderer.RenderWireframe(renderCmd, MeshBuffer, screenSize, uiScale);
             }
-            
+
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
 

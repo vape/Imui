@@ -119,9 +119,9 @@ namespace Imui.Examples
                 return;
             }
 
-            gui.BeginWindowMenuBar();
+            gui.BeginMenuBar();
             DrawMenuBarItems(gui, ref open);
-            gui.EndWindowMenuBar();
+            gui.EndMenuBar();
 
             if (gui.BeginFoldout("Controls"))
             {
@@ -218,16 +218,16 @@ namespace Imui.Examples
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Dropdown without value selected", preview: dropdownPreview);
             if (gui.BeginDropdown("Custom Dropdown", preview: dropdownPreview))
             {
-                if (gui.MenuItem("Menu Item"))
+                if (gui.Menu("Menu Item"))
                 {
                     gui.CloseDropdown();
                 }
                 gui.TooltipAtLastControl("Will close dropdown on click");
 
-                if (gui.BeginMenuItem("Sub Menu Inside Dropdown"))
+                if (gui.BeginMenu("Sub Menu Inside Dropdown"))
                 {
                     gui.Text("Hello there");
-                    gui.EndMenuItem();
+                    gui.EndMenu();
                 }
                 gui.Checkbox(ref checkboxValue, "Checkbox");
                 gui.Separator("Nested dropdown, if that's want you really want");
@@ -434,55 +434,55 @@ namespace Imui.Examples
 
         private static void DrawMenuBarItems(ImGui gui, ref bool windowOpen)
         {
-            if (gui.BeginMenuBarItem("Demo"))
+            if (gui.BeginMenu("Demo"))
             {
                 DrawDemoMenu(gui, ref windowOpen);
-                gui.EndMenuBarItem();
+                gui.EndMenu();
             }
 
-            if (gui.BeginMenuBarItem("Windows"))
+            if (gui.BeginMenu("Windows"))
             {
                 DrawExamplesMenu(gui);
-                gui.EndMenuBarItem();
+                gui.EndMenu();
             }
         }
 
         private static void DrawDemoMenu(ImGui gui, ref bool windowOpen)
         {
-            if (gui.BeginMenuItem("Custom Menus"))
+            if (gui.BeginMenu("Custom Menus"))
             {
                 gui.BeginVertical(width: 300);
                 DrawSlidersDemo(gui);
                 gui.EndVertical();
 
-                gui.EndMenuItem();
+                gui.EndMenu();
             }
-            if (gui.BeginMenuItem("Recursive"))
+            if (gui.BeginMenu("Recursive"))
             {
                 DrawDemoMenu(gui, ref windowOpen);
-                gui.EndMenuItem();
+                gui.EndMenu();
             }
             gui.Separator();
-            if (gui.BeginMenuItem("Test"))
+            if (gui.BeginMenu("Test"))
             {
-                if (gui.BeginMenuItem("Same name submenu"))
+                if (gui.BeginMenu("Same name submenu"))
                 {
-                    gui.MenuItem("Item");
-                    gui.EndMenuItem();
+                    gui.Menu("Item");
+                    gui.EndMenu();
                 }
 
                 gui.PushId("Next Menu");
-                if (gui.BeginMenuItem("Same name submenu"))
+                if (gui.BeginMenu("Same name submenu"))
                 {
-                    gui.MenuItem("Item");
-                    gui.EndMenuItem();
+                    gui.Menu("Item");
+                    gui.EndMenu();
                 }
                 gui.PopId();
 
-                gui.EndMenuItem();
+                gui.EndMenu();
             }
             gui.Separator();
-            if (gui.MenuItem("Close"))
+            if (gui.Menu("Close"))
             {
                 windowOpen = false;
             }
@@ -490,12 +490,12 @@ namespace Imui.Examples
 
         private static void DrawExamplesMenu(ImGui gui)
         {
-            if (gui.MenuItem("Console"))
+            if (gui.Menu("Console"))
             {
                 showLogWindow = true;
             }
 
-            if (gui.MenuItem("Debug"))
+            if (gui.Menu("Debug"))
             {
                 showDebugWindow = true;
             }

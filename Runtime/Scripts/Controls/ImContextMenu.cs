@@ -12,12 +12,12 @@ namespace Imui.Controls
 
     public static class ImContextMenu
     {
-        public static bool BeginContextMenu(this ImGui gui, ImRect area)
+        public static bool BeginContextMenu(this ImGui gui, ImRect clickableArea)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImContextMenuState>(id);
 
-            gui.RegisterGroup(id, area);
+            gui.RegisterGroup(id, clickableArea);
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             if (!state.Open && gui.IsGroupHovered(id) && evt is { Type: ImMouseEventType.Down, Button: 1 })

@@ -1,6 +1,7 @@
 using System;
 using Imui.Core;
 using Imui.Style;
+using UnityEngine;
 
 namespace Imui.Controls
 {
@@ -13,30 +14,30 @@ namespace Imui.Controls
     {
         public static float GetMenuBarHeight(ImGui gui) => gui.GetRowHeight();
 
-        public static void BeginWindowMenuBar(this ImGui gui)
+        public static void BeginMenuBar(this ImGui gui)
         {
-            ImAssert.IsTrue(gui.WindowManager.IsDrawingWindow(), "gui.WindowManager.IsDrawingWindow()");
-
             var id = gui.GetNextControlId();
-            var rect = gui.GetWindowMenuBarRect();
 
-            BeginMenuBar(gui, id, rect, gui.Canvas.GetOrder() + ImWindow.WINDOW_MENU_ORDER_OFFSET - 1);
+            if (gui.WindowManager.IsDrawingWindow())
+            {
+                var rect = gui.GetWindowMenuBarRect();
+                
+                BeginMenuBar(gui, id, rect, gui.Canvas.GetOrder() + ImWindow.WINDOW_MENU_ORDER_OFFSET - 1);
+            }
+            else
+            {
+                var height = GetMenuBarHeight(gui);
+                var rect = gui.AddLayoutRect(gui.GetLayoutWidth(), height);
+
+                if (Mathf.Approximately(gui.Canvas.ScreenRect.Top, rect.Top))
+                {
+                    gui.Canvas.SafeAreaPadding.Top += height;
+                }
+                
+                BeginMenuBar(gui, id, rect, gui.Canvas.GetOrder());
+            }
         }
-
-        public static void EndWindowMenuBar(this ImGui gui)
-        {
-            EndMenuBar(gui);
-        }
-
-        public static void BeginMenuBar(this ImGui gui, ImSize size = default)
-        {
-            gui.AddSpacingIfLayoutFrameNotEmpty();
-
-            var rect = gui.AddSingleRowRect(size);
-
-            BeginMenuBar(gui, rect);
-        }
-
+        
         public static void BeginMenuBar(this ImGui gui, ImRect rect)
         {
             var id = gui.GetNextControlId();
@@ -62,32 +63,44 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static bool BeginMenuBarItem(this ImGui gui, ReadOnlySpan<char> label, ImMenuFlag flags = ImMenuFlag.None)
+        public static bool Button(ImGui gui, ReadOnlySpan<char> label)
+        {
+            var id = gui.GetNextControlId();
+
+            return Button(gui, id, label, false, out _);
+        }
+
+        public static bool Button(ImGui gui, uint id, ReadOnlySpan<char> label, bool isSelected, out ImRect rect)
+        {
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.MenuBar.ItemNormal.Alignment);
+            var textWidth = gui.MeasureTextSize(label, in textSettings).x;
+
+            rect = gui.AddLayoutRect(textWidth + gui.Style.MenuBar.ItemExtraWidth, gui.GetLayoutHeight())
+                      .WithPadding(gui.Style.MenuBar.Box.BorderThickness);
+
+            ref var buttonStyle = ref (isSelected ? ref gui.Style.MenuBar.ItemActive : ref gui.Style.MenuBar.ItemNormal);
+            using (gui.StyleScope(ref gui.Style.Button, in buttonStyle))
+            {
+                return gui.Button(id, label, rect);
+            }
+        }
+
+        public static bool BeginItem(ImGui gui, ReadOnlySpan<char> label, ImMenuFlag flags = ImMenuFlag.None)
         {
             ref var barState = ref gui.GetCurrentScope<ImMenuBarState>();
 
             var id = gui.PushId(label);
-            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.MenuBar.ItemNormal.Alignment);
-            var textWidth = gui.MeasureTextSize(label, in textSettings).x;
-            var rect = gui.AddLayoutRect(textWidth + gui.Style.MenuBar.ItemExtraWidth, gui.GetLayoutHeight());
+            var clicked = Button(gui, id, label, barState.Selected == id, out var rect);
             var source = rect.BottomLeft;
-            rect.AddPadding(gui.Style.MenuBar.Box.BorderThickness);
-            var clicked = false;
 
-            ref var buttonStyle = ref (barState.Selected == id ? ref gui.Style.MenuBar.ItemActive : ref gui.Style.MenuBar.ItemNormal);
-            using (gui.StyleScope(ref gui.Style.Button, in buttonStyle))
-            {
-                clicked = gui.Button(id, label, rect);
-            }
-
-            if (barState.Selected != default && gui.IsControlHovered(id))
+            if (barState.Selected != 0 && gui.IsControlHovered(id))
             {
                 barState.Selected = id;
             }
 
             if (clicked)
             {
-                barState.Selected = barState.Selected == id ? default : id;
+                barState.Selected = barState.Selected == id ? 0 : id;
             }
 
             var open = barState.Selected == id;
@@ -115,7 +128,7 @@ namespace Imui.Controls
             return true;
         }
 
-        public static void EndMenuBarItem(this ImGui gui)
+        public static void EndItem(ImGui gui)
         {
             gui.EndMenuPopup();
             gui.PopId();
