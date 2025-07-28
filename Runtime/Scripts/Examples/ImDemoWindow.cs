@@ -576,7 +576,7 @@ namespace Imui.Examples
         {
             if (gui.BeginTreeNode("Simple"))
             {
-                gui.PrepareState(4);
+                gui.BeginTable(4);
                 for (int row = 0; row < 5; ++row)
                 {
                     gui.TableNextRow();
@@ -590,7 +590,7 @@ namespace Imui.Examples
 
                 gui.Separator("Resizable Columns");
 
-                gui.PrepareState(4, flags: ImTableFlag.ResizableColumns);
+                gui.BeginTable(4, flags: ImTableFlag.ResizableColumns);
                 for (int row = 0; row < 5; ++row)
                 {
                     gui.TableNextRow();
@@ -607,7 +607,7 @@ namespace Imui.Examples
 
             if (gui.BeginTreeNode("With Scroll Bars"))
             {
-                gui.PrepareState(4, (gui.GetLayoutWidth(), 200));
+                gui.BeginTable(4, (gui.GetLayoutWidth(), 200));
                 for (int row = 0; row < 12; ++row)
                 {
                     gui.TableNextRow();
@@ -634,7 +634,7 @@ namespace Imui.Examples
                 var size = largeTableScrollable ? new ImSize(gui.GetLayoutWidth(), 300) : new ImSize(ImSizeMode.Auto);
                 var flags = largeTableResizable ? ImTableFlag.ResizableColumns : ImTableFlag.None;
 
-                ref var state = ref gui.PrepareState(largeTableColumns, size, flags);
+                ref var state = ref gui.BeginTable(largeTableColumns, size, flags);
 
                 gui.TableSetRowsHeight(gui.GetTextLineHeight() + gui.Style.Table.CellPadding.Vertical);
                 for (int i = 0; i < largeTableColumns; ++i)
