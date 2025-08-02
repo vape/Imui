@@ -89,6 +89,11 @@ namespace Imui.Examples
         private static float largeTableColumnSize = 150;
         private static bool largeTableScrollable = true;
         private static bool largeTableResizable = true;
+        private static Vector2 vec2 = new Vector2(1.0f, 2.0f);
+        private static Vector3 vec3 = new Vector3(1.0f, 2.0f, 3.0f);
+        private static Vector4 vec4 = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
+        private static Vector2Int vec2int = new Vector2Int(1, 2);
+        private static Vector3Int vec3int = new Vector3Int(1, 2, 3);
 
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
@@ -114,9 +119,9 @@ namespace Imui.Examples
                 return;
             }
 
-            gui.BeginWindowMenuBar();
+            gui.BeginMenuBar();
             DrawMenuBarItems(gui, ref open);
-            gui.EndWindowMenuBar();
+            gui.EndMenuBar();
 
             if (gui.BeginFoldout("Controls"))
             {
@@ -213,16 +218,16 @@ namespace Imui.Examples
             gui.Dropdown(ref selectedValue, values, defaultLabel: "Dropdown without value selected", preview: dropdownPreview);
             if (gui.BeginDropdown("Custom Dropdown", preview: dropdownPreview))
             {
-                if (gui.MenuItem("Menu Item"))
+                if (gui.Menu("Menu Item"))
                 {
                     gui.CloseDropdown();
                 }
                 gui.TooltipAtLastControl("Will close dropdown on click");
 
-                if (gui.BeginSubMenu("Sub Menu Inside Dropdown"))
+                if (gui.BeginMenu("Sub Menu Inside Dropdown"))
                 {
                     gui.Text("Hello there");
-                    gui.EndSubMenu();
+                    gui.EndMenu();
                 }
                 gui.Checkbox(ref checkboxValue, "Checkbox");
                 gui.Separator("Nested dropdown, if that's want you really want");
@@ -284,6 +289,9 @@ namespace Imui.Examples
             gui.Separator("Radio buttons (enum flags)");
             gui.Radio(ref demoFlags);
 
+            gui.Separator("Dropdown (enum flags)");
+            gui.Dropdown(ref demoFlags);
+
             gui.Separator("Trees");
             DrawTreeDemo(gui);
 
@@ -291,7 +299,8 @@ namespace Imui.Examples
             NestedFoldout(gui, 0, ref nestedFoldouts);
 
             gui.Separator("Floating menu");
-            gui.BeginMenuBar();
+            var rect = gui.AddLayoutRect(gui.GetLayoutWidth(), gui.GetRowHeight());
+            gui.BeginMenuBar(rect);
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
 
@@ -308,6 +317,19 @@ namespace Imui.Examples
                 }
             }
             gui.EndTabsPane();
+
+            gui.Separator("Vectors (float)");
+            gui.Text("Two component vector");
+            gui.Vector(ref vec2);
+            gui.Text("Three component vector");
+            gui.Vector(ref vec3);
+            gui.Text("Four component vector");
+            gui.Vector(ref vec4);
+            gui.Separator("Vectors (int)");
+            gui.Text("Two component vector");
+            gui.Vector(ref vec2int);
+            gui.Text("Three component vector");
+            gui.Vector(ref vec3int);
 
             gui.EndReadOnly();
         }
@@ -344,30 +366,22 @@ namespace Imui.Examples
 
             void Node(ref ImDemoTreeNode node)
             {
-                var flags = selectMultipleValues ? ImTreeNodeFlags.UnselectOnClick : ImTreeNodeFlags.None;
+                var flags = (selectMultipleValues ? ImTreeNodeFlags.UnselectOnClick : ImTreeNodeFlags.None) |
+                            (node.Childrens.Length == 0 ? ImTreeNodeFlags.NonExpandable : 0);
                 var isSelected = selectedNodes.Contains(node.Name);
-
-                if (node.Childrens.Length == 0)
-                {
-                    gui.TreeNode(ref isSelected, node.Name, flags: flags);
-                    SetSelected(node.Name, isSelected);
-                    return;
-                }
-
-                if (!gui.BeginTreeNode(ref isSelected, node.Name, flags: flags))
-                {
-                    SetSelected(node.Name, isSelected);
-                    return;
-                }
-
+                var expanded = gui.BeginTreeNode(ref isSelected, node.Name, flags: flags);
+                
                 SetSelected(node.Name, isSelected);
 
-                for (int i = 0; i < node.Childrens.Length; ++i)
+                if (expanded)
                 {
-                    Node(ref node.Childrens[i]);
-                }
+                    for (int i = 0; i < node.Childrens.Length; ++i)
+                    {
+                        Node(ref node.Childrens[i]);
+                    }
 
-                gui.EndTreeNode();
+                    gui.EndTreeNode();
+                }
             }
 
             for (int i = 0; i < treeNodes.Length; ++i)
@@ -400,83 +414,85 @@ namespace Imui.Examples
         private static void DrawSlidersDemo(ImGui gui)
         {
             DrawBouncingBall(gui);
-            gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight(), format: "0.00 px");
+            gui.SliderHeader("Size", bouncingBallSize, "0.00 px");
+            gui.Slider(ref bouncingBallSize, 0.1f, gui.GetRowHeight());
             gui.TooltipAtLastControl("Size of the circles in pixels");
-            gui.Slider(ref bouncingBallSpeed, -2f, 2f, format: "0.0# speed");
-            gui.TooltipAtLastControl("Speed for circles moving");
-            gui.Slider(ref bouncingBallTrail, 1, 256, format: "0 trail length", flags: ImSliderFlag.DynamicHandle);
+            gui.SliderHeader("Speed", bouncingBallSpeed, "0.##");
+            gui.Slider(ref bouncingBallSpeed, -2f, 2f);
+            gui.TooltipAtLastControl("Speed of moving circles");
+            gui.SliderHeader("Trail Length", bouncingBallTrail);
+            gui.Slider(ref bouncingBallTrail, 1, 256, step: 32, flags: ImSliderFlag.DynamicHandle);
             gui.TooltipAtLastControl("Number of circles drawn");
         }
 
         private static void DrawMenuBarItems(ImGui gui, ref bool windowOpen)
         {
-            if (gui.BeginMenuBarItem("Demo"))
+            if (gui.BeginMenu("Demo"))
             {
-                DrawDemoMenu(gui, ref windowOpen);
-                gui.EndMenuBarItem();
-            }
-
-            if (gui.BeginMenuBarItem("Windows"))
-            {
-                DrawExamplesMenu(gui);
-                gui.EndMenuBarItem();
-            }
-        }
-
-        private static void DrawDemoMenu(ImGui gui, ref bool windowOpen)
-        {
-            if (gui.BeginSubMenu("Custom Menus"))
-            {
-                gui.BeginVertical(width: 300);
-                DrawSlidersDemo(gui);
-                gui.EndVertical();
-
-                gui.EndSubMenu();
-            }
-            if (gui.BeginSubMenu("Recursive"))
-            {
-                DrawDemoMenu(gui, ref windowOpen);
-                gui.EndSubMenu();
-            }
-            gui.Separator();
-            if (gui.BeginSubMenu("Test"))
-            {
-                if (gui.BeginSubMenu("Same name submenu"))
+                if (gui.BeginMenu("Custom Menus"))
                 {
-                    gui.MenuItem("Item");
-                    gui.EndSubMenu();
+                    gui.BeginVertical(width: 300);
+                    DrawSlidersDemo(gui);
+                    gui.EndVertical();
+
+                    gui.EndMenu();
+                }
+                
+                if (gui.BeginMenu("Recursive"))
+                {
+                    DrawMenuBarItems(gui, ref windowOpen);
+                    gui.EndMenu();
+                }
+                
+                gui.Separator();
+                
+                if (gui.BeginMenu("Test"))
+                {
+                    if (gui.BeginMenu("Same name submenu"))
+                    {
+                        gui.Menu("Item");
+                        gui.EndMenu();
+                    }
+
+                    gui.PushId("Next Menu");
+                    
+                    if (gui.BeginMenu("Same name submenu"))
+                    {
+                        gui.Menu("Item");
+                        gui.EndMenu();
+                    }
+                    
+                    gui.PopId();
+
+                    gui.EndMenu();
+                }
+                
+                gui.Separator();
+                
+                if (gui.Menu("Close"))
+                {
+                    windowOpen = false;
+                }
+                
+                gui.EndMenu();
+            }
+
+            if (gui.BeginMenu("Windows"))
+            {
+                if (gui.Menu("Console"))
+                {
+                    showLogWindow = true;
                 }
 
-                gui.PushId("Next Menu");
-                if (gui.BeginSubMenu("Same name submenu"))
+                if (gui.Menu("Debug"))
                 {
-                    gui.MenuItem("Item");
-                    gui.EndSubMenu();
+                    showDebugWindow = true;
                 }
-                gui.PopId();
-
-                gui.EndSubMenu();
-            }
-            gui.Separator();
-            if (gui.MenuItem("Close"))
-            {
-                windowOpen = false;
+                
+                gui.EndMenu();
             }
         }
-
-        private static void DrawExamplesMenu(ImGui gui)
-        {
-            if (gui.MenuItem("Console"))
-            {
-                showLogWindow = true;
-            }
-
-            if (gui.MenuItem("Debug"))
-            {
-                showDebugWindow = true;
-            }
-        }
-
+        
         private static void DrawLayoutPage(ImGui gui)
         {
             gui.AddSpacing();
@@ -526,7 +542,7 @@ namespace Imui.Examples
                 gui.Input.Clipboard = ImThemeEditor.BuildCodeString(in themes[selectedThemeIndex]);
             }
 #endif
-            
+
             if (gui.Button("Reset", ImSizeMode.Fill))
             {
                 themes[selectedThemeIndex] = CreateTheme(selectedThemeIndex);
@@ -552,7 +568,7 @@ namespace Imui.Examples
         {
             if (gui.BeginTreeNode("Simple"))
             {
-                gui.PrepareState(4);
+                gui.BeginTable(4);
                 for (int row = 0; row < 5; ++row)
                 {
                     gui.TableNextRow();
@@ -566,7 +582,7 @@ namespace Imui.Examples
 
                 gui.Separator("Resizable Columns");
 
-                gui.PrepareState(4, flags: ImTableFlag.ResizableColumns);
+                gui.BeginTable(4, flags: ImTableFlag.ResizableColumns);
                 for (int row = 0; row < 5; ++row)
                 {
                     gui.TableNextRow();
@@ -583,7 +599,7 @@ namespace Imui.Examples
 
             if (gui.BeginTreeNode("With Scroll Bars"))
             {
-                gui.PrepareState(4, (gui.GetLayoutWidth(), 200));
+                gui.BeginTable(4, (gui.GetLayoutWidth(), 200));
                 for (int row = 0; row < 12; ++row)
                 {
                     gui.TableNextRow();
@@ -610,7 +626,7 @@ namespace Imui.Examples
                 var size = largeTableScrollable ? new ImSize(gui.GetLayoutWidth(), 300) : new ImSize(ImSizeMode.Auto);
                 var flags = largeTableResizable ? ImTableFlag.ResizableColumns : ImTableFlag.None;
 
-                ref var state = ref gui.PrepareState(largeTableColumns, size, flags);
+                ref var state = ref gui.BeginTable(largeTableColumns, size, flags);
 
                 gui.TableSetRowsHeight(gui.GetTextLineHeight() + gui.Style.Table.CellPadding.Vertical);
                 for (int i = 0; i < largeTableColumns; ++i)

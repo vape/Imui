@@ -132,6 +132,9 @@ namespace Imui.Controls
                     v = Mathf.Clamp01(pnorm.y);
                     changed = true;
                     break;
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
+                    break;
             }
 
             return changed;
@@ -220,6 +223,9 @@ namespace Imui.Controls
                 case ImMouseEventType.Drag or ImMouseEventType.BeginDrag when active:
                     value = Mathf.Clamp01(rect.GetNormalPositionAtPoint(gui.Input.MousePosition).y);
                     changed = true;
+                    break;
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
                     break;
             }
 

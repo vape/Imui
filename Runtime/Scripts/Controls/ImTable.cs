@@ -92,20 +92,20 @@ namespace Imui.Controls
         private const float ROW_MIN_HEIGHT = 15;
         private const float RESIZE_HANDLE_WIDTH = COL_MIN_WIDTH * 2;
 
-        public static ref ImTableState PrepareState(this ImGui gui, int columns, ImSize size = default, ImTableFlag flags = ImTableFlag.None)
+        public static ref ImTableState BeginTable(this ImGui gui, int columns, ImSize size = default, ImTableFlag flags = ImTableFlag.None)
         {
             var id = gui.GetNextControlId();
 
-            return ref PrepareState(gui, id, columns, size, flags);
+            return ref BeginTable(gui, id, columns, size, flags);
         }
 
-        public static ref ImTableState PrepareState(this ImGui gui, uint id, int columns, ImSize size = default, ImTableFlag flags = ImTableFlag.None)
+        public static ref ImTableState BeginTable(this ImGui gui, uint id, int columns, ImSize size = default, ImTableFlag flags = ImTableFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             if (size.Mode == ImSizeMode.Fixed)
             {
-                return ref PrepareState(gui, id, columns, gui.Layout.AddRect(size.Width, size.Height), flags);
+                return ref BeginTable(gui, id, columns, gui.Layout.AddRect(size.Width, size.Height), flags);
             }
 
             var width = gui.GetLayoutWidth();
@@ -117,7 +117,7 @@ namespace Imui.Controls
             return ref *state;
         }
 
-        public static ref ImTableState PrepareState(this ImGui gui, uint id, int columns, ImRect rect, ImTableFlag flags = ImTableFlag.None)
+        public static ref ImTableState BeginTable(this ImGui gui, uint id, int columns, ImRect rect, ImTableFlag flags = ImTableFlag.None)
         {
             gui.Layout.Push(ImAxis.Vertical, rect);
             gui.BeginScrollable();
@@ -446,11 +446,8 @@ namespace Imui.Controls
 
             ref readonly var frame = ref gui.Layout.GetFrame();
             ref readonly var cullingBounds = ref gui.Canvas.GetCullingBounds();
-            
+
             var count = (state->Flags & ImTableFlag.ResizableColumns) != 0 ? state->ColumnsCount : state->ColumnsCount - 1;
-            var defaultThickness = gui.Canvas.GetScaledLineThickness(gui.Style.Table.BorderThickness);
-            var selectedThickness = gui.Canvas.GetScaledLineThickness(gui.Style.Table.SelectedColumnThickness);
-            var maxThickness = Mathf.Max(defaultThickness, selectedThickness);
 
             var y0 = state->Position.y - ((state->StateFlags & ImTableStateFlags.Enclosed) != 0 ? frame.Bounds.H + frame.Offset.y : state->Height);
             var y1 = state->Position.y - ((state->StateFlags & ImTableStateFlags.Enclosed) != 0 ? frame.Offset.y : 0.0f);
@@ -472,7 +469,7 @@ namespace Imui.Controls
                 var p1 = new Vector2(x, y1);
 
                 var color = state->SelectedColumn == i ? gui.Style.Table.SelectedColumnColor : gui.Style.Table.BorderColor;
-                var thickness = state->SelectedColumn == i ? selectedThickness : defaultThickness;
+                var thickness = state->SelectedColumn == i ? gui.Style.Table.SelectedColumnThickness : gui.Style.Table.BorderThickness;
 
                 gui.Canvas.Line(p0, p1, color, thickness);
             }
@@ -500,7 +497,7 @@ namespace Imui.Controls
                     state->Height);
             }
 
-            var thickness = gui.Canvas.GetScaledLineThickness(gui.Style.Table.BorderThickness);
+            var thickness = gui.Style.Table.BorderThickness;
             var color = gui.Style.Table.BorderColor;
 
             gui.Canvas.RectOutline(rect, color, thickness);

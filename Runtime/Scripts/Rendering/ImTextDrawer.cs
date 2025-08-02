@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Imui.Utility;
 using UnityEngine;
@@ -153,6 +154,7 @@ namespace Imui.Rendering
 
             fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
                 (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
+            fontAsset.ReadFontAssetDefinition();
 
             renderSize = fontAsset.faceInfo.pointSize;
             lineHeight = fontAsset.faceInfo.lineHeight;
@@ -192,7 +194,7 @@ namespace Imui.Rendering
                 ellipsisStr = ELLIPSIS_FALLBACK;
             }
 
-            fontAsset.atlasTexture.Apply();
+            ApplyAtlasChanges(force: true);
         }
 
         public void UnloadFont()
@@ -202,8 +204,19 @@ namespace Imui.Rendering
                 return;
             }
 
-            UnityEngine.Object.Destroy(fontAsset);
+            ReflectionUtility.RemoveFontAsset(fontAsset);
+            
+            ImUnityUtility.Destroy(fontAsset);
             fontAsset = null;
+            
+            ReflectionUtility.RebuildFontAssetCache();
+        }
+
+        public void ApplyAtlasChanges(bool force = false) {
+            if (atlasDirty || force) {
+                ReflectionUtility.UpdateAtlasTexturesInQueue();
+                atlasDirty = false;
+            }
         }
 
         public void ApplyAtlasChanges() {
@@ -615,10 +628,43 @@ namespace Imui.Rendering
                 return;
             }
 
-            ImUnityUtility.Destroy(fontAsset);
-            fontAsset = null;
+            UnloadFont();
 
             disposed = true;
+        }
+
+        public static class ReflectionUtility
+        {
+            private static MethodInfo removeFontAssetMethod;
+            private static MethodInfo rebuildFontAssetCacheMethod;
+            private static MethodInfo updateAtlasTexturesInQueueMethod;
+
+            static ReflectionUtility()
+            {
+                var type = typeof(FontAsset).Assembly.GetType("UnityEngine.TextCore.Text.TextResourceManager");
+                if (type != null)
+                {
+                    removeFontAssetMethod = type.GetMethod("RemoveFontAsset", BindingFlags.Static | BindingFlags.Public);
+                    rebuildFontAssetCacheMethod = type.GetMethod("RebuildFontAssetCache", BindingFlags.Static | BindingFlags.NonPublic);
+                }
+
+                updateAtlasTexturesInQueueMethod = typeof(FontAsset).GetMethod("UpdateAtlasTexturesInQueue", BindingFlags.Static | BindingFlags.NonPublic);
+            }
+
+            public static void UpdateAtlasTexturesInQueue()
+            {
+                updateAtlasTexturesInQueueMethod?.Invoke(null, null);
+            }
+            
+            public static void RemoveFontAsset(FontAsset asset)
+            {
+                removeFontAssetMethod?.Invoke(null, new object[] { asset });
+            }
+
+            public static void RebuildFontAssetCache()
+            {
+                rebuildFontAssetCacheMethod?.Invoke(null, null);
+            }
         }
     }
 }

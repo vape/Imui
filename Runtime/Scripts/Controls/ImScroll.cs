@@ -13,28 +13,34 @@ namespace Imui.Controls
         HideVerBar = 1 << 0,
         HideHorBar = 1 << 1,
         PersistentHorBar = 1 << 2,
-        PersistentVerBar = 1 << 3
+        PersistentVerBar = 1 << 3,
+        DisableInertia = 1 << 4
     }
 
     [Flags]
-    public enum ImScrollLayoutFlag
+    public enum ImScrollStateFlag
     {
         None = 0,
         VerBarVisible = 1 << 0,
         HorBarVisible = 1 << 1,
         VerScrollable = 1 << 2,
-        HorScrollable = 1 << 3
+        HorScrollable = 1 << 3,
+        ConventionalScroll = 1 << 4
     }
     
     public struct ImScrollState
     {
         public Vector2 Offset;
-        public ImScrollLayoutFlag Layout;
+        public Vector2 Velocity;
+        public ImScrollStateFlag State;
         public ImScrollFlag Flags;
     }
 
     public static class ImScroll
     {
+        public const float DECELERATION_RATE = 0.15f;
+        public const float VELOCITY_SHARPNESS = 15;
+        
         public static void BeginScrollable(this ImGui gui)
         {
             var id = gui.GetNextControlId();
@@ -73,7 +79,7 @@ namespace Imui.Controls
 
         public static void Scroll(ImGui gui, uint id, ref ImScrollState state, ImRect view, Vector2 size)
         {
-            const ImScrollLayoutFlag ANY_AXES_SCROLLABLE = ImScrollLayoutFlag.HorScrollable | ImScrollLayoutFlag.VerScrollable;
+            const ImScrollStateFlag ANY_AXES_SCROLLABLE = ImScrollStateFlag.HorScrollable | ImScrollStateFlag.VerScrollable;
             
             Layout(gui, ref state, view, size, out var adjust);
 
@@ -86,22 +92,30 @@ namespace Imui.Controls
             size.x += adjust.x;
             size.y += adjust.y;
 
-            if ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0)
+            if ((state.State & ImScrollStateFlag.VerBarVisible) != 0)
             {
                 var rect = GetVerticalBarRect(gui, view);
                 var normalSize = view.H / size.y;
                 var normalPosition = state.Offset.y / (size.y - view.H);
                 var normalDelta = Bar(verId, gui, rect, normalSize, normalPosition, 1);
+                if (normalDelta != 0)
+                {
+                    state.State |= ImScrollStateFlag.ConventionalScroll;
+                }
 
                 dy -= normalDelta * size.y;
             }
 
-            if ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0)
+            if ((state.State & ImScrollStateFlag.HorBarVisible) != 0)
             {
-                var rect = GetHorizontalBarRect(gui, view, (state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0);
+                var rect = GetHorizontalBarRect(gui, view, (state.State & ImScrollStateFlag.VerBarVisible) != 0);
                 var normalSize = view.W / size.x;
                 var normalPosition = (state.Offset.x / (size.x - view.W));
                 var normalDelta = Bar(horId, gui, rect, normalSize, -normalPosition, 0);
+                if (normalDelta != 0)
+                {
+                    state.State |= ImScrollStateFlag.ConventionalScroll;
+                }
 
                 dx -= normalDelta * size.x;
             }
@@ -118,22 +132,27 @@ namespace Imui.Controls
             var deferredUseMouseEvent = false;
             var groupHovered = gui.IsGroupHovered(id);
             var active = gui.IsControlActive(id);
-            var scrollable = (state.Layout & ANY_AXES_SCROLLABLE) != 0;
+            var scrollable = (state.State & ANY_AXES_SCROLLABLE) != 0;
+            
+            if (!active && groupHovered && gui.Input.WasMouseDownThisFrame)
+            {
+                state.Velocity = default;
+            }
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
             {
                 case ImMouseEventType.Scroll when groupHovered:
                     var factor = gui.Style.Layout.TextSize;
-#if UNITY_6000_0_OR_NEWER
-                    factor *= 0.0075f;
-#endif
+                    state.State |= ImScrollStateFlag.ConventionalScroll;
                     dx += evt.Delta.x * factor;
                     dy += evt.Delta.y * factor;
                     deferredUseMouseEvent = true;
                     break;
                 
                 case ImMouseEventType.BeginDrag when scrollable && groupHovered && !active && !gui.ActiveControlIs(ImControlFlag.Draggable):
+                    state.Velocity = default;
+                    state.State &= ~ImScrollStateFlag.ConventionalScroll;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     break;
 
@@ -150,16 +169,48 @@ namespace Imui.Controls
 
             var prevOffset = state.Offset;
 
-            state.Offset.x = Mathf.Clamp(state.Offset.x + dx, Mathf.Min(0, view.W - size.x), 0);
-            state.Offset.y = Mathf.Clamp(state.Offset.y + dy, 0, Mathf.Max(size.y - view.H, 0));
+            state.Offset.x += dx;
+            state.Offset.y += dy;
 
-            // defer mouse event consumption so we can pass it to parent scroll rect in case offset hasn't changed
+            if (!active)
+            {
+                state.Offset += state.Velocity;
+            }
+            
+            var targetOffset = new Vector2(
+                Mathf.Clamp(state.Offset.x, Mathf.Min(0, view.W - size.x), 0.0f), 
+                Mathf.Clamp(state.Offset.y, 0.0f, Mathf.Max(size.y - view.H, 0)));
+
+            if ((state.Flags & ImScrollFlag.DisableInertia) == 0)
+            {
+                ProcessVelocity(active, ref state.Velocity, in prevOffset, in state.Offset);
+            }
+            else
+            {
+                state.Velocity = default;
+            }
+            
+            state.Offset = targetOffset;
+
+            // defer mouse event consumption, so we can pass it to parent scroll rect in case offset hasn't changed
             if (prevOffset != state.Offset && deferredUseMouseEvent)
             {
                 gui.Input.UseMouseEvent();
             }
         }
 
+        private static void ProcessVelocity(bool active, ref Vector2 velocity, in Vector2 prevOffset, in Vector2 currentOffset)
+        {
+            if (active)
+            {
+                velocity = Vector2.Lerp(velocity, currentOffset - prevOffset, Time.deltaTime * VELOCITY_SHARPNESS);
+            }
+            else
+            {
+                velocity *= Mathf.Pow(DECELERATION_RATE, Time.deltaTime);
+            }
+        }
+        
         public static float Bar(uint id,
                                 ImGui gui,
                                 ImRect rect,
@@ -214,7 +265,7 @@ namespace Imui.Controls
 
         public static ImRect GetVisibleRect(ImGui gui, ImRect view, ImScrollState state)
         {
-            if ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 || (state.Flags & ImScrollFlag.PersistentHorBar) != 0)
+            if ((state.State & ImScrollStateFlag.HorBarVisible) != 0 || (state.Flags & ImScrollFlag.PersistentHorBar) != 0)
             {
                 var size = GetScrollBarSize(gui, 0);
 
@@ -222,7 +273,7 @@ namespace Imui.Controls
                 view.H -= size;
             }
 
-            if ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 || (state.Flags & ImScrollFlag.PersistentVerBar) != 0)
+            if ((state.State & ImScrollStateFlag.VerBarVisible) != 0 || (state.Flags & ImScrollFlag.PersistentVerBar) != 0)
             {
                 view.W -= GetScrollBarSize(gui, 1);
             }
@@ -258,33 +309,33 @@ namespace Imui.Controls
             var styleSizeHor = GetScrollBarSize(gui, 0);
             var flags = state.Flags;
 
-            state.Layout = default;
+            state.State = default;
 
             // doing calculations twice because showing one bar may require showing another
             for (int i = 0; i < 2; ++i)
             {
-                var fitsInContainerVer = (size.y - (view.H - ((state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeVer : 0f))) > 1.0f;
-                var fitsInContainerHor = (size.x - (view.W - ((state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeHor : 0f))) > 1.0f;
+                var fitsInContainerVer = (size.y - (view.H - ((state.State & ImScrollStateFlag.HorBarVisible) != 0 ? styleSizeVer : 0f))) > 1.0f;
+                var fitsInContainerHor = (size.x - (view.W - ((state.State & ImScrollStateFlag.VerBarVisible) != 0 ? styleSizeHor : 0f))) > 1.0f;
                 
-                state.Layout = fitsInContainerVer ? (state.Layout | ImScrollLayoutFlag.VerScrollable) : (state.Layout & ~ImScrollLayoutFlag.VerScrollable);
-                state.Layout = fitsInContainerHor ? (state.Layout | ImScrollLayoutFlag.HorScrollable) : (state.Layout & ~ImScrollLayoutFlag.HorScrollable);
+                state.State = fitsInContainerVer ? (state.State | ImScrollStateFlag.VerScrollable) : (state.State & ~ImScrollStateFlag.VerScrollable);
+                state.State = fitsInContainerHor ? (state.State | ImScrollStateFlag.HorScrollable) : (state.State & ~ImScrollStateFlag.HorScrollable);
                 
-                state.Layout =
-                    ((flags & ImScrollFlag.HideVerBar) == 0 && (state.Layout & ImScrollLayoutFlag.VerScrollable) != 0) ||
+                state.State =
+                    ((flags & ImScrollFlag.HideVerBar) == 0 && (state.State & ImScrollStateFlag.VerScrollable) != 0) ||
                     (flags & ImScrollFlag.PersistentVerBar) != 0
-                        ? (state.Layout | ImScrollLayoutFlag.VerBarVisible)
-                        : (state.Layout & ~ImScrollLayoutFlag.VerBarVisible);
+                        ? (state.State | ImScrollStateFlag.VerBarVisible)
+                        : (state.State & ~ImScrollStateFlag.VerBarVisible);
 
-                state.Layout =
-                    ((flags & ImScrollFlag.HideHorBar) == 0 && (state.Layout & ImScrollLayoutFlag.HorScrollable) != 0) ||
+                state.State =
+                    ((flags & ImScrollFlag.HideHorBar) == 0 && (state.State & ImScrollStateFlag.HorScrollable) != 0) ||
                     (flags & ImScrollFlag.PersistentHorBar) != 0
-                        ? (state.Layout | ImScrollLayoutFlag.HorBarVisible)
-                        : (state.Layout & ~ImScrollLayoutFlag.HorBarVisible);
+                        ? (state.State | ImScrollStateFlag.HorBarVisible)
+                        : (state.State & ~ImScrollStateFlag.HorBarVisible);
             }
 
             adjust = new Vector2(
-                (state.Layout & ImScrollLayoutFlag.VerBarVisible) != 0 ? styleSizeVer : 0f,
-                (state.Layout & ImScrollLayoutFlag.HorBarVisible) != 0 ? styleSizeHor : 0f);
+                (state.State & ImScrollStateFlag.VerBarVisible) != 0 ? styleSizeVer : 0f,
+                (state.State & ImScrollStateFlag.HorBarVisible) != 0 ? styleSizeHor : 0f);
         }
 
         private static float GetScrollBarSize(ImGui gui, int axis)

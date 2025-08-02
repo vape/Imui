@@ -15,6 +15,13 @@ namespace Imui.Core
         Draggable = 1 << 0
     }
 
+    public enum ImGuiRenderMode
+    {
+        Shaded = 0,
+        Wireframe = 1,
+        ShadedWireframe = 2
+    }
+
     public unsafe class ImGui: IDisposable
     {
         private const int CONTROL_IDS_STACK_CAPACITY = 32;
@@ -98,8 +105,12 @@ namespace Imui.Core
             public int Type;
 
             internal void* Ptr;
+
+#if IMUI_DEBUG
+            public string Descriptor;
+#endif
         }
-        
+
         public bool IsReadOnly => readOnlyStack.TryPeek(@default: false);
         public uint LastControl => lastControl;
         public ImRect LastControlRect => lastControlRect;
@@ -118,6 +129,7 @@ namespace Imui.Core
         public readonly ImFormatter Formatter;
 
         public ImStyleSheet Style;
+        public ImGuiRenderMode RenderMode;
 
         // ReSharper disable InconsistentNaming
         internal FrameData nextFrameData;
@@ -167,7 +179,7 @@ namespace Imui.Core
             {
                 LoadDefaultFont();
             }
-            
+
             Arena.Clear();
 
             idsStack.Clear(false);
@@ -207,6 +219,25 @@ namespace Imui.Core
                 idsStack.Clear(false);
             }
 
+            if (WindowManager.drawingStack.Count > 0)
+            {
+                Debug.LogError($"There are still {WindowManager.drawingStack.Count} windows in stack. Check BeginWindow/EndWindow calls.");
+                for (int i = 0; i < WindowManager.drawingStack.Count; ++i)
+                {
+                    var index = WindowManager.TryFindWindow(WindowManager.drawingStack.Array[i]);
+                    if (index >= 0)
+                    {
+                        ref readonly var window = ref WindowManager.windows.Array[index];
+                        Debug.LogError($"EndWindow was not called for \"{window.Title}\" window (id: {window.Id})");
+                    }
+                    else
+                    {
+                        Debug.LogError("EndWindow was not called for unknown window");
+                    }
+                }
+                WindowManager.drawingStack.Clear(false);
+            }
+
             Layout.Pop();
 
             Canvas.PopSettings();
@@ -240,6 +271,16 @@ namespace Imui.Core
         {
             readOnlyStack.Pop();
             Canvas.PopInvColorMul();
+        }
+
+        public void BeginReadOnlyWithoutStyleChanges(bool isReadOnly)
+        {
+            readOnlyStack.Push(isReadOnly);
+        }
+
+        public void EndReadOnlyWithoutStyleChanges()
+        {
+            readOnlyStack.Pop();
         }
 
         public void PushId(uint id)
@@ -478,6 +519,9 @@ namespace Imui.Core
                 Id = id,
                 Type = typeof(TState).GetHashCode(),
                 Ptr = ptr
+#if IMUI_DEBUG
+                Descriptor = typeof(TState).FullName,
+#endif
             };
 
             controlScopesStack.Push(in scope);
@@ -492,6 +536,25 @@ namespace Imui.Core
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe TState* EndScopeUnsafe<TState>() where TState: unmanaged => EndScopeUnsafe<TState>(out _);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe bool TryEndScopeUnsafe<TState>(out TState* state) where TState: unmanaged => TryEndScopeUnsafe(out state, out _);
+
+        public unsafe bool TryEndScopeUnsafe<TState>(out TState* state, out uint id) where TState: unmanaged
+        {
+            if (!TryFindControlScope<TState>(out var index))
+            {
+                state = null;
+                id = 0;
+                return false;
+            }
+
+            state = (TState*)controlScopesStack.Array[index].Ptr;
+            id = controlScopesStack.Array[index].Id;
+            controlScopesStack.RemoveAtFast(index);
+
+            return true;
+        }
 
         public unsafe TState* EndScopeUnsafe<TState>(out uint id) where TState: unmanaged
         {
@@ -591,7 +654,16 @@ namespace Imui.Core
             var uiScale = Renderer.GetScale();
             var targetSize = Renderer.SetupRenderTarget(renderCmd);
 
-            MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, uiScale, targetSize);
+            if (RenderMode is ImGuiRenderMode.Shaded or ImGuiRenderMode.ShadedWireframe)
+            {
+                MeshRenderer.Render(renderCmd, MeshBuffer, screenSize, uiScale, targetSize);
+            }
+
+            if (RenderMode is ImGuiRenderMode.ShadedWireframe or ImGuiRenderMode.Wireframe)
+            {
+                MeshRenderer.RenderWireframe(renderCmd, MeshBuffer, screenSize, uiScale);
+            }
+
             Renderer.Execute(renderCmd);
             Renderer.ReleaseCommandBuffer(renderCmd);
 

@@ -149,8 +149,11 @@ namespace Imui.Style
     {
         public ImStyleBox Normal;
         public ImStyleBox Selected;
+        public ImStyleBox Fill;
         public ImStyleButton Handle;
-        public float BackScale;
+        public float BarThickness;
+        public float HandleThickness;
+        public float HeaderScale;
         public ImTextOverflow TextOverflow;
     }
 
@@ -211,7 +214,8 @@ namespace Imui.Style
     {
         public ImStyleBox Box;
         public ImPadding Padding;
-        public Vector2 Offset;
+        public Vector2 OffsetPixels;
+        public bool AboveCursor;
     }
 
     [Serializable]

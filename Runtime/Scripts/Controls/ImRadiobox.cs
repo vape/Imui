@@ -105,7 +105,7 @@ namespace Imui.Controls
         public static bool Radio(this ImGui gui, ref bool value, ReadOnlySpan<char> label, ImRect rect)
         {
             var id = gui.GetNextControlId();
-            var boxSize = gui.Style.Layout.TextSize;
+            var boxSize = gui.Style.Layout.TextSize + gui.Style.Layout.ExtraRowHeight;
             var boxRect = rect.TakeLeft(boxSize, out var textRect).WithAspect(1.0f);
             var changed = Radio(gui, id, ref value, boxRect);
 
@@ -154,7 +154,7 @@ namespace Imui.Controls
 
         public static ImTextSettings GetTextSettings(ImGui gui)
         {
-            return new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f, false);
+            return new ImTextSettings(gui.Style.Layout.TextSize, 0.0f, 0.5f);
         }
     }
 }

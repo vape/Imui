@@ -14,6 +14,13 @@ namespace Imui.Controls
         LayoutRoot = 1 << 2
     }
 
+    [Flags]
+    public enum ImMenuFlag
+    {
+        None = 0,
+        DoNotDismissOnClick = 1
+    }
+
     public struct ImMenuPosition
     {
         public readonly bool IsSet;
@@ -47,7 +54,8 @@ namespace Imui.Controls
         public uint Clicked;
         public uint Depth;
 
-        public ImMenuStateFlag Flags;
+        public ImMenuFlag BehaviourFlags;
+        public ImMenuStateFlag StateFlags;
 
         public Vector2 Size;
 
@@ -56,7 +64,12 @@ namespace Imui.Controls
 
     public static unsafe class ImMenu
     {
-        public static bool BeginMenu(this ImGui gui, ReadOnlySpan<char> name, ref bool open, ImMenuPosition position = default, float minWidth = 0)
+        public static bool BeginMenuPopup(this ImGui gui,
+                                          ReadOnlySpan<char> name,
+                                          ref bool open,
+                                          ImMenuPosition position = default,
+                                          float minWidth = 0,
+                                          ImMenuFlag flags = ImMenuFlag.None)
         {
             if (!open)
             {
@@ -66,6 +79,8 @@ namespace Imui.Controls
             var id = gui.PushId(name);
             var state = gui.BeginScopeUnsafe<ImMenuState>(id);
 
+            state->BehaviourFlags = flags;
+
             ImRect rect;
 
             if (position.IsSet)
@@ -74,34 +89,34 @@ namespace Imui.Controls
                 rect = ImRectUtility.Clamp(gui.Canvas.ScreenRect, rect);
 
                 gui.Layout.Push(ImAxis.Vertical, rect);
-                state->Flags |= ImMenuStateFlag.LayoutRoot;
+                state->StateFlags |= ImMenuStateFlag.LayoutRoot;
             }
             else
             {
                 rect = gui.AddLayoutRect(state->Size);
-                state->Flags &= ~ImMenuStateFlag.LayoutRoot;
+                state->StateFlags &= ~ImMenuStateFlag.LayoutRoot;
             }
 
             state->MinWidth = minWidth;
 
-            if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
+            if ((state->StateFlags & ImMenuStateFlag.Dismissed) != 0)
             {
                 open = false;
-                state->Flags &= ~ImMenuStateFlag.Dismissed;
+                state->StateFlags &= ~ImMenuStateFlag.Dismissed;
             }
 
-            BeginMenu(gui, state, rect);
+            BeginMenuPopup(gui, state, rect);
 
             return true;
         }
 
-        public static void EndMenu(this ImGui gui)
+        public static void EndMenuPopup(this ImGui gui)
         {
             var state = gui.EndScopeUnsafe<ImMenuState>();
 
-            EndMenu(gui, state);
+            EndMenuPopup(gui, state);
 
-            if ((state->Flags & ImMenuStateFlag.LayoutRoot) != 0)
+            if ((state->StateFlags & ImMenuStateFlag.LayoutRoot) != 0)
             {
                 gui.Layout.Pop();
             }
@@ -109,7 +124,7 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static void BeginMenu(ImGui gui, ImMenuState* state, ImRect rect)
+        public static void BeginMenuPopup(ImGui gui, ImMenuState* state, ImRect rect)
         {
             gui.Layout.Push(ImAxis.Vertical, rect.WithPadding(gui.Style.Menu.Padding));
 
@@ -122,13 +137,13 @@ namespace Imui.Controls
                 gui.Canvas.PushOrder(gui.Canvas.GetOrder() + 2);
             }
 
-            if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
+            if ((state->StateFlags & ImMenuStateFlag.LayoutBuilt) == 0)
             {
                 gui.Canvas.PushClipEverything();
             }
         }
 
-        public static void EndMenu(ImGui gui, ImMenuState* state)
+        public static void EndMenuPopup(ImGui gui, ImMenuState* state)
         {
             var contentRect = gui.Layout.GetContentRect().WithPadding(-gui.Style.Menu.Padding);
 
@@ -138,7 +153,7 @@ namespace Imui.Controls
             gui.Box(contentRect, gui.Style.Menu.Box);
             gui.Canvas.PopOrder();
 
-            if ((state->Flags & ImMenuStateFlag.LayoutBuilt) == 0)
+            if ((state->StateFlags & ImMenuStateFlag.LayoutBuilt) == 0)
             {
                 gui.Canvas.PopClipRect();
             }
@@ -154,10 +169,12 @@ namespace Imui.Controls
                 gui.Canvas.PopOrder();
             }
 
-            state->Flags |= ImMenuStateFlag.LayoutBuilt;
-            state->Flags |= closeButtonClicked | state->Clicked != default ? ImMenuStateFlag.Dismissed : ImMenuStateFlag.None;
+            var dismissOnClick = (state->BehaviourFlags & ImMenuFlag.DoNotDismissOnClick) == 0;
 
-            if ((state->Flags & ImMenuStateFlag.Dismissed) != 0)
+            state->StateFlags |= ImMenuStateFlag.LayoutBuilt;
+            state->StateFlags |= closeButtonClicked | (state->Clicked != 0 && dismissOnClick) ? ImMenuStateFlag.Dismissed : ImMenuStateFlag.None;
+
+            if ((state->StateFlags & ImMenuStateFlag.Dismissed) != 0)
             {
                 state->Selected = default;
                 state->Fixed = default;
@@ -167,20 +184,25 @@ namespace Imui.Controls
             gui.Layout.Pop();
         }
 
-        public static bool BeginSubMenu(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool BeginMenu(this ImGui gui, ReadOnlySpan<char> label)
         {
-            var parentState = gui.GetCurrentScopeUnsafe<ImMenuState>();
+            if (!gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var parentState))
+            {
+                return ImMenuBar.BeginItem(gui, label);
+            }
 
             var id = gui.PushId(label);
             var state = gui.BeginScopeUnsafe<ImMenuState>(id);
             var position = gui.GetLayoutPosition() + new Vector2(gui.GetLayoutWidth(), 0);
 
-            MenuItem(gui, id, parentState, label, true, false, out var active, false);
+            state->BehaviourFlags = parentState->BehaviourFlags;
+
+            Menu(gui, id, parentState, label, true, false, out var active, false);
 
             if (!active)
             {
                 state->Size = default;
-                state->Flags &= ~ImMenuStateFlag.LayoutBuilt;
+                state->StateFlags &= ~ImMenuStateFlag.LayoutBuilt;
                 state->Fixed = default;
                 state->Selected = default;
 
@@ -191,17 +213,23 @@ namespace Imui.Controls
 
             state->Depth = parentState->Depth + 1;
 
-            BeginMenu(gui, state, GetMenuRectAt(position, state->Size));
+            BeginMenuPopup(gui, state, GetMenuRectAt(position, state->Size));
 
             return true;
         }
 
-        public static void EndSubMenu(this ImGui gui)
+        public static void EndMenu(this ImGui gui)
         {
+            if (IsRootMenu(gui.GetCurrentScopeUnsafe<ImMenuState>()))
+            {
+                ImMenuBar.EndItem(gui);
+                return;
+            }
+
             var state = gui.EndScopeUnsafe<ImMenuState>();
             var clicked = state->Clicked;
 
-            EndMenu(gui, state);
+            EndMenuPopup(gui, state);
             gui.PopId();
 
             if (clicked != default && gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var parentsState))
@@ -210,16 +238,20 @@ namespace Imui.Controls
             }
         }
 
-        public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, bool enabled)
+        public static bool Menu(this ImGui gui, ReadOnlySpan<char> label, bool enabled)
         {
-            return MenuItem(gui, label, ref enabled);
+            return Menu(gui, label, ref enabled);
         }
 
-        public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label, ref bool enabled)
+        public static bool Menu(this ImGui gui, ReadOnlySpan<char> label, ref bool enabled)
         {
+            if (!gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var state))
+            {
+                return ImMenuBar.Button(gui, label);
+            }
+
             var id = gui.GetNextControlId();
-            var state = gui.GetCurrentScopeUnsafe<ImMenuState>();
-            var clicked = MenuItem(gui, id, state, label, false, true, out _, enabled);
+            var clicked = Menu(gui, id, state, label, false, true, out _, enabled);
 
             if (clicked)
             {
@@ -229,22 +261,26 @@ namespace Imui.Controls
             return clicked;
         }
 
-        public static bool MenuItem(this ImGui gui, ReadOnlySpan<char> label)
+        public static bool Menu(this ImGui gui, ReadOnlySpan<char> label)
         {
-            var id = gui.GetNextControlId();
-            var state = gui.GetCurrentScopeUnsafe<ImMenuState>();
+            if (!gui.TryGetCurrentScopeUnsafe<ImMenuState>(out var state))
+            {
+                return ImMenuBar.Button(gui, label);
+            }
 
-            return MenuItem(gui, id, state, label, false, false, out _, false);
+            var id = gui.GetNextControlId();
+
+            return Menu(gui, id, state, label, false, false, out _, false);
         }
 
-        public static bool MenuItem(ImGui gui,
-                                    uint id,
-                                    ImMenuState* state,
-                                    ReadOnlySpan<char> label,
-                                    bool isExpandable,
-                                    bool isToggleable,
-                                    out bool active,
-                                    bool toggleIsOn)
+        public static bool Menu(ImGui gui,
+                                uint id,
+                                ImMenuState* state,
+                                ReadOnlySpan<char> label,
+                                bool isExpandable,
+                                bool isToggleable,
+                                out bool active,
+                                bool toggleIsOn)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 

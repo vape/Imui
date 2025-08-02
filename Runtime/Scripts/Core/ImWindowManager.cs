@@ -21,8 +21,8 @@ namespace Imui.Core
         private const int DRAWING_STACK_CAPACITY = 8;
         private const int WINDOWS_CAPACITY = 32;
 
-        private ImDynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
-        private ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
+        internal ImDynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
+        internal ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
 
         public ref ImWindowState BeginWindow(uint id, string title, ImRect initialRect, ImWindowFlag flags)
         {
@@ -33,9 +33,19 @@ namespace Imui.Core
             {
                 ref var window = ref windows.Array[index];
 
-                window.Flags = flags;
+                var wasVisible = window.Visible;
+                
                 window.Visible = true;
                 window.NextVisible = true;
+                
+                if (!wasVisible)
+                {
+                    MoveToTop(index);
+                    drawingStack.Pop();
+                    return ref BeginWindow(id, title, initialRect, flags);
+                }
+                
+                window.Flags = flags;
 
                 if ((flags & ImWindowFlag.NoMovingAndResizing) == ImWindowFlag.NoMovingAndResizing)
                 {
@@ -142,7 +152,7 @@ namespace Imui.Core
             }
         }
 
-        private int TryFindWindow(uint id)
+        internal int TryFindWindow(uint id)
         {
             for (int i = 0; i < windows.Count; ++i)
             {

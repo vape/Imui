@@ -120,53 +120,54 @@ namespace Imui.Examples
 
         private void DrawMenu(ImGui gui, ref bool open)
         {
-            gui.BeginWindowMenuBar();
-            if (gui.BeginMenuBarItem("Console"))
+            gui.BeginMenuBar();
+            
+            if (gui.BeginMenu("Console"))
             {
-                if (gui.MenuItem("Close"))
+                if (gui.Menu("Close"))
                 {
                     open = false;
                 }
 
-                gui.EndMenuBarItem();
+                gui.EndMenu();
             }
 
-            if (gui.BeginMenuBarItem("View"))
+            if (gui.BeginMenu("View"))
             {
-                if (gui.MenuItem("Clear Messages"))
+                if (gui.Menu("Clear Messages"))
                 {
                     Clear();
                 }
 
-                gui.EndMenuBarItem();
+                gui.EndMenu();
             }
 
-            if (gui.BeginMenuBarItem("Test"))
+            if (gui.BeginMenu("Test"))
             {
-                if (gui.MenuItem("Send Info"))
+                if (gui.Menu("Send Info"))
                 {
                     Debug.Log("Info Message");
                 }
 
-                if (gui.MenuItem("Send Warning"))
+                if (gui.Menu("Send Warning"))
                 {
                     Debug.LogWarning("Warning Message");
                 }
 
-                if (gui.MenuItem("Send Error"))
+                if (gui.Menu("Send Error"))
                 {
                     Debug.LogError("Error Message");
                 }
 
-                if (gui.MenuItem("Send Expection"))
+                if (gui.Menu("Send Expection"))
                 {
                     Debug.LogException(new Exception("Example exception"));
                 }
 
-                gui.EndMenuBarItem();
+                gui.EndMenu();
             }
 
-            gui.EndWindowMenuBar();
+            gui.EndMenuBar();
         }
 
         private void DrawDetails(ImGui gui)

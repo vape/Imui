@@ -7,7 +7,6 @@
         [PerRendererData] _MaskEnable("Enable Masking", int) = 0
         [PerRendererData] _MaskRect("Mask Rect", Vector) = (0, 0, 0, 0)
         [PerRendererData] _MaskCornerRadius("Mask Corner Radius", float) = 0
-        [PerRendererData] _Contrast("Contrast", float) = 1
     }
     
     SubShader
