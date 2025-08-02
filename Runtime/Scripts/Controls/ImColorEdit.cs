@@ -11,7 +11,8 @@ namespace Imui.Controls
         {
             if (size.Mode is ImSizeMode.Auto or ImSizeMode.Fit)
             {
-                var textWidth = gui.MeasureTextSize("255").x + gui.Style.Layout.InnerSpacing * 2;
+                var compLetterWidth = gui.GetRowHeight() * 0.75f;
+                var textWidth = gui.MeasureTextSize("255").x + gui.Style.Layout.InnerSpacing * 2 + compLetterWidth;
                 var minWidth = textWidth * 5 + gui.Style.Layout.InnerSpacing * 4;
                 var width = Mathf.Max(gui.GetLayoutWidth(), minWidth);
 

@@ -37,22 +37,15 @@ namespace Imui.Demo
 
         private void DrawRootMenu()
         {
-            gui.BeginPopup();
-
-            var menuBarHeight = gui.GetRowHeight();
-            var menuBarRect = gui.Canvas.ScreenRect.TakeTop(menuBarHeight);
-
-            gui.Canvas.SafeAreaPadding.Top += menuBarHeight;
+            gui.BeginMenuBar();
             
-            gui.BeginMenuBar(menuBarRect);
-            
-            if (gui.BeginMenuBarItem("Demo"))
+            if (gui.BeginMenu("Demo"))
             {
-                gui.MenuItem("Show Demo", ref demoOpen);
-                gui.EndMenuBarItem();
+                gui.Menu("Show Demo", ref demoOpen);
+                gui.EndMenu();
             }
             
-            if (gui.BeginMenuBarItem("View"))
+            if (gui.BeginMenu("View"))
             {
                 gui.AddSpacingIfLayoutFrameNotEmpty();
                 gui.BeginHorizontal();
@@ -60,12 +53,10 @@ namespace Imui.Demo
                 gui.AddSpacing(20);
                 cam.backgroundColor = gui.ColorEdit(cam.backgroundColor);
                 gui.EndHorizontal();
-                gui.EndMenuBarItem();
+                gui.EndMenu();
             }
             
             gui.EndMenuBar();
-            
-            gui.EndPopup();
         }
     }
 }
