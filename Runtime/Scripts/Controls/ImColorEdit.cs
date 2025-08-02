@@ -46,12 +46,15 @@ namespace Imui.Controls
             var bId = gui.GetNextControlId();
             var aId = gui.GetNextControlId();
             var cId = gui.GetNextControlId();
-
-            ref readonly var style = ref gui.Style.TextEdit.Normal.Box;
-
+            
             Span<ImRect> rects = stackalloc ImRect[5];
             rect.SplitHorizontal(ref rects, rects.Length, gui.Style.Layout.InnerSpacing);
 
+            ComponentLetter(gui, in rects[0], Color.red, 'R', out rects[0]);
+            ComponentLetter(gui, in rects[1], Color.green,'G', out rects[1]);
+            ComponentLetter(gui, in rects[2], Color.blue, 'B', out rects[2]);
+            ComponentLetter(gui, in rects[3], null, 'A', out rects[3]);
+            
             var changed = false;
 
             using (gui.StyleScope(ref gui.Style.TextEdit))
@@ -61,10 +64,10 @@ namespace Imui.Controls
                 var col32 = (Color32)color;
 
                 // TODO (artem-s): cut drawcalls generated because of text masking
-                changed |= ImNumericEdit.NumericEdit(gui, rId, ref col32.r, rects[0], flags: ImNumericEditFlag.Slider);
-                changed |= ImNumericEdit.NumericEdit(gui, gId, ref col32.g, rects[1], flags: ImNumericEditFlag.Slider);
-                changed |= ImNumericEdit.NumericEdit(gui, bId, ref col32.b, rects[2], flags: ImNumericEditFlag.Slider);
-                changed |= ImNumericEdit.NumericEdit(gui, aId, ref col32.a, rects[3], flags: ImNumericEditFlag.Slider);
+                changed |= ImNumericEdit.NumericEdit(gui, rId, ref col32.r, rects[0], flags: ImNumericEditFlag.Slider | ImNumericEditFlag.RightAdjacent);
+                changed |= ImNumericEdit.NumericEdit(gui, gId, ref col32.g, rects[1], flags: ImNumericEditFlag.Slider | ImNumericEditFlag.RightAdjacent);
+                changed |= ImNumericEdit.NumericEdit(gui, bId, ref col32.b, rects[2], flags: ImNumericEditFlag.Slider | ImNumericEditFlag.RightAdjacent);
+                changed |= ImNumericEdit.NumericEdit(gui, aId, ref col32.a, rects[3], flags: ImNumericEditFlag.Slider | ImNumericEditFlag.RightAdjacent);
 
                 if (changed)
                 {
@@ -72,24 +75,25 @@ namespace Imui.Controls
                 }
             }
 
-            ColorIndicator(gui, rects[0], Color.red, in style);
-            ColorIndicator(gui, rects[1], new Color32(0, 200, 0, 255), in style);
-            ColorIndicator(gui, rects[2], new Color32(32, 64, 255, 255), in style);
-            ColorIndicator(gui, rects[3], Color.white, in style);
-
             changed |= gui.ColorPickerButton(cId, ref color, rects[4], ImColorButtonFlag.AlphaOnePreview);
 
             gui.PopId();
 
             return changed;
         }
-
-        public static void ColorIndicator(ImGui gui, ImRect rect, Color32 color, in ImStyleBox style)
+        
+        private static unsafe void ComponentLetter(ImGui gui, in ImRect rect, Color32? color, char component, out ImRect valueRect)
         {
-            var radius = new ImRectRadius(bottomRight: style.BorderRadius.BottomRight, bottomLeft: style.BorderRadius.BottomLeft);
-            rect.AddPadding(style.BorderThickness);
-            rect.H = Mathf.Max(2, style.BorderRadius.BottomLeft - style.BorderThickness);
-            gui.Canvas.Rect(rect, color.WithAlpha(0.5f), radius);
+            color = color == null ? gui.Style.Text.Color : Color32.Lerp(gui.Style.Text.Color, color.Value, 0.25f);
+            
+            var textStyle = new ImTextSettings(gui.Style.Layout.TextSize * 0.75f, 0.5f, 0.5f);
+            var componentRect = rect.TakeLeft(gui.GetRowHeight() * 0.75f, -gui.Style.TextEdit.Normal.Box.BorderThickness, out valueRect);
+            var componentText = new ReadOnlySpan<char>(&component, 1);
+            var componentStyle = gui.Style.TextEdit.Normal.Box;
+            componentStyle.MakeAdjacent(ImAdjacency.Left);
+            
+            gui.Box(componentRect, in componentStyle);
+            gui.Text(componentText, textStyle, color.Value, componentRect);
         }
     }
 }

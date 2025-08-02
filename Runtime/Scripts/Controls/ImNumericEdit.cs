@@ -274,10 +274,16 @@ namespace Imui.Controls
 
                 var align = gui.Style.TextEdit.Alignment;
                 var radius = style.BorderRadius;
-                if (adjacency == ImAdjacency.Left)
+                
+                if ((adjacency & ImAdjacency.Left) != 0)
                 {
                     radius.BottomRight = 0;
                     radius.TopRight = 0;
+                }
+                else if ((adjacency & ImAdjacency.Right) != 0)
+                {
+                    radius.BottomLeft = 0;
+                    radius.TopLeft = 0;
                 }
 
                 var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(gui.Style.Layout.TextSize), 0.0f) / 2.0f;
