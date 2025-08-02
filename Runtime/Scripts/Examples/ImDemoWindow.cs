@@ -299,7 +299,8 @@ namespace Imui.Examples
             NestedFoldout(gui, 0, ref nestedFoldouts);
 
             gui.Separator("Floating menu");
-            gui.BeginMenuBar();
+            var rect = gui.AddLayoutRect(gui.GetLayoutWidth(), gui.GetRowHeight());
+            gui.BeginMenuBar(rect);
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
 
@@ -428,71 +429,70 @@ namespace Imui.Examples
         {
             if (gui.BeginMenu("Demo"))
             {
-                DrawDemoMenu(gui, ref windowOpen);
+                if (gui.BeginMenu("Custom Menus"))
+                {
+                    gui.BeginVertical(width: 300);
+                    DrawSlidersDemo(gui);
+                    gui.EndVertical();
+
+                    gui.EndMenu();
+                }
+                
+                if (gui.BeginMenu("Recursive"))
+                {
+                    DrawMenuBarItems(gui, ref windowOpen);
+                    gui.EndMenu();
+                }
+                
+                gui.Separator();
+                
+                if (gui.BeginMenu("Test"))
+                {
+                    if (gui.BeginMenu("Same name submenu"))
+                    {
+                        gui.Menu("Item");
+                        gui.EndMenu();
+                    }
+
+                    gui.PushId("Next Menu");
+                    
+                    if (gui.BeginMenu("Same name submenu"))
+                    {
+                        gui.Menu("Item");
+                        gui.EndMenu();
+                    }
+                    
+                    gui.PopId();
+
+                    gui.EndMenu();
+                }
+                
+                gui.Separator();
+                
+                if (gui.Menu("Close"))
+                {
+                    windowOpen = false;
+                }
+                
                 gui.EndMenu();
             }
 
             if (gui.BeginMenu("Windows"))
             {
-                DrawExamplesMenu(gui);
-                gui.EndMenu();
-            }
-        }
-
-        private static void DrawDemoMenu(ImGui gui, ref bool windowOpen)
-        {
-            if (gui.BeginMenu("Custom Menus"))
-            {
-                gui.BeginVertical(width: 300);
-                DrawSlidersDemo(gui);
-                gui.EndVertical();
-
-                gui.EndMenu();
-            }
-            if (gui.BeginMenu("Recursive"))
-            {
-                DrawDemoMenu(gui, ref windowOpen);
-                gui.EndMenu();
-            }
-            gui.Separator();
-            if (gui.BeginMenu("Test"))
-            {
-                if (gui.BeginMenu("Same name submenu"))
+                if (gui.Menu("Console"))
                 {
-                    gui.Menu("Item");
-                    gui.EndMenu();
+                    showLogWindow = true;
                 }
 
-                gui.PushId("Next Menu");
-                if (gui.BeginMenu("Same name submenu"))
+                if (gui.Menu("Debug"))
                 {
-                    gui.Menu("Item");
-                    gui.EndMenu();
+                    showDebugWindow = true;
                 }
-                gui.PopId();
-
+                
                 gui.EndMenu();
             }
-            gui.Separator();
-            if (gui.Menu("Close"))
-            {
-                windowOpen = false;
-            }
         }
-
-        private static void DrawExamplesMenu(ImGui gui)
-        {
-            if (gui.Menu("Console"))
-            {
-                showLogWindow = true;
-            }
-
-            if (gui.Menu("Debug"))
-            {
-                showDebugWindow = true;
-            }
-        }
-
+        
         private static void DrawLayoutPage(ImGui gui)
         {
             gui.AddSpacing();
