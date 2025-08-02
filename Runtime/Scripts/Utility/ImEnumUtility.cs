@@ -105,6 +105,7 @@ namespace Imui.Utility
         public static readonly string[] Names = Enum.GetNames(typeof(TEnum));
         public static readonly TEnum[] Values = Enum.GetValues(typeof(TEnum)) as TEnum[];
         public static readonly Type Type = Enum.GetUnderlyingType(typeof(TEnum));
+        public static readonly string TypeName = Type.Name;
         public static readonly bool Signed = Type == typeof(SByte) || Type == typeof(Int16) || Type == typeof(Int32) || Type == typeof(Int64);
 
         public static ImEnumValue<TEnum> ToValue(TEnum e)
