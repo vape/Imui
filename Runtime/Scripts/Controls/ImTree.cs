@@ -4,62 +4,87 @@ using Imui.Core;
 namespace Imui.Controls
 {
     [Flags]
-    public enum ImTreeNodeState
-    {
-        None = 0,
-        Expanded = 1 << 0,
-        Selected = 1 << 1
-    }
-
-    [Flags]
     public enum ImTreeNodeFlags
     {
         None = 0,
-        UnselectOnClick = 1 << 0
+        UnselectOnClick = 1 << 0,
+        NonSelectable = 1 << 1,
+        NonExpandable = 1 << 2
+    }
+
+    public struct ImTreeNodeState
+    {
+        public bool Expanded;
+        public bool Selected;
+
+        public ImTreeNodeState(bool expanded, bool selected)
+        {
+            Expanded = expanded;
+            Selected = selected;
+        }
     }
 
     public static class ImTree
     {
         public static bool BeginTreeNode(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImTreeNodeFlags flags = ImTreeNodeFlags.None)
         {
-            var selected = false;
+            var id = gui.GetNextControlId();
+            ref var state = ref gui.Storage.Get<ImTreeNodeState>(id);
 
-            return BeginTreeNode(gui, ref selected, label, size, selectable: false, flags: flags);
-        }
+            flags |= ImTreeNodeFlags.NonSelectable;
 
-        public static (bool expanded, bool selected) BeginTreeNode(this ImGui gui,
-                                                                   bool selected,
-                                                                   ReadOnlySpan<char> label,
-                                                                   ImSize size = default,
-                                                                   ImTreeNodeFlags flags = ImTreeNodeFlags.None)
-        {
-            return (BeginTreeNode(gui, ref selected, label, size, flags: flags), selected);
+            BeginTreeNode(gui, id, ref state, label, size, flags);
+
+            return state.Expanded;
         }
 
         public static bool BeginTreeNode(this ImGui gui,
                                          ref bool selected,
                                          ReadOnlySpan<char> label,
                                          ImSize size = default,
-                                         bool expandable = true,
-                                         bool selectable = true,
+                                         ImTreeNodeFlags flags = ImTreeNodeFlags.None)
+        {
+            var state = BeginTreeNode(gui, selected, label, size, flags);
+            selected = state.Selected;
+
+            return state.Expanded;
+        }
+
+        public static ImTreeNodeState BeginTreeNode(this ImGui gui,
+                                                    bool selected,
+                                                    ReadOnlySpan<char> label,
+                                                    ImSize size = default,
+                                                    ImTreeNodeFlags flags = ImTreeNodeFlags.None)
+        {
+            var id = gui.GetNextControlId();
+            ref var expanded = ref gui.Storage.Get<bool>(id);
+            var state = new ImTreeNodeState(expanded, selected);
+
+            BeginTreeNode(gui, id, ref state, label, size, flags: flags);
+
+            expanded = state.Expanded;
+
+            return state;
+        }
+
+        public static bool BeginTreeNode(ImGui gui,
+                                         uint id,
+                                         ref ImTreeNodeState state,
+                                         ReadOnlySpan<char> label,
+                                         ImSize size = default,
                                          ImTreeNodeFlags flags = ImTreeNodeFlags.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var id = gui.PushId(label);
-            ref var expanded = ref gui.Storage.Get<bool>(id);
             var rect = gui.AddSingleRowRect(size);
-            var state = ImTreeNodeState.None;
+            gui.PushId(id);
 
-            state |= selected ? ImTreeNodeState.Selected : ImTreeNodeState.None;
-            state |= expanded ? ImTreeNodeState.Expanded : ImTreeNodeState.None;
+            var idExpand = gui.GetNextControlId();
+            var idSelect = gui.GetNextControlId();
 
-            TreeNode(gui, id, ref state, label, rect, expandable, selectable, flags);
+            TreeNode(gui, idExpand, idSelect, ref state, label, rect, flags);
 
-            expanded = (state & ImTreeNodeState.Expanded) != 0;
-            selected = (state & ImTreeNodeState.Selected) != 0;
-
-            if (!expanded)
+            if (!state.Expanded)
             {
                 gui.PopId();
                 return false;
@@ -75,11 +100,12 @@ namespace Imui.Controls
             gui.PopId();
         }
 
-        public static void TreeNode(this ImGui gui, ReadOnlySpan<char> label, ImSize size = default, ImTreeNodeFlags flags = ImTreeNodeFlags.None)
+        public static void TreeNode(this ImGui gui,
+                                    ReadOnlySpan<char> label,
+                                    ImSize size = default,
+                                    ImTreeNodeFlags flags = ImTreeNodeFlags.None)
         {
-            var selected = false;
-
-            TreeNode(gui, ref selected, label, size, flags);
+            TreeNode(gui, false, label, size, flags);
         }
 
         public static bool TreeNode(this ImGui gui,
@@ -93,7 +119,7 @@ namespace Imui.Controls
             return selected;
         }
 
-        public static void TreeNode(this ImGui gui,
+        public static bool TreeNode(this ImGui gui,
                                     ref bool selected,
                                     ReadOnlySpan<char> label,
                                     ImSize size = default,
@@ -101,48 +127,53 @@ namespace Imui.Controls
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
-            var id = gui.GetNextControlId();
-            var state = selected ? ImTreeNodeState.Selected : ImTreeNodeState.None;
+            flags |= ImTreeNodeFlags.NonExpandable;
+
+            var idExpand = gui.GetNextControlId();
+            var idSelect = gui.GetNextControlId();
             var rect = gui.AddSingleRowRect(size);
+            var state = new ImTreeNodeState(false, selected);
+            var changed = TreeNode(gui, idExpand, idSelect, ref state, label, rect, flags);
 
-            TreeNode(gui, id, ref state, label, rect, false, true, flags);
+            selected = state.Selected;
 
-            selected = (state & ImTreeNodeState.Selected) != 0;
+            return changed;
         }
 
         public static bool TreeNode(ImGui gui,
-                                    uint id,
+                                    uint idExpandButton,
+                                    uint idSelectButton,
                                     ref ImTreeNodeState state,
                                     ReadOnlySpan<char> label,
                                     ImRect rect,
-                                    bool expandable,
-                                    bool selectable,
                                     ImTreeNodeFlags flags)
         {
-            ref readonly var buttonStyle = ref ((state & ImTreeNodeState.Selected) != 0 ? ref gui.Style.Tree.ItemSelected : ref gui.Style.Tree.ItemNormal);
+            ref readonly var buttonStyle = ref (state.Selected ? ref gui.Style.Tree.ItemSelected : ref gui.Style.Tree.ItemNormal);
 
             var arrowSize = gui.Style.Layout.TextSize;
             var contentRect = ImButton.CalculateContentRect(gui, rect);
             var arrowRect = contentRect.TakeLeft(arrowSize, gui.Style.Layout.InnerSpacing, out var labelRect).WithAspect(1.0f);
             var changed = false;
             var buttonState = ImButtonState.Normal;
+            var selectable = (flags & ImTreeNodeFlags.NonSelectable) == 0;
+            var expandable = (flags & ImTreeNodeFlags.NonExpandable) == 0;
             var expandButtonRect = selectable ? arrowRect : rect;
-            
-            if (expandable && gui.InvisibleButton(expandButtonRect, out buttonState, ImButtonFlag.ActOnPressMouse))
+
+            if (expandable && gui.InvisibleButton(idExpandButton, expandButtonRect, out buttonState, ImButtonFlag.ActOnPressMouse))
             {
-                state ^= ImTreeNodeState.Expanded;
+                state.Expanded = !state.Expanded;
                 changed = true;
             }
 
-            if (selectable && gui.InvisibleButton(labelRect, out buttonState, ImButtonFlag.ActOnPressMouse))
+            if (selectable && gui.InvisibleButton(idSelectButton, labelRect, out buttonState, ImButtonFlag.ActOnPressMouse))
             {
                 if ((flags & ImTreeNodeFlags.UnselectOnClick) != 0)
                 {
-                    state ^= ImTreeNodeState.Selected;
+                    state.Selected = !state.Selected;
                 }
                 else
                 {
-                    state |= ImTreeNodeState.Selected;
+                    state.Selected = true;
                 }
 
                 changed = true;
@@ -156,7 +187,7 @@ namespace Imui.Controls
 
             if (expandable)
             {
-                if ((state & ImTreeNodeState.Expanded) != 0)
+                if (state.Expanded)
                 {
                     ImFoldout.DrawArrowDown(gui.Canvas, arrowRect, boxStyle.FrontColor, gui.Style.Tree.ArrowScale);
                 }

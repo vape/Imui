@@ -365,30 +365,22 @@ namespace Imui.Examples
 
             void Node(ref ImDemoTreeNode node)
             {
-                var flags = selectMultipleValues ? ImTreeNodeFlags.UnselectOnClick : ImTreeNodeFlags.None;
+                var flags = (selectMultipleValues ? ImTreeNodeFlags.UnselectOnClick : ImTreeNodeFlags.None) |
+                            (node.Childrens.Length == 0 ? ImTreeNodeFlags.NonExpandable : 0);
                 var isSelected = selectedNodes.Contains(node.Name);
-
-                if (node.Childrens.Length == 0)
-                {
-                    gui.TreeNode(ref isSelected, node.Name, flags: flags);
-                    SetSelected(node.Name, isSelected);
-                    return;
-                }
-
-                if (!gui.BeginTreeNode(ref isSelected, node.Name, flags: flags))
-                {
-                    SetSelected(node.Name, isSelected);
-                    return;
-                }
-
+                var expanded = gui.BeginTreeNode(ref isSelected, node.Name, flags: flags);
+                
                 SetSelected(node.Name, isSelected);
 
-                for (int i = 0; i < node.Childrens.Length; ++i)
+                if (expanded)
                 {
-                    Node(ref node.Childrens[i]);
-                }
+                    for (int i = 0; i < node.Childrens.Length; ++i)
+                    {
+                        Node(ref node.Childrens[i]);
+                    }
 
-                gui.EndTreeNode();
+                    gui.EndTreeNode();
+                }
             }
 
             for (int i = 0; i < treeNodes.Length; ++i)
