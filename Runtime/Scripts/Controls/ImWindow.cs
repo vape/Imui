@@ -59,11 +59,11 @@ namespace Imui.Controls
             ref readonly var style = ref gui.Style.Window;
             ref var state = ref gui.WindowManager.BeginWindow(id, title, rect, flags);
 
-            gui.Canvas.PushOrder(state.Order * WINDOW_ORDER_OFFSET + WINDOW_FRONT_ORDER_OFFSET);
+            gui.Canvas.PushOrder((state.Order + 1) * WINDOW_ORDER_OFFSET + WINDOW_FRONT_ORDER_OFFSET);
             Foreground(gui, ref state, out var closeClicked);
             gui.Canvas.PopOrder();
 
-            gui.Canvas.PushOrder(state.Order * WINDOW_ORDER_OFFSET);
+            gui.Canvas.PushOrder((state.Order + 1) * WINDOW_ORDER_OFFSET);
             gui.Canvas.PushRectMask(state.Rect, style.Box.BorderRadius);
             gui.Canvas.PushClipRect(state.Rect);
             Background(gui, in state);
