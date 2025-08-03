@@ -140,7 +140,7 @@ namespace Imui.Core
                 pixels[(AALINE_TEX_Y + 8) * MAIN_ATLAS_W + x] = Color.clear;
             }
 
-            var texture = new Texture2D(MAIN_ATLAS_W, MAIN_ATLAS_H, TextureFormat.RGBA32, false, false, true);
+            var texture = new Texture2D(MAIN_ATLAS_W, MAIN_ATLAS_H, TextureFormat.RGBA32, false, false);
             texture.filterMode = FilterMode.Point;
             texture.SetPixels32(pixels);
             texture.Apply();

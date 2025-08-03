@@ -62,8 +62,10 @@ namespace Imui.IO.Utility
                 Texture = null;
             }
         }
-
+        
+#if UNITY_2022_2_OR_NEWER
         [HideInCallstack]
+#endif
         private void AssertDisposed()
         {
             if (disposed)

@@ -162,7 +162,7 @@ namespace Imui.Rendering
 
             for (uint i = 0; i < glyphsLookup.Length; ++i)
             {
-                if (!fontAsset.HasCharacter(i, tryAddCharacter: true))
+                if (!fontAsset.HasCharacter((char)i, tryAddCharacter: true))
                 {
                     glyphsLookup[i] = default;
                     continue;
