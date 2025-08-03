@@ -152,7 +152,7 @@ namespace Imui.Rendering
         {
             UnloadFont();
 
-            fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
+            fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, GlyphRenderMode.SDFAA, (int)FONT_ATLAS_W,
                 (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
             fontAsset.ReadFontAssetDefinition();
 
