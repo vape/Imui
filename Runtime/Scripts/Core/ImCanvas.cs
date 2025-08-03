@@ -38,6 +38,11 @@ namespace Imui.Core
         public Texture FontTex;
 
         /// <summary>
+        /// Glyph rendering mode
+        /// </summary>
+        public ImGlyphRenderMode GlyphRenderMode;
+
+        /// <summary>
         /// Order or drawing for current draw call
         /// </summary>
         public int Order;
@@ -398,7 +403,8 @@ namespace Imui.Core
                 ClipRect = new ImMeshClipRect() { Enabled = true, Rect = new Rect(Vector2.zero, screenSize) },
                 Material = material,
                 MainTex = defaultTexture,
-                FontTex = textDrawer.FontAtlas
+                FontTex = textDrawer.FontAtlas,
+                GlyphRenderMode = textDrawer.RenderMode
             };
         }
 
@@ -413,6 +419,7 @@ namespace Imui.Core
             mesh.FontTex = settings.FontTex;
             mesh.MainTex = settings.MainTex;
             mesh.Material = settings.Material;
+            mesh.GlyphRenderMode = settings.GlyphRenderMode;
             mesh.Order = settings.Order;
             mesh.ClipRect = settings.ClipRect;
             mesh.MaskRect = settings.MaskRect;

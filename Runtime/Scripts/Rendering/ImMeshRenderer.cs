@@ -97,6 +97,9 @@ namespace Imui.Rendering
                 properties.SetTexture(FontTexId, meshData.FontTex);
                 properties.SetFloat(InvColorMul, meshData.InvColorMul);
 
+                var enableSdfKeyword = new LocalKeyword(meshData.Material.shader, "IMUI_SDF_ON");
+                cmd.SetKeyword(meshData.Material, enableSdfKeyword, meshData.GlyphRenderMode == ImGlyphRenderMode.SDFAA);
+
                 if (meshData.MaskRect.Enabled)
                 {
                     var radius = meshData.MaskRect.Radius * maskRadiusScale;

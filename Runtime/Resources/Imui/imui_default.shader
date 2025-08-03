@@ -23,6 +23,7 @@
 
             #pragma vertex vert
             #pragma fragment frag
+            #pragma shader_feature __ IMUI_SDF_ON
 
             struct appdata
             {
@@ -69,15 +70,19 @@
 
             fixed4 frag(const v2f i) : SV_Target
             {
-                float dist = (0.5 - tex2D(_FontTex, i.uv.xy).a);
+                #if IMUI_SDF_ON
+                    float dist = (0.5 - tex2D(_FontTex, i.uv.xy).a);
 
-                // sdf distance per pixel (gradient vector)
-                float2 ddist = float2(ddx(dist), ddy(dist));
+                    // sdf distance per pixel (gradient vector)
+                    float2 ddist = float2(ddx(dist), ddy(dist));
                 
-                // distance to edge in pixels (scalar)
-                float pixelDist = dist / length(ddist);
+                    // distance to edge in pixels (scalar)
+                    float pixelDist = dist / length(ddist);
                 
-                fixed4 colFont = fixed4(1, 1, 1, saturate(0.5 - pixelDist));
+                    fixed4 colFont = fixed4(1, 1, 1, saturate(0.5 - pixelDist));
+                #else
+                    fixed4 colFont = fixed4(1, 1, 1, tex2D(_FontTex, i.uv.xy).a);
+                #endif
 
                 fixed4 col = lerp(tex2D(_MainTex, i.uv.xy), colFont, i.atlas);
                 col.a *= _MaskEnable

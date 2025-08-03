@@ -17,6 +17,12 @@ namespace Imui.Rendering
         Truncate
     }
 
+    public enum ImGlyphRenderMode
+    {
+        SMOOTH,
+        SDFAA
+    }
+
     public struct ImTextLine
     {
         public int Start;
@@ -116,6 +122,7 @@ namespace Imui.Rendering
 
         public Texture2D FontAtlas => fontAsset.atlasTexture;
         public FontAsset FontAsset => fontAsset;
+        public ImGlyphRenderMode RenderMode => renderMode;
         public bool IsFontLoaded => FontAsset;
 
         public float Depth;
@@ -125,6 +132,7 @@ namespace Imui.Rendering
         public float FontLineHeight => lineHeight;
 
         private FontAsset fontAsset;
+        private ImGlyphRenderMode renderMode;
         private float lineHeight;
         private float renderSize;
         private float descentLine;
@@ -148,11 +156,19 @@ namespace Imui.Rendering
         }
 
         public void LoadFont(Font font) => LoadFont(font, font.fontSize);
-        public void LoadFont(Font font, int sampleSize)
+        public void LoadFont(Font font, int sampleSize, ImGlyphRenderMode renderMode = ImGlyphRenderMode.SMOOTH)
         {
             UnloadFont();
 
-            fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, GlyphRenderMode.SDFAA, (int)FONT_ATLAS_W,
+            GlyphRenderMode glyphRenderMode = renderMode switch
+            {
+                ImGlyphRenderMode.SMOOTH => GlyphRenderMode.SMOOTH_HINTED,
+                ImGlyphRenderMode.SDFAA => GlyphRenderMode.SDFAA_HINTED,
+                _ => throw new NotImplementedException()
+            };
+            this.renderMode = renderMode;
+
+            fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, glyphRenderMode, (int)FONT_ATLAS_W,
                 (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
             fontAsset.ReadFontAssetDefinition();
 
