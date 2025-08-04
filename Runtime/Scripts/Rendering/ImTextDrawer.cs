@@ -19,8 +19,8 @@ namespace Imui.Rendering
 
     public enum ImGlyphRenderMode
     {
-        SMOOTH,
-        SDFAA
+        Smooth,
+        Sdf
     }
 
     public struct ImTextLine
@@ -156,14 +156,14 @@ namespace Imui.Rendering
         }
 
         public void LoadFont(Font font) => LoadFont(font, font.fontSize);
-        public void LoadFont(Font font, int sampleSize, ImGlyphRenderMode renderMode = ImGlyphRenderMode.SMOOTH)
+        public void LoadFont(Font font, int sampleSize, ImGlyphRenderMode renderMode = ImGlyphRenderMode.Smooth)
         {
             UnloadFont();
 
             GlyphRenderMode glyphRenderMode = renderMode switch
             {
-                ImGlyphRenderMode.SMOOTH => GlyphRenderMode.SMOOTH_HINTED,
-                ImGlyphRenderMode.SDFAA => GlyphRenderMode.SDFAA_HINTED,
+                ImGlyphRenderMode.Smooth => GlyphRenderMode.SMOOTH_HINTED,
+                ImGlyphRenderMode.Sdf => GlyphRenderMode.SDFAA_HINTED,
                 _ => throw new NotImplementedException()
             };
             this.renderMode = renderMode;

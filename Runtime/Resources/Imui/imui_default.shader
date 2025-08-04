@@ -23,7 +23,7 @@
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature __ IMUI_SDF_ON
+            #pragma multi_compile_local __ SDF_TEXT
 
             struct appdata
             {
@@ -70,7 +70,7 @@
 
             fixed4 frag(const v2f i) : SV_Target
             {
-                #if IMUI_SDF_ON
+                #if SDF_TEXT
                     float dist = (0.5 - tex2D(_FontTex, i.uv.xy).a);
 
                     // sdf distance per pixel (gradient vector)

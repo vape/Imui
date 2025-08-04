@@ -20,7 +20,6 @@ namespace Imui.Rendering
         public Texture MainTex;
         public Texture FontTex;
         public Material Material;
-        public ImGlyphRenderMode GlyphRenderMode;
         public int IndicesOffset;
         public int VerticesOffset;
         public int VerticesCount;

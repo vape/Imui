@@ -4,6 +4,7 @@ using Imui.Rendering;
 using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Imui.Core
 {
@@ -36,11 +37,6 @@ namespace Imui.Core
         /// Font texture
         /// </summary>
         public Texture FontTex;
-
-        /// <summary>
-        /// Glyph rendering mode
-        /// </summary>
-        public ImGlyphRenderMode GlyphRenderMode;
 
         /// <summary>
         /// Order or drawing for current draw call
@@ -252,6 +248,7 @@ namespace Imui.Core
         private readonly ImMeshDrawer meshDrawer;
         private readonly ImTextDrawer textDrawer;
         private readonly ImArena arena;
+        private readonly LocalKeyword sdfText;
 
         public ImCanvas(ImMeshDrawer meshDrawer, ImTextDrawer textDrawer, ImArena arena)
         {
@@ -263,6 +260,7 @@ namespace Imui.Core
 
             shader = Resources.Load<Shader>("Imui/imui_default");
             material = new Material(shader);
+            sdfText = new LocalKeyword(shader, "SDF_TEXT");
             defaultTexture = CreateMainAtlas();
             settingsStack = new ImDynamicArray<ImCanvasSettings>(SETTINGS_CAPACITY);
             settingsPrefStack = new ImDynamicArray<SettingsPref>(SETTINGS_CAPACITY);
@@ -287,6 +285,14 @@ namespace Imui.Core
             this.screenScale = screenScale;
             
             SafeAreaPadding = safeAreaPadding;
+        }
+
+        /// <summary>
+        /// Sets SDF_TEXT keyword depending on glyph render mode.
+        /// </summary>
+        public void ConfigureDefaultMaterial()
+        {
+            material.SetKeyword(sdfText, textDrawer.RenderMode == ImGlyphRenderMode.Sdf);
         }
 
         /// <summary>
@@ -404,7 +410,6 @@ namespace Imui.Core
                 Material = material,
                 MainTex = defaultTexture,
                 FontTex = textDrawer.FontAtlas,
-                GlyphRenderMode = textDrawer.RenderMode
             };
         }
 
@@ -419,7 +424,6 @@ namespace Imui.Core
             mesh.FontTex = settings.FontTex;
             mesh.MainTex = settings.MainTex;
             mesh.Material = settings.Material;
-            mesh.GlyphRenderMode = settings.GlyphRenderMode;
             mesh.Order = settings.Order;
             mesh.ClipRect = settings.ClipRect;
             mesh.MaskRect = settings.MaskRect;
