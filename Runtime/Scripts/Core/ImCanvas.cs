@@ -4,6 +4,7 @@ using Imui.Rendering;
 using Imui.Style;
 using Imui.Utility;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Imui.Core
 {
@@ -247,6 +248,7 @@ namespace Imui.Core
         private readonly ImMeshDrawer meshDrawer;
         private readonly ImTextDrawer textDrawer;
         private readonly ImArena arena;
+        private readonly LocalKeyword sdfText;
 
         public ImCanvas(ImMeshDrawer meshDrawer, ImTextDrawer textDrawer, ImArena arena)
         {
@@ -258,6 +260,7 @@ namespace Imui.Core
 
             shader = Resources.Load<Shader>("Imui/imui_default");
             material = new Material(shader);
+            sdfText = new LocalKeyword(shader, "SDF_TEXT");
             defaultTexture = CreateMainAtlas();
             settingsStack = new ImDynamicArray<ImCanvasSettings>(SETTINGS_CAPACITY);
             settingsPrefStack = new ImDynamicArray<SettingsPref>(SETTINGS_CAPACITY);
@@ -282,6 +285,14 @@ namespace Imui.Core
             this.screenScale = screenScale;
             
             SafeAreaPadding = safeAreaPadding;
+        }
+
+        /// <summary>
+        /// Sets SDF_TEXT keyword depending on glyph render mode.
+        /// </summary>
+        public void ConfigureDefaultMaterial()
+        {
+            material.SetKeyword(sdfText, textDrawer.RenderMode == ImGlyphRenderMode.Sdf);
         }
 
         /// <summary>
@@ -398,7 +409,7 @@ namespace Imui.Core
                 ClipRect = new ImMeshClipRect() { Enabled = true, Rect = new Rect(Vector2.zero, screenSize) },
                 Material = material,
                 MainTex = defaultTexture,
-                FontTex = textDrawer.FontAtlas
+                FontTex = textDrawer.FontAtlas,
             };
         }
 
