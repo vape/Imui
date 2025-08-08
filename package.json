@@ -2,7 +2,7 @@
   "name": "deszz.imui",
   "displayName": "Imui",
   "description": "IMGUI framework for unity",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "unity": "2021.3",
   "author": "Artem Sokolov <sokolov.artem@hotmail.com>",
   "repository": {
