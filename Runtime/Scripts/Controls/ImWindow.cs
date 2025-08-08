@@ -127,19 +127,46 @@ namespace Imui.Controls
 
         public static void Foreground(ImGui gui, ref ImWindowState state, out bool closeClicked)
         {
+            gui.PushId("win_ctrl");
+
             closeClicked = false;
 
-            if ((state.Flags & ImWindowFlag.NoResizing) == 0)
+            var titleBarId = gui.GetNextControlId();
+            var resizeHandleId = gui.GetNextControlId();
+
+            ImRect titleBarRect = default;
+
+            // (artem-s): handle resizing/panning logic here so we have final rect before drawing actual stuff
             {
-                ResizeHandle(gui, ref state);
+                if ((state.Flags & ImWindowFlag.NoResizing) == 0)
+                {
+                    ResizeHandleControl(gui, resizeHandleId, ref state);
+                }
+
+                if ((state.Flags & ImWindowFlag.NoTitleBar) == 0)
+                {
+                    TitleBarPanning(gui, titleBarId, ref state, out titleBarRect);
+                }
             }
 
-            if ((state.Flags & ImWindowFlag.NoTitleBar) == 0)
+            // (artem-s): drawing happens here
             {
-                TitleBar(gui, state.Title, ref state, out closeClicked);
+                if ((state.Flags & ImWindowFlag.NoResizing) == 0)
+                {
+                    DrawResizeHandle(gui, resizeHandleId, in state);
+                }
+
+                if ((state.Flags & ImWindowFlag.NoTitleBar) == 0)
+                {
+                    DrawTitleBar(gui, titleBarRect, state.Title);
+
+                    closeClicked = TitleBarCloseButton(gui, titleBarRect);
+                }
+
+                Outline(gui, state.Rect);
             }
 
-            Outline(gui, state.Rect);
+            gui.PopId();
         }
 
         public static void Outline(ImGui gui, ImRect rect)
@@ -148,24 +175,11 @@ namespace Imui.Controls
             gui.Canvas.RectOutline(rect, style.Box.BorderColor, style.Box.BorderThickness, style.Box.BorderRadius);
         }
 
-        public static void TitleBar(ImGui gui, ReadOnlySpan<char> text, ref ImWindowState state, out bool closeClicked)
+        public static void TitleBarPanning(ImGui gui, uint id, ref ImWindowState state, out ImRect rect)
         {
-            ref readonly var style = ref gui.Style.Window;
-
-            closeClicked = false;
-
-            var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
             var active = gui.IsControlActive(id);
-            var rect = GetTitleBarRect(gui, state.Rect, out var radius);
-            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, style.TitleBar.Alignment, overflow: style.TitleBar.Overflow);
             var movable = (state.Flags & ImWindowFlag.NoMoving) == 0;
-            var contentRect = rect.WithPadding(gui.Style.Layout.InnerSpacing);
-
-            Span<Vector2> border = stackalloc Vector2[2] { rect.BottomLeft, rect.BottomRight };
-
-            gui.Canvas.Rect(rect, style.TitleBar.BackColor, radius);
-            gui.Canvas.Line(border, style.Box.BorderColor, false, style.Box.BorderThickness, 0.0f);
 
             ref readonly var evt = ref gui.Input.MouseEvent;
             switch (evt.Type)
@@ -176,7 +190,7 @@ namespace Imui.Controls
                     break;
 
                 case ImMouseEventType.Drag when active && movable:
-                    state.NextRect.Position += evt.Delta;
+                    state.Rect.Position += evt.Delta;
                     gui.Input.UseMouseEvent();
                     break;
 
@@ -185,53 +199,105 @@ namespace Imui.Controls
                     break;
             }
 
-            gui.RegisterControl(id, rect);
-
             if (!active)
             {
-                state.NextRect.Position = KeepWindowWithinSafeArea(gui, state.NextRect.Position, state.NextRect.Size);
+                state.Rect.Position = KeepWindowWithinSafeArea(gui, state.Rect.Position, state.Rect.Size);
             }
 
-            if ((state.Flags & ImWindowFlag.NoCloseButton) == 0)
+            rect = GetTitleBarRect(gui, state.Rect);
+            gui.RegisterControl(id, rect);
+        }
+
+        public static bool TitleBarCloseButton(ImGui gui, ImRect rect)
+        {
+            var closeButtonRect = rect.WithPadding(gui.Style.Layout.InnerSpacing)
+                                      .TakeRight(gui.GetRowHeight() - gui.Style.Layout.InnerSpacing)
+                                      .WithAspect(1.0f);
+
+            using (gui.StyleScope(ref gui.Style.Button, in gui.Style.Window.TitleBar.CloseButton))
             {
-                var closeButtonRect = contentRect.TakeRight(gui.GetRowHeight() - gui.Style.Layout.InnerSpacing, out contentRect).WithAspect(1.0f);
+                var clicked = gui.Button(closeButtonRect, out var buttonState);
+                var color = ImButton.GetStateFrontColor(gui, buttonState);
+                var width = closeButtonRect.W * 0.08f;
 
-                using (gui.StyleScope(ref gui.Style.Button, in gui.Style.Window.TitleBar.CloseButton))
+                Span<Vector2> path = stackalloc Vector2[2]
                 {
-                    closeClicked = gui.Button(closeButtonRect, out var buttonState);
+                    Vector2.Lerp(closeButtonRect.Center, closeButtonRect.TopRight, 0.35f),
+                    Vector2.Lerp(closeButtonRect.Center, closeButtonRect.BottomLeft, 0.35f)
+                };
 
-                    var color = ImButton.GetStateFrontColor(gui, buttonState);
-                    var width = closeButtonRect.W * 0.08f;
+                gui.Canvas.Line(path, color, false, width);
 
-                    Span<Vector2> path = stackalloc Vector2[2]
-                    {
-                        Vector2.Lerp(closeButtonRect.Center, closeButtonRect.TopRight, 0.35f),
-                        Vector2.Lerp(closeButtonRect.Center, closeButtonRect.BottomLeft, 0.35f)
-                    };
+                path[0] = Vector2.Lerp(closeButtonRect.Center, closeButtonRect.TopLeft, 0.35f);
+                path[1] = Vector2.Lerp(closeButtonRect.Center, closeButtonRect.BottomRight, 0.35f);
 
-                    gui.Canvas.Line(path, color, false, width);
+                gui.Canvas.Line(path, color, false, width);
 
-                    path[0] = Vector2.Lerp(closeButtonRect.Center, closeButtonRect.TopLeft, 0.35f);
-                    path[1] = Vector2.Lerp(closeButtonRect.Center, closeButtonRect.BottomRight, 0.35f);
-
-                    gui.Canvas.Line(path, color, false, width);
-                }
+                return clicked;
             }
+        }
+
+        public static void DrawTitleBar(ImGui gui, ImRect rect, ReadOnlySpan<char> text)
+        {
+            ref readonly var style = ref gui.Style.Window;
+
+            var radiusTopLeft = style.Box.BorderRadius.TopLeft - style.Box.BorderThickness;
+            var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderThickness;
+            var radius = new ImRectRadius(radiusTopLeft, radiusTopRight);
+
+            Span<Vector2> border = stackalloc Vector2[2] { rect.BottomLeft, rect.BottomRight };
+
+            gui.Canvas.Rect(rect, style.TitleBar.BackColor, radius);
+            gui.Canvas.Line(border, style.Box.BorderColor, false, style.Box.BorderThickness, 0.0f);
+
+            var contentRect = rect.TakeLeft(rect.W - (gui.GetRowHeight() - gui.Style.Layout.InnerSpacing)).WithPadding(gui.Style.Layout.InnerSpacing);
+            var textSettings = new ImTextSettings(gui.Style.Layout.TextSize, style.TitleBar.Alignment, overflow: style.TitleBar.Overflow);
 
             gui.Canvas.Text(text, style.TitleBar.FrontColor, contentRect, in textSettings);
         }
 
-        public static void ResizeHandle(ImGui gui, ref ImWindowState state)
+        public static void ResizeHandleControl(ImGui gui, uint id, ref ImWindowState state)
+        {
+            var hovered = gui.IsControlHovered(id);
+            var active = gui.IsControlActive(id);
+
+            ref readonly var evt = ref gui.Input.MouseEvent;
+            switch (evt.Type)
+            {
+                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
+                    gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    gui.Input.UseMouseEvent();
+                    break;
+
+                case ImMouseEventType.Drag when active:
+                    var widthDelta = Mathf.Max(state.Rect.W + evt.Delta.x, MIN_WIDTH) - state.Rect.W;
+                    var heightDelta = Mathf.Max(state.Rect.H + -evt.Delta.y, MIN_HEIGHT) - state.Rect.H;
+
+                    state.Rect.W += widthDelta;
+                    state.Rect.H += heightDelta;
+                    state.Rect.Y -= heightDelta;
+                    gui.Input.UseMouseEvent();
+                    break;
+
+                case ImMouseEventType.Up when active:
+                    gui.ResetActiveControl();
+                    break;
+            }
+
+            gui.RegisterControl(id, GetResizeHandleRect(gui, state.Rect));
+        }
+
+        public static void DrawResizeHandle(ImGui gui, uint id, in ImWindowState state)
         {
             const float PI = Mathf.PI;
             const float HALF_PI = PI / 2;
 
-            var id = gui.GetNextControlId();
             var hovered = gui.IsControlHovered(id);
-            var handleRect = GetResizeHandleRect(gui, state.Rect, out var radius);
             var active = gui.IsControlActive(id);
             ref readonly var style = ref gui.Style.Window;
 
+            var handleRect = GetResizeHandleRect(gui, state.Rect);
+            var radius = Mathf.Max(gui.Style.Window.Box.BorderRadius.BottomRight, 0);
             var segments = ImShapes.SegmentCountForRadius(radius);
             var step = (1f / segments) * HALF_PI;
 
@@ -251,37 +317,10 @@ namespace Imui.Controls
             }
 
             gui.Canvas.ConvexFill(buffer, hovered || active ? style.ResizeHandleActiveColor : style.ResizeHandleNormalColor);
-
-            ref readonly var evt = ref gui.Input.MouseEvent;
-            switch (evt.Type)
-            {
-                case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
-                    gui.SetActiveControl(id, ImControlFlag.Draggable);
-                    gui.Input.UseMouseEvent();
-                    break;
-
-                case ImMouseEventType.Drag when active:
-                    var widthDelta = Mathf.Max(state.NextRect.W + evt.Delta.x, MIN_WIDTH) - state.NextRect.W;
-                    var heightDelta = Mathf.Max(state.NextRect.H + -evt.Delta.y, MIN_HEIGHT) - state.NextRect.H;
-
-                    state.NextRect.W += widthDelta;
-                    state.NextRect.H += heightDelta;
-                    state.NextRect.Y -= heightDelta;
-                    gui.Input.UseMouseEvent();
-                    break;
-
-                case ImMouseEventType.Up when active:
-                    gui.ResetActiveControl();
-                    break;
-            }
-
-            gui.RegisterControl(id, handleRect);
         }
 
-        public static ImRect GetResizeHandleRect(ImGui gui, ImRect window, out float cornerRadius)
+        public static ImRect GetResizeHandleRect(ImGui gui, ImRect window)
         {
-            cornerRadius = Mathf.Max(gui.Style.Window.Box.BorderRadius.BottomRight, 0);
-
             var handleSize = gui.Style.Window.ResizeHandleSize;
             var handleRect = window;
             handleRect.X += handleRect.W - handleSize;
@@ -291,16 +330,11 @@ namespace Imui.Controls
             return handleRect;
         }
 
-        public static ImRect GetTitleBarRect(ImGui gui, ImRect window, out ImRectRadius cornerRadius)
+        public static ImRect GetTitleBarRect(ImGui gui, ImRect window)
         {
             ref readonly var style = ref gui.Style.Window;
 
-            var height = GetTitleBarHeight(gui);
-            var radiusTopLeft = style.Box.BorderRadius.TopLeft - style.Box.BorderThickness;
-            var radiusTopRight = style.Box.BorderRadius.TopRight - style.Box.BorderThickness;
-            cornerRadius = new ImRectRadius(radiusTopLeft, radiusTopRight);
-
-            return window.WithPadding(style.Box.BorderThickness).TakeTop(height);
+            return window.WithPadding(style.Box.BorderThickness).TakeTop(GetTitleBarHeight(gui));
         }
 
         public static ImRect GetMenuBarRect(ImGui gui, in ImWindowState state)

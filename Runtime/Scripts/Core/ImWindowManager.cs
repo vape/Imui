@@ -50,7 +50,6 @@ namespace Imui.Core
                 if ((flags & ImWindowFlag.NoMovingAndResizing) == ImWindowFlag.NoMovingAndResizing)
                 {
                     window.Rect = initialRect;
-                    window.NextRect = initialRect;
                 }
 
                 return ref window;
@@ -62,7 +61,6 @@ namespace Imui.Core
                 Order = windows.Count,
                 Title = title,
                 Rect = initialRect,
-                NextRect = initialRect,
                 Flags = flags,
                 Visible = true,
                 NextVisible = true
@@ -73,12 +71,7 @@ namespace Imui.Core
 
         public uint EndWindow()
         {
-            var id = drawingStack.Pop();
-
-            ref var state = ref GetWindowState(id);
-            state.Rect = state.NextRect;
-
-            return id;
+            return drawingStack.Pop();
         }
 
         public bool IsDrawingWindow()
@@ -172,7 +165,6 @@ namespace Imui.Core
         public int Order;
         public string Title;
         public ImRect Rect;
-        public ImRect NextRect;
         public ImWindowFlag Flags;
         public bool Visible;
         public bool NextVisible;
