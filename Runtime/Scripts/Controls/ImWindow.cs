@@ -160,7 +160,10 @@ namespace Imui.Controls
                 {
                     DrawTitleBar(gui, titleBarRect, state.Title);
 
-                    closeClicked = TitleBarCloseButton(gui, titleBarRect);
+                    if ((state.Flags & ImWindowFlag.NoCloseButton) == 0)
+                    {
+                        closeClicked = TitleBarCloseButton(gui, titleBarRect);
+                    }
                 }
 
                 Outline(gui, state.Rect);
