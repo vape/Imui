@@ -350,6 +350,16 @@ namespace Imui.Controls
             return delta;
         }
 
+        private static void HandleDrag(in ImMouseEvent evt, ref double delta, double step, double min, double max, in ImRect rect)
+        {
+            if (evt.Delta.x == 0)
+            {
+                return;
+            }
+            
+            delta = step == 0 ? Math.Min(max - min, rect.W) * evt.Delta.x / rect.W : step * Math.Sign(evt.Delta.x);
+        }
+        
         public static double NumericSlider(ImGui gui, uint hoveredId, uint id, double min, double max, double step, ImRect rect)
         {
             var hovered = gui.IsControlHovered(hoveredId);
@@ -363,14 +373,12 @@ namespace Imui.Controls
             {
                 case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    HandleDrag(in evt, ref delta, step, min, max, in rect);
                     gui.Input.UseMouseEvent();
                     break;
 
                 case ImMouseEventType.Drag when active:
-                    if (evt.Delta.x != 0)
-                    {
-                        delta = step == 0 ? Math.Min(max - min, rect.W) * evt.Delta.x / rect.W : step * Math.Sign(evt.Delta.x);
-                    }
+                    HandleDrag(in evt, ref delta, step, min, max, in rect);
                     gui.Input.UseMouseEvent();
                     break;
 

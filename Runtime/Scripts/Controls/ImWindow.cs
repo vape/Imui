@@ -189,6 +189,7 @@ namespace Imui.Controls
             {
                 case ImMouseEventType.Down or ImMouseEventType.BeginDrag when evt.LeftButton && hovered:
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
+                    state.Rect.Position += evt.Delta;
                     gui.Input.UseMouseEvent();
                     break;
 

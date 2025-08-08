@@ -332,9 +332,24 @@ namespace Imui.IO.UGUI
         public void OnDrag(PointerEventData eventData)
         {
             var device = GetDeviceType(eventData);
+            var delta = eventData.delta / GetScale();
+            var button = (int)eventData.button;
+            var modifiers = GetMouseEventModifiers();
 
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / GetScale(), device));
+            
+            if (mouseEventsQueue.TryPeekFront(out var existingEvent) && 
+                existingEvent.Type == ImMouseEventType.BeginDrag &&
+                existingEvent.Button == button &&
+                existingEvent.Modifiers == modifiers &&
+                existingEvent.Device == device &&
+                existingEvent.Delta == delta)
+            {
+                // (artem-s): skip this event, because drag delta is already handled by BeginDrag
+                return;
+            }
+            
+            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, button, modifiers, delta, device));
         }
 
         public void OnBeginDrag(PointerEventData eventData)

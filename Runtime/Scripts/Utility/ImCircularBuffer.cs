@@ -93,6 +93,18 @@ namespace Imui.Utility
                 Count++;
             }
         }
+        
+        public bool TryPeekFront(out T value)
+        {
+            if (Count == 0)
+            {
+                value = default;
+                return false;
+            }
+
+            value = Array[(Head + Count - 1) % Capacity];
+            return true;
+        }
 
         public bool TryPopFront(out T value)
         {

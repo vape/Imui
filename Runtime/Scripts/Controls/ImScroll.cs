@@ -153,6 +153,8 @@ namespace Imui.Controls
                 case ImMouseEventType.BeginDrag when scrollable && groupHovered && !active && !gui.ActiveControlIs(ImControlFlag.Draggable):
                     state.Velocity = default;
                     state.State &= ~ImScrollStateFlag.ConventionalScroll;
+                    dx += evt.Delta.x;
+                    dy += evt.Delta.y;
                     gui.SetActiveControl(id, ImControlFlag.Draggable);
                     break;
 
