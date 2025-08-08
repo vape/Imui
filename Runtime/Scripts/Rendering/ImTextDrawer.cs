@@ -17,6 +17,12 @@ namespace Imui.Rendering
         Truncate
     }
 
+    public enum ImGlyphRenderMode
+    {
+        Smooth,
+        Sdf
+    }
+
     public struct ImTextLine
     {
         public int Start;
@@ -116,6 +122,7 @@ namespace Imui.Rendering
 
         public Texture2D FontAtlas => fontAsset.atlasTexture;
         public FontAsset FontAsset => fontAsset;
+        public ImGlyphRenderMode RenderMode => renderMode;
         public bool IsFontLoaded => FontAsset;
 
         public float Depth;
@@ -125,6 +132,7 @@ namespace Imui.Rendering
         public float FontLineHeight => lineHeight;
 
         private FontAsset fontAsset;
+        private ImGlyphRenderMode renderMode;
         private float lineHeight;
         private float renderSize;
         private float descentLine;
@@ -148,11 +156,19 @@ namespace Imui.Rendering
         }
 
         public void LoadFont(Font font) => LoadFont(font, font.fontSize);
-        public void LoadFont(Font font, int sampleSize)
+        public void LoadFont(Font font, int sampleSize, ImGlyphRenderMode renderMode = ImGlyphRenderMode.Smooth)
         {
             UnloadFont();
 
-            fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, GlyphRenderMode.SMOOTH_HINTED, (int)FONT_ATLAS_W,
+            GlyphRenderMode glyphRenderMode = renderMode switch
+            {
+                ImGlyphRenderMode.Smooth => GlyphRenderMode.SMOOTH_HINTED,
+                ImGlyphRenderMode.Sdf => GlyphRenderMode.SDFAA_HINTED,
+                _ => throw new NotImplementedException()
+            };
+            this.renderMode = renderMode;
+
+            fontAsset = FontAsset.CreateFontAsset(font, sampleSize, FONT_ATLAS_PADDING, glyphRenderMode, (int)FONT_ATLAS_W,
                 (int)FONT_ATLAS_H, enableMultiAtlasSupport: false);
             fontAsset.ReadFontAssetDefinition();
 
@@ -162,7 +178,7 @@ namespace Imui.Rendering
 
             for (uint i = 0; i < glyphsLookup.Length; ++i)
             {
-                if (!fontAsset.HasCharacter(i, tryAddCharacter: true))
+                if (!fontAsset.HasCharacter((char)i, tryAddCharacter: true))
                 {
                     glyphsLookup[i] = default;
                     continue;
@@ -216,6 +232,13 @@ namespace Imui.Rendering
             if (atlasDirty || force) {
                 ReflectionUtility.UpdateAtlasTexturesInQueue();
                 atlasDirty = false;
+            }
+        }
+
+        public void ApplyAtlasChanges() {
+            if (atlasDirty) {
+                atlasDirty = false;
+                fontAsset.atlasTexture.Apply();
             }
         }
 

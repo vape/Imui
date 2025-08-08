@@ -143,7 +143,9 @@ namespace Imui.IO.UGUI
         public void UseRaycaster(IImuiInput.RaycasterDelegate raycaster)
         {
             this.raycaster = raycaster;
+#if UNITY_2021_3_OR_NEWER
             SetRaycastDirty();
+#endif
         }
 
         public override bool Raycast(Vector2 sp, Camera eventCamera)

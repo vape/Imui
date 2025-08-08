@@ -4,7 +4,7 @@ Immediate mode GUI framework made specifically for Unity. Written in pure C#, ha
 
 ## Screenshot
 
-![Screenshot](https://raw.githubusercontent.com/vape/Imui/screenshots/Screenshots/screenshot_2.png)
+![Screenshot](https://raw.githubusercontent.com/vape/Imui/screenshots/Screenshots/screenshot_3.png)
 
 ## How it works
 

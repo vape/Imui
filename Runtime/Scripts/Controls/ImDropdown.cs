@@ -54,7 +54,7 @@ namespace Imui.Controls
                 ? ReadOnlySpan<char>.Empty
                 : gui.Formatter.FormatEnum(selected);
 
-            if (BeginDropdown(gui, id, label, rect, ImEnumUtility<TEnum>.Type.Name, preview))
+            if (BeginDropdown(gui, id, label, rect, ImEnumUtility<TEnum>.TypeName, preview))
             {
                 for (int i = 0; i < ImEnumUtility<TEnum>.Names.Length; ++i)
                 {

@@ -193,9 +193,10 @@ namespace Imui.Core
             Input.Pull();
 
             TextDrawer.ApplyAtlasChanges();
-
+            
             Canvas.Clear();
             Canvas.ConfigureScreen(scaledTargetSize, uiScale);
+            Canvas.ConfigureDefaultMaterial();
             Canvas.PushSettings(Canvas.CreateDefaultSettings());
 
             Layout.Push(ImAxis.Vertical, new ImRect(Vector2.zero, scaledTargetSize));
