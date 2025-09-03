@@ -41,6 +41,23 @@ namespace Imui.Controls
             var width = textSize.x + gui.Style.Tooltip.Padding.Horizontal;
             var height = textSize.y + gui.Style.Tooltip.Padding.Vertical;
             var rect = new ImRect(position.x, gui.Style.Tooltip.AboveCursor ? position.y : position.y - height, width, height);
+            
+            // fit rect to screen
+            var bounds = gui.Canvas.ScreenRect;
+            var right = bounds.Right;
+            var bottom = bounds.Bottom;
+            var top = bounds.Top;
+            var left = bounds.Left;
+            
+            if (rect.X < left)
+                rect.X = left;
+            else if(rect.Right > right)
+                rect.X -= rect.Right - right;
+            
+            if (rect.Top > top)
+                rect.Y -= rect.Top - top;
+            else if (rect.Bottom < bottom)
+                rect.Y -= rect.Bottom - bottom;
 
             Tooltip(gui, text, rect);
         }
