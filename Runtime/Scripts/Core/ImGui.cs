@@ -136,6 +136,7 @@ namespace Imui.Core
         internal FrameData frameData;
         // ReSharper restore InconsistentNaming
 
+        private readonly ImuiRenderDelegate _renderDelegate;
         private ImDynamicArray<ControlId> idsStack;
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
@@ -168,6 +169,7 @@ namespace Imui.Core
             readOnlyStack = new ImDynamicArray<bool>(READONLY_STACK_CAPACITY);
             controlScopesStack = new ImDynamicArray<ImControlScope>(CONTROL_SCOPE_STACK_CAPACITY);
             styleStack = new ImDynamicArray<StyleProp>(STYLE_SCOPE_STACK_CAPACITY);
+            _renderDelegate = Render;
 
             Input.UseRaycaster(Raycast);
             SetTheme(ImThemeBuiltin.Light());
@@ -644,7 +646,7 @@ namespace Imui.Core
 
         public void Render()
         {
-            Renderer.Schedule(Render);
+            Renderer.Schedule(_renderDelegate);
         }
         
         private void Render(IImuiRenderingContext context)
