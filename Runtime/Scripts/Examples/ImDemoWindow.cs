@@ -130,6 +130,29 @@ namespace Imui.Examples
             DrawMenuBarItems(gui, ref open);
             gui.EndMenuBar();
 
+            DrawContent(gui, ref open);
+            
+            gui.EndWindow();
+
+            gui.PushId("DemoDebugWindow");
+            ImDebugWindow.Draw(gui, ref showDebugWindow);
+            gui.PopId();
+
+            if (showLogWindow && consoleWindow == null)
+            {
+                consoleWindow = new ImConsoleWindow();
+            }
+
+            if (consoleWindow != null)
+            {
+                gui.PushId("DemoLogWindow");
+                consoleWindow.Draw(gui, ref showLogWindow);
+                gui.PopId();
+            }
+        }
+
+        public static void DrawContent(ImGui gui, ref bool open)
+        {
             if (gui.BeginFoldout("Controls"))
             {
                 gui.BeginIndent();
@@ -176,26 +199,8 @@ namespace Imui.Examples
             }
 
             gui.EndReadOnly();
-
-            gui.EndWindow();
-
-            gui.PushId("DemoDebugWindow");
-            ImDebugWindow.Draw(gui, ref showDebugWindow);
-            gui.PopId();
-
-            if (showLogWindow && consoleWindow == null)
-            {
-                consoleWindow = new ImConsoleWindow();
-            }
-
-            if (consoleWindow != null)
-            {
-                gui.PushId("DemoLogWindow");
-                consoleWindow.Draw(gui, ref showLogWindow);
-                gui.PopId();
-            }
         }
-
+        
         private static void DrawControlsPage(ImGui gui, ref bool open)
         {
             gui.Checkbox(ref isReadOnly, "Read Only");
