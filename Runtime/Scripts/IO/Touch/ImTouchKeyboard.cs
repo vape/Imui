@@ -71,6 +71,8 @@ namespace Imui.IO.Touch
             return;
 #endif
 
+#pragma warning disable CS0162 // Unreachable code detected
+            
             if (!TouchScreenKeyboard.isSupported)
             {
                 return;
@@ -113,6 +115,8 @@ namespace Imui.IO.Touch
             }
 
             touchKeyboardRequestFrame = Time.frameCount;
+            
+#pragma warning restore CS0162 // Unreachable code detected
         }
 
         private TouchScreenKeyboardType GetType(ImTouchKeyboardType type)
