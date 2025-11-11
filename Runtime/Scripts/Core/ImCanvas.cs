@@ -225,7 +225,7 @@ namespace Imui.Core
         /// <summary>
         /// Safe area padding for each side of the screen
         /// </summary>
-        public ImAABB SafeAreaPadding;
+        public ImPadding SafeAreaPadding;
 
         private Shader shader;
         private Material material;
@@ -277,7 +277,7 @@ namespace Imui.Core
         /// <param name="screenSize">The size of the screen.</param>
         /// <param name="screenScale">The scale of the screen.</param>
         /// <param name="safeAreaPadding">Default safe area padding.</param>
-        public void ConfigureScreen(Vector2 screenSize, float screenScale, ImAABB safeAreaPadding = default)
+        public void ConfigureScreen(Vector2 screenSize, float screenScale, ImPadding safeAreaPadding = default)
         {
             this.screenSize = screenSize;
             this.screenScale = screenScale;
