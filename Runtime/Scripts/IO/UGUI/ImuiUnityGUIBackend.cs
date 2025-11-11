@@ -97,7 +97,7 @@ namespace Imui.IO.UGUI
                 }
             }
 
-            scheduler ??= GraphicsSettings.currentRenderPipeline ? new ImuiScriptableRenderingScheduler() : new ImuiBuiltinRenderingScheduler();
+            scheduler ??= GraphicsSettings.currentRenderPipeline ? new ImuiScriptableRenderingScheduler() : new ImuiGenericRenderingScheduler();
             useGUILayout = false;
         }
 

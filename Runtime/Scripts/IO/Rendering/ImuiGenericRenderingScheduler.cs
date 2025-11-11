@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace Imui.IO.Rendering
 {
-    public class ImuiBuiltinRenderingScheduler : IImuiRenderingScheduler, IImuiRenderingContext
+    public class ImuiGenericRenderingScheduler : IImuiRenderingScheduler, IImuiRenderingContext
     {
         private ImDynamicArray<CommandBuffer> commandBufferPool = new(2);
         
@@ -17,7 +17,7 @@ namespace Imui.IO.Rendering
         {
             if (commandBufferPool.Count == 0)
             {
-                var cmd = new CommandBuffer() { name = "Imui (Builtin)" };
+                var cmd = new CommandBuffer() { name = "Imui (Generic)" };
                 commandBufferPool.Add(cmd);
             }
 
