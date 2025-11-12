@@ -37,7 +37,7 @@ namespace Imui.Editor
         private void Update()
         {
             OnBeforeDraw();
-            imuiElement.DoFrame();
+            imuiElement.DoFrame(EditorApplication.timeSinceStartup);
             OnAfterDraw();
         }
 

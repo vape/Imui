@@ -202,7 +202,7 @@ namespace Imui.Controls
 
             if ((state.Flags & ImScrollFlag.DisableInertia) == 0)
             {
-                ProcessVelocity(active, ref state.Velocity, in prevOffset, in state.Offset);
+                ProcessVelocity(gui.Input.DeltaTime, active, ref state.Velocity, in prevOffset, in state.Offset);
             }
             else
             {
@@ -210,6 +210,11 @@ namespace Imui.Controls
             }
             
             state.Offset = targetOffset;
+            
+            if (!active && prevOffset != state.Offset && state.Velocity.magnitude > 1E-2)
+            {
+                gui.SetPreferredRefreshRate(9999);
+            }
 
             // defer mouse event consumption, so we can pass it to parent scroll rect in case offset hasn't changed
             if (prevOffset != state.Offset && deferredUseMouseEvent)
@@ -218,15 +223,15 @@ namespace Imui.Controls
             }
         }
 
-        private static void ProcessVelocity(bool active, ref Vector2 velocity, in Vector2 prevOffset, in Vector2 currentOffset)
+        private static void ProcessVelocity(float dt, bool active, ref Vector2 velocity, in Vector2 prevOffset, in Vector2 currentOffset)
         {
             if (active)
             {
-                velocity = Vector2.Lerp(velocity, currentOffset - prevOffset, Time.unscaledDeltaTime * VELOCITY_SHARPNESS);
+                velocity = Vector2.Lerp(velocity, currentOffset - prevOffset, dt * VELOCITY_SHARPNESS);
             }
             else
             {
-                velocity *= Mathf.Pow(DECELERATION_RATE, Time.unscaledDeltaTime);
+                velocity *= Mathf.Pow(DECELERATION_RATE, dt);
             }
         }
         

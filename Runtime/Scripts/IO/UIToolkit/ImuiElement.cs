@@ -20,15 +20,20 @@ namespace Imui.IO.UIToolkit
     {
         private const ImMouseDevice MOUSE_DEVICE = ImMouseDevice.Mouse;
         private const float DRAG_DISTANCE_THRESHOLD = 5;
+        private const double DEFAULT_THROTTLE_REFRESH_DELAY = 1.0d;
+        private const int THROTTLE_COOLDOWN_FRAMES = 2;
 
         // TODO (artem-s): use scaledPixelsPerPoint instead?
         public float PixelsPerPoint { get; set; } = 1.0f;
+        public bool Throttle { get; set; } = true;
 
         public ref readonly ImMouseEvent MouseEvent => ref mouseEvent;
         public ref readonly ImTextEvent TextEvent => ref textEvent;
         public int KeyboardEventsCount => keyboardEvents.Count;
         public Vector2 MousePosition => mousePosition;
-        public double Time => UnityEngine.Time.realtimeSinceStartupAsDouble;
+        public double Time => globalTime;
+        public float DeltaTime => deltaTime;
+
         public bool WasMouseDownThisFrame { get; private set; }
 
         private ImMouseEvent mouseEvent;
@@ -40,14 +45,20 @@ namespace Imui.IO.UIToolkit
         private ImCircularBuffer<ImMouseEvent> mouseEventsQueue;
         private ImCircularBuffer<ImKeyboardEvent> nextKeyboardEvents;
         private ImCircularBuffer<ImKeyboardEvent> keyboardEvents;
-
+        private double globalTime;
+        private float deltaTime;
+        private double lastUpdate;
+        private int eventsCooldown;
+        private bool contentDirty = true;
+        private double throttleRefreshDelay;
+        
         private readonly ImGui gui;
         private readonly IImuiElementDelegate elementDelegate;
         private readonly IImuiRenderingScheduler renderScheduler;
         private readonly ImDynamicRenderTexture textureRenderer;
         private readonly Vertex[] vertices = new Vertex[4];
         private readonly ushort[] indices = new ushort[6] { 0, 1, 2, 2, 3, 0 };
-
+        
         private bool disposed;
 
         public ImuiElement(IImuiElementDelegate elementDelegate)
@@ -72,10 +83,22 @@ namespace Imui.IO.UIToolkit
             RegisterCallback<WheelEvent>(OnMouseWheel);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
             RegisterCallback<KeyUpEvent>(OnKeyUp);
+            
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
-
-        public void DoFrame()
+        
+        public void DoFrame(double time)
         {
+            deltaTime = lastUpdate == 0 ? 0.0f : (float)(time - lastUpdate);
+            globalTime = time;
+            
+            if (!UpdateThrottle())
+            {
+                return;
+            }
+            
+            ImProfiler.BeginSample("ImuiElement.DoFrame");
+            
             gui.BeginFrame();
 
             elementDelegate.Draw(gui);
@@ -84,6 +107,41 @@ namespace Imui.IO.UIToolkit
             gui.Render();
 
             MarkDirtyRepaint();
+            
+            ImProfiler.EndSample();
+        }
+
+        private bool UpdateThrottle()
+        {
+            if (!Throttle || contentDirty)
+            {
+                contentDirty = false;
+                return true;
+            }
+            
+            var timePassed = globalTime - lastUpdate;
+            var anyEvents = mouseEventsQueue.Count > 0 || nextKeyboardEvents.Count > 0;
+            var preferredRefreshRate = gui.GetThrottleHint().PreferredRefreshRate;
+            var refreshDelay = preferredRefreshRate <= 0 ? DEFAULT_THROTTLE_REFRESH_DELAY : 1.0d / preferredRefreshRate;
+            
+            if (timePassed < refreshDelay && !anyEvents && eventsCooldown == 0)
+            {
+                return false;
+            }
+
+            lastUpdate = globalTime;
+            
+            if (anyEvents)
+            {
+                // (artem-s): draw at least N frames after any event without throttling
+                eventsCooldown = THROTTLE_COOLDOWN_FRAMES;
+            }
+            else
+            {
+                eventsCooldown = eventsCooldown > 0 ? eventsCooldown - 1 : eventsCooldown;
+            }
+
+            return true;
         }
 
         public void Pull()
@@ -189,6 +247,11 @@ namespace Imui.IO.UIToolkit
 
             mesh.SetAllVertices(vertices);
             mesh.SetAllIndices(indices);
+        }
+        
+        private void OnGeometryChanged(GeometryChangedEvent evt)
+        {
+            contentDirty = true;
         }
 
         private void OnKeyUp(KeyUpEvent e)

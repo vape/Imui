@@ -452,6 +452,8 @@ namespace Imui.Controls
 
             if (selected)
             {
+                gui.SetPreferredRefreshRate(30);
+                
                 DrawCaret(gui, state.Caret, state.BlinkTime, textRect, in layout, in stateStyle, in buffer);
 
                 for (int i = 0; i < gui.Input.KeyboardEventsCount; ++i)
