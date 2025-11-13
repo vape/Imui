@@ -221,39 +221,38 @@ namespace Imui.IO.UIToolkit
             }
 
             var mesh = context.Allocate(4, 6, textureRenderer.Texture);
-            var uv = mesh.uvRegion;
             var rect = contentRect;
 
             ref var v0 = ref vertices[0];
             v0.position.x = rect.xMin;
             v0.position.y = rect.yMax;
             v0.position.z = Vertex.nearZ;
-            v0.uv.x = uv.xMin;
-            v0.uv.y = uv.yMin;
+            v0.uv.x = 0.0f;
+            v0.uv.y = 0.0f;
             v0.tint = color;
 
             ref var v1 = ref vertices[1];
             v1.position.x = rect.xMin;
             v1.position.y = rect.yMin;
             v1.position.z = Vertex.nearZ;
-            v1.uv.x = uv.xMin;
-            v1.uv.y = uv.yMax;
+            v1.uv.x = 0.0f;
+            v1.uv.y = 1.0f;
             v1.tint = color;
 
             ref var v2 = ref vertices[2];
             v2.position.x = rect.xMax;
             v2.position.y = rect.yMin;
             v2.position.z = Vertex.nearZ;
-            v2.uv.x = uv.xMax;
-            v2.uv.y = uv.yMax;
+            v2.uv.x = 1.0f;
+            v2.uv.y = 1.0f;
             v2.tint = color;
 
             ref var v3 = ref vertices[3];
             v3.position.x = rect.xMax;
             v3.position.y = rect.yMax;
             v3.position.z = Vertex.nearZ;
-            v3.uv.x = uv.xMax;
-            v3.uv.y = uv.yMin;
+            v3.uv.x = 1.0f;
+            v3.uv.y = 0.0f;
             v3.tint = color;
 
             mesh.SetAllVertices(vertices);
