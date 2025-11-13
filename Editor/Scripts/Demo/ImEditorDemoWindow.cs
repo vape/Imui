@@ -1,3 +1,5 @@
+#if IMUI_UITOOLKIT_BACKEND
+
 using Imui.Core;
 using Imui.Examples;
 using Imui.Style;
@@ -41,3 +43,5 @@ namespace Imui.Editor.Demo
         }
     }
 }
+
+#endif

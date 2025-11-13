@@ -1,3 +1,5 @@
+#if IMUI_UITOOLKIT_BACKEND
+
 using System;
 using Imui.Core;
 using Imui.IO.Events;
@@ -377,3 +379,5 @@ namespace Imui.IO.UIToolkit
         }
     }
 }
+
+#endif

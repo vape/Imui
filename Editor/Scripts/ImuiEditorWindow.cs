@@ -1,3 +1,5 @@
+#if IMUI_UITOOLKIT_BACKEND
+
 using Imui.Controls;
 using Imui.Core;
 using Imui.IO.UIToolkit;
@@ -86,3 +88,5 @@ namespace Imui.Editor
         }
     }
 }
+
+#endif
