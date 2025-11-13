@@ -1,5 +1,6 @@
 using Imui.Core;
 using Imui.Examples;
+using Imui.Style;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,6 +17,13 @@ namespace Imui.Editor.Demo
         }
 
         private bool open = true;
+
+        protected override void OnInit(ImGui gui)
+        {
+            base.OnInit(gui);
+            
+            gui.SetTheme(ImThemeBuiltin.Dark());
+        }
 
         protected override void OnAfterDraw()
         {

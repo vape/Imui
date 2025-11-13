@@ -100,6 +100,8 @@ namespace Imui.Core
         public const int MAIN_ATLAS_W = 64;
         public const int MAIN_ATLAS_H = 32;
 
+        private static Shader DefaultShader;
+        
         /// <summary>
         /// Generates the main texture atlas used by the canvas.
         /// </summary>
@@ -226,8 +228,7 @@ namespace Imui.Core
         /// Safe area padding for each side of the screen
         /// </summary>
         public ImPadding SafeAreaPadding;
-
-        private Shader shader;
+        
         private Material material;
         private Texture2D defaultTexture;
         private ImDynamicArray<ImCanvasSettings> settingsStack;
@@ -256,9 +257,15 @@ namespace Imui.Core
             this.textDrawer = textDrawer;
             this.arena = arena;
 
-            shader = Resources.Load<Shader>("Imui/imui_default");
-            material = new Material(shader);
-            sdfText = new LocalKeyword(shader, SDF_TEXT_KEYWORD);
+            if (!DefaultShader)
+            {
+                // (artem-s): should not be unloaded, as multiple ImGui instances may use it simultaneously, in both edit and play modes
+                DefaultShader = Resources.Load<Shader>("Imui/imui_default");
+                DefaultShader.hideFlags |= HideFlags.DontUnloadUnusedAsset;
+            }
+            
+            material = new Material(DefaultShader);
+            sdfText = new LocalKeyword(DefaultShader, SDF_TEXT_KEYWORD);
             defaultTexture = CreateMainAtlas();
             settingsStack = new ImDynamicArray<ImCanvasSettings>(SETTINGS_CAPACITY);
             settingsPrefStack = new ImDynamicArray<SettingsPref>(SETTINGS_CAPACITY);
@@ -832,7 +839,6 @@ namespace Imui.Core
                 return;
             }
 
-            Resources.UnloadAsset(shader);
             ImUnityUtility.Destroy(material);
             ImUnityUtility.Destroy(defaultTexture);
 

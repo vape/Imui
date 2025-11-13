@@ -13,6 +13,7 @@ namespace Imui.IO.UIToolkit
 {
     public interface IImuiElementDelegate
     {
+        void Init(ImGui gui);
         void Draw(ImGui gui);
     }
 
@@ -51,14 +52,14 @@ namespace Imui.IO.UIToolkit
         private int eventsCooldown;
         private bool contentDirty = true;
         private double throttleRefreshDelay;
-        
+
         private readonly ImGui gui;
         private readonly IImuiElementDelegate elementDelegate;
         private readonly IImuiRenderingScheduler renderScheduler;
         private readonly ImDynamicRenderTexture textureRenderer;
         private readonly Vertex[] vertices = new Vertex[4];
         private readonly ushort[] indices = new ushort[6] { 0, 1, 2, 2, 3, 0 };
-        
+
         private bool disposed;
 
         public ImuiElement(IImuiElementDelegate elementDelegate)
@@ -83,22 +84,24 @@ namespace Imui.IO.UIToolkit
             RegisterCallback<WheelEvent>(OnMouseWheel);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
             RegisterCallback<KeyUpEvent>(OnKeyUp);
-            
+
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+
+            this.elementDelegate.Init(gui);
         }
-        
+
         public void DoFrame(double time)
         {
             deltaTime = lastUpdate == 0 ? 0.0f : (float)(time - lastUpdate);
             globalTime = time;
-            
+
             if (!UpdateThrottle())
             {
                 return;
             }
-            
+
             ImProfiler.BeginSample("ImuiElement.DoFrame");
-            
+
             gui.BeginFrame();
 
             elementDelegate.Draw(gui);
@@ -107,7 +110,7 @@ namespace Imui.IO.UIToolkit
             gui.Render();
 
             MarkDirtyRepaint();
-            
+
             ImProfiler.EndSample();
         }
 
@@ -118,19 +121,19 @@ namespace Imui.IO.UIToolkit
                 contentDirty = false;
                 return true;
             }
-            
+
             var timePassed = globalTime - lastUpdate;
             var anyEvents = mouseEventsQueue.Count > 0 || nextKeyboardEvents.Count > 0;
             var preferredRefreshRate = gui.GetThrottleHint().PreferredRefreshRate;
             var refreshDelay = preferredRefreshRate <= 0 ? DEFAULT_THROTTLE_REFRESH_DELAY : 1.0d / preferredRefreshRate;
-            
+
             if (timePassed < refreshDelay && !anyEvents && eventsCooldown == 0)
             {
                 return false;
             }
 
             lastUpdate = globalTime;
-            
+
             if (anyEvents)
             {
                 // (artem-s): draw at least N frames after any event without throttling
@@ -208,10 +211,19 @@ namespace Imui.IO.UIToolkit
 
         private void GenerateVisualContent(MeshGenerationContext context)
         {
+            var color = (Color32)Color.white;
+            
+            // TODO (artem-s): proper fix for migrating frame buffer between playmode/editmode
+            if (!textureRenderer.Texture || (textureRenderer.Texture.width == ImDynamicRenderTexture.RES_MIN &&
+                                             textureRenderer.Texture.height == ImDynamicRenderTexture.RES_MIN))
+            {
+                // (artem-s): workaround for flash-banging when the previous buffer is already disposed and the new frame is not yet rendered
+                color = gui.Style.Window.Box.BackColor;
+            }
+
             var mesh = context.Allocate(4, 6, textureRenderer.Texture);
             var uv = mesh.uvRegion;
             var rect = contentRect;
-            var color = (Color32)Color.white;
 
             ref var v0 = ref vertices[0];
             v0.position.x = rect.xMin;
@@ -248,7 +260,7 @@ namespace Imui.IO.UIToolkit
             mesh.SetAllVertices(vertices);
             mesh.SetAllIndices(indices);
         }
-        
+
         private void OnGeometryChanged(GeometryChangedEvent evt)
         {
             contentDirty = true;
