@@ -24,8 +24,7 @@ namespace Imui.IO.UIToolkit
         private const double DEFAULT_THROTTLE_REFRESH_DELAY = 1.0d;
         private const int THROTTLE_COOLDOWN_FRAMES = 2;
 
-        // TODO (artem-s): use scaledPixelsPerPoint instead?
-        public float PixelsPerPoint { get; set; } = 1.0f;
+        public float PixelsPerPointOverride { get; set; }
         public bool Throttle { get; set; } = true;
 
         public ref readonly ImMouseEvent MouseEvent => ref mouseEvent;
@@ -176,7 +175,7 @@ namespace Imui.IO.UIToolkit
 
         public Vector2Int SetupRenderTarget(CommandBuffer cmd)
         {
-            var renderScale = PixelsPerPoint;
+            var renderScale = PixelsPerPointOverride > 0 ? PixelsPerPointOverride : scaledPixelsPerPoint;
             var screenSize = GetScreenSize();
             var targetSize = textureRenderer
                 .SetupRenderTarget(cmd, new Vector2Int((int)(screenSize.x * renderScale), (int)(screenSize.y * renderScale)), out _);
@@ -212,7 +211,7 @@ namespace Imui.IO.UIToolkit
         private void GenerateVisualContent(MeshGenerationContext context)
         {
             var color = (Color32)Color.white;
-            
+
             // TODO (artem-s): proper fix for migrating frame buffer between playmode/editmode
             if (!textureRenderer.Texture || (textureRenderer.Texture.width == ImDynamicRenderTexture.RES_MIN &&
                                              textureRenderer.Texture.height == ImDynamicRenderTexture.RES_MIN))

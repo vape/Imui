@@ -1,7 +1,6 @@
 using Imui.Controls;
 using Imui.Core;
 using Imui.IO.UIToolkit;
-using Imui.Style;
 using UnityEditor;
 using UnityEngine.UIElements;
 
@@ -34,7 +33,6 @@ namespace Imui.Editor
             imuiElement = new ImuiElement(this);
             rootVisualElement.Add(imuiElement);
             imuiElement.StretchToParentSize();
-            imuiElement.PixelsPerPoint = EditorGUIUtility.pixelsPerPoint;
         }
         
         private void RemoveElement()
