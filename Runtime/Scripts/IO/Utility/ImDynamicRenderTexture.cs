@@ -6,8 +6,8 @@ namespace Imui.IO.Utility
 {
     public class ImDynamicRenderTexture: IDisposable
     {
-        private const int RES_MIN = 32;
-        private const int RES_MAX = 4096;
+        public const int RES_MIN = 32;
+        public const int RES_MAX = 4096;
 
         public RenderTexture Texture { get; private set; }
 

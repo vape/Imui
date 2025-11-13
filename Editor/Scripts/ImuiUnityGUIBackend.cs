@@ -1,7 +1,6 @@
-using Imui.IO.UGUI;
 using UnityEditor;
 
-namespace Imui.Editor.Scripts
+namespace Imui.Editor
 {
     [CustomEditor(typeof(IO.UGUI.ImuiUnityGUIBackend))]
     public class ImuiUnityGUIBackend : UnityEditor.Editor

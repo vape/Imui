@@ -42,6 +42,7 @@ namespace Imui.IO.UGUI
 
         public Vector2 MousePosition => mousePosition;
         public double Time => time;
+        public float DeltaTime => deltaTime;
         public ref readonly ImMouseEvent MouseEvent => ref mouseEvent;
         public ref readonly ImTextEvent TextEvent => ref textEvent;
         public int KeyboardEventsCount => keyboardEvents.Count;
@@ -76,6 +77,7 @@ namespace Imui.IO.UGUI
         private ImTouchKeyboard touchKeyboardHandler;
         private bool elementHovered;
         private double time;
+        private float deltaTime;
 
         private bool mouseHeldDown;
         private ImMouseDevice mouseDownDevice;
@@ -97,7 +99,7 @@ namespace Imui.IO.UGUI
                 }
             }
 
-            scheduler ??= GraphicsSettings.currentRenderPipeline ? new ImuiScriptableRenderingScheduler() : new ImuiBuiltinRenderingScheduler();
+            scheduler ??= GraphicsSettings.currentRenderPipeline ? new ImuiScriptableRenderingScheduler() : new ImuiGenericRenderingScheduler();
             useGUILayout = false;
         }
 
@@ -213,6 +215,7 @@ namespace Imui.IO.UGUI
 
             mousePosition = GetMousePosition();
             time = UnityEngine.Time.unscaledTimeAsDouble;
+            deltaTime = UnityEngine.Time.unscaledDeltaTime;
 
             if (mouseEventsQueue.TryPopBack(out var queuedMouseEvent))
             {

@@ -22,6 +22,16 @@ namespace Imui.Core
         ShadedWireframe = 2
     }
 
+    public readonly struct ImGuiThrottleHint
+    {
+        public readonly int PreferredRefreshRate;
+
+        public ImGuiThrottleHint(int preferredRefreshRate)
+        {
+            PreferredRefreshRate = preferredRefreshRate;
+        }
+    }
+
     public unsafe class ImGui: IDisposable, IImuiRenderDelegate
     {
         private const int CONTROL_IDS_STACK_CAPACITY = 32;
@@ -144,6 +154,7 @@ namespace Imui.Core
         private ImRect lastControlRect;
         private ImDynamicArray<ImControlScope> controlScopesStack;
         private ImDynamicArray<StyleProp> styleStack;
+        private int preferredRefreshRate;
 
         private bool disposed;
 
@@ -180,6 +191,8 @@ namespace Imui.Core
                 LoadDefaultFont();
             }
 
+            preferredRefreshRate = 0;
+            
             Arena.Clear();
 
             idsStack.Clear(false);
@@ -644,6 +657,16 @@ namespace Imui.Core
             }
 
             return false;
+        }
+
+        public ImGuiThrottleHint GetThrottleHint()
+        {
+            return new ImGuiThrottleHint(preferredRefreshRate);
+        }
+        
+        public void SetPreferredRefreshRate(int refreshRate)
+        {
+            preferredRefreshRate = Math.Max(refreshRate, preferredRefreshRate);
         }
 
         public void Render()
