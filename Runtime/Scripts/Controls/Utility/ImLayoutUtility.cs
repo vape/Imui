@@ -6,12 +6,12 @@ namespace Imui.Controls
 {
     public static class ImLayoutUtility
     {
-        public static ImRect AddSingleRowRect(this ImGui gui, ImSize size, float minWidth = 0)
+        public static ImRect AddSingleRowRect(this ImGui gui, ImSize size, float minWidth = 0.0f, float minHeight = 0.0f)
         {
             return size.Mode switch
             {
                 ImSizeMode.Fixed => gui.Layout.AddRect(size.Width, size.Height),
-                _ => gui.Layout.AddRect(Mathf.Max(minWidth, gui.Layout.GetAvailableWidth()), gui.GetRowHeight())
+                _ => gui.Layout.AddRect(Mathf.Max(minWidth, gui.Layout.GetAvailableWidth()), Mathf.Max(minHeight, gui.GetRowHeight()))
             };
         }
 

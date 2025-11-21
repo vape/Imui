@@ -191,6 +191,8 @@ namespace Imui.Core
     [Serializable]
     public struct ImRectRadius
     {
+        public float MinRectSideSize => Mathf.Max(TopLeft, BottomLeft) + Mathf.Max(BottomLeft, BottomRight);
+        
         public float TopLeft;
         public float TopRight;
         public float BottomRight;

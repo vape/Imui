@@ -101,7 +101,7 @@ namespace Imui.Examples
         private static Vector2Int vec2int = new Vector2Int(1, 2);
         private static Vector3Int vec3int = new Vector3Int(1, 2, 3);
         private static bool textEditWrap;
-
+        private static float changeableProgress;
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
 
@@ -335,6 +335,20 @@ namespace Imui.Examples
             gui.Vector(ref vec2int);
             gui.Text("Three component vector");
             gui.Vector(ref vec3int);
+            
+            gui.Separator("Progress Bar");
+            
+            var progress = ((float)gui.Input.Time / 5.0f);
+            progress -= Mathf.Floor(progress);
+            gui.ProgressBarHeader("Progress bar", progress, "0%");
+            gui.ProgressBar(progress);
+            
+            gui.ProgressBarHeader("Doing something important...");
+            gui.ProgressBar();
+            
+            gui.ProgressBar(changeableProgress);
+            gui.TooltipAtLastControl("Select percentage below");
+            gui.NumericEdit(ref changeableProgress, min: 0.0f, max: 1.0f, step: 0.01f, flags: ImNumericEditFlag.Slider, format: "0%");
 
             gui.EndReadOnly();
         }

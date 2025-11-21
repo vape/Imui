@@ -130,7 +130,6 @@ namespace Imui.Style
         public float BarThickness;
         public float HandleThickness;
         public float HeaderScale;
-        public ImTextOverflow TextOverflow;
     }
 
     [Serializable]
@@ -244,5 +243,17 @@ namespace Imui.Style
         public Color32 SelectedColumnColor;
         public float BorderThickness;
         public float SelectedColumnThickness;
+    }
+
+    [Serializable]
+    public struct ImStyleProgressBar
+    {
+        public ImStyleBox Box;
+        public ImStyleBox Fill;
+        public ImPadding FillPadding;
+        public Vector2 BarScale;
+        public float IndeterminateSpeed;
+        public float IndeterminateWidth;
+        public float HeaderScale;
     }
 }

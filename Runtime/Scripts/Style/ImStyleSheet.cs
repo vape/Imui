@@ -33,5 +33,6 @@ namespace Imui.Style
         public ImStyleColorPicker ColorPicker;
         public ImStyleTab Tabs;
         public ImStyleTable Table;
+        public ImStyleProgressBar ProgressBar;
     }
 }

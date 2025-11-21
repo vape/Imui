@@ -248,7 +248,6 @@ namespace Imui.Style
             var sliderHandleRadius = theme.BorderRadius * (theme.TextSize + theme.ExtraRowHeight);
 
             sheet.Slider.BarThickness = 0.45f;
-            sheet.Slider.TextOverflow = ImTextOverflow.Ellipsis;
             sheet.Slider.HeaderScale = 0.75f;
 
             sheet.Slider.Normal.BackColor = palette.Control;
@@ -444,7 +443,17 @@ namespace Imui.Style
             sheet.Table.SelectedColumnColor = palette.Accent;
             sheet.Table.BorderThickness = sheet.Separator.Thickness;
             sheet.Table.SelectedColumnThickness = sheet.Table.BorderThickness * 2;
+            
+            // progress bar
 
+            sheet.ProgressBar.Box = sheet.Slider.Normal;
+            sheet.ProgressBar.Fill = sheet.Slider.Fill;
+            sheet.ProgressBar.FillPadding = sheet.Slider.Normal.BorderThickness * 2.0f;
+            sheet.ProgressBar.BarScale = new Vector2(1.0f, 0.45f);
+            sheet.ProgressBar.HeaderScale = 0.75f;
+            sheet.ProgressBar.IndeterminateSpeed = 1.0f;
+            sheet.ProgressBar.IndeterminateWidth = 0.3f;
+            
             // end
 
             return sheet;
