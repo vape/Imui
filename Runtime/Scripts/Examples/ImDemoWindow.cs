@@ -104,7 +104,11 @@ namespace Imui.Examples
         private static float changeableProgress;
         private static bool selectMultipleValues = false;
         private static HashSet<string> selectedNodes = new HashSet<string>(8);
-
+        private static float sliderLeft = 0.1f;
+        private static float sliderRight = 0.9f;
+        private static int sliderLeftInt = 10;
+        private static int sliderRightInt = 90;
+        
         private static readonly ImDemoTreeNode[] treeNodes = new[]
         {
             new ImDemoTreeNode("Node 0",
@@ -256,6 +260,10 @@ namespace Imui.Examples
             }
             gui.Separator("Sliders (with tooltips)");
             DrawSlidersDemo(gui);
+            gui.SliderHeader("Range", sliderLeft, sliderRight, "0.00");
+            gui.SliderRange(ref sliderLeft, ref sliderRight, 0.0f, 1.0f);
+            gui.SliderHeader("Range Int", sliderLeftInt, sliderRightInt);
+            gui.SliderRange(ref sliderLeftInt, ref sliderRightInt, 0, 100);
             gui.Separator("Selection list (you can select multiple values)");
             gui.BeginList((gui.GetLayoutWidth(), ImList.GetEnclosingHeight(gui, gui.GetRowsHeightWithSpacing(3))));
             for (int i = 0; i < values.Length; ++i)
@@ -440,7 +448,7 @@ namespace Imui.Examples
             gui.Slider(ref bouncingBallSpeed, -2f, 2f);
             gui.TooltipAtLastControl("Speed of moving circles");
             gui.SliderHeader("Trail Length", bouncingBallTrail);
-            gui.Slider(ref bouncingBallTrail, 1, 256, step: 32, flags: ImSliderFlag.DynamicHandle);
+            gui.Slider(ref bouncingBallTrail, 1, 256, step: 32, flags: ImSliderFlag.DynamicHandleWidth);
             gui.TooltipAtLastControl("Number of circles drawn");
         }
 
