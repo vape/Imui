@@ -10,6 +10,14 @@ using UnityEngine;
 namespace Imui.Controls
 {
     [Flags]
+    public enum ImTextEditFlag
+    {
+        None = 0,
+        NoDecorations = 1 << 0,
+        NoMasking = 1 << 1
+    }
+
+    [Flags]
     public enum ImTextEditStateFlag
     {
         None = 0,
@@ -38,7 +46,7 @@ namespace Imui.Controls
 
         private Span<char> mutable;
         private int mutableLength;
-        
+
         public ImTextEditBuffer(string source, ImArena arena, int maxLength)
         {
             this.arena = arena;
@@ -212,15 +220,62 @@ namespace Imui.Controls
             gui.EndReadOnlyWithoutStyleChanges();
         }
 
+        public static void TextSelectable(this ImGui gui, ReadOnlySpan<char> text)
+        {
+            var settings = new ImTextSettings(gui.Style.Layout.TextSize,
+                                              gui.Style.TextEdit.Alignment,
+                                              gui.Style.TextEdit.SelectableTextWrap,
+                                              ImTextOverflow.Overflow);
+            
+            TextSelectable(gui, text, in settings);
+        }
+        
+        public static void TextSelectable(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings)
+        {
+            ref readonly var textLayout = ref gui.TextDrawer.BuildTempLayout(text,
+                                                                             settings.Wrap ? gui.GetLayoutWidth() : 0,
+                                                                             0,
+                                                                             settings.Align.X,
+                                                                             settings.Align.Y,
+                                                                             settings.Size,
+                                                                             settings.Wrap,
+                                                                             settings.Overflow);
+
+            var rect = gui.AddLayoutRect(textLayout.Width, textLayout.Height);
+
+            TextSelectable(gui, text, in settings, rect);
+        }
+
+        public static void TextSelectable(this ImGui gui, ReadOnlySpan<char> text, in ImTextSettings settings, ImRect rect)
+        {
+            var id = gui.GetNextControlId();
+            var buffer = new ImTextEditBuffer(text, gui.Arena, text.Length);
+            ref var state = ref gui.Storage.Get<ImTextEditState>(id);
+
+            gui.BeginReadOnlyWithoutStyleChanges(true);
+            TextEdit(gui,
+                     id,
+                     ref buffer,
+                     ref state,
+                     rect,
+                     true,
+                     ImTouchKeyboardType.Default,
+                     ReadOnlySpan<char>.Empty,
+                     in settings,
+                     ImTextEditFlag.NoDecorations | ImTextEditFlag.NoMasking);
+            gui.EndReadOnlyWithoutStyleChanges();
+        }
+
         public static string TextEdit(this ImGui gui,
                                       string text,
                                       ImSize size = default,
                                       bool? multiline = null,
                                       int charactersLimit = 0,
                                       ImTouchKeyboardType keyboardType = ImTouchKeyboardType.Default,
-                                      ReadOnlySpan<char> hint = default)
+                                      ReadOnlySpan<char> hint = default,
+                                      ImTextEditFlag flags = ImTextEditFlag.None)
         {
-            TextEdit(gui, ref text, size, multiline, charactersLimit, keyboardType, hint);
+            TextEdit(gui, ref text, size, multiline, charactersLimit, keyboardType, hint, flags);
             return text;
         }
 
@@ -230,12 +285,13 @@ namespace Imui.Controls
                                     bool? multiline = null,
                                     int charactersLimit = 0,
                                     ImTouchKeyboardType keyboardType = ImTouchKeyboardType.Default,
-                                    ReadOnlySpan<char> hint = default)
+                                    ReadOnlySpan<char> hint = default,
+                                    ImTextEditFlag flags = ImTextEditFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = AddRect(gui, size, multiline, out var actuallyMultiline);
-            return TextEdit(gui, ref text, rect, actuallyMultiline, charactersLimit, keyboardType, hint);
+            return TextEdit(gui, ref text, rect, actuallyMultiline, charactersLimit, keyboardType, hint, flags);
         }
 
         public static bool TextEdit(this ImGui gui,
@@ -243,12 +299,13 @@ namespace Imui.Controls
                                     ImSize size = default,
                                     bool? multiline = null,
                                     ImTouchKeyboardType keyboardType = ImTouchKeyboardType.Default,
-                                    ReadOnlySpan<char> hint = default)
+                                    ReadOnlySpan<char> hint = default,
+                                    ImTextEditFlag flags = ImTextEditFlag.None)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
 
             var rect = AddRect(gui, size, multiline, out var actuallyMultiline);
-            return TextEdit(gui, ref text, rect, actuallyMultiline, keyboardType, hint);
+            return TextEdit(gui, ref text, rect, actuallyMultiline, keyboardType, hint, flags);
         }
 
         public static string TextEdit(this ImGui gui,
@@ -257,9 +314,10 @@ namespace Imui.Controls
                                       bool multiline,
                                       int charactersLimit = 0,
                                       ImTouchKeyboardType keyboardType = ImTouchKeyboardType.Default,
-                                      ReadOnlySpan<char> hint = default)
+                                      ReadOnlySpan<char> hint = default,
+                                      ImTextEditFlag flags = ImTextEditFlag.None)
         {
-            TextEdit(gui, ref text, rect, multiline, charactersLimit, keyboardType, hint);
+            TextEdit(gui, ref text, rect, multiline, charactersLimit, keyboardType, hint, flags);
             return text;
         }
 
@@ -269,12 +327,13 @@ namespace Imui.Controls
                                     bool multiline,
                                     int charactersLimit = 0,
                                     ImTouchKeyboardType keyboardType = ImTouchKeyboardType.Default,
-                                    ReadOnlySpan<char> hint = default)
+                                    ReadOnlySpan<char> hint = default,
+                                    ImTextEditFlag flags = ImTextEditFlag.None)
         {
             var id = gui.GetNextControlId();
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            return TextEdit(gui, id, ref text, ref state, rect, multiline, charactersLimit, keyboardType, hint);
+            return TextEdit(gui, id, ref text, ref state, rect, multiline, charactersLimit, keyboardType, hint, flags);
         }
 
         public static bool TextEdit(this ImGui gui,
@@ -282,12 +341,14 @@ namespace Imui.Controls
                                     ImRect rect,
                                     bool multiline,
                                     ImTouchKeyboardType keyboardType = ImTouchKeyboardType.Default,
-                                    ReadOnlySpan<char> hint = default)
+                                    ReadOnlySpan<char> hint = default,
+                                    ImTextEditFlag flags = ImTextEditFlag.None)
         {
             var id = gui.GetNextControlId();
+            var settings = GetDefaultTextSettings(gui);
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            return TextEdit(gui, id, ref buffer, ref state, rect, multiline, keyboardType, hint);
+            return TextEdit(gui, id, ref buffer, ref state, rect, multiline, keyboardType, hint, in settings, flags);
         }
 
         public static bool TextEdit(this ImGui gui,
@@ -296,11 +357,13 @@ namespace Imui.Controls
                                     ImRect rect,
                                     bool multiline,
                                     ImTouchKeyboardType keyboardType = ImTouchKeyboardType.Default,
-                                    ReadOnlySpan<char> hint = default)
+                                    ReadOnlySpan<char> hint = default,
+                                    ImTextEditFlag flags = ImTextEditFlag.None)
         {
+            var settings = GetDefaultTextSettings(gui);
             ref var state = ref gui.Storage.Get<ImTextEditState>(id);
 
-            return TextEdit(gui, id, ref buffer, ref state, rect, multiline, keyboardType, hint);
+            return TextEdit(gui, id, ref buffer, ref state, rect, multiline, keyboardType, hint, in settings, flags);
         }
 
         public static bool TextEdit(this ImGui gui,
@@ -311,16 +374,23 @@ namespace Imui.Controls
                                     bool multiline,
                                     int charactersLimit = 0,
                                     ImTouchKeyboardType keyboardType = ImTouchKeyboardType.Default,
-                                    ReadOnlySpan<char> hint = default)
+                                    ReadOnlySpan<char> hint = default,
+                                    ImTextEditFlag flags = ImTextEditFlag.None)
         {
             var buffer = new ImTextEditBuffer(text, gui.Arena, charactersLimit);
-            var changed = TextEdit(gui, id, ref buffer, ref state, rect, multiline, keyboardType, hint);
+            var settings = GetDefaultTextSettings(gui);
+            var changed = TextEdit(gui, id, ref buffer, ref state, rect, multiline, keyboardType, hint, in settings, flags);
             if (changed)
             {
                 text = buffer.ToString();
             }
 
             return changed;
+        }
+
+        public static ImTextSettings GetDefaultTextSettings(ImGui gui)
+        {
+            return new ImTextSettings(gui.Style.Layout.TextSize, gui.Style.TextEdit.Alignment, gui.Style.TextEdit.TextWrap, ImTextOverflow.Overflow);
         }
 
         public static bool TextEdit(ImGui gui,
@@ -330,7 +400,9 @@ namespace Imui.Controls
                                     ImRect rect,
                                     bool multiline,
                                     ImTouchKeyboardType keyboardType,
-                                    ReadOnlySpan<char> hint)
+                                    ReadOnlySpan<char> hint,
+                                    in ImTextSettings textSettings,
+                                    ImTextEditFlag flags)
         {
             ref readonly var style = ref gui.Style.TextEdit;
 
@@ -338,45 +410,55 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var textChanged = false;
             var editable = !gui.IsReadOnly;
-            var wrap = gui.Style.TextEdit.TextWrap;
 
             ref readonly var stateStyle = ref (selected ? ref style.Selected : ref style.Normal);
 
-            gui.Box(rect, in stateStyle.Box);
+            if ((flags & ImTextEditFlag.NoDecorations) == 0)
+            {
+                gui.Box(rect, in stateStyle.Box);
+            }
 
             var textPadding = (ImPadding)gui.Style.Layout.InnerSpacing;
-            var textSize = gui.Style.Layout.TextSize;
-            var textAlignment = gui.Style.TextEdit.Alignment;
 
             if (!multiline)
             {
                 // single-line text is always drawn at vertical center
-                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(textSize), 0.0f) / 2.0f;
+                var halfVertPadding = Mathf.Max(rect.H - gui.TextDrawer.GetLineHeightFromFontSize(textSettings.Size), 0.0f) / 2.0f;
 
                 textPadding.Top = halfVertPadding;
                 textPadding.Bottom = halfVertPadding;
             }
 
-            var textBounds = rect.WithPadding(textPadding + gui.Style.TextEdit.Padding);
+            var textBounds = rect;
 
-            gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
+            if ((flags & ImTextEditFlag.NoDecorations) == 0)
+            {
+                textBounds = textBounds.WithPadding(textPadding + gui.Style.TextEdit.Padding);
+            }
+
+            if ((flags & ImTextEditFlag.NoMasking) == 0)
+            {
+                gui.Canvas.PushRectMask(rect, stateStyle.Box.BorderRadius);
+            }
+
             gui.Layout.Push(ImAxis.Vertical, textBounds, ImLayoutFlag.Root);
             gui.BeginScrollable();
 
-            var layoutWidth = wrap ? gui.GetLayoutWidth() : textBounds.W;
+            var layoutWidth = textSettings.Wrap ? gui.GetLayoutWidth() : textBounds.W;
             var layout = gui.TextDrawer.BuildTempLayout(
                 buffer,
                 layoutWidth,
                 textBounds.H,
-                textAlignment.X,
-                textAlignment.Y,
-                textSize,
-                wrap,
-                ImTextOverflow.Overflow);
+                textSettings.Align.X,
+                textSettings.Align.Y,
+                textSettings.Size,
+                textSettings.Wrap,
+                textSettings.Overflow);
 
             if (buffer.Length == 0 && !hint.IsEmpty)
             {
-                var hintTextSettings = new ImTextSettings(textSize, textAlignment, style.TextWrap, ImTextOverflow.Ellipsis);
+                var hintTextSettings = textSettings;
+                hintTextSettings.Overflow = ImTextOverflow.Ellipsis;
                 gui.Canvas.Text(hint, style.HintFrontColor, textBounds, in hintTextSettings);
             }
 
@@ -429,6 +511,7 @@ namespace Imui.Controls
                     }
 
                     state.Selection = 0;
+                    // TODO (artem-s): set caret to position where drag begins instead
                     state.Caret = ViewToCaretPosition(gui.Input.MousePosition, gui.TextDrawer, textRect, in layout, in buffer);
                     state.BlinkTime = gui.Input.Time;
 
@@ -453,7 +536,7 @@ namespace Imui.Controls
             if (selected)
             {
                 gui.SetPreferredRefreshRate(30);
-                
+
                 DrawCaret(gui, state.Caret, state.BlinkTime, textRect, in layout, in stateStyle, in buffer);
 
                 for (int i = 0; i < gui.Input.KeyboardEventsCount; ++i)
@@ -524,7 +607,11 @@ namespace Imui.Controls
 
             gui.EndScrollable(multiline ? ImScrollFlag.None : ImScrollFlag.HideAll);
             gui.Layout.Pop();
-            gui.Canvas.PopRectMask();
+
+            if ((flags & ImTextEditFlag.NoMasking) == 0)
+            {
+                gui.Canvas.PopRectMask();
+            }
 
             return textChanged;
         }

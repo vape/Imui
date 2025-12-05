@@ -181,6 +181,7 @@ namespace Imui.Style
             sheet.TextEdit.CaretWidth = 2.0f;
             sheet.TextEdit.Alignment = new ImAlignment(0.0f, 0.0f);
             sheet.TextEdit.TextWrap = false;
+            sheet.TextEdit.SelectableTextWrap = true;
 
             // scroll bar
 

@@ -258,6 +258,10 @@ namespace Imui.Examples
             {
                 gui.TextEdit(ref multiLineText, multiline: true);
             }
+
+            gui.Separator("Selectable text");
+            gui.TextSelectable(multiLineText);
+            
             gui.Separator("Sliders (with tooltips)");
             DrawSlidersDemo(gui);
             gui.SliderHeader("Range", sliderLeft, sliderRight, "0.00");

@@ -153,6 +153,7 @@ namespace Imui.Style
         public float CaretWidth;
         public ImAlignment Alignment;
         public bool TextWrap;
+        public bool SelectableTextWrap;
         public ImPadding Padding;
         public Color32 HintFrontColor;
     }
