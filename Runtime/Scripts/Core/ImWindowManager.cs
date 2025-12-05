@@ -21,12 +21,15 @@ namespace Imui.Core
         private const int DRAWING_STACK_CAPACITY = 8;
         private const int WINDOWS_CAPACITY = 32;
 
+        internal uint drawingWindowId;
+        
         internal ImDynamicArray<uint> drawingStack = new(DRAWING_STACK_CAPACITY);
         internal ImDynamicArray<ImWindowState> windows = new(WINDOWS_CAPACITY);
 
         public ref ImWindowState BeginWindow(uint id, string title, ImRect initialRect, ImWindowFlag flags)
         {
             drawingStack.Push(id);
+            UpdateCurrentDrawingWindowId();
 
             var index = TryFindWindow(id);
             if (index >= 0)
@@ -41,7 +44,7 @@ namespace Imui.Core
                 if (!wasVisible)
                 {
                     MoveToTop(index);
-                    drawingStack.Pop();
+                    EndWindow();
                     return ref BeginWindow(id, title, initialRect, flags);
                 }
                 
@@ -71,7 +74,9 @@ namespace Imui.Core
 
         public uint EndWindow()
         {
-            return drawingStack.Pop();
+            var id = drawingStack.Pop();
+            UpdateCurrentDrawingWindowId();
+            return id;
         }
 
         public bool IsDrawingWindow()
@@ -120,6 +125,18 @@ namespace Imui.Core
             }
 
             MoveToTop(index);
+        }
+
+        internal void UpdateCurrentDrawingWindowId()
+        {
+            if (TryGetDrawingWindowId(out var id))
+            {
+                drawingWindowId = id;
+            }
+            else
+            {
+                drawingWindowId = 0;
+            }
         }
         
         internal void HandleFrameEnded()

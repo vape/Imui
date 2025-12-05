@@ -78,6 +78,7 @@ namespace Imui.Core
         {
             public uint Id;
             public int Order;
+            public uint WindowId;
             public ImRect Rect;
         }
 
@@ -503,17 +504,23 @@ namespace Imui.Core
             if (rect.Contains(Input.MousePosition))
             {
                 var currentOrder = meshProperties.Order;
+                var currentWindow = WindowManager.drawingWindowId;
 
                 for (int i = nextFrameData.HoveredGroups.Count - 1; i >= 0; --i)
                 {
                     var order = nextFrameData.HoveredGroups.Array[i].Order;
-                    if (order < currentOrder)
+                    var winId = nextFrameData.HoveredGroups.Array[i].WindowId;
+
+                    if (winId != currentWindow)
                     {
-                        nextFrameData.HoveredGroups.RemoveAtFast(i);
-                    }
-                    else if (order > currentOrder)
-                    {
-                        return;
+                        if (order < currentOrder)
+                        {
+                            nextFrameData.HoveredGroups.RemoveAtFast(i);
+                        }
+                        else if (order > currentOrder)
+                        {
+                            return;
+                        }
                     }
                 }
 
@@ -521,6 +528,7 @@ namespace Imui.Core
                 {
                     Id = controlId,
                     Order = meshProperties.Order,
+                    WindowId = WindowManager.drawingWindowId,
                     Rect = rect
                 });
             }
