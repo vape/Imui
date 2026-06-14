@@ -63,8 +63,6 @@ namespace Imui.IO.UGUI
 
         [SerializeField] private ScalingMode scalingMode = ScalingMode.Inherited;
         [SerializeField] private float customScale = 1.0f;
-        [Tooltip("Simulate touch input from the desktop mouse in Editor play mode, for testing app touch input when Game View is in Simulator mode.")]
-        [SerializeField] private bool simulateTouchWithMouseInEditor;
 
         private IImuiInput.RaycasterDelegate raycaster;
         private ImDynamicRenderTexture texture;
@@ -85,11 +83,6 @@ namespace Imui.IO.UGUI
         private int[] mouseDownCount = new int[MAX_MOUSE_BUTTONS];
         private Vector2[] mouseDownPos = new Vector2[MAX_MOUSE_BUTTONS];
         private bool[] possibleClick = new bool[MAX_MOUSE_BUTTONS];
-#if ENABLE_INPUT_SYSTEM && UNITY_EDITOR
-        private bool polledPointerPressed;
-        private bool polledPointerOwnsPress;
-        private bool editorTouchSimulationRegistered;
-#endif
 
         protected override void Awake()
         {
@@ -154,28 +147,10 @@ namespace Imui.IO.UGUI
 
             touchKeyboardHandler ??= new ImTouchKeyboard();
             texture ??= new ImDynamicRenderTexture();
-
-#if ENABLE_INPUT_SYSTEM && UNITY_EDITOR
-            if (simulateTouchWithMouseInEditor && Application.isPlaying)
-            {
-                ImUnityInputWrapper.EnableEditorTouchSimulation();
-                editorTouchSimulationRegistered = true;
-            }
-#endif
         }
 
         protected override void OnDisable()
         {
-#if ENABLE_INPUT_SYSTEM && UNITY_EDITOR
-            if (editorTouchSimulationRegistered)
-            {
-                ImUnityInputWrapper.DisableEditorTouchSimulation();
-                editorTouchSimulationRegistered = false;
-            }
-            polledPointerPressed = false;
-            polledPointerOwnsPress = false;
-#endif
-
             base.OnDisable();
         }
 
@@ -244,9 +219,6 @@ namespace Imui.IO.UGUI
 
             mousePosition = GetMousePosition();
             time = UnityEngine.Time.unscaledTimeAsDouble;
-#if ENABLE_INPUT_SYSTEM && UNITY_EDITOR
-            PollPointerFallback(mouseBtnLeft);
-#endif
 
             if (mouseEventsQueue.TryPopBack(out var queuedMouseEvent))
             {
@@ -436,74 +408,6 @@ namespace Imui.IO.UGUI
             return result;
         }
 
-#if ENABLE_INPUT_SYSTEM && UNITY_EDITOR
-        private void PollPointerFallback(int button)
-        {
-            // Game View Simulator testing can use the desktop mouse as simulated touch input.
-            if (!simulateTouchWithMouseInEditor)
-            {
-                polledPointerPressed = false;
-                polledPointerOwnsPress = false;
-                return;
-            }
-
-            bool pressed = ImUnityInputWrapper.PointerPressed;
-            if (mouseEventsQueue.Count > 0)
-            {
-                polledPointerPressed = pressed;
-                return;
-            }
-
-            bool pressedThisFrame = ImUnityInputWrapper.PointerPressedThisFrame || (pressed && !polledPointerPressed);
-            bool releasedThisFrame = !pressed && polledPointerPressed;
-
-            if (pressedThisFrame)
-            {
-                if (!ImUnityInputWrapper.TryGetPointerPosition(out Vector2 screenPosition) || !RaycastScreenPosition(screenPosition))
-                {
-                    polledPointerPressed = pressed;
-                    return;
-                }
-
-                polledPointerOwnsPress = true;
-
-                if (UnityEngine.Time.unscaledTime - mouseDownTime[button] >= MULTI_CLICK_TIME_THRESHOLD
-                    || (mousePosition - mouseDownPos[button]).magnitude >= MULTI_CLICK_POS_THRESHOLD)
-                    mouseDownCount[button] = 0;
-
-                mouseDownPos[button] = mousePosition;
-                mouseDownCount[button] += 1;
-                mouseDownTime[button] = UnityEngine.Time.unscaledTime;
-                possibleClick[button] = true;
-                mouseDownDevice = ImUnityInputWrapper.TouchScreenSupported ? ImMouseDevice.Touch : ImMouseDevice.Mouse;
-                mouseHeldDown = true;
-
-                mouseEventsQueue.PushFront(new ImMouseEvent(
-                    ImMouseEventType.Down,
-                    button,
-                    GetMouseEventModifiers(),
-                    default,
-                    mouseDownDevice,
-                    mouseDownCount[button]));
-            }
-            else if (releasedThisFrame && polledPointerOwnsPress)
-            {
-                mouseHeldDown = false;
-                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, button, GetMouseEventModifiers(), default, mouseDownDevice));
-
-                if (possibleClick[button] && Vector2.Distance(mouseDownPos[button], mousePosition) < CLICK_POS_THRESHOLD)
-                {
-                    mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Click, button, GetMouseEventModifiers(), default, mouseDownDevice));
-                    possibleClick[button] = false;
-                }
-
-                polledPointerOwnsPress = false;
-            }
-
-            polledPointerPressed = pressed;
-        }
-#endif
-
         private static Vector2 GetScreenPointerPosition()
         {
 #if ENABLE_INPUT_SYSTEM
@@ -511,20 +415,6 @@ namespace Imui.IO.UGUI
 #else
             return ImUnityInputWrapper.MousePosition;
 #endif
-        }
-
-        private bool RaycastScreenPosition(Vector2 screenPosition)
-        {
-            if (raycaster == null)
-                return false;
-
-            var scale = GetScale();
-            var screenRect = GetWorldRect();
-            if (!screenRect.Contains(screenPosition))
-                return false;
-
-            var localPosition = (screenPosition - screenRect.position) / scale;
-            return raycaster(localPosition.x, localPosition.y);
         }
 
         private ImMouseDevice GetDeviceType(PointerEventData e)

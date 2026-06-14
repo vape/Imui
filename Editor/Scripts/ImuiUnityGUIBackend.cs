@@ -10,9 +10,6 @@ namespace Imui.Editor.Scripts
             var raycastTarget = serializedObject.FindProperty("m_RaycastTarget");
             var scalingMode = serializedObject.FindProperty("scalingMode");
             var customScale = serializedObject.FindProperty("customScale");
-#if ENABLE_INPUT_SYSTEM
-            var simulateTouchWithMouseInEditor = serializedObject.FindProperty("simulateTouchWithMouseInEditor");
-#endif
 
             EditorGUILayout.PropertyField(raycastTarget);
             EditorGUILayout.PropertyField(scalingMode);
@@ -21,10 +18,6 @@ namespace Imui.Editor.Scripts
             {
                 EditorGUILayout.PropertyField(customScale);
             }
-
-#if ENABLE_INPUT_SYSTEM
-            EditorGUILayout.PropertyField(simulateTouchWithMouseInEditor);
-#endif
 
             serializedObject.ApplyModifiedProperties();
         }
