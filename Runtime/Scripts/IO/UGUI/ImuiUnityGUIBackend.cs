@@ -410,11 +410,7 @@ namespace Imui.IO.UGUI
 
         private static Vector2 GetScreenPointerPosition()
         {
-#if ENABLE_INPUT_SYSTEM
-            return ImUnityInputWrapper.TryGetPointerPosition(out Vector2 position) ? position : default;
-#else
             return ImUnityInputWrapper.MousePosition;
-#endif
         }
 
         private ImMouseDevice GetDeviceType(PointerEventData e)
