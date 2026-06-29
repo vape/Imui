@@ -34,6 +34,18 @@ namespace Imui.IO.UGUI
         private const float CLICK_POS_THRESHOLD = 8.0f;
         private const int MAX_MOUSE_BUTTONS = 3;
 
+        private readonly struct QueuedMouseEvent
+        {
+            public readonly ImMouseEvent Event;
+            public readonly Vector2 Position;
+
+            public QueuedMouseEvent(ImMouseEvent evt, Vector2 position)
+            {
+                Event = evt;
+                Position = position;
+            }
+        }
+
         private static Texture2D ClearTexture;
         private static readonly Vector3[] TempBuffer = new Vector3[4];
         private static Material DefaultMaterial;
@@ -66,7 +78,7 @@ namespace Imui.IO.UGUI
 
         private IImuiInput.RaycasterDelegate raycaster;
         private ImDynamicRenderTexture texture;
-        private ImCircularBuffer<ImMouseEvent> mouseEventsQueue;
+        private ImCircularBuffer<QueuedMouseEvent> mouseEventsQueue;
         private ImCircularBuffer<ImKeyboardEvent> nextKeyboardEvents;
         private ImCircularBuffer<ImKeyboardEvent> keyboardEvents;
         private IImuiRenderingScheduler scheduler;
@@ -132,7 +144,7 @@ namespace Imui.IO.UGUI
 
             if (mouseEventsQueue.Array == null)
             {
-                mouseEventsQueue = new ImCircularBuffer<ImMouseEvent>(MOUSE_EVENTS_QUEUE_SIZE);
+                mouseEventsQueue = new ImCircularBuffer<QueuedMouseEvent>(MOUSE_EVENTS_QUEUE_SIZE);
             }
 
             if (keyboardEvents.Array == null)
@@ -217,23 +229,28 @@ namespace Imui.IO.UGUI
 #endif
             var mouseBtnLeft = (int)PointerEventData.InputButton.Left;
 
-            mousePosition = GetMousePosition();
             time = UnityEngine.Time.unscaledTimeAsDouble;
 
             if (mouseEventsQueue.TryPopBack(out var queuedMouseEvent))
             {
-                mouseEvent = queuedMouseEvent;
-            }
-            else if (mouseHeldDown && (UnityEngine.Time.unscaledTime - mouseDownTime[mouseBtnLeft]) > HELD_DOWN_DELAY)
-            {
-                var delta = new Vector2(UnityEngine.Time.unscaledTime - mouseDownTime[mouseBtnLeft], 0);
-                var count = mouseDownCount[mouseBtnLeft];
-
-                mouseEvent = new ImMouseEvent(ImMouseEventType.Hold, mouseBtnLeft, EventModifiers.None, delta, mouseDownDevice, count);
+                mouseEvent = queuedMouseEvent.Event;
+                mousePosition = queuedMouseEvent.Position;
             }
             else
             {
-                mouseEvent = default;
+                mousePosition = GetMousePosition();
+
+                if (mouseHeldDown && (UnityEngine.Time.unscaledTime - mouseDownTime[mouseBtnLeft]) > HELD_DOWN_DELAY)
+                {
+                    var delta = new Vector2(UnityEngine.Time.unscaledTime - mouseDownTime[mouseBtnLeft], 0);
+                    var count = mouseDownCount[mouseBtnLeft];
+
+                    mouseEvent = new ImMouseEvent(ImMouseEventType.Hold, mouseBtnLeft, EventModifiers.None, delta, mouseDownDevice, count);
+                }
+                else
+                {
+                    mouseEvent = default;
+                }
             }
 
             for (int i = 0; i < possibleClick.Length; ++i)
@@ -291,21 +308,23 @@ namespace Imui.IO.UGUI
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            var pos = GetPointerEventPosition(eventData);
+
             // (artem-s): with touch input, defer down event one frame so controls first could understand they are hovered
             // before processing the actual click
 
             var device = GetDeviceType(eventData);
-            if (device == ImMouseDevice.Touch && ImUnityInputWrapper.IsTouchBeganThisFrame())
+            if (device == ImMouseDevice.Touch)
             {
-                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Move,
-                                                            (int)eventData.button,
-                                                            GetMouseEventModifiers(),
-                                                            eventData.delta / GetScale(),
-                                                            device));
+                PushMouseEvent(new ImMouseEvent(ImMouseEventType.Move,
+                                                (int)eventData.button,
+                                                GetMouseEventModifiers(),
+                                                eventData.delta / GetScale(),
+                                                device),
+                               pos);
             }
 
             var btn = (int)eventData.button;
-            var pos = GetMousePosition();
 
             if (UnityEngine.Time.unscaledTime - mouseDownTime[btn] >= MULTI_CLICK_TIME_THRESHOLD || (pos - mouseDownPos[btn]).magnitude >= MULTI_CLICK_POS_THRESHOLD)
             {
@@ -323,37 +342,40 @@ namespace Imui.IO.UGUI
                 mouseHeldDown = true;
             }
 
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Down,
-                                                        (int)eventData.button,
-                                                        GetMouseEventModifiers(),
-                                                        eventData.delta / GetScale(),
-                                                        device,
-                                                        mouseDownCount[btn]));
+            PushMouseEvent(new ImMouseEvent(ImMouseEventType.Down,
+                                            (int)eventData.button,
+                                            GetMouseEventModifiers(),
+                                            eventData.delta / GetScale(),
+                                            device,
+                                            mouseDownCount[btn]),
+                           pos);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            var pos = GetPointerEventPosition(eventData);
             var device = GetDeviceType(eventData);
             var button = (int)eventData.button;
 
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Up, button, GetMouseEventModifiers(), eventData.delta / GetScale(), device));
+            PushMouseEvent(new ImMouseEvent(ImMouseEventType.Up, button, GetMouseEventModifiers(), eventData.delta / GetScale(), device), pos);
 
             if (!possibleClick[button])
             {
                 return;
             }
 
-            var distance = Vector2.Distance(mouseDownPos[button], GetMousePosition());
+            var distance = Vector2.Distance(mouseDownPos[button], pos);
             if (distance < CLICK_POS_THRESHOLD)
             {
-                mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Click, button, GetMouseEventModifiers(), default, device));
+                PushMouseEvent(new ImMouseEvent(ImMouseEventType.Click, button, GetMouseEventModifiers(), default, device), pos);
                 possibleClick[button] = false;
             }
         }
 
         public void OnDrag(PointerEventData eventData)
         {
+            var pos = GetPointerEventPosition(eventData);
             var device = GetDeviceType(eventData);
             var delta = eventData.delta / GetScale();
             var button = (int)eventData.button;
@@ -362,30 +384,33 @@ namespace Imui.IO.UGUI
             mouseHeldDown = false;
 
             if (mouseEventsQueue.TryPeekFront(out var existingEvent) &&
-                existingEvent.Type == ImMouseEventType.BeginDrag &&
-                existingEvent.Button == button &&
-                existingEvent.Modifiers == modifiers &&
-                existingEvent.Device == device &&
-                existingEvent.Delta == delta)
+                existingEvent.Event.Type == ImMouseEventType.BeginDrag &&
+                existingEvent.Event.Button == button &&
+                existingEvent.Event.Modifiers == modifiers &&
+                existingEvent.Event.Device == device &&
+                existingEvent.Event.Delta == delta)
             {
                 // (artem-s): skip this event, because drag delta is already handled by BeginDrag
                 return;
             }
 
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Drag, button, modifiers, delta, device));
+            PushMouseEvent(new ImMouseEvent(ImMouseEventType.Drag, button, modifiers, delta, device), pos);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            var pos = GetPointerEventPosition(eventData);
             var device = GetDeviceType(eventData);
 
             mouseHeldDown = false;
-            mouseEventsQueue.PushFront(
-                new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / GetScale(), device));
+            PushMouseEvent(
+                new ImMouseEvent(ImMouseEventType.BeginDrag, (int)eventData.button, GetMouseEventModifiers(), eventData.delta / GetScale(), device),
+                pos);
         }
 
         public void OnScroll(PointerEventData eventData)
         {
+            var pos = GetPointerEventPosition(eventData);
             mouseHeldDown = false;
 
             var dx = eventData.scrollDelta.x;
@@ -393,7 +418,12 @@ namespace Imui.IO.UGUI
             
             var device = GetDeviceType(eventData);
             var delta = ImUnityScrollUtility.ProcessScrollDelta(dx, dy);
-            mouseEventsQueue.PushFront(new ImMouseEvent(ImMouseEventType.Scroll, (int)eventData.button, EventModifiers.None, delta, device));
+            PushMouseEvent(new ImMouseEvent(ImMouseEventType.Scroll, (int)eventData.button, EventModifiers.None, delta, device), pos);
+        }
+
+        private void PushMouseEvent(ImMouseEvent evt, Vector2 position)
+        {
+            mouseEventsQueue.PushFront(new QueuedMouseEvent(evt, position));
         }
 
         private EventModifiers GetMouseEventModifiers()
@@ -411,6 +441,11 @@ namespace Imui.IO.UGUI
         private static Vector2 GetScreenPointerPosition()
         {
             return ImUnityInputWrapper.MousePosition;
+        }
+
+        private Vector2 GetPointerEventPosition(PointerEventData eventData)
+        {
+            return ((Vector2)eventData.position - GetWorldRect().position) / GetScale();
         }
 
         private ImMouseDevice GetDeviceType(PointerEventData e)
