@@ -10,11 +10,61 @@ namespace Imui.IO.Utility
     public static class ImUnityInputWrapper
     {
 #if ENABLE_INPUT_SYSTEM
-        public static Vector2 MousePosition => TryGetActiveTouch(out TouchControl touch)
-            ? touch.position.ReadValue()
-            : Mouse.current?.position?.value ?? default;
+        public static Vector2 MousePosition
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (TryGetMousePosition(out Vector2 mousePosition))
+                    return mousePosition;
+                if (TryGetActiveTouch(out TouchControl touch))
+                    return touch.position.ReadValue();
+                // Device Simulator disables the mouse and reports a hovering touch with
+                // phase Ended (so TryGetActiveTouch rejects it), yet Pointer.current still
+                // carries the correct device-space position. Use it so hover doesn't snap to (0,0).
+                if (TryGetPointerPosition(out Vector2 pointerPosition))
+                    return pointerPosition;
+                return default;
+#else
+                if (TryGetActiveTouch(out TouchControl touch))
+                    return touch.position.ReadValue();
+                if (TryGetMousePosition(out Vector2 mousePosition))
+                    return mousePosition;
+                if (TryGetPointerPosition(out Vector2 pointerPosition))
+                    return pointerPosition;
+                return default;
+#endif
+            }
+        }
+
         public static bool TouchScreenSupported => Touchscreen.current?.enabled ?? false;
         public static bool IsControlPressed => Keyboard.current?.ctrlKey.isPressed ?? false;
+
+        static bool TryGetMousePosition(out Vector2 position)
+        {
+            var mouse = Mouse.current;
+            if (mouse == null || !mouse.enabled)
+            {
+                position = default;
+                return false;
+            }
+
+            position = mouse.position.ReadValue();
+            return IsFinite(position);
+        }
+
+        static bool TryGetPointerPosition(out Vector2 position)
+        {
+            var pointer = Pointer.current;
+            if (pointer == null || !pointer.enabled)
+            {
+                position = default;
+                return false;
+            }
+
+            position = pointer.position.ReadValue();
+            return IsFinite(position);
+        }
         
         public static bool IsTouchBeganThisFrame()
         {
@@ -85,6 +135,14 @@ namespace Imui.IO.Utility
                 || phase == UnityEngine.InputSystem.TouchPhase.Began
                 || phase == UnityEngine.InputSystem.TouchPhase.Moved
                 || phase == UnityEngine.InputSystem.TouchPhase.Stationary;
+        }
+
+        static bool IsFinite(Vector2 value)
+        {
+            return !float.IsNaN(value.x)
+                && !float.IsInfinity(value.x)
+                && !float.IsNaN(value.y)
+                && !float.IsInfinity(value.y);
         }
 #else
         public static Vector2 MousePosition => Input.mousePosition;
