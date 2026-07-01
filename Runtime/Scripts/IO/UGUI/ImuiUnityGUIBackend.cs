@@ -59,7 +59,19 @@ namespace Imui.IO.UGUI
         public int KeyboardEventsCount => keyboardEvents.Count;
 
         public override Texture mainTexture => texture?.Texture == null ? ClearTexture : texture.Texture;
-        public override Material defaultMaterial => DefaultMaterial ? DefaultMaterial : base.defaultMaterial;
+        public override Material defaultMaterial
+        {
+            get
+            {
+                // Created lazily rather than in Awake: after an assembly reload [ExecuteAlways]
+                // components only get OnEnable, and with Enter Play Mode Options they get neither
+                // Awake nor OnEnable when entering play — an Awake-only setup leaves the canvas
+                // rebuild binding base.defaultMaterial, which skips the color-space conversion
+                // this backend's shader performs in Linear projects.
+                var material = GetDefaultMaterial();
+                return material ? material : base.defaultMaterial;
+            }
+        }
 
         public float CustomScale
         {
@@ -99,15 +111,6 @@ namespace Imui.IO.UGUI
         protected override void Awake()
         {
             base.Awake();
-
-            if (!DefaultMaterial)
-            {
-                var shader = Resources.Load<Shader>("Imui/imui_ugui");
-                if (shader)
-                {
-                    DefaultMaterial = new Material(shader);
-                }
-            }
 
             useGUILayout = false;
         }
@@ -159,6 +162,28 @@ namespace Imui.IO.UGUI
 
             touchKeyboardHandler ??= new ImTouchKeyboard();
             texture ??= new ImDynamicRenderTexture();
+        }
+
+        private static Material GetDefaultMaterial()
+        {
+            if (DefaultMaterial)
+            {
+                return DefaultMaterial;
+            }
+
+            var shader = Resources.Load<Shader>("Imui/imui_ugui");
+            if (!shader)
+            {
+                return null;
+            }
+
+            // Shared by all backend instances, recreated after domain reload. DontSave keeps it
+            // out of scene/prefab serialization and out of Resources.UnloadUnusedAssets.
+            DefaultMaterial = new Material(shader)
+            {
+                hideFlags = HideFlags.DontSave
+            };
+            return DefaultMaterial;
         }
 
         protected override void OnDisable()
