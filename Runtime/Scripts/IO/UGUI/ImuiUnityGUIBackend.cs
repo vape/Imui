@@ -97,7 +97,6 @@ namespace Imui.IO.UGUI
                 }
             }
 
-            scheduler ??= GraphicsSettings.currentRenderPipeline ? new ImuiScriptableRenderingScheduler() : new ImuiBuiltinRenderingScheduler();
             useGUILayout = false;
         }
 
@@ -121,6 +120,8 @@ namespace Imui.IO.UGUI
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            scheduler ??= GraphicsSettings.currentRenderPipeline ? new ImuiScriptableRenderingScheduler() : new ImuiBuiltinRenderingScheduler();
 
             if (ClearTexture == null)
             {
