@@ -42,7 +42,6 @@ namespace Imui.Controls
         {
             gui.Canvas.PushNoClipRect();
             gui.Canvas.PushOrder(order);
-            gui.RegisterRaycastTarget(gui.Canvas.ScreenRect);
 
             var id = gui.GetNextControlId();
 
