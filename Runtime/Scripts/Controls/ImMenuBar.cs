@@ -52,6 +52,8 @@ namespace Imui.Controls
             gui.Layout.Push(ImAxis.Horizontal, rect);
             gui.Canvas.PushOrder(order);
 
+            gui.RegisterControl(id, rect);
+
             gui.Box(rect, in gui.Style.MenuBar.Box);
         }
 

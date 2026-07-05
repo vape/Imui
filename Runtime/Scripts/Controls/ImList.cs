@@ -16,8 +16,10 @@ namespace Imui.Controls
 
         public static void BeginList(this ImGui gui, ImRect rect)
         {
+            var id = gui.GetNextControlId();
+
             gui.Box(rect, gui.Style.List.Box);
-            gui.RegisterRaycastTarget(rect);
+            gui.RegisterControl(id, rect);
 
             var layoutRect = rect.WithPadding(gui.Style.List.Padding);
             var maskRect = rect.WithPadding(gui.Style.List.Box.BorderThickness);
