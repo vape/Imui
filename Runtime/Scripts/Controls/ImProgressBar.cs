@@ -86,6 +86,12 @@ namespace Imui.Controls
                 rect = rect.TakeLeft(rect.W * normalized);
                 rect.W = Mathf.Max(rect.W, gui.Style.ProgressBar.Fill.BorderRadius.MinRectSideSize);
 
+                if (!gui.Canvas.Cull(rect))
+                {
+                    // (artem-s): update at least 10 times a second when progress is visible
+                    gui.SetPreferredRefreshRate(10);
+                }
+
                 gui.Box(rect, in gui.Style.ProgressBar.Fill);
             }
         }
@@ -97,6 +103,12 @@ namespace Imui.Controls
             rect = rect.ScaleFromCenter(gui.Style.ProgressBar.BarScale);
             gui.Box(rect, in gui.Style.ProgressBar.Box);
             rect.AddPadding(gui.Style.ProgressBar.FillPadding);
+            
+            if (!gui.Canvas.Cull(rect))
+            {
+                // (artem-s): animate at least 30 times a second when bar is visible
+                gui.SetPreferredRefreshRate(30);
+            }
 
             var minSize = gui.Style.ProgressBar.Fill.BorderRadius.MinRectSideSize;
             var width = Mathf.Max(rect.W * gui.Style.ProgressBar.IndeterminateWidth, minSize);
