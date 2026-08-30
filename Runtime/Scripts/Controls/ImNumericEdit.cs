@@ -30,11 +30,12 @@ namespace Imui.Controls
                                        byte step = 1,
                                        byte min = byte.MinValue,
                                        byte max = byte.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             var rect = ImTextEdit.AddRect(gui, size, false, out _);
-            return NumericEdit(gui, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -45,11 +46,12 @@ namespace Imui.Controls
                                        short step = 1,
                                        short min = short.MinValue,
                                        short max = short.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             var rect = ImTextEdit.AddRect(gui, size, false, out _);
-            return NumericEdit(gui, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -60,11 +62,12 @@ namespace Imui.Controls
                                        int step = 1,
                                        int min = int.MinValue,
                                        int max = int.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             var rect = ImTextEdit.AddRect(gui, size, false, out _);
-            return NumericEdit(gui, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -75,11 +78,12 @@ namespace Imui.Controls
                                        long step = 1L,
                                        long min = long.MinValue,
                                        long max = long.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             var rect = ImTextEdit.AddRect(gui, size, false, out _);
-            return NumericEdit(gui, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -90,11 +94,12 @@ namespace Imui.Controls
                                        float step = 0.1f,
                                        float min = float.MinValue,
                                        float max = float.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             var rect = ImTextEdit.AddRect(gui, size, false, out _);
-            return NumericEdit(gui, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -105,11 +110,12 @@ namespace Imui.Controls
                                        double step = 0.1d,
                                        double min = double.MinValue,
                                        double max = double.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             gui.AddSpacingIfLayoutFrameNotEmpty();
             var rect = ImTextEdit.AddRect(gui, size, false, out _);
-            return NumericEdit(gui, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,11 +126,12 @@ namespace Imui.Controls
                                        byte step = 1,
                                        byte min = byte.MinValue,
                                        byte max = byte.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var id = gui.GetNextControlId();
 
-            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -135,11 +142,12 @@ namespace Imui.Controls
                                        short step = 1,
                                        short min = short.MinValue,
                                        short max = short.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var id = gui.GetNextControlId();
 
-            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -150,11 +158,12 @@ namespace Imui.Controls
                                        int step = 1,
                                        int min = int.MinValue,
                                        int max = int.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var id = gui.GetNextControlId();
 
-            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -165,11 +174,12 @@ namespace Imui.Controls
                                        long step = 1L,
                                        long min = long.MinValue,
                                        long max = long.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var id = gui.GetNextControlId();
 
-            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -180,11 +190,12 @@ namespace Imui.Controls
                                        float step = 0.1f,
                                        float min = float.MinValue,
                                        float max = float.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var id = gui.GetNextControlId();
 
-            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -195,11 +206,12 @@ namespace Imui.Controls
                                        double step = 0.1d,
                                        double min = double.MinValue,
                                        double max = double.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var id = gui.GetNextControlId();
 
-            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags);
+            return NumericEdit(gui, id, ref value, rect, format, step, min, max, flags, hint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -211,10 +223,11 @@ namespace Imui.Controls
                                        byte step = 1,
                                        byte min = byte.MinValue,
                                        byte max = byte.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var numberValue = new NumberValue(value);
-            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags);
+            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags, hint);
             if (changed)
             {
                 value = numberValue.ValueByte;
@@ -232,10 +245,11 @@ namespace Imui.Controls
                                        short step = 1,
                                        short min = short.MinValue,
                                        short max = short.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var numberValue = new NumberValue(value);
-            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags);
+            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags, hint);
             if (changed)
             {
                 value = numberValue.ValueInt16;
@@ -253,10 +267,11 @@ namespace Imui.Controls
                                        int step = 1,
                                        int min = int.MinValue,
                                        int max = int.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var numberValue = new NumberValue(value);
-            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags);
+            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags, hint);
             if (changed)
             {
                 value = numberValue.ValueInt32;
@@ -274,10 +289,11 @@ namespace Imui.Controls
                                        long step = 1L,
                                        long min = long.MinValue,
                                        long max = long.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var numberValue = new NumberValue(value);
-            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags);
+            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags, hint);
             if (changed)
             {
                 value = numberValue.ValueInt64;
@@ -295,10 +311,11 @@ namespace Imui.Controls
                                        float step = 0.1f,
                                        float min = float.MinValue,
                                        float max = float.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var numberValue = new NumberValue(value);
-            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags);
+            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags, hint);
             if (changed)
             {
                 value = numberValue.ValueSingle;
@@ -316,10 +333,11 @@ namespace Imui.Controls
                                        double step = 0.1d,
                                        double min = double.MinValue,
                                        double max = double.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var numberValue = new NumberValue(value);
-            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags);
+            var changed = NumericEditControl(gui, id, ref numberValue, rect, format, step, min, max, flags, hint);
             if (changed)
             {
                 value = numberValue.ValueDouble;
@@ -336,7 +354,8 @@ namespace Imui.Controls
                                        byte step = 1,
                                        byte min = byte.MinValue,
                                        byte max = byte.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var item = group.GetNext();
             bool changed;
@@ -349,7 +368,7 @@ namespace Imui.Controls
                 group.Gui.Style.TextEdit.Normal.Box.BorderRadius.Apply(item.Flags);
                 group.Gui.Style.TextEdit.Selected.Box.BorderRadius.Apply(item.Flags);
             
-                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags);
+                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags, hint);
             }
             finally
             {
@@ -368,7 +387,8 @@ namespace Imui.Controls
                                        short step = 1,
                                        short min = short.MinValue,
                                        short max = short.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var item = group.GetNext();
             bool changed;
@@ -381,7 +401,7 @@ namespace Imui.Controls
                 group.Gui.Style.TextEdit.Normal.Box.BorderRadius.Apply(item.Flags);
                 group.Gui.Style.TextEdit.Selected.Box.BorderRadius.Apply(item.Flags);
             
-                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags);
+                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags, hint);
             }
             finally
             {
@@ -400,7 +420,8 @@ namespace Imui.Controls
                                        int step = 1,
                                        int min = int.MinValue,
                                        int max = int.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var item = group.GetNext();
             bool changed;
@@ -413,7 +434,7 @@ namespace Imui.Controls
                 group.Gui.Style.TextEdit.Normal.Box.BorderRadius.Apply(item.Flags);
                 group.Gui.Style.TextEdit.Selected.Box.BorderRadius.Apply(item.Flags);
             
-                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags);
+                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags, hint);
             }
             finally
             {
@@ -432,7 +453,8 @@ namespace Imui.Controls
                                        long step = 1,
                                        long min = long.MinValue,
                                        long max = long.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var item = group.GetNext();
             bool changed;
@@ -445,7 +467,7 @@ namespace Imui.Controls
                 group.Gui.Style.TextEdit.Normal.Box.BorderRadius.Apply(item.Flags);
                 group.Gui.Style.TextEdit.Selected.Box.BorderRadius.Apply(item.Flags);
             
-                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags);
+                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags, hint);
             }
             finally
             {
@@ -464,7 +486,8 @@ namespace Imui.Controls
                                        float step = 0.1f,
                                        float min = float.MinValue,
                                        float max = float.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var item = group.GetNext();
             bool changed;
@@ -477,7 +500,7 @@ namespace Imui.Controls
                 group.Gui.Style.TextEdit.Normal.Box.BorderRadius.Apply(item.Flags);
                 group.Gui.Style.TextEdit.Selected.Box.BorderRadius.Apply(item.Flags);
             
-                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags);
+                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags, hint);
             }
             finally
             {
@@ -496,7 +519,8 @@ namespace Imui.Controls
                                        double step = 0.1d,
                                        double min = double.MinValue,
                                        double max = double.MaxValue,
-                                       ImNumericEditFlag flags = default)
+                                       ImNumericEditFlag flags = default,
+                                       ReadOnlySpan<char> hint = default)
         {
             var item = group.GetNext();
             bool changed;
@@ -509,7 +533,7 @@ namespace Imui.Controls
                 group.Gui.Style.TextEdit.Normal.Box.BorderRadius.Apply(item.Flags);
                 group.Gui.Style.TextEdit.Selected.Box.BorderRadius.Apply(item.Flags);
             
-                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags);
+                changed = NumericEdit(group.Gui, id, ref value, item.Rect, format, step, min, max, flags, hint);
             }
             finally
             {
@@ -528,7 +552,8 @@ namespace Imui.Controls
                                               NumberValue step,
                                               NumberValue min,
                                               NumberValue max,
-                                              ImNumericEditFlag flags)
+                                              ImNumericEditFlag flags,
+                                              ReadOnlySpan<char> hint)
         {
             ImAssert.IsTrue(value.Type == min.Type && value.Type == max.Type && value.Type == step.Type,
                             "value.Type == min.Type && value.Type == max.Type && value.Type == step.Type");
@@ -629,7 +654,7 @@ namespace Imui.Controls
             {
                 using (gui.StyleScope(ref gui.Style.TextEdit.Padding.Right, plusMinusRect.W))
                 {
-                    changed = gui.TextEdit(id, ref textBuffer, rect, false, ImTouchKeyboardType.Numeric);
+                    changed = gui.TextEdit(id, ref textBuffer, rect, false, ImTouchKeyboardType.Numeric, hint);
                 }
             }
 

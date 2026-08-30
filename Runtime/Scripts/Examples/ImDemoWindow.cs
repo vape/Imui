@@ -298,9 +298,8 @@ namespace Imui.Examples
             numericFlag |= showPlusMinusButtons ? ImNumericEditFlag.PlusMinus : ImNumericEditFlag.None;
             numericFlag |= useNumericSlider ? ImNumericEditFlag.Slider : ImNumericEditFlag.None;
 
-
-            gui.NumericEdit(ref floatValue, step: 0.05f, flags: numericFlag, format: "0.0### kg");
-            gui.NumericEdit(ref intValue, flags: numericFlag, format: "0 miles");
+            gui.NumericEdit(ref floatValue, step: 0.05f, flags: numericFlag, format: "0.0### kg", hint: "Enter weight");
+            gui.NumericEdit(ref intValue, flags: numericFlag, format: "0 miles", hint: "Enter distance");
 
             gui.AddSpacingIfLayoutFrameNotEmpty();
             gui.Separator("Radio buttons (enum flags)");
