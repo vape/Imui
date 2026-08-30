@@ -31,17 +31,36 @@ namespace Imui.Controls
                 return;
             }
 
-            Tooltip(gui, text, gui.Input.MousePosition + gui.Style.Tooltip.OffsetPixels / gui.Canvas.ScreenScale);
+            TooltipAtMouse(gui, text);
         }
 
-        public static void Tooltip(this ImGui gui, ReadOnlySpan<char> text, Vector2 position)
+        public static void TooltipAtMouse(this ImGui gui, ReadOnlySpan<char> text)
         {
-            var textSettings = GetTextSettings(gui);
-            var textSize = gui.MeasureTextSize(text, textSettings);
-            var width = textSize.x + gui.Style.Tooltip.Padding.Horizontal;
-            var height = textSize.y + gui.Style.Tooltip.Padding.Vertical;
-            var rect = new ImRect(position.x, gui.Style.Tooltip.AboveCursor ? position.y : position.y - height, width, height);
+            var size = CalculateSize(gui, text);
+            var position = gui.Input.MousePosition;
+            var rect = new ImRect(position.x, position.y, size.x, size.y);
+            var safeRect = gui.Canvas.SafeScreenRect;
 
+            if (rect.Right > safeRect.Right)
+            {
+                rect.X -= rect.W;
+                rect.X -= gui.Style.Tooltip.OffsetPixels.x;
+            }
+            else
+            {
+                rect.X += gui.Style.Tooltip.OffsetPixels.x;
+            }
+
+            if (rect.Top > safeRect.Top)
+            {
+                rect.Y -= rect.H;
+                rect.Y += gui.Style.Tooltip.OffsetPixels.y;
+            }
+            else
+            {
+                rect.Y -= gui.Style.Tooltip.OffsetPixels.y;
+            }
+            
             Tooltip(gui, text, rect);
         }
 
@@ -51,6 +70,16 @@ namespace Imui.Controls
             gui.Box(rect, gui.Style.Tooltip.Box);
             gui.Text(text, GetTextSettings(gui), rect);
             gui.EndPopup();
+        }
+
+        public static Vector2 CalculateSize(ImGui gui, ReadOnlySpan<char> text) => CalculateSize(gui, text, GetTextSettings(gui));
+        public static Vector2 CalculateSize(ImGui gui, ReadOnlySpan<char> text, in ImTextSettings textSettings)
+        {
+            var textSize = gui.MeasureTextSize(text, textSettings);
+            var width = textSize.x + gui.Style.Tooltip.Padding.Horizontal;
+            var height = textSize.y + gui.Style.Tooltip.Padding.Vertical;
+            
+            return new Vector2(width, height);
         }
 
         public static ImTextSettings GetTextSettings(ImGui gui)

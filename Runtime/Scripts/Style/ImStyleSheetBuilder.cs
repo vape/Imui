@@ -360,14 +360,13 @@ namespace Imui.Style
 
             // tooltip
 
-            sheet.Tooltip.OffsetPixels = new Vector2(40, -40);
+            sheet.Tooltip.OffsetPixels = new Vector2(20, -20);
             sheet.Tooltip.Padding = theme.InnerSpacing;
             sheet.Tooltip.Box.BackColor = palette.Back;
             sheet.Tooltip.Box.BorderColor = palette.Back.ToBorder(ctx);
             sheet.Tooltip.Box.BorderRadius = theme.BorderRadius;
             sheet.Tooltip.Box.BorderThickness = theme.BorderThickness;
             sheet.Tooltip.Box.FrontColor = palette.Front;
-            sheet.Tooltip.AboveCursor = false;
 
             // menu
 
