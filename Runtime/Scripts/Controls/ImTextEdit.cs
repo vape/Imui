@@ -338,6 +338,11 @@ namespace Imui.Controls
             var hovered = gui.IsControlHovered(id);
             var textChanged = false;
             var editable = !gui.IsReadOnly;
+
+            if (selected)
+            {
+                gui.RequestKeyboardCapture();
+            }
             var wrap = gui.Style.TextEdit.TextWrap;
 
             ref readonly var stateStyle = ref (selected ? ref style.Selected : ref style.Normal);
