@@ -115,6 +115,12 @@ namespace Imui.Core
         public uint LastControl => lastControl;
         public ImRect LastControlRect => lastControlRect;
 
+        /// <summary>
+        /// True if a control that consumes keyboard input (e.g. text edit) was focused during the previous frame.
+        /// Use it to avoid dispatching keyboard input to the rest of the application.
+        /// </summary>
+        public bool WantCaptureKeyboard { get; private set; }
+
         public readonly ImMeshBuffer MeshBuffer;
         public readonly ImMeshRenderer MeshRenderer;
         public readonly ImMeshDrawer MeshDrawer;
@@ -140,6 +146,7 @@ namespace Imui.Core
         private ImDynamicArray<bool> readOnlyStack;
         private uint activeControl;
         private ImControlFlag activeControlFlag;
+        private bool nextWantCaptureKeyboard;
         private uint lastControl;
         private ImRect lastControlRect;
         private ImDynamicArray<ImControlScope> controlScopesStack;
@@ -186,6 +193,9 @@ namespace Imui.Core
 
             (nextFrameData, frameData) = (frameData, nextFrameData);
             nextFrameData.Clear();
+
+            WantCaptureKeyboard = nextWantCaptureKeyboard;
+            nextWantCaptureKeyboard = false;
 
             var uiScale = Renderer.GetScale();
             var scaledTargetSize = Renderer.GetScreenSize() / Renderer.GetScale();
@@ -406,6 +416,11 @@ namespace Imui.Core
         {
             activeControl = controlId;
             activeControlFlag = flag;
+        }
+
+        public void RequestKeyboardCapture()
+        {
+            nextWantCaptureKeyboard = true;
         }
 
         public void ResetActiveControl()
